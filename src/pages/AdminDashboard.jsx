@@ -1,4 +1,3 @@
-
 import React from "react";
 import { useQuery } from "@tanstack/react-query";
 import { base44 } from "@/api/base44Client";
@@ -78,9 +77,8 @@ export default function AdminDashboard() {
       title: "Total Users",
       value: users.length,
       icon: Users,
-      color: "from-cyan-500 to-blue-500",
+      color: "from-blue-500 to-cyan-500",
       trend: "+12.5%",
-      bgColor: "bg-cyan-500/10"
     },
     {
       title: "Live Streams",
@@ -88,7 +86,6 @@ export default function AdminDashboard() {
       icon: Video,
       color: "from-purple-500 to-pink-500",
       trend: "+8.2%",
-      bgColor: "bg-purple-500/10"
     },
     {
       title: "Total Revenue",
@@ -96,15 +93,13 @@ export default function AdminDashboard() {
       icon: DollarSign,
       color: "from-green-500 to-emerald-500",
       trend: "+23.1%",
-      bgColor: "bg-green-500/10"
     },
     {
       title: "Active Groups",
       value: groups.length,
       icon: Users,
-      color: "from-amber-500 to-orange-500",
+      color: "from-orange-500 to-amber-500",
       trend: "+5.4%",
-      bgColor: "bg-amber-500/10"
     },
     {
       title: "Blog Posts",
@@ -112,7 +107,6 @@ export default function AdminDashboard() {
       icon: FileText,
       color: "from-indigo-500 to-blue-500",
       trend: "+15.3%",
-      bgColor: "bg-indigo-500/10"
     },
     {
       title: "Products",
@@ -120,7 +114,6 @@ export default function AdminDashboard() {
       icon: ShoppingBag,
       color: "from-pink-500 to-rose-500",
       trend: "+7.8%",
-      bgColor: "bg-pink-500/10"
     }
   ];
 
@@ -144,7 +137,7 @@ export default function AdminDashboard() {
     <div className="space-y-6">
       <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-6 gap-4">
         {statsCards.map((stat, index) => (
-          <Card key={index} className="bg-gradient-to-br from-[#2a2f4a] to-[#1e2139] border-0 overflow-hidden relative group hover:shadow-xl hover:shadow-cyan-500/10 transition-all">
+          <Card key={index} className="bg-[#1a1f3a] border-0 overflow-hidden relative group hover:shadow-2xl hover:shadow-cyan-500/20 transition-all">
             <CardContent className="p-5 relative">
               <div className="flex items-center justify-between mb-3">
                 <div className={`w-12 h-12 rounded-2xl bg-gradient-to-br ${stat.color} flex items-center justify-center shadow-lg`}>
@@ -156,16 +149,16 @@ export default function AdminDashboard() {
                 </span>
               </div>
               <h3 className="text-xs text-slate-400 mb-1 font-medium">{stat.title}</h3>
-              <p className="text-3xl font-bold text-white">{stat.value}</p>
+              <p className="text-2xl font-bold text-white">{stat.value}</p>
             </CardContent>
           </Card>
         ))}
       </div>
 
       <div className="grid lg:grid-cols-3 gap-6">
-        <Card className="bg-gradient-to-br from-[#2a2f4a] to-[#1e2139] border-0 lg:col-span-2">
-          <CardHeader className="border-b border-white/5">
-            <CardTitle className="text-white flex items-center gap-2 text-lg font-bold">
+        <Card className="bg-[#1a1f3a] border-0 lg:col-span-2">
+          <CardHeader className="border-b border-white/5 pb-4">
+            <CardTitle className="text-white flex items-center gap-2 text-base font-bold">
               <Activity className="w-5 h-5 text-cyan-400" />
               Platform Activity
             </CardTitle>
@@ -177,20 +170,20 @@ export default function AdminDashboard() {
                 <XAxis dataKey="month" stroke="#94a3b8" style={{ fontSize: '12px' }} />
                 <YAxis stroke="#94a3b8" style={{ fontSize: '12px' }} />
                 <Tooltip
-                  contentStyle={{ backgroundColor: '#2a2f4a', border: '1px solid rgba(255,255,255,0.1)', borderRadius: '8px' }}
-                  labelStyle={{ color: '#f8fafc' }}
+                  contentStyle={{ backgroundColor: '#1a1f3a', border: '1px solid rgba(255,255,255,0.1)', borderRadius: '8px' }}
+                  labelStyle={{ color: '#f8fafc', fontWeight: '600' }}
                 />
-                <Legend />
-                <Line type="monotone" dataKey="streams" stroke="#00d9ff" strokeWidth={3} name="Live Streams" dot={{ fill: '#00d9ff', r: 4 }} />
-                <Line type="monotone" dataKey="orders" stroke="#a855f7" strokeWidth={3} name="Orders" dot={{ fill: '#a855f7', r: 4 }} />
+                <Legend wrapperStyle={{ fontSize: '12px' }} />
+                <Line type="monotone" dataKey="streams" stroke="#22d3ee" strokeWidth={2} name="Live Streams" dot={{ fill: '#22d3ee', r: 4 }} />
+                <Line type="monotone" dataKey="orders" stroke="#a855f7" strokeWidth={2} name="Orders" dot={{ fill: '#a855f7', r: 4 }} />
               </LineChart>
             </ResponsiveContainer>
           </CardContent>
         </Card>
 
-        <Card className="bg-gradient-to-br from-[#2a2f4a] to-[#1e2139] border-0">
-          <CardHeader className="border-b border-white/5">
-            <CardTitle className="text-white flex items-center gap-2 text-lg font-bold">
+        <Card className="bg-[#1a1f3a] border-0">
+          <CardHeader className="border-b border-white/5 pb-4">
+            <CardTitle className="text-white flex items-center gap-2 text-base font-bold">
               <FileText className="w-5 h-5 text-purple-400" />
               Content Distribution
             </CardTitle>
@@ -213,7 +206,7 @@ export default function AdminDashboard() {
                   ))}
                 </Pie>
                 <Tooltip
-                  contentStyle={{ backgroundColor: '#2a2f4a', border: '1px solid rgba(255,255,255,0.1)', borderRadius: '8px' }}
+                  contentStyle={{ backgroundColor: '#1a1f3a', border: '1px solid rgba(255,255,255,0.1)', borderRadius: '8px' }}
                 />
               </PieChart>
             </ResponsiveContainer>
@@ -221,9 +214,9 @@ export default function AdminDashboard() {
         </Card>
       </div>
 
-      <Card className="bg-gradient-to-br from-[#2a2f4a] to-[#1e2139] border-0">
-        <CardHeader className="border-b border-white/5">
-          <CardTitle className="text-white flex items-center gap-2 text-lg font-bold">
+      <Card className="bg-[#1a1f3a] border-0">
+        <CardHeader className="border-b border-white/5 pb-4">
+          <CardTitle className="text-white flex items-center gap-2 text-base font-bold">
             <DollarSign className="w-5 h-5 text-green-400" />
             Revenue Overview
           </CardTitle>
@@ -235,10 +228,10 @@ export default function AdminDashboard() {
               <XAxis dataKey="month" stroke="#94a3b8" style={{ fontSize: '12px' }} />
               <YAxis stroke="#94a3b8" style={{ fontSize: '12px' }} />
               <Tooltip
-                contentStyle={{ backgroundColor: '#2a2f4a', border: '1px solid rgba(255,255,255,0.1)', borderRadius: '8px' }}
-                labelStyle={{ color: '#f8fafc' }}
+                contentStyle={{ backgroundColor: '#1a1f3a', border: '1px solid rgba(255,255,255,0.1)', borderRadius: '8px' }}
+                labelStyle={{ color: '#f8fafc', fontWeight: '600' }}
               />
-              <Legend />
+              <Legend wrapperStyle={{ fontSize: '12px' }} />
               <Bar dataKey="donations" fill="#10b981" name="Donations ($)" radius={[8, 8, 0, 0]} />
               <Bar dataKey="orders" fill="#a855f7" name="Orders ($)" radius={[8, 8, 0, 0]} />
             </BarChart>
@@ -247,15 +240,15 @@ export default function AdminDashboard() {
       </Card>
 
       <div className="grid lg:grid-cols-2 gap-6">
-        <Card className="bg-gradient-to-br from-[#2a2f4a] to-[#1e2139] border-0">
-          <CardHeader className="border-b border-white/5">
-            <CardTitle className="text-white flex items-center gap-2 text-lg font-bold">
+        <Card className="bg-[#1a1f3a] border-0">
+          <CardHeader className="border-b border-white/5 pb-4">
+            <CardTitle className="text-white flex items-center gap-2 text-base font-bold">
               <Video className="w-5 h-5 text-red-400" />
               Recent Live Streams
             </CardTitle>
           </CardHeader>
           <CardContent className="pt-4">
-            <div className="space-y-3">
+            <div className="space-y-2">
               {liveStreams.slice(0, 5).map((stream) => (
                 <div key={stream.id} className="flex items-center justify-between p-3 bg-white/5 rounded-lg hover:bg-white/10 transition-colors">
                   <div className="flex-1">
@@ -263,7 +256,7 @@ export default function AdminDashboard() {
                     <p className="text-xs text-slate-400">{stream.host_name}</p>
                   </div>
                   <div className="flex items-center gap-3">
-                    <span className="text-xs px-2 py-1 rounded-full bg-indigo-500/20 text-indigo-300">
+                    <span className="text-xs px-2 py-1 rounded-full bg-indigo-500/20 text-indigo-300 font-medium">
                       {stream.status}
                     </span>
                     <div className="flex items-center gap-1 text-xs text-slate-400">
@@ -277,15 +270,15 @@ export default function AdminDashboard() {
           </CardContent>
         </Card>
 
-        <Card className="bg-gradient-to-br from-[#2a2f4a] to-[#1e2139] border-0">
-          <CardHeader className="border-b border-white/5">
-            <CardTitle className="text-white flex items-center gap-2 text-lg font-bold">
+        <Card className="bg-[#1a1f3a] border-0">
+          <CardHeader className="border-b border-white/5 pb-4">
+            <CardTitle className="text-white flex items-center gap-2 text-base font-bold">
               <ShoppingBag className="w-5 h-5 text-cyan-400" />
               Recent Orders
             </CardTitle>
           </CardHeader>
           <CardContent className="pt-4">
-            <div className="space-y-3">
+            <div className="space-y-2">
               {orders.slice(0, 5).map((order) => (
                 <div key={order.id} className="flex items-center justify-between p-3 bg-white/5 rounded-lg hover:bg-white/10 transition-colors">
                   <div className="flex-1">
@@ -294,7 +287,7 @@ export default function AdminDashboard() {
                   </div>
                   <div className="flex items-center gap-3">
                     <span className="text-sm font-bold text-green-400">${order.total_amount?.toFixed(2)}</span>
-                    <span className={`text-xs px-2 py-1 rounded-full ${
+                    <span className={`text-xs px-2 py-1 rounded-full font-medium ${
                       order.status === 'delivered' ? 'bg-green-500/20 text-green-300' :
                       order.status === 'shipped' ? 'bg-blue-500/20 text-blue-300' :
                       'bg-yellow-500/20 text-yellow-300'

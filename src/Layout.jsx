@@ -90,39 +90,48 @@ export default function Layout({ children, currentPageName }) {
       <SidebarProvider>
         <style>{`
           .admin-layout {
-            background: #1e2139;
+            background: #0a0e27;
             min-height: 100vh;
           }
           .admin-sidebar {
-            background: #1e2139;
+            background: #0f1629;
             border-right: 1px solid rgba(255, 255, 255, 0.05);
           }
+          .admin-main {
+            background: #0a0e27;
+          }
+          .admin-header {
+            background: #0f1629;
+            border-bottom: 1px solid rgba(255, 255, 255, 0.05);
+          }
           .admin-card {
-            background: linear-gradient(135deg, #2a2f4a 0%, #1e2139 100%);
+            background: linear-gradient(135deg, #1a1f3a 0%, #0f1629 100%);
             border: 1px solid rgba(255, 255, 255, 0.05);
             border-radius: 16px;
           }
-          .glow-cyan {
-            box-shadow: 0 0 20px rgba(0, 217, 255, 0.3);
+          .sidebar-section-label {
+            color: #22d3ee !important;
+            font-size: 11px;
+            font-weight: 700;
+            letter-spacing: 0.05em;
+            text-transform: uppercase;
           }
         `}</style>
         <div className="flex min-h-screen admin-layout">
           <Sidebar className="admin-sidebar">
-            <SidebarHeader className="border-b border-white/5 p-6">
-              <div className="flex items-center gap-3">
-                <div className="w-10 h-10 bg-gradient-to-br from-blue-600 to-cyan-500 rounded-xl flex items-center justify-center shadow-lg">
-                  <Shield className="w-6 h-6 text-white" />
+            <SidebarHeader className="border-b border-white/5 p-4">
+              <div className="flex items-center gap-2">
+                <div className="w-8 h-8 bg-gradient-to-br from-blue-600 to-cyan-500 rounded-lg flex items-center justify-center">
+                  <Shield className="w-5 h-5 text-white" />
                 </div>
-                <div>
-                  <h2 className="font-bold text-white text-base">Admin Panel</h2>
-                </div>
+                <span className="text-white font-bold text-sm">Admin Panel</span>
               </div>
             </SidebarHeader>
 
-            <SidebarContent className="p-3">
+            <SidebarContent className="p-2">
               {Object.entries(groupedAdminItems).map(([section, items]) => (
                 <SidebarGroup key={section}>
-                  <SidebarGroupLabel className="text-xs font-bold text-cyan-400 uppercase tracking-wider px-3 py-2 mb-1">
+                  <SidebarGroupLabel className="sidebar-section-label px-3 py-2 mb-0.5">
                     {section}
                   </SidebarGroupLabel>
                   <SidebarGroupContent>
@@ -131,13 +140,13 @@ export default function Layout({ children, currentPageName }) {
                         <SidebarMenuItem key={item.title}>
                           <SidebarMenuButton
                             asChild
-                            className={`rounded-lg mb-0.5 transition-all font-medium text-sm ${
+                            className={`rounded-lg mb-0.5 transition-all ${
                               location.pathname === item.url
                                 ? 'bg-cyan-500 text-white shadow-lg'
                                 : 'text-slate-400 hover:bg-white/5 hover:text-white'
                             }`}
                           >
-                            <Link to={item.url} className="flex items-center gap-3 px-3 py-2">
+                            <Link to={item.url} className="flex items-center gap-2.5 px-3 py-2 text-sm font-medium">
                               <item.icon className="w-4 h-4" />
                               <span>{item.title}</span>
                             </Link>
@@ -150,34 +159,34 @@ export default function Layout({ children, currentPageName }) {
               ))}
             </SidebarContent>
 
-            <SidebarFooter className="border-t border-white/5 p-4">
-              <div className="flex items-center gap-3 mb-3">
-                <Avatar className="w-9 h-9 border-2 border-cyan-500/40">
+            <SidebarFooter className="border-t border-white/5 p-3">
+              <div className="flex items-center gap-2.5 mb-2 px-1">
+                <Avatar className="w-8 h-8 border border-cyan-500/30">
                   <AvatarImage src={user?.profile_image} />
-                  <AvatarFallback className="bg-gradient-to-br from-purple-600 to-cyan-500 text-white font-bold text-sm">
+                  <AvatarFallback className="bg-gradient-to-br from-purple-600 to-cyan-500 text-white font-bold text-xs">
                     {user?.full_name?.[0] || 'A'}
                   </AvatarFallback>
                 </Avatar>
                 <div className="flex-1 min-w-0">
-                  <p className="font-semibold text-white text-sm truncate">{user?.full_name || 'Admin'}</p>
+                  <p className="font-semibold text-white text-xs truncate">{user?.full_name || 'Admin'}</p>
                   <p className="text-xs text-slate-400 truncate">{user?.email}</p>
                 </div>
               </div>
-              <div className="flex gap-2">
+              <div className="flex gap-1.5">
                 <Button
-                  variant="outline"
+                  variant="ghost"
                   size="sm"
                   onClick={() => window.location.href = createPageUrl("Home")}
-                  className="flex-1 bg-white/5 border-white/10 text-slate-300 hover:bg-white/10 text-xs"
+                  className="flex-1 bg-white/5 hover:bg-white/10 text-slate-300 text-xs h-8"
                 >
                   <Home className="w-3 h-3 mr-1" />
                   Site
                 </Button>
                 <Button
-                  variant="outline"
+                  variant="ghost"
                   size="sm"
                   onClick={handleLogout}
-                  className="bg-white/5 border-white/10 text-slate-300 hover:bg-white/10"
+                  className="bg-white/5 hover:bg-white/10 text-slate-300 h-8 px-2"
                 >
                   <LogOut className="w-3 h-3" />
                 </Button>
@@ -185,26 +194,26 @@ export default function Layout({ children, currentPageName }) {
             </SidebarFooter>
           </Sidebar>
 
-          <main className="flex-1 flex flex-col overflow-hidden">
-            <header className="bg-[#2a2f4a] border-b border-white/5 px-6 py-4">
+          <main className="flex-1 flex flex-col overflow-hidden admin-main">
+            <header className="admin-header px-6 py-4">
               <div className="flex items-center justify-between">
                 <div className="flex items-center gap-4">
                   <SidebarTrigger className="lg:hidden text-white hover:bg-white/10 p-2 rounded-lg" />
                   <h1 className="text-xl font-bold text-white">{currentPageName?.replace('Admin', '')}</h1>
                 </div>
-                <div className="flex items-center gap-3">
-                  <Button variant="ghost" size="icon" className="text-slate-300 hover:text-white hover:bg-white/10 rounded-lg relative">
+                <div className="flex items-center gap-2">
+                  <Button variant="ghost" size="icon" className="text-slate-400 hover:text-white hover:bg-white/10 rounded-lg relative">
                     <Bell className="w-5 h-5" />
-                    <span className="absolute top-1.5 right-1.5 w-2 h-2 bg-red-500 rounded-full"></span>
+                    <span className="absolute top-1 right-1 w-2 h-2 bg-red-500 rounded-full"></span>
                   </Button>
-                  <Button variant="ghost" size="icon" className="text-slate-300 hover:text-white hover:bg-white/10 rounded-lg">
+                  <Button variant="ghost" size="icon" className="text-slate-400 hover:text-white hover:bg-white/10 rounded-lg">
                     <Settings className="w-5 h-5" />
                   </Button>
                 </div>
               </div>
             </header>
 
-            <div className="flex-1 overflow-auto p-6 bg-[#1e2139]">
+            <div className="flex-1 overflow-auto p-6">
               {children}
             </div>
           </main>
