@@ -1,4 +1,3 @@
-
 import React from "react";
 import { useQuery } from "@tanstack/react-query";
 import { base44 } from "@/api/base44Client";
@@ -78,9 +77,9 @@ export default function AdminDashboard() {
       title: "Total Users",
       value: users.length,
       icon: Users,
-      color: "from-cyan-500 to-blue-500", // Changed
+      color: "from-cyan-500 to-blue-500",
       trend: "+12.5%",
-      bgColor: "bg-cyan-500/10" // Changed
+      bgColor: "bg-cyan-500/10"
     },
     {
       title: "Live Streams",
@@ -102,9 +101,9 @@ export default function AdminDashboard() {
       title: "Active Groups",
       value: groups.length,
       icon: Users,
-      color: "from-amber-500 to-orange-500", // Changed
+      color: "from-amber-500 to-orange-500",
       trend: "+5.4%",
-      bgColor: "bg-amber-500/10" // Changed
+      bgColor: "bg-amber-500/10"
     },
     {
       title: "Blog Posts",
@@ -142,10 +141,9 @@ export default function AdminDashboard() {
 
   return (
     <div className="space-y-6">
-      {/* Stats Grid */}
       <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-6 gap-4">
         {statsCards.map((stat, index) => (
-          <Card key={index} className="admin-card border-slate-700 overflow-hidden relative group hover:shadow-xl hover:shadow-cyan-500/10 transition-all"> {/* Changed border and added hover shadow */}
+          <Card key={index} className="admin-card border-slate-700 overflow-hidden relative group hover:shadow-xl hover:shadow-cyan-500/10 transition-all">
             <div className={`absolute top-0 right-0 w-32 h-32 bg-gradient-to-br ${stat.color} opacity-10 rounded-full transform translate-x-12 -translate-y-12`}></div>
             <CardContent className="p-6 relative">
               <div className="flex items-center justify-between mb-4">
@@ -165,11 +163,10 @@ export default function AdminDashboard() {
       </div>
 
       <div className="grid lg:grid-cols-3 gap-6">
-        {/* Activity Chart */}
-        <Card className="admin-card lg:col-span-2 border-slate-700"> {/* Changed border */}
+        <Card className="admin-card lg:col-span-2 border-slate-700">
           <CardHeader>
             <CardTitle className="text-white flex items-center gap-2">
-              <Activity className="w-5 h-5 text-cyan-400" /> {/* Changed icon color */}
+              <Activity className="w-5 h-5 text-cyan-400" />
               Platform Activity
             </CardTitle>
           </CardHeader>
@@ -180,19 +177,18 @@ export default function AdminDashboard() {
                 <XAxis dataKey="month" stroke="#94a3b8" />
                 <YAxis stroke="#94a3b8" />
                 <Tooltip
-                  contentStyle={{ backgroundColor: '#1a1f3a', border: '1px solid #334155', borderRadius: '8px' }} {/* Changed background color and border */}
+                  contentStyle={{ backgroundColor: '#1a1f3a', border: '1px solid #334155', borderRadius: '8px' }}
                   labelStyle={{ color: '#f8fafc' }}
                 />
                 <Legend />
-                <Line type="monotone" dataKey="streams" stroke="#00d9ff" strokeWidth={3} name="Live Streams" /> {/* Changed stroke color */}
-                <Line type="monotone" dataKey="orders" stroke="#7c3aed" strokeWidth={3} name="Orders" /> {/* Changed stroke color */}
+                <Line type="monotone" dataKey="streams" stroke="#00d9ff" strokeWidth={3} name="Live Streams" />
+                <Line type="monotone" dataKey="orders" stroke="#7c3aed" strokeWidth={3} name="Orders" />
               </LineChart>
             </ResponsiveContainer>
           </CardContent>
         </Card>
 
-        {/* Content Distribution */}
-        <Card className="admin-card border-slate-700"> {/* Changed border */}
+        <Card className="admin-card border-slate-700">
           <CardHeader>
             <CardTitle className="text-white flex items-center gap-2">
               <FileText className="w-5 h-5 text-purple-400" />
@@ -217,7 +213,7 @@ export default function AdminDashboard() {
                   ))}
                 </Pie>
                 <Tooltip
-                  contentStyle={{ backgroundColor: '#1a1f3a', border: '1px solid #334155', borderRadius: '8px' }} {/* Changed background color and border */}
+                  contentStyle={{ backgroundColor: '#1a1f3a', border: '1px solid #334155', borderRadius: '8px' }}
                 />
               </PieChart>
             </ResponsiveContainer>
@@ -225,8 +221,7 @@ export default function AdminDashboard() {
         </Card>
       </div>
 
-      {/* Revenue Chart */}
-      <Card className="admin-card border-0">
+      <Card className="admin-card border-slate-700">
         <CardHeader>
           <CardTitle className="text-white flex items-center gap-2">
             <DollarSign className="w-5 h-5 text-green-400" />
@@ -240,7 +235,7 @@ export default function AdminDashboard() {
               <XAxis dataKey="month" stroke="#94a3b8" />
               <YAxis stroke="#94a3b8" />
               <Tooltip
-                contentStyle={{ backgroundColor: '#1e293b', border: '1px solid #475569', borderRadius: '8px' }}
+                contentStyle={{ backgroundColor: '#1a1f3a', border: '1px solid #334155', borderRadius: '8px' }}
                 labelStyle={{ color: '#f8fafc' }}
               />
               <Legend />
@@ -251,9 +246,8 @@ export default function AdminDashboard() {
         </CardContent>
       </Card>
 
-      {/* Recent Activity */}
       <div className="grid lg:grid-cols-2 gap-6">
-        <Card className="admin-card border-0">
+        <Card className="admin-card border-slate-700">
           <CardHeader>
             <CardTitle className="text-white flex items-center gap-2">
               <Video className="w-5 h-5 text-red-400" />
@@ -283,7 +277,7 @@ export default function AdminDashboard() {
           </CardContent>
         </Card>
 
-        <Card className="admin-card border-0">
+        <Card className="admin-card border-slate-700">
           <CardHeader>
             <CardTitle className="text-white flex items-center gap-2">
               <ShoppingBag className="w-5 h-5 text-cyan-400" />
