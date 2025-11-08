@@ -1,4 +1,3 @@
-
 import React, { useState } from "react";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { base44 } from "@/api/base44Client";
@@ -97,10 +96,9 @@ export default function AdminSiteSettings() {
           </TabsTrigger>
         </TabsList>
 
-        <TabsContent value="hero" className="space-y-6">
-          {/* Hero Video Upload */}
-          <Card className="admin-card border-slate-700">
-            <CardHeader className="border-b border-slate-700">
+        <TabsContent value="hero" className="space-y-6 mt-6">
+          <Card className="bg-[#1a1f3a] border-0">
+            <CardHeader className="border-b border-white/5">
               <CardTitle className="text-white flex items-center gap-3 text-xl font-black">
                 <Film className="w-6 h-6 text-cyan-400" />
                 Hero Video Background
@@ -179,9 +177,8 @@ export default function AdminSiteSettings() {
             </CardContent>
           </Card>
 
-          {/* Hero Image Upload (Fallback) */}
-          <Card className="admin-card border-slate-700">
-            <CardHeader className="border-b border-slate-700">
+          <Card className="bg-[#1a1f3a] border-0">
+            <CardHeader className="border-b border-white/5">
               <CardTitle className="text-white flex items-center gap-3 text-xl font-black">
                 <ImageIcon className="w-6 h-6 text-cyan-400" />
                 Hero Image Fallback
@@ -252,8 +249,7 @@ export default function AdminSiteSettings() {
             </CardContent>
           </Card>
 
-          {/* Quick Actions */}
-          <Card className="admin-card border-slate-700">
+          <Card className="bg-[#1a1f3a] border-0">
             <CardContent className="p-6">
               <div className="flex items-center justify-between">
                 <div>
@@ -272,16 +268,16 @@ export default function AdminSiteSettings() {
           </Card>
         </TabsContent>
 
-        <TabsContent value="theme" className="space-y-6">
-          <Card className="admin-card border-slate-700">
-            <CardHeader className="border-b border-slate-700">
+        <TabsContent value="theme" className="space-y-6 mt-6">
+          <Card className="bg-[#1a1f3a] border-0">
+            <CardHeader className="border-b border-white/5">
               <CardTitle className="text-white font-black text-xl">Theme Settings</CardTitle>
             </CardHeader>
             <CardContent className="p-6">
-              <div className="text-center py-12">
-                <Palette className="w-16 h-16 text-slate-600 mx-auto mb-4" />
-                <h3 className="text-white font-bold text-lg mb-2">Theme Customization</h3>
-                <p className="text-slate-400 font-semibold">Advanced theme options coming soon</p>
+              <div className="text-center py-20">
+                <Palette className="w-20 h-20 text-slate-600 mx-auto mb-6" />
+                <h3 className="text-white font-bold text-2xl mb-3">Theme Customization</h3>
+                <p className="text-slate-400 font-semibold text-lg max-w-md mx-auto">Advanced theme options coming soon</p>
               </div>
             </CardContent>
           </Card>
