@@ -5,6 +5,8 @@ import { Button } from "@/components/ui/button";
 import {
   Video, Users, ArrowRight, Sparkles
 } from "lucide-react";
+import LiveStreamSection from "../components/home/LiveStreamSection";
+import FeaturesGrid from "../components/home/FeaturesGrid";
 
 export default function Home() {
   return (
@@ -45,6 +47,10 @@ export default function Home() {
         </div>
         <div className="absolute bottom-0 left-0 right-0 h-20 bg-gradient-to-t from-slate-50 to-transparent"></div>
       </section>
+
+      <LiveStreamSection />
+
+      <FeaturesGrid />
 
       {/* Call to Action */}
       <section className="bg-gradient-to-r from-blue-600 to-purple-600 text-white py-20">
