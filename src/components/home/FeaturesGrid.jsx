@@ -10,70 +10,70 @@ export default function FeaturesGrid() {
   const features = [
     {
       icon: Video,
-      title: "LIVE STREAMING",
-      description: "Watch worship services, Bible studies, and special events in real-time",
+      title: "Watch Live",
+      description: "Experience worship services and teachings in real-time with our community",
       link: createPageUrl("LiveStreams"),
-      color: "from-orange-500 to-red-600"
+      color: "from-cyan-500 to-blue-600"
     },
     {
-      icon: Radio,
-      title: "PODCASTS",
-      description: "Listen to sermons, teachings, and inspiring conversations anytime",
-      link: createPageUrl("Podcasts"),
+      icon: Calendar,
+      title: "Events",
+      description: "Join upcoming gatherings, conferences, and special services",
+      link: createPageUrl("Events"),
       color: "from-purple-500 to-pink-600"
     },
     {
       icon: Users,
-      title: "SMALL GROUPS",
-      description: "Find your community in Bible study groups and fellowship circles",
+      title: "Community",
+      description: "Connect with small groups and fellowship circles near you",
       link: createPageUrl("Groups"),
       color: "from-emerald-500 to-teal-600"
     },
     {
-      icon: Calendar,
-      title: "EVENTS",
-      description: "Stay updated on church events, conferences, and gatherings",
-      link: createPageUrl("Events"),
+      icon: BookOpen,
+      title: "Resources",
+      description: "Access devotionals, sermons, and materials for spiritual growth",
+      link: createPageUrl("Blog"),
       color: "from-amber-500 to-orange-600"
     },
     {
-      icon: BookOpen,
-      title: "BLOG & RESOURCES",
-      description: "Read devotionals, articles, and resources for spiritual growth",
-      link: createPageUrl("Blog"),
-      color: "from-blue-500 to-indigo-600"
+      icon: Radio,
+      title: "Podcasts",
+      description: "Listen to teachings and conversations anytime, anywhere",
+      link: createPageUrl("Podcasts"),
+      color: "from-indigo-500 to-blue-600"
     },
     {
       icon: Heart,
-      title: "GIVE & SUPPORT",
-      description: "Support ministries and make a difference in the community",
+      title: "Give",
+      description: "Support the ministry and make a difference in lives",
       link: createPageUrl("Donate"),
       color: "from-rose-500 to-red-600"
     }
   ];
 
   return (
-    <section className="bg-gradient-to-br from-white via-orange-50 to-amber-50 py-24">
+    <section className="py-24 bg-[#0f1629]">
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
         <div className="text-center mb-16">
-          <div className="inline-block bg-gradient-to-r from-orange-600 to-red-600 text-white px-6 py-2 rounded-full font-black text-sm mb-4 shadow-lg">
-            EVERYTHING YOU NEED
+          <div className="inline-block bg-cyan-500/10 border border-cyan-500/30 text-cyan-400 px-5 py-2 rounded-full font-bold text-sm mb-4">
+            Everything You Need
           </div>
-          <h2 className="text-5xl font-black text-slate-900 mb-4 tracking-tight">TOOLS TO GROW IN FAITH</h2>
-          <p className="text-xl text-slate-600 font-bold">Connect • Worship • Serve Together</p>
+          <h2 className="text-5xl font-black text-white mb-4">Connect & Grow</h2>
+          <p className="text-xl text-slate-400 font-medium">Tools to deepen your faith journey</p>
         </div>
-        <div className="grid md:grid-cols-3 gap-8">
+        <div className="grid md:grid-cols-3 gap-6">
           {features.map((feature, index) => (
             <Link key={index} to={feature.link}>
-              <Card className="group hover:shadow-2xl transition-all duration-300 border-3 border-orange-200 hover:border-orange-400 shadow-xl h-full overflow-hidden">
+              <Card className="group hover:shadow-2xl hover:shadow-cyan-500/10 transition-all duration-300 bg-[#1a1f3a] border-slate-700 h-full">
                 <CardContent className="p-8">
-                  <div className={`w-20 h-20 bg-gradient-to-br ${feature.color} rounded-2xl flex items-center justify-center mb-6 group-hover:scale-110 transition-transform shadow-2xl`}>
-                    <feature.icon className="w-10 h-10 text-white" />
+                  <div className={`w-16 h-16 bg-gradient-to-br ${feature.color} rounded-2xl flex items-center justify-center mb-6 group-hover:scale-110 transition-transform shadow-lg`}>
+                    <feature.icon className="w-8 h-8 text-white" />
                   </div>
-                  <h3 className="text-2xl font-black mb-3 group-hover:text-orange-600 transition-colors tracking-tight">
+                  <h3 className="text-2xl font-black mb-3 text-white group-hover:text-cyan-400 transition-colors">
                     {feature.title}
                   </h3>
-                  <p className="text-slate-600 font-semibold leading-relaxed">{feature.description}</p>
+                  <p className="text-slate-400 leading-relaxed">{feature.description}</p>
                 </CardContent>
               </Card>
             </Link>

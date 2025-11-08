@@ -21,8 +21,8 @@ export default function Home() {
 
   return (
     <div className="min-h-screen">
-      {/* Hero Section with Video */}
-      <section className="relative overflow-hidden bg-gradient-to-br from-amber-600 via-orange-700 to-red-800 text-white">
+      {/* Hero Section */}
+      <section className="relative overflow-hidden bg-gradient-to-br from-[#0a0e27] via-[#1a1f3a] to-[#0a0e27] text-white">
         {/* Video Background */}
         {heroVideoUrl && (
           <div className="absolute inset-0 overflow-hidden">
@@ -31,7 +31,7 @@ export default function Home() {
               loop
               muted
               playsInline
-              className="w-full h-full object-cover opacity-40"
+              className="w-full h-full object-cover opacity-20"
             >
               <source src={heroVideoUrl} type="video/mp4" />
             </video>
@@ -39,47 +39,44 @@ export default function Home() {
         )}
         
         {/* Gradient Overlay */}
-        <div className="absolute inset-0 bg-gradient-to-br from-amber-900/80 via-orange-900/70 to-red-900/80"></div>
-        
-        {/* Decorative Elements */}
-        <div className="absolute top-0 left-0 w-full h-full overflow-hidden opacity-10">
-          <div className="absolute top-20 left-10 text-9xl">✝</div>
-          <div className="absolute bottom-20 right-20 text-8xl">✝</div>
-          <div className="absolute top-40 right-40 text-6xl">✝</div>
-        </div>
+        <div className="absolute inset-0 bg-gradient-to-br from-purple-900/30 via-transparent to-cyan-900/30"></div>
 
-        <div className="relative max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-28 md:py-40">
+        <div className="relative max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-32 md:py-48">
           <div className="text-center max-w-5xl mx-auto">
-            <div className="inline-flex items-center gap-2 bg-white/20 backdrop-blur-md px-6 py-3 rounded-full mb-8 border-2 border-white/30 shadow-2xl">
-              <Sparkles className="w-5 h-5 text-yellow-300" />
-              <span className="text-base font-bold tracking-wide">LIVE. WORSHIP. CONNECT.</span>
+            <div className="inline-flex items-center gap-2 bg-cyan-500/20 backdrop-blur-md px-6 py-3 rounded-full mb-8 border border-cyan-500/30">
+              <div className="w-2 h-2 bg-red-500 rounded-full animate-pulse"></div>
+              <span className="text-base font-bold tracking-wide">LIVE NOW</span>
             </div>
-            <h1 className="text-6xl md:text-8xl font-black mb-8 leading-tight tracking-tight drop-shadow-2xl">
-              EXPERIENCE
-              <span className="block bg-gradient-to-r from-yellow-300 via-orange-300 to-red-300 bg-clip-text text-transparent">
-                FAITH ALIVE
+            <h1 className="text-5xl md:text-7xl font-black mb-6 leading-tight">
+              Sunday
+              <span className="block text-transparent bg-clip-text bg-gradient-to-r from-cyan-400 to-blue-500">
+                Service
               </span>
             </h1>
-            <p className="text-2xl md:text-3xl text-orange-100 mb-10 leading-relaxed font-bold drop-shadow-lg">
-              Join our global community • Stream worship live • Grow together in Christ
+            <p className="text-xl md:text-2xl text-slate-300 mb-10 leading-relaxed font-medium">
+              Join us live for worship, teaching, and community • Every Sunday at 10 AM
             </p>
-            <div className="flex flex-wrap gap-6 justify-center">
+            <div className="flex items-center justify-center gap-2 text-slate-400 mb-10">
+              <Users className="w-5 h-5" />
+              <span className="font-semibold">342 watching now</span>
+            </div>
+            <div className="flex flex-wrap gap-4 justify-center">
               <Link to={createPageUrl("LiveStreams")}>
-                <Button size="lg" className="bg-gradient-to-r from-orange-500 to-red-600 hover:from-orange-600 hover:to-red-700 text-white font-bold text-lg px-8 py-7 shadow-2xl hover:shadow-orange-500/50 transition-all transform hover:scale-105 border-2 border-white/30">
-                  <Play className="w-6 h-6 mr-3" />
-                  WATCH LIVE NOW
+                <Button size="lg" className="bg-cyan-500 hover:bg-cyan-600 text-white font-bold text-lg px-10 py-7 shadow-2xl">
+                  <Play className="w-6 h-6 mr-2" />
+                  WATCH NOW
                 </Button>
               </Link>
               <Link to={createPageUrl("Groups")}>
-                <Button size="lg" className="bg-white/20 backdrop-blur-md border-3 border-white text-white hover:bg-white hover:text-orange-700 font-bold text-lg px-8 py-7 shadow-2xl transition-all transform hover:scale-105">
-                  <Users className="w-6 h-6 mr-3" />
-                  JOIN A GROUP
+                <Button size="lg" variant="outline" className="border-2 border-slate-600 text-white hover:bg-slate-800 font-bold text-lg px-10 py-7">
+                  <Users className="w-6 h-6 mr-2" />
+                  Join Community
                 </Button>
               </Link>
             </div>
           </div>
         </div>
-        <div className="absolute bottom-0 left-0 right-0 h-32 bg-gradient-to-t from-amber-50 to-transparent"></div>
+        <div className="absolute bottom-0 left-0 right-0 h-32 bg-gradient-to-t from-[#0a0e27] to-transparent"></div>
       </section>
 
       <LiveStreamSection />
@@ -87,23 +84,19 @@ export default function Home() {
       <FeaturesGrid />
 
       {/* Call to Action */}
-      <section className="relative bg-gradient-to-r from-amber-600 via-orange-600 to-red-700 text-white py-24 overflow-hidden">
-        <div className="absolute inset-0 opacity-10">
-          <div className="absolute top-10 left-20 text-9xl">✝</div>
-          <div className="absolute bottom-10 right-20 text-9xl">✝</div>
-        </div>
+      <section className="relative bg-gradient-to-r from-purple-900/50 via-[#1a1f3a] to-cyan-900/50 text-white py-24 overflow-hidden border-t border-slate-800">
         <div className="relative max-w-4xl mx-auto px-4 sm:px-6 lg:px-8 text-center">
-          <h2 className="text-5xl font-black mb-6 drop-shadow-lg">READY TO BEGIN?</h2>
-          <p className="text-2xl text-orange-100 mb-10 font-bold">
-            Join thousands growing in faith • Connecting online • Making a difference
+          <h2 className="text-4xl md:text-5xl font-black mb-6">Ready to Join Us?</h2>
+          <p className="text-xl text-slate-300 mb-10 font-medium">
+            Connect with believers worldwide • Grow in faith • Make an impact
           </p>
           <Button
             size="lg"
             onClick={() => base44.auth.redirectToLogin()}
-            className="bg-white text-orange-700 hover:bg-orange-50 font-bold text-xl px-10 py-8 shadow-2xl hover:shadow-white/50 transition-all transform hover:scale-105"
+            className="bg-cyan-500 hover:bg-cyan-600 text-white font-bold text-xl px-12 py-8 shadow-2xl"
           >
-            START YOUR JOURNEY
-            <ArrowRight className="w-6 h-6 ml-3" />
+            Get Started
+            <ArrowRight className="w-6 h-6 ml-2" />
           </Button>
         </div>
       </section>
