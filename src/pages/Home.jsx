@@ -1,4 +1,4 @@
-import React from "react";
+import React, { useState, useEffect } from "react";
 import { Link } from "react-router-dom";
 import { createPageUrl } from "@/utils";
 import { useQuery } from "@tanstack/react-query";
@@ -9,8 +9,23 @@ import {
 } from "lucide-react";
 import LiveStreamSection from "../components/home/LiveStreamSection";
 import FeaturesGrid from "../components/home/FeaturesGrid";
+import PersonalizedContent from "../components/recommendations/PersonalizedContent";
 
 export default function Home() {
+  const [user, setUser] = useState(null);
+
+  useEffect(() => {
+    const fetchUser = async () => {
+      try {
+        const currentUser = await base44.auth.me();
+        setUser(currentUser);
+      } catch (error) {
+        console.log('Not logged in');
+      }
+    };
+    fetchUser();
+  }, []);
+
   const { data: heroSettings = [] } = useQuery({
     queryKey: ['heroSettings'],
     queryFn: () => base44.entities.SiteSettings.filter({ category: 'hero' }),
@@ -78,6 +93,22 @@ export default function Home() {
       </section>
 
       <LiveStreamSection />
+
+      {/* Personalized Recommendations - Only show for logged-in users */}
+      {user && (
+        <section className="py-20 bg-[#0a0e27]">
+          <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+            <div className="mb-8">
+              <h2 className="text-3xl font-bold text-white mb-2 flex items-center gap-3">
+                <Sparkles className="w-8 h-8 text-purple-400" />
+                Recommended For You
+              </h2>
+              <p className="text-slate-400">Personalized content based on your interests</p>
+            </div>
+            <PersonalizedContent user={user} />
+          </div>
+        </section>
+      )}
 
       <FeaturesGrid />
 

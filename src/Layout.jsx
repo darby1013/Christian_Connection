@@ -8,7 +8,8 @@ import {
   ShoppingBag, Heart, Settings, LogOut, Bell, Search,
   LayoutDashboard, PlayCircle, Mic2, FileText, UsersRound, MessagesSquare,
   CalendarDays, Store, DollarSign, User as UserIcon, Shield, Settings as SettingsIcon,
-  Image, Film, Palette, Crown, Package, Download, CreditCard, BarChart3, Sparkles
+  Image, Film, Palette, Crown, Package, Download, CreditCard, BarChart3, Sparkles,
+  AlertOctagon, TrendingUp
 } from "lucide-react";
 import {
   Sidebar,
@@ -63,6 +64,7 @@ export default function Layout({ children, currentPageName }) {
     { title: "Dashboard", url: createPageUrl("AdminDashboard"), icon: LayoutDashboard, section: "OVERVIEW" },
     { title: "Analytics", url: createPageUrl("AdminAnalytics"), icon: BarChart3, section: "OVERVIEW" },
     { title: "Site Settings", url: createPageUrl("AdminSiteSettings"), icon: SettingsIcon, section: "OVERVIEW" },
+    { title: "Broadcast Studio", url: createPageUrl("AdminBroadcastStudio"), icon: Radio, section: "CONTENT" },
     { title: "Live Streams", url: createPageUrl("AdminLiveStreams"), icon: Video, section: "CONTENT" },
     { title: "AI Script Generator", url: createPageUrl("AdminAIScriptGenerator"), icon: Sparkles, section: "CONTENT" },
     { title: "Podcasts", url: createPageUrl("AdminPodcasts"), icon: Mic2, section: "CONTENT" },
@@ -78,6 +80,8 @@ export default function Layout({ children, currentPageName }) {
     { title: "Subscriptions", url: createPageUrl("AdminSubscriptions"), icon: Crown, section: "COMMERCE" },
     { title: "Donations", url: createPageUrl("AdminDonations"), icon: DollarSign, section: "COMMERCE" },
     { title: "Payment Gateways", url: createPageUrl("AdminPaymentGateways"), icon: CreditCard, section: "COMMERCE" },
+    { title: "AI Pricing Strategy", url: createPageUrl("AdminAIPricing"), icon: TrendingUp, section: "AI TOOLS" },
+    { title: "Content Moderation", url: createPageUrl("AdminContentModeration"), icon: AlertOctagon, section: "AI TOOLS" },
     { title: "Users", url: createPageUrl("AdminUsers"), icon: UserIcon, section: "MANAGEMENT" },
     { title: "Roles & Permissions", url: createPageUrl("AdminRoles"), icon: Shield, section: "MANAGEMENT" },
   ];
