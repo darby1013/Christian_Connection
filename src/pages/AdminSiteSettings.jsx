@@ -84,7 +84,7 @@ export default function AdminSiteSettings() {
         </div>
       </div>
 
-      <Tabs defaultValue="hero" className="space-y-6">
+      <Tabs defaultValue="hero" className="w-full">
         <TabsList className="bg-[#1a1f3a] border border-slate-700">
           <TabsTrigger value="hero" className="data-[state=active]:bg-cyan-500 data-[state=active]:text-white font-bold">
             <Film className="w-4 h-4 mr-2" />
@@ -96,7 +96,7 @@ export default function AdminSiteSettings() {
           </TabsTrigger>
         </TabsList>
 
-        <TabsContent value="hero" className="space-y-6 mt-6">
+        <TabsContent value="hero" className="w-full space-y-6 mt-6">
           <Card className="bg-[#1a1f3a] border-0">
             <CardHeader className="border-b border-white/5">
               <CardTitle className="text-white flex items-center gap-3 text-xl font-black">
@@ -268,16 +268,72 @@ export default function AdminSiteSettings() {
           </Card>
         </TabsContent>
 
-        <TabsContent value="theme" className="space-y-6 mt-6">
+        <TabsContent value="theme" className="w-full space-y-6 mt-6">
           <Card className="bg-[#1a1f3a] border-0">
             <CardHeader className="border-b border-white/5">
-              <CardTitle className="text-white font-black text-xl">Theme Settings</CardTitle>
+              <CardTitle className="text-white font-black text-xl flex items-center gap-3">
+                <Palette className="w-6 h-6 text-cyan-400" />
+                Theme Settings
+              </CardTitle>
             </CardHeader>
             <CardContent className="p-6">
-              <div className="text-center py-20">
-                <Palette className="w-20 h-20 text-slate-600 mx-auto mb-6" />
-                <h3 className="text-white font-bold text-2xl mb-3">Theme Customization</h3>
-                <p className="text-slate-400 font-semibold text-lg max-w-md mx-auto">Advanced theme options coming soon</p>
+              <div className="grid lg:grid-cols-2 gap-6 py-12">
+                <div className="space-y-6">
+                  <div className="text-center lg:text-left">
+                    <Palette className="w-20 h-20 text-cyan-400 mx-auto lg:mx-0 mb-6" />
+                    <h3 className="text-white font-black text-3xl mb-4">Theme Customization</h3>
+                    <p className="text-slate-400 font-semibold text-lg leading-relaxed">
+                      Advanced theme options are coming soon. You'll be able to customize colors, fonts, layouts, and more to match your brand perfectly.
+                    </p>
+                  </div>
+                  
+                  <div className="space-y-3 pt-6">
+                    <div className="flex items-center gap-3 text-slate-300">
+                      <div className="w-2 h-2 bg-cyan-500 rounded-full"></div>
+                      <span className="font-semibold">Custom color schemes</span>
+                    </div>
+                    <div className="flex items-center gap-3 text-slate-300">
+                      <div className="w-2 h-2 bg-purple-500 rounded-full"></div>
+                      <span className="font-semibold">Typography controls</span>
+                    </div>
+                    <div className="flex items-center gap-3 text-slate-300">
+                      <div className="w-2 h-2 bg-pink-500 rounded-full"></div>
+                      <span className="font-semibold">Layout customization</span>
+                    </div>
+                    <div className="flex items-center gap-3 text-slate-300">
+                      <div className="w-2 h-2 bg-orange-500 rounded-full"></div>
+                      <span className="font-semibold">Dark/Light mode toggle</span>
+                    </div>
+                  </div>
+                </div>
+
+                <div className="bg-slate-900/50 rounded-lg p-8 border-2 border-dashed border-cyan-500/30 flex items-center justify-center">
+                  <div className="text-center">
+                    <div className="grid grid-cols-3 gap-3 mb-6">
+                      <div className="w-16 h-16 bg-gradient-to-br from-cyan-500 to-blue-600 rounded-lg"></div>
+                      <div className="w-16 h-16 bg-gradient-to-br from-purple-500 to-pink-600 rounded-lg"></div>
+                      <div className="w-16 h-16 bg-gradient-to-br from-orange-500 to-red-600 rounded-lg"></div>
+                      <div className="w-16 h-16 bg-gradient-to-br from-green-500 to-emerald-600 rounded-lg"></div>
+                      <div className="w-16 h-16 bg-gradient-to-br from-yellow-500 to-orange-600 rounded-lg"></div>
+                      <div className="w-16 h-16 bg-gradient-to-br from-indigo-500 to-purple-600 rounded-lg"></div>
+                    </div>
+                    <p className="text-slate-500 font-semibold">Color Palette Preview</p>
+                  </div>
+                </div>
+              </div>
+            </CardContent>
+          </Card>
+
+          <Card className="bg-[#1a1f3a] border-0">
+            <CardContent className="p-6">
+              <div className="flex items-center justify-between">
+                <div>
+                  <h3 className="font-black text-white text-lg mb-1">Current Theme</h3>
+                  <p className="text-sm text-slate-400 font-semibold">Glory Wave - Dark Navy with Cyan Accents</p>
+                </div>
+                <Badge className="bg-gradient-to-r from-cyan-500 to-blue-600 text-white px-4 py-2 text-sm font-bold">
+                  Active Theme
+                </Badge>
               </div>
             </CardContent>
           </Card>
