@@ -1,3 +1,4 @@
+
 import React, { useState, useEffect } from "react";
 import { Link, useLocation } from "react-router-dom";
 import { createPageUrl } from "@/utils";
@@ -7,7 +8,7 @@ import {
   ShoppingBag, Heart, Settings, LogOut, Menu, X, Bell, Search,
   LayoutDashboard, PlayCircle, Mic2, FileText, UsersRound, MessagesSquare,
   CalendarDays, Store, DollarSign, User as UserIcon, Shield, Settings as SettingsIcon,
-  Image, Film, Palette, Broadcast
+  Image, Film, Palette, Radio as BroadcastIcon
 } from "lucide-react";
 import {
   Sidebar,
@@ -290,7 +291,7 @@ export default function Layout({ children, currentPageName }) {
                 {user && (
                   <Link to={createPageUrl("BroadcastStream")}>
                     <Button className="bg-gradient-to-r from-red-600 to-pink-600 border-2 border-white/30 text-white hover:from-red-700 hover:to-pink-700 font-black shadow-xl">
-                      <Broadcast className="w-4 h-4 mr-2" />
+                      <Video className="w-4 h-4 mr-2" />
                       GO LIVE
                     </Button>
                   </Link>
