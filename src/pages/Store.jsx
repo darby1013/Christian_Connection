@@ -1,3 +1,4 @@
+
 import React, { useState } from "react";
 import { Link } from "react-router-dom";
 import { createPageUrl } from "@/utils";
@@ -64,17 +65,17 @@ export default function Store() {
   const cartItemCount = cart.reduce((sum, item) => sum + item.quantity, 0);
 
   return (
-    <div className="min-h-screen bg-gradient-to-b from-slate-50 to-white">
+    <div className="min-h-screen bg-[#0a0e27]">
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-12">
         {/* Header */}
         <div className="flex items-center justify-between mb-8">
           <div>
-            <h1 className="text-4xl font-bold text-slate-900 mb-2">Church Store</h1>
-            <p className="text-lg text-slate-600">Quality products to support your faith journey</p>
+            <h1 className="text-4xl font-bold text-white mb-2">Church Store</h1>
+            <p className="text-lg text-slate-400">Quality products to support your faith journey</p>
           </div>
           <Sheet>
             <SheetTrigger asChild>
-              <Button size="lg" className="relative">
+              <Button size="lg" className="relative bg-cyan-500 hover:bg-cyan-600 text-white">
                 <ShoppingCart className="w-5 h-5 mr-2" />
                 Cart
                 {cartItemCount > 0 && (
@@ -84,21 +85,21 @@ export default function Store() {
                 )}
               </Button>
             </SheetTrigger>
-            <SheetContent className="w-full sm:max-w-lg">
+            <SheetContent className="w-full sm:max-w-lg bg-[#1a1f3a] border-slate-700">
               <SheetHeader>
-                <SheetTitle>Shopping Cart ({cartItemCount} items)</SheetTitle>
+                <SheetTitle className="text-white">Shopping Cart ({cartItemCount} items)</SheetTitle>
               </SheetHeader>
               <div className="mt-6 space-y-4">
                 {cart.length === 0 ? (
                   <div className="text-center py-12">
-                    <ShoppingCart className="w-16 h-16 text-slate-300 mx-auto mb-4" />
-                    <p className="text-slate-500">Your cart is empty</p>
+                    <ShoppingCart className="w-16 h-16 text-slate-600 mx-auto mb-4" />
+                    <p className="text-slate-400">Your cart is empty</p>
                   </div>
                 ) : (
                   <>
                     <div className="space-y-4 max-h-96 overflow-y-auto">
                       {cart.map((item) => (
-                        <Card key={item.id} className="overflow-hidden">
+                        <Card key={item.id} className="overflow-hidden bg-[#0f1629] border-slate-700">
                           <CardContent className="p-4">
                             <div className="flex gap-4">
                               <img
@@ -107,22 +108,22 @@ export default function Store() {
                                 className="w-20 h-20 object-cover rounded"
                               />
                               <div className="flex-1 min-w-0">
-                                <h4 className="font-semibold text-sm mb-1 line-clamp-2">{item.name}</h4>
-                                <p className="text-lg font-bold text-blue-600">${item.price}</p>
+                                <h4 className="font-semibold text-sm mb-1 line-clamp-2 text-white">{item.name}</h4>
+                                <p className="text-lg font-bold text-cyan-400">${item.price}</p>
                                 <div className="flex items-center gap-2 mt-2">
                                   <Button
                                     size="icon"
                                     variant="outline"
-                                    className="h-7 w-7"
+                                    className="h-7 w-7 border-slate-700 text-slate-300 hover:bg-slate-800"
                                     onClick={() => updateQuantity(item.id, -1)}
                                   >
                                     <Minus className="w-3 h-3" />
                                   </Button>
-                                  <span className="text-sm font-medium w-8 text-center">{item.quantity}</span>
+                                  <span className="text-sm font-medium w-8 text-center text-white">{item.quantity}</span>
                                   <Button
                                     size="icon"
                                     variant="outline"
-                                    className="h-7 w-7"
+                                    className="h-7 w-7 border-slate-700 text-slate-300 hover:bg-slate-800"
                                     onClick={() => updateQuantity(item.id, 1)}
                                   >
                                     <Plus className="w-3 h-3" />
@@ -130,7 +131,7 @@ export default function Store() {
                                   <Button
                                     size="icon"
                                     variant="ghost"
-                                    className="h-7 w-7 ml-auto"
+                                    className="h-7 w-7 ml-auto text-red-400 hover:text-red-300 hover:bg-red-500/10"
                                     onClick={() => removeFromCart(item.id)}
                                   >
                                     <X className="w-4 h-4" />
@@ -142,13 +143,13 @@ export default function Store() {
                         </Card>
                       ))}
                     </div>
-                    <div className="border-t pt-4 space-y-4">
+                    <div className="border-t border-slate-700 pt-4 space-y-4">
                       <div className="flex justify-between text-lg font-bold">
-                        <span>Total:</span>
-                        <span className="text-blue-600">${cartTotal.toFixed(2)}</span>
+                        <span className="text-white">Total:</span>
+                        <span className="text-cyan-400">${cartTotal.toFixed(2)}</span>
                       </div>
                       <Link to={createPageUrl("Checkout")}>
-                        <Button className="w-full bg-gradient-to-r from-blue-600 to-purple-600" size="lg">
+                        <Button className="w-full bg-cyan-500 hover:bg-cyan-600 text-white" size="lg">
                           Proceed to Checkout
                         </Button>
                       </Link>
@@ -168,7 +169,7 @@ export default function Store() {
               placeholder="Search products..."
               value={searchQuery}
               onChange={(e) => setSearchQuery(e.target.value)}
-              className="pl-10"
+              className="pl-10 bg-[#1a1f3a] border-slate-700 text-white"
             />
           </div>
         </div>
@@ -176,7 +177,7 @@ export default function Store() {
         {/* Products Grid */}
         <div className="grid sm:grid-cols-2 lg:grid-cols-4 gap-6">
           {filteredProducts.map((product) => (
-            <Card key={product.id} className="group hover:shadow-2xl transition-all duration-300 border-0 shadow-lg overflow-hidden">
+            <Card key={product.id} className="group hover:shadow-2xl hover:shadow-cyan-500/20 transition-all duration-300 bg-[#1a1f3a] border-slate-700 overflow-hidden">
               <div className="relative aspect-square bg-slate-100">
                 <img
                   src={product.images?.[0] || 'https://images.unsplash.com/photo-1504052434569-70ad5836ab65?w=600'}
@@ -219,11 +220,11 @@ export default function Store() {
                   </span>
                 </div>
                 <div className="flex items-center justify-between">
-                  <span className="text-2xl font-bold text-blue-600">${product.price}</span>
+                  <span className="text-2xl font-bold text-cyan-400">${product.price}</span>
                   <Button
                     onClick={() => addToCart(product)}
                     disabled={product.stock_quantity === 0}
-                    className="bg-gradient-to-r from-blue-600 to-purple-600"
+                    className="bg-cyan-500 hover:bg-cyan-600 text-white"
                   >
                     <ShoppingCart className="w-4 h-4 mr-2" />
                     Add

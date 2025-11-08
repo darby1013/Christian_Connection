@@ -1,3 +1,4 @@
+
 import React, { useState } from "react";
 import { Link } from "react-router-dom";
 import { createPageUrl } from "@/utils";
@@ -32,12 +33,12 @@ export default function LiveStreams() {
   const endedStreams = filteredStreams.filter(s => s.status === 'ended');
 
   return (
-    <div className="min-h-screen bg-gradient-to-b from-slate-50 to-white py-12">
+    <div className="min-h-screen bg-[#0a0e27] py-12">
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
         {/* Header */}
         <div className="mb-8">
-          <h1 className="text-4xl font-bold text-slate-900 mb-2">Live Streams</h1>
-          <p className="text-lg text-slate-600">Watch live worship, teachings, and events</p>
+          <h1 className="text-4xl font-bold text-white mb-2">Live Streams</h1>
+          <p className="text-lg text-slate-400">Watch live worship, teachings, and events</p>
         </div>
 
         {/* Search and Filter */}
@@ -48,15 +49,15 @@ export default function LiveStreams() {
               placeholder="Search streams..."
               value={searchQuery}
               onChange={(e) => setSearchQuery(e.target.value)}
-              className="pl-10"
+              className="pl-10 bg-[#1a1f3a] border-slate-700 text-white"
             />
           </div>
           <Tabs value={filter} onValueChange={setFilter}>
-            <TabsList>
-              <TabsTrigger value="all">All</TabsTrigger>
-              <TabsTrigger value="live">Live</TabsTrigger>
-              <TabsTrigger value="scheduled">Upcoming</TabsTrigger>
-              <TabsTrigger value="ended">Past</TabsTrigger>
+            <TabsList className="bg-[#1a1f3a] border border-slate-700">
+              <TabsTrigger value="all" className="data-[state=active]:bg-cyan-500 data-[state=active]:text-white">All</TabsTrigger>
+              <TabsTrigger value="live" className="data-[state=active]:bg-cyan-500 data-[state=active]:text-white">Live</TabsTrigger>
+              <TabsTrigger value="scheduled" className="data-[state=active]:bg-cyan-500 data-[state=active]:text-white">Upcoming</TabsTrigger>
+              <TabsTrigger value="ended" className="data-[state=active]:bg-cyan-500 data-[state=active]:text-white">Past</TabsTrigger>
             </TabsList>
           </Tabs>
         </div>

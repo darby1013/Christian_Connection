@@ -23,7 +23,6 @@ export default function Home() {
     <div className="min-h-screen">
       {/* Hero Section */}
       <section className="relative overflow-hidden bg-gradient-to-br from-[#0a0e27] via-[#1a1f3a] to-[#0a0e27] text-white">
-        {/* Video Background */}
         {heroVideoUrl && (
           <div className="absolute inset-0 overflow-hidden">
             <video
@@ -38,7 +37,6 @@ export default function Home() {
           </div>
         )}
         
-        {/* Gradient Overlay */}
         <div className="absolute inset-0 bg-gradient-to-br from-purple-900/30 via-transparent to-cyan-900/30"></div>
 
         <div className="relative max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-32 md:py-48">
@@ -68,7 +66,7 @@ export default function Home() {
                 </Button>
               </Link>
               <Link to={createPageUrl("Groups")}>
-                <Button size="lg" variant="outline" className="border-2 border-slate-600 text-white hover:bg-slate-800 font-bold text-lg px-10 py-7">
+                <Button size="lg" variant="outline" className="border-2 border-white/30 bg-white/10 backdrop-blur-sm text-white hover:bg-white/20 hover:border-white/50 font-bold text-lg px-10 py-7">
                   <Users className="w-6 h-6 mr-2" />
                   Join Community
                 </Button>
