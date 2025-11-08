@@ -13,6 +13,7 @@ import AdminDigitalProducts from './pages/AdminDigitalProducts';
 import AdminPaymentGateways from './pages/AdminPaymentGateways';
 import AdminAnalytics from './pages/AdminAnalytics';
 import UserProfile from './pages/UserProfile';
+import AdminRoles from './pages/AdminRoles';
 import Layout from './Layout.jsx';
 
 
@@ -32,6 +33,7 @@ export const PAGES = {
     "AdminPaymentGateways": AdminPaymentGateways,
     "AdminAnalytics": AdminAnalytics,
     "UserProfile": UserProfile,
+    "AdminRoles": AdminRoles,
 }
 
 export const pagesConfig = {
