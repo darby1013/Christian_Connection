@@ -4,6 +4,7 @@ import LiveStreams from './pages/LiveStreams';
 import LiveStreamView from './pages/LiveStreamView';
 import Store from './pages/Store';
 import Blog from './pages/Blog';
+import AdminSiteSettings from './pages/AdminSiteSettings';
 import Layout from './Layout.jsx';
 
 
@@ -14,6 +15,7 @@ export const PAGES = {
     "LiveStreamView": LiveStreamView,
     "Store": Store,
     "Blog": Blog,
+    "AdminSiteSettings": AdminSiteSettings,
 }
 
 export const pagesConfig = {
