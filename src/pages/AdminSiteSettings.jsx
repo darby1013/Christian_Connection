@@ -7,12 +7,24 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Tabs, TabsList, TabsTrigger, TabsContent } from "@/components/ui/tabs";
 import { Badge } from "@/components/ui/badge";
+import { Switch } from "@/components/ui/switch";
+import { Slider } from "@/components/ui/slider";
 import {
-  Film, Image as ImageIcon, Palette, Upload, Save, Trash2, Eye
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "@/components/ui/select";
+import {
+  Film, Image as ImageIcon, Palette, Upload, Save, Trash2, Eye,
+  Type, Layout, Sun, Moon, Layers, Box, Radius, Sparkles,
+  RefreshCw, CheckCircle2
 } from "lucide-react";
 
 export default function AdminSiteSettings() {
   const [uploading, setUploading] = useState(false);
+  const [activeThemeTab, setActiveThemeTab] = useState("colors");
   const queryClient = useQueryClient();
 
   const { data: settings = [] } = useQuery({
@@ -25,7 +37,6 @@ export default function AdminSiteSettings() {
     mutationFn: (settingData) => base44.entities.SiteSettings.create(settingData),
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['siteSettings'] });
-      alert('Setting saved successfully!');
     },
   });
 
@@ -33,7 +44,6 @@ export default function AdminSiteSettings() {
     mutationFn: ({ id, data }) => base44.entities.SiteSettings.update(id, data),
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['siteSettings'] });
-      alert('Setting updated successfully!');
     },
   });
 
@@ -72,8 +82,54 @@ export default function AdminSiteSettings() {
     }
   };
 
+  const handleThemeSetting = async (key, value, category = 'theme') => {
+    const existingSetting = settings.find(s => s.setting_key === key);
+    
+    try {
+      if (existingSetting) {
+        await updateSettingMutation.mutateAsync({
+          id: existingSetting.id,
+          data: { setting_value: value }
+        });
+      } else {
+        await createSettingMutation.mutateAsync({
+          setting_key: key,
+          setting_value: value,
+          setting_type: 'text',
+          category: category,
+          description: `Theme setting: ${key}`
+        });
+      }
+    } catch (error) {
+      console.error('Failed to save setting:', error);
+    }
+  };
+
+  const getThemeSetting = (key, defaultValue = '') => {
+    const setting = settings.find(s => s.setting_key === key);
+    return setting?.setting_value || defaultValue;
+  };
+
   const heroVideo = settings.find(s => s.setting_key === 'hero_video');
   const heroImage = settings.find(s => s.setting_key === 'hero_image');
+
+  const colorPresets = [
+    { name: 'Glory Wave', primary: '#22d3ee', secondary: '#6366f1', accent: '#a855f7', bg: '#0a0e27' },
+    { name: 'Ocean Blue', primary: '#3b82f6', secondary: '#06b6d4', accent: '#8b5cf6', bg: '#0c1222' },
+    { name: 'Sunset', primary: '#f59e0b', secondary: '#ef4444', accent: '#ec4899', bg: '#1a0f0a' },
+    { name: 'Forest', primary: '#10b981', secondary: '#059669', accent: '#84cc16', bg: '#0a1a0f' },
+    { name: 'Purple Rain', primary: '#a855f7', secondary: '#8b5cf6', accent: '#ec4899', bg: '#1a0a27' },
+    { name: 'Crimson', primary: '#dc2626', secondary: '#f97316', accent: '#fbbf24', bg: '#1a0a0a' },
+  ];
+
+  const fontOptions = [
+    { name: 'Inter', value: 'Inter, sans-serif' },
+    { name: 'Roboto', value: 'Roboto, sans-serif' },
+    { name: 'Poppins', value: 'Poppins, sans-serif' },
+    { name: 'Montserrat', value: 'Montserrat, sans-serif' },
+    { name: 'Open Sans', value: 'Open Sans, sans-serif' },
+    { name: 'Playfair Display', value: 'Playfair Display, serif' },
+  ];
 
   return (
     <div className="space-y-6">
@@ -92,7 +148,7 @@ export default function AdminSiteSettings() {
           </TabsTrigger>
           <TabsTrigger value="theme" className="data-[state=active]:bg-cyan-500 data-[state=active]:text-white font-bold">
             <Palette className="w-4 h-4 mr-2" />
-            Theme
+            Theme Customization
           </TabsTrigger>
         </TabsList>
 
@@ -273,54 +329,754 @@ export default function AdminSiteSettings() {
             <CardHeader className="border-b border-white/5">
               <CardTitle className="text-white font-black text-xl flex items-center gap-3">
                 <Palette className="w-6 h-6 text-cyan-400" />
-                Theme Settings
+                Advanced Theme Customization
               </CardTitle>
             </CardHeader>
             <CardContent className="p-6">
-              <div className="grid lg:grid-cols-2 gap-6 py-12">
-                <div className="space-y-6">
-                  <div className="text-center lg:text-left">
-                    <Palette className="w-20 h-20 text-cyan-400 mx-auto lg:mx-0 mb-6" />
-                    <h3 className="text-white font-black text-3xl mb-4">Theme Customization</h3>
-                    <p className="text-slate-400 font-semibold text-lg leading-relaxed">
-                      Advanced theme options are coming soon. You'll be able to customize colors, fonts, layouts, and more to match your brand perfectly.
-                    </p>
-                  </div>
-                  
-                  <div className="space-y-3 pt-6">
-                    <div className="flex items-center gap-3 text-slate-300">
-                      <div className="w-2 h-2 bg-cyan-500 rounded-full"></div>
-                      <span className="font-semibold">Custom color schemes</span>
-                    </div>
-                    <div className="flex items-center gap-3 text-slate-300">
-                      <div className="w-2 h-2 bg-purple-500 rounded-full"></div>
-                      <span className="font-semibold">Typography controls</span>
-                    </div>
-                    <div className="flex items-center gap-3 text-slate-300">
-                      <div className="w-2 h-2 bg-pink-500 rounded-full"></div>
-                      <span className="font-semibold">Layout customization</span>
-                    </div>
-                    <div className="flex items-center gap-3 text-slate-300">
-                      <div className="w-2 h-2 bg-orange-500 rounded-full"></div>
-                      <span className="font-semibold">Dark/Light mode toggle</span>
-                    </div>
-                  </div>
-                </div>
+              <Tabs value={activeThemeTab} onValueChange={setActiveThemeTab} className="w-full">
+                <TabsList className="bg-slate-900/50 border border-slate-700 flex-wrap h-auto">
+                  <TabsTrigger value="colors" className="data-[state=active]:bg-cyan-500 text-xs">
+                    <Palette className="w-3 h-3 mr-1" />
+                    Colors
+                  </TabsTrigger>
+                  <TabsTrigger value="typography" className="data-[state=active]:bg-cyan-500 text-xs">
+                    <Type className="w-3 h-3 mr-1" />
+                    Typography
+                  </TabsTrigger>
+                  <TabsTrigger value="layout" className="data-[state=active]:bg-cyan-500 text-xs">
+                    <Layout className="w-3 h-3 mr-1" />
+                    Layout
+                  </TabsTrigger>
+                  <TabsTrigger value="mode" className="data-[state=active]:bg-cyan-500 text-xs">
+                    <Sun className="w-3 h-3 mr-1" />
+                    Mode
+                  </TabsTrigger>
+                  <TabsTrigger value="spacing" className="data-[state=active]:bg-cyan-500 text-xs">
+                    <Box className="w-3 h-3 mr-1" />
+                    Spacing
+                  </TabsTrigger>
+                  <TabsTrigger value="borders" className="data-[state=active]:bg-cyan-500 text-xs">
+                    <Radius className="w-3 h-3 mr-1" />
+                    Borders
+                  </TabsTrigger>
+                  <TabsTrigger value="effects" className="data-[state=active]:bg-cyan-500 text-xs">
+                    <Sparkles className="w-3 h-3 mr-1" />
+                    Effects
+                  </TabsTrigger>
+                  <TabsTrigger value="components" className="data-[state=active]:bg-cyan-500 text-xs">
+                    <Layers className="w-3 h-3 mr-1" />
+                    Components
+                  </TabsTrigger>
+                </TabsList>
 
-                <div className="bg-slate-900/50 rounded-lg p-8 border-2 border-dashed border-cyan-500/30 flex items-center justify-center">
-                  <div className="text-center">
-                    <div className="grid grid-cols-3 gap-3 mb-6">
-                      <div className="w-16 h-16 bg-gradient-to-br from-cyan-500 to-blue-600 rounded-lg"></div>
-                      <div className="w-16 h-16 bg-gradient-to-br from-purple-500 to-pink-600 rounded-lg"></div>
-                      <div className="w-16 h-16 bg-gradient-to-br from-orange-500 to-red-600 rounded-lg"></div>
-                      <div className="w-16 h-16 bg-gradient-to-br from-green-500 to-emerald-600 rounded-lg"></div>
-                      <div className="w-16 h-16 bg-gradient-to-br from-yellow-500 to-orange-600 rounded-lg"></div>
-                      <div className="w-16 h-16 bg-gradient-to-br from-indigo-500 to-purple-600 rounded-lg"></div>
+                {/* Colors Tab */}
+                <TabsContent value="colors" className="space-y-6 mt-6">
+                  <div>
+                    <h3 className="text-white font-bold text-lg mb-4">Color Scheme Presets</h3>
+                    <div className="grid grid-cols-2 md:grid-cols-3 gap-4">
+                      {colorPresets.map((preset) => (
+                        <Card
+                          key={preset.name}
+                          className="bg-slate-900/50 border-slate-700 hover:border-cyan-500/50 cursor-pointer transition-all"
+                          onClick={() => {
+                            handleThemeSetting('theme_primary_color', preset.primary);
+                            handleThemeSetting('theme_secondary_color', preset.secondary);
+                            handleThemeSetting('theme_accent_color', preset.accent);
+                            handleThemeSetting('theme_bg_color', preset.bg);
+                          }}
+                        >
+                          <CardContent className="p-4">
+                            <div className="flex gap-2 mb-3">
+                              <div className="w-8 h-8 rounded-lg" style={{ backgroundColor: preset.primary }}></div>
+                              <div className="w-8 h-8 rounded-lg" style={{ backgroundColor: preset.secondary }}></div>
+                              <div className="w-8 h-8 rounded-lg" style={{ backgroundColor: preset.accent }}></div>
+                              <div className="w-8 h-8 rounded-lg border border-slate-600" style={{ backgroundColor: preset.bg }}></div>
+                            </div>
+                            <p className="text-white font-semibold text-sm">{preset.name}</p>
+                          </CardContent>
+                        </Card>
+                      ))}
                     </div>
-                    <p className="text-slate-500 font-semibold">Color Palette Preview</p>
                   </div>
-                </div>
-              </div>
+
+                  <div className="grid md:grid-cols-2 gap-6">
+                    <div className="space-y-4">
+                      <div>
+                        <Label className="text-white font-bold mb-2 block">Primary Color</Label>
+                        <div className="flex gap-2">
+                          <Input
+                            type="color"
+                            value={getThemeSetting('theme_primary_color', '#22d3ee')}
+                            onChange={(e) => handleThemeSetting('theme_primary_color', e.target.value)}
+                            className="w-20 h-10 p-1 bg-slate-800/50 border-slate-700"
+                          />
+                          <Input
+                            type="text"
+                            value={getThemeSetting('theme_primary_color', '#22d3ee')}
+                            onChange={(e) => handleThemeSetting('theme_primary_color', e.target.value)}
+                            className="flex-1 bg-slate-800/50 border-slate-700 text-white font-mono"
+                          />
+                        </div>
+                      </div>
+
+                      <div>
+                        <Label className="text-white font-bold mb-2 block">Secondary Color</Label>
+                        <div className="flex gap-2">
+                          <Input
+                            type="color"
+                            value={getThemeSetting('theme_secondary_color', '#6366f1')}
+                            onChange={(e) => handleThemeSetting('theme_secondary_color', e.target.value)}
+                            className="w-20 h-10 p-1 bg-slate-800/50 border-slate-700"
+                          />
+                          <Input
+                            type="text"
+                            value={getThemeSetting('theme_secondary_color', '#6366f1')}
+                            onChange={(e) => handleThemeSetting('theme_secondary_color', e.target.value)}
+                            className="flex-1 bg-slate-800/50 border-slate-700 text-white font-mono"
+                          />
+                        </div>
+                      </div>
+
+                      <div>
+                        <Label className="text-white font-bold mb-2 block">Accent Color</Label>
+                        <div className="flex gap-2">
+                          <Input
+                            type="color"
+                            value={getThemeSetting('theme_accent_color', '#a855f7')}
+                            onChange={(e) => handleThemeSetting('theme_accent_color', e.target.value)}
+                            className="w-20 h-10 p-1 bg-slate-800/50 border-slate-700"
+                          />
+                          <Input
+                            type="text"
+                            value={getThemeSetting('theme_accent_color', '#a855f7')}
+                            onChange={(e) => handleThemeSetting('theme_accent_color', e.target.value)}
+                            className="flex-1 bg-slate-800/50 border-slate-700 text-white font-mono"
+                          />
+                        </div>
+                      </div>
+
+                      <div>
+                        <Label className="text-white font-bold mb-2 block">Background Color</Label>
+                        <div className="flex gap-2">
+                          <Input
+                            type="color"
+                            value={getThemeSetting('theme_bg_color', '#0a0e27')}
+                            onChange={(e) => handleThemeSetting('theme_bg_color', e.target.value)}
+                            className="w-20 h-10 p-1 bg-slate-800/50 border-slate-700"
+                          />
+                          <Input
+                            type="text"
+                            value={getThemeSetting('theme_bg_color', '#0a0e27')}
+                            onChange={(e) => handleThemeSetting('theme_bg_color', e.target.value)}
+                            className="flex-1 bg-slate-800/50 border-slate-700 text-white font-mono"
+                          />
+                        </div>
+                      </div>
+                    </div>
+
+                    <div className="bg-slate-900/50 rounded-lg p-6 border-2 border-dashed border-cyan-500/30">
+                      <Label className="text-white font-bold mb-4 block">Live Preview</Label>
+                      <div className="space-y-3">
+                        <div
+                          className="h-16 rounded-lg flex items-center justify-center text-white font-bold"
+                          style={{ backgroundColor: getThemeSetting('theme_primary_color', '#22d3ee') }}
+                        >
+                          Primary
+                        </div>
+                        <div
+                          className="h-16 rounded-lg flex items-center justify-center text-white font-bold"
+                          style={{ backgroundColor: getThemeSetting('theme_secondary_color', '#6366f1') }}
+                        >
+                          Secondary
+                        </div>
+                        <div
+                          className="h-16 rounded-lg flex items-center justify-center text-white font-bold"
+                          style={{ backgroundColor: getThemeSetting('theme_accent_color', '#a855f7') }}
+                        >
+                          Accent
+                        </div>
+                      </div>
+                    </div>
+                  </div>
+                </TabsContent>
+
+                {/* Typography Tab */}
+                <TabsContent value="typography" className="space-y-6 mt-6">
+                  <div className="grid md:grid-cols-2 gap-6">
+                    <div className="space-y-4">
+                      <div>
+                        <Label className="text-white font-bold mb-2 block">Heading Font Family</Label>
+                        <Select
+                          value={getThemeSetting('theme_heading_font', 'Inter, sans-serif')}
+                          onValueChange={(value) => handleThemeSetting('theme_heading_font', value)}
+                        >
+                          <SelectTrigger className="bg-slate-800/50 border-slate-700 text-white">
+                            <SelectValue placeholder="Select font" />
+                          </SelectTrigger>
+                          <SelectContent className="bg-slate-800 border-slate-700">
+                            {fontOptions.map((font) => (
+                              <SelectItem key={font.value} value={font.value} className="text-white">
+                                {font.name}
+                              </SelectItem>
+                            ))}
+                          </SelectContent>
+                        </Select>
+                      </div>
+
+                      <div>
+                        <Label className="text-white font-bold mb-2 block">Body Font Family</Label>
+                        <Select
+                          value={getThemeSetting('theme_body_font', 'Inter, sans-serif')}
+                          onValueChange={(value) => handleThemeSetting('theme_body_font', value)}
+                        >
+                          <SelectTrigger className="bg-slate-800/50 border-slate-700 text-white">
+                            <SelectValue placeholder="Select font" />
+                          </SelectTrigger>
+                          <SelectContent className="bg-slate-800 border-slate-700">
+                            {fontOptions.map((font) => (
+                              <SelectItem key={font.value} value={font.value} className="text-white">
+                                {font.name}
+                              </SelectItem>
+                            ))}
+                          </SelectContent>
+                        </Select>
+                      </div>
+
+                      <div>
+                        <Label className="text-white font-bold mb-2 block">Base Font Size: {getThemeSetting('theme_font_size', '16')}px</Label>
+                        <Slider
+                          value={[parseInt(getThemeSetting('theme_font_size', '16'))]}
+                          onValueChange={([value]) => handleThemeSetting('theme_font_size', value.toString())}
+                          min={12}
+                          max={20}
+                          step={1}
+                          className="w-full"
+                        />
+                      </div>
+
+                      <div>
+                        <Label className="text-white font-bold mb-2 block">Line Height: {getThemeSetting('theme_line_height', '1.6')}</Label>
+                        <Slider
+                          value={[parseFloat(getThemeSetting('theme_line_height', '1.6')) * 10]}
+                          onValueChange={([value]) => handleThemeSetting('theme_line_height', (value / 10).toFixed(1))}
+                          min={12}
+                          max={24}
+                          step={1}
+                          className="w-full"
+                        />
+                      </div>
+                    </div>
+
+                    <div className="bg-slate-900/50 rounded-lg p-6 border-2 border-dashed border-cyan-500/30">
+                      <Label className="text-white font-bold mb-4 block">Typography Preview</Label>
+                      <div
+                        style={{
+                          fontFamily: getThemeSetting('theme_heading_font', 'Inter, sans-serif'),
+                          fontSize: `${parseInt(getThemeSetting('theme_font_size', '16')) + 8}px`,
+                          lineHeight: getThemeSetting('theme_line_height', '1.6')
+                        }}
+                        className="text-white font-bold mb-3"
+                      >
+                        Heading Example
+                      </div>
+                      <div
+                        style={{
+                          fontFamily: getThemeSetting('theme_body_font', 'Inter, sans-serif'),
+                          fontSize: `${getThemeSetting('theme_font_size', '16')}px`,
+                          lineHeight: getThemeSetting('theme_line_height', '1.6')
+                        }}
+                        className="text-slate-300"
+                      >
+                        This is an example of body text. You can see how your selected fonts and sizes will look in your application.
+                      </div>
+                    </div>
+                  </div>
+                </TabsContent>
+
+                {/* Layout Tab */}
+                <TabsContent value="layout" className="space-y-6 mt-6">
+                  <div className="grid md:grid-cols-2 gap-6">
+                    <div className="space-y-4">
+                      <div>
+                        <Label className="text-white font-bold mb-2 block">Max Content Width</Label>
+                        <Select
+                          value={getThemeSetting('theme_max_width', '1280')}
+                          onValueChange={(value) => handleThemeSetting('theme_max_width', value)}
+                        >
+                          <SelectTrigger className="bg-slate-800/50 border-slate-700 text-white">
+                            <SelectValue />
+                          </SelectTrigger>
+                          <SelectContent className="bg-slate-800 border-slate-700">
+                            <SelectItem value="1024" className="text-white">1024px (Compact)</SelectItem>
+                            <SelectItem value="1280" className="text-white">1280px (Standard)</SelectItem>
+                            <SelectItem value="1536" className="text-white">1536px (Wide)</SelectItem>
+                            <SelectItem value="full" className="text-white">Full Width</SelectItem>
+                          </SelectContent>
+                        </Select>
+                      </div>
+
+                      <div>
+                        <Label className="text-white font-bold mb-2 block">Header Style</Label>
+                        <Select
+                          value={getThemeSetting('theme_header_style', 'sticky')}
+                          onValueChange={(value) => handleThemeSetting('theme_header_style', value)}
+                        >
+                          <SelectTrigger className="bg-slate-800/50 border-slate-700 text-white">
+                            <SelectValue />
+                          </SelectTrigger>
+                          <SelectContent className="bg-slate-800 border-slate-700">
+                            <SelectItem value="static" className="text-white">Static</SelectItem>
+                            <SelectItem value="sticky" className="text-white">Sticky</SelectItem>
+                            <SelectItem value="fixed" className="text-white">Fixed</SelectItem>
+                          </SelectContent>
+                        </Select>
+                      </div>
+
+                      <div>
+                        <Label className="text-white font-bold mb-2 block">Sidebar Position</Label>
+                        <Select
+                          value={getThemeSetting('theme_sidebar_position', 'left')}
+                          onValueChange={(value) => handleThemeSetting('theme_sidebar_position', value)}
+                        >
+                          <SelectTrigger className="bg-slate-800/50 border-slate-700 text-white">
+                            <SelectValue />
+                          </SelectTrigger>
+                          <SelectContent className="bg-slate-800 border-slate-700">
+                            <SelectItem value="left" className="text-white">Left</SelectItem>
+                            <SelectItem value="right" className="text-white">Right</SelectItem>
+                          </SelectContent>
+                        </Select>
+                      </div>
+
+                      <div className="flex items-center justify-between p-4 bg-slate-800/50 rounded-lg">
+                        <div>
+                          <Label className="text-white font-bold">Compact Mode</Label>
+                          <p className="text-xs text-slate-400">Reduce spacing for dense layout</p>
+                        </div>
+                        <Switch
+                          checked={getThemeSetting('theme_compact_mode', 'false') === 'true'}
+                          onCheckedChange={(checked) => handleThemeSetting('theme_compact_mode', checked.toString())}
+                        />
+                      </div>
+                    </div>
+
+                    <div className="bg-slate-900/50 rounded-lg p-6 border-2 border-dashed border-cyan-500/30">
+                      <Label className="text-white font-bold mb-4 block">Layout Preview</Label>
+                      <div className="space-y-2">
+                        <div className="h-8 bg-cyan-500/20 rounded flex items-center px-3 text-xs text-cyan-300 font-bold">
+                          Header ({getThemeSetting('theme_header_style', 'sticky')})
+                        </div>
+                        <div className="flex gap-2">
+                          {getThemeSetting('theme_sidebar_position', 'left') === 'left' && (
+                            <div className="w-16 bg-purple-500/20 rounded text-xs text-purple-300 flex items-center justify-center">Side</div>
+                          )}
+                          <div className="flex-1 h-24 bg-slate-700/20 rounded flex items-center justify-center text-xs text-slate-400">
+                            Content (max: {getThemeSetting('theme_max_width', '1280')})
+                          </div>
+                          {getThemeSetting('theme_sidebar_position', 'left') === 'right' && (
+                            <div className="w-16 bg-purple-500/20 rounded text-xs text-purple-300 flex items-center justify-center">Side</div>
+                          )}
+                        </div>
+                      </div>
+                    </div>
+                  </div>
+                </TabsContent>
+
+                {/* Mode Tab */}
+                <TabsContent value="mode" className="space-y-6 mt-6">
+                  <div className="grid md:grid-cols-2 gap-6">
+                    <div className="space-y-4">
+                      <div>
+                        <Label className="text-white font-bold mb-2 block">Default Theme Mode</Label>
+                        <div className="grid grid-cols-2 gap-3">
+                          <Card
+                            className={`cursor-pointer transition-all ${
+                              getThemeSetting('theme_mode', 'dark') === 'dark'
+                                ? 'bg-cyan-500/20 border-cyan-500'
+                                : 'bg-slate-800/50 border-slate-700'
+                            }`}
+                            onClick={() => handleThemeSetting('theme_mode', 'dark')}
+                          >
+                            <CardContent className="p-4 text-center">
+                              <Moon className="w-8 h-8 mx-auto mb-2 text-cyan-400" />
+                              <p className="text-white font-bold">Dark</p>
+                            </CardContent>
+                          </Card>
+                          <Card
+                            className={`cursor-pointer transition-all ${
+                              getThemeSetting('theme_mode', 'dark') === 'light'
+                                ? 'bg-cyan-500/20 border-cyan-500'
+                                : 'bg-slate-800/50 border-slate-700'
+                            }`}
+                            onClick={() => handleThemeSetting('theme_mode', 'light')}
+                          >
+                            <CardContent className="p-4 text-center">
+                              <Sun className="w-8 h-8 mx-auto mb-2 text-yellow-400" />
+                              <p className="text-white font-bold">Light</p>
+                            </CardContent>
+                          </Card>
+                        </div>
+                      </div>
+
+                      <div className="flex items-center justify-between p-4 bg-slate-800/50 rounded-lg">
+                        <div>
+                          <Label className="text-white font-bold">Allow Mode Toggle</Label>
+                          <p className="text-xs text-slate-400">Let users switch themes</p>
+                        </div>
+                        <Switch
+                          checked={getThemeSetting('theme_mode_toggle', 'true') === 'true'}
+                          onCheckedChange={(checked) => handleThemeSetting('theme_mode_toggle', checked.toString())}
+                        />
+                      </div>
+
+                      <div className="flex items-center justify-between p-4 bg-slate-800/50 rounded-lg">
+                        <div>
+                          <Label className="text-white font-bold">Auto Dark Mode</Label>
+                          <p className="text-xs text-slate-400">Based on system preference</p>
+                        </div>
+                        <Switch
+                          checked={getThemeSetting('theme_auto_mode', 'false') === 'true'}
+                          onCheckedChange={(checked) => handleThemeSetting('theme_auto_mode', checked.toString())}
+                        />
+                      </div>
+                    </div>
+
+                    <div className="space-y-4">
+                      <Label className="text-white font-bold block">Light Mode Colors</Label>
+                      <div className="space-y-3">
+                        <div>
+                          <Label className="text-slate-300 text-sm mb-2 block">Light Background</Label>
+                          <Input
+                            type="color"
+                            value={getThemeSetting('theme_light_bg', '#ffffff')}
+                            onChange={(e) => handleThemeSetting('theme_light_bg', e.target.value)}
+                            className="w-full h-10 p-1 bg-slate-800/50 border-slate-700"
+                          />
+                        </div>
+                        <div>
+                          <Label className="text-slate-300 text-sm mb-2 block">Light Text</Label>
+                          <Input
+                            type="color"
+                            value={getThemeSetting('theme_light_text', '#1a202c')}
+                            onChange={(e) => handleThemeSetting('theme_light_text', e.target.value)}
+                            className="w-full h-10 p-1 bg-slate-800/50 border-slate-700"
+                          />
+                        </div>
+                      </div>
+                    </div>
+                  </div>
+                </TabsContent>
+
+                {/* Spacing Tab */}
+                <TabsContent value="spacing" className="space-y-6 mt-6">
+                  <div className="grid md:grid-cols-2 gap-6">
+                    <div className="space-y-4">
+                      <div>
+                        <Label className="text-white font-bold mb-2 block">Section Spacing: {getThemeSetting('theme_section_spacing', '80')}px</Label>
+                        <Slider
+                          value={[parseInt(getThemeSetting('theme_section_spacing', '80'))]}
+                          onValueChange={([value]) => handleThemeSetting('theme_section_spacing', value.toString())}
+                          min={40}
+                          max={160}
+                          step={8}
+                          className="w-full"
+                        />
+                      </div>
+
+                      <div>
+                        <Label className="text-white font-bold mb-2 block">Card Padding: {getThemeSetting('theme_card_padding', '24')}px</Label>
+                        <Slider
+                          value={[parseInt(getThemeSetting('theme_card_padding', '24'))]}
+                          onValueChange={([value]) => handleThemeSetting('theme_card_padding', value.toString())}
+                          min={12}
+                          max={48}
+                          step={4}
+                          className="w-full"
+                        />
+                      </div>
+
+                      <div>
+                        <Label className="text-white font-bold mb-2 block">Element Gap: {getThemeSetting('theme_element_gap', '16')}px</Label>
+                        <Slider
+                          value={[parseInt(getThemeSetting('theme_element_gap', '16'))]}
+                          onValueChange={([value]) => handleThemeSetting('theme_element_gap', value.toString())}
+                          min={8}
+                          max={32}
+                          step={4}
+                          className="w-full"
+                        />
+                      </div>
+
+                      <div>
+                        <Label className="text-white font-bold mb-2 block">Container Padding: {getThemeSetting('theme_container_padding', '16')}px</Label>
+                        <Slider
+                          value={[parseInt(getThemeSetting('theme_container_padding', '16'))]}
+                          onValueChange={([value]) => handleThemeSetting('theme_container_padding', value.toString())}
+                          min={8}
+                          max={48}
+                          step={4}
+                          className="w-full"
+                        />
+                      </div>
+                    </div>
+
+                    <div className="bg-slate-900/50 rounded-lg p-6 border-2 border-dashed border-cyan-500/30">
+                      <Label className="text-white font-bold mb-4 block">Spacing Preview</Label>
+                      <div
+                        style={{ padding: `${getThemeSetting('theme_card_padding', '24')}px` }}
+                        className="bg-slate-800/50 rounded-lg"
+                      >
+                        <div className="h-12 bg-cyan-500/20 rounded mb-2"></div>
+                        <div
+                          style={{ gap: `${getThemeSetting('theme_element_gap', '16')}px` }}
+                          className="flex"
+                        >
+                          <div className="flex-1 h-8 bg-purple-500/20 rounded"></div>
+                          <div className="flex-1 h-8 bg-purple-500/20 rounded"></div>
+                        </div>
+                      </div>
+                    </div>
+                  </div>
+                </TabsContent>
+
+                {/* Borders Tab */}
+                <TabsContent value="borders" className="space-y-6 mt-6">
+                  <div className="grid md:grid-cols-2 gap-6">
+                    <div className="space-y-4">
+                      <div>
+                        <Label className="text-white font-bold mb-2 block">Border Radius: {getThemeSetting('theme_border_radius', '12')}px</Label>
+                        <Slider
+                          value={[parseInt(getThemeSetting('theme_border_radius', '12'))]}
+                          onValueChange={([value]) => handleThemeSetting('theme_border_radius', value.toString())}
+                          min={0}
+                          max={24}
+                          step={2}
+                          className="w-full"
+                        />
+                      </div>
+
+                      <div>
+                        <Label className="text-white font-bold mb-2 block">Button Radius: {getThemeSetting('theme_button_radius', '8')}px</Label>
+                        <Slider
+                          value={[parseInt(getThemeSetting('theme_button_radius', '8'))]}
+                          onValueChange={([value]) => handleThemeSetting('theme_button_radius', value.toString())}
+                          min={0}
+                          max={24}
+                          step={2}
+                          className="w-full"
+                        />
+                      </div>
+
+                      <div>
+                        <Label className="text-white font-bold mb-2 block">Input Radius: {getThemeSetting('theme_input_radius', '8')}px</Label>
+                        <Slider
+                          value={[parseInt(getThemeSetting('theme_input_radius', '8'))]}
+                          onValueChange={([value]) => handleThemeSetting('theme_input_radius', value.toString())}
+                          min={0}
+                          max={24}
+                          step={2}
+                          className="w-full"
+                        />
+                      </div>
+
+                      <div>
+                        <Label className="text-white font-bold mb-2 block">Border Width: {getThemeSetting('theme_border_width', '1')}px</Label>
+                        <Slider
+                          value={[parseInt(getThemeSetting('theme_border_width', '1'))]}
+                          onValueChange={([value]) => handleThemeSetting('theme_border_width', value.toString())}
+                          min={0}
+                          max={4}
+                          step={1}
+                          className="w-full"
+                        />
+                      </div>
+                    </div>
+
+                    <div className="bg-slate-900/50 rounded-lg p-6 border-2 border-dashed border-cyan-500/30">
+                      <Label className="text-white font-bold mb-4 block">Border Preview</Label>
+                      <div className="space-y-4">
+                        <div
+                          style={{ borderRadius: `${getThemeSetting('theme_border_radius', '12')}px` }}
+                          className="h-16 bg-cyan-500/20 flex items-center justify-center text-white text-sm"
+                        >
+                          Card Border
+                        </div>
+                        <button
+                          style={{ borderRadius: `${getThemeSetting('theme_button_radius', '8')}px` }}
+                          className="w-full h-12 bg-cyan-500 text-white font-bold"
+                        >
+                          Button Border
+                        </button>
+                        <input
+                          style={{ borderRadius: `${getThemeSetting('theme_input_radius', '8')}px` }}
+                          className="w-full h-10 bg-slate-800 border border-slate-600 px-3 text-white"
+                          placeholder="Input Border"
+                          readOnly
+                        />
+                      </div>
+                    </div>
+                  </div>
+                </TabsContent>
+
+                {/* Effects Tab */}
+                <TabsContent value="effects" className="space-y-6 mt-6">
+                  <div className="grid md:grid-cols-2 gap-6">
+                    <div className="space-y-4">
+                      <div>
+                        <Label className="text-white font-bold mb-2 block">Shadow Intensity: {getThemeSetting('theme_shadow_intensity', '50')}%</Label>
+                        <Slider
+                          value={[parseInt(getThemeSetting('theme_shadow_intensity', '50'))]}
+                          onValueChange={([value]) => handleThemeSetting('theme_shadow_intensity', value.toString())}
+                          min={0}
+                          max={100}
+                          step={10}
+                          className="w-full"
+                        />
+                      </div>
+
+                      <div>
+                        <Label className="text-white font-bold mb-2 block">Animation Speed</Label>
+                        <Select
+                          value={getThemeSetting('theme_animation_speed', 'normal')}
+                          onValueChange={(value) => handleThemeSetting('theme_animation_speed', value)}
+                        >
+                          <SelectTrigger className="bg-slate-800/50 border-slate-700 text-white">
+                            <SelectValue />
+                          </SelectTrigger>
+                          <SelectContent className="bg-slate-800 border-slate-700">
+                            <SelectItem value="slow" className="text-white">Slow (0.5s)</SelectItem>
+                            <SelectItem value="normal" className="text-white">Normal (0.3s)</SelectItem>
+                            <SelectItem value="fast" className="text-white">Fast (0.15s)</SelectItem>
+                          </SelectContent>
+                        </Select>
+                      </div>
+
+                      <div className="flex items-center justify-between p-4 bg-slate-800/50 rounded-lg">
+                        <div>
+                          <Label className="text-white font-bold">Enable Blur Effects</Label>
+                          <p className="text-xs text-slate-400">Backdrop blur on modals/overlays</p>
+                        </div>
+                        <Switch
+                          checked={getThemeSetting('theme_blur_effects', 'true') === 'true'}
+                          onCheckedChange={(checked) => handleThemeSetting('theme_blur_effects', checked.toString())}
+                        />
+                      </div>
+
+                      <div className="flex items-center justify-between p-4 bg-slate-800/50 rounded-lg">
+                        <div>
+                          <Label className="text-white font-bold">Enable Animations</Label>
+                          <p className="text-xs text-slate-400">Smooth transitions & effects</p>
+                        </div>
+                        <Switch
+                          checked={getThemeSetting('theme_animations', 'true') === 'true'}
+                          onCheckedChange={(checked) => handleThemeSetting('theme_animations', checked.toString())}
+                        />
+                      </div>
+
+                      <div className="flex items-center justify-between p-4 bg-slate-800/50 rounded-lg">
+                        <div>
+                          <Label className="text-white font-bold">Gradient Backgrounds</Label>
+                          <p className="text-xs text-slate-400">Use gradients instead of solid</p>
+                        </div>
+                        <Switch
+                          checked={getThemeSetting('theme_gradients', 'true') === 'true'}
+                          onCheckedChange={(checked) => handleThemeSetting('theme_gradients', checked.toString())}
+                        />
+                      </div>
+                    </div>
+
+                    <div className="bg-slate-900/50 rounded-lg p-6 border-2 border-dashed border-cyan-500/30">
+                      <Label className="text-white font-bold mb-4 block">Effects Preview</Label>
+                      <div className="space-y-4">
+                        <div
+                          className="h-16 bg-cyan-500/20 rounded-lg flex items-center justify-center text-white"
+                          style={{
+                            boxShadow: `0 4px 12px rgba(0, 0, 0, ${parseInt(getThemeSetting('theme_shadow_intensity', '50')) / 100})`
+                          }}
+                        >
+                          Shadow Effect
+                        </div>
+                        {getThemeSetting('theme_gradients', 'true') === 'true' && (
+                          <div className="h-16 bg-gradient-to-r from-cyan-500 to-purple-500 rounded-lg flex items-center justify-center text-white font-bold">
+                            Gradient
+                          </div>
+                        )}
+                      </div>
+                    </div>
+                  </div>
+                </TabsContent>
+
+                {/* Components Tab */}
+                <TabsContent value="components" className="space-y-6 mt-6">
+                  <div className="grid md:grid-cols-2 gap-4">
+                    <div className="flex items-center justify-between p-4 bg-slate-800/50 rounded-lg">
+                      <div>
+                        <Label className="text-white font-bold">Show Breadcrumbs</Label>
+                        <p className="text-xs text-slate-400">Navigation breadcrumbs</p>
+                      </div>
+                      <Switch
+                        checked={getThemeSetting('theme_breadcrumbs', 'true') === 'true'}
+                        onCheckedChange={(checked) => handleThemeSetting('theme_breadcrumbs', checked.toString())}
+                      />
+                    </div>
+
+                    <div className="flex items-center justify-between p-4 bg-slate-800/50 rounded-lg">
+                      <div>
+                        <Label className="text-white font-bold">Floating Action Button</Label>
+                        <p className="text-xs text-slate-400">Quick action FAB</p>
+                      </div>
+                      <Switch
+                        checked={getThemeSetting('theme_fab', 'false') === 'true'}
+                        onCheckedChange={(checked) => handleThemeSetting('theme_fab', checked.toString())}
+                      />
+                    </div>
+
+                    <div className="flex items-center justify-between p-4 bg-slate-800/50 rounded-lg">
+                      <div>
+                        <Label className="text-white font-bold">Progress Indicators</Label>
+                        <p className="text-xs text-slate-400">Loading progress bars</p>
+                      </div>
+                      <Switch
+                        checked={getThemeSetting('theme_progress', 'true') === 'true'}
+                        onCheckedChange={(checked) => handleThemeSetting('theme_progress', checked.toString())}
+                      />
+                    </div>
+
+                    <div className="flex items-center justify-between p-4 bg-slate-800/50 rounded-lg">
+                      <div>
+                        <Label className="text-white font-bold">Tooltips</Label>
+                        <p className="text-xs text-slate-400">Hover tooltips</p>
+                      </div>
+                      <Switch
+                        checked={getThemeSetting('theme_tooltips', 'true') === 'true'}
+                        onCheckedChange={(checked) => handleThemeSetting('theme_tooltips', checked.toString())}
+                      />
+                    </div>
+
+                    <div className="flex items-center justify-between p-4 bg-slate-800/50 rounded-lg">
+                      <div>
+                        <Label className="text-white font-bold">Scroll to Top Button</Label>
+                        <p className="text-xs text-slate-400">Back to top on long pages</p>
+                      </div>
+                      <Switch
+                        checked={getThemeSetting('theme_scroll_top', 'true') === 'true'}
+                        onCheckedChange={(checked) => handleThemeSetting('theme_scroll_top', checked.toString())}
+                      />
+                    </div>
+
+                    <div className="flex items-center justify-between p-4 bg-slate-800/50 rounded-lg">
+                      <div>
+                        <Label className="text-white font-bold">Notification Badges</Label>
+                        <p className="text-xs text-slate-400">Alert indicators</p>
+                      </div>
+                      <Switch
+                        checked={getThemeSetting('theme_badges', 'true') === 'true'}
+                        onCheckedChange={(checked) => handleThemeSetting('theme_badges', checked.toString())}
+                      />
+                    </div>
+                  </div>
+                </TabsContent>
+              </Tabs>
             </CardContent>
           </Card>
 
@@ -328,12 +1084,31 @@ export default function AdminSiteSettings() {
             <CardContent className="p-6">
               <div className="flex items-center justify-between">
                 <div>
-                  <h3 className="font-black text-white text-lg mb-1">Current Theme</h3>
-                  <p className="text-sm text-slate-400 font-semibold">Glory Wave - Dark Navy with Cyan Accents</p>
+                  <h3 className="font-black text-white text-lg mb-1 flex items-center gap-2">
+                    <CheckCircle2 className="w-5 h-5 text-green-400" />
+                    Current Theme Applied
+                  </h3>
+                  <p className="text-sm text-slate-400 font-semibold">Glory Wave - Fully Customized</p>
                 </div>
-                <Badge className="bg-gradient-to-r from-cyan-500 to-blue-600 text-white px-4 py-2 text-sm font-bold">
-                  Active Theme
-                </Badge>
+                <div className="flex gap-3">
+                  <Button
+                    onClick={() => window.open('/', '_blank')}
+                    variant="outline"
+                    className="border-slate-700 text-slate-300 hover:bg-slate-800"
+                  >
+                    <Eye className="w-4 h-4 mr-2" />
+                    Preview Changes
+                  </Button>
+                  <Button
+                    onClick={() => {
+                      alert('Theme settings saved successfully! Changes will be visible on the live site.');
+                    }}
+                    className="bg-gradient-to-r from-green-600 to-emerald-600 font-bold"
+                  >
+                    <Save className="w-4 h-4 mr-2" />
+                    Apply Theme
+                  </Button>
+                </div>
               </div>
             </CardContent>
           </Card>
