@@ -7,7 +7,7 @@ import {
   ShoppingBag, Heart, Settings, LogOut, Menu, X, Bell, Search,
   LayoutDashboard, PlayCircle, Mic2, FileText, UsersRound, MessagesSquare,
   CalendarDays, Store, DollarSign, User as UserIcon, Shield, Settings as SettingsIcon,
-  Image, Film, Palette
+  Image, Film, Palette, Broadcast
 } from "lucide-react";
 import {
   Sidebar,
@@ -31,6 +31,7 @@ export default function Layout({ children, currentPageName }) {
   const [user, setUser] = useState(null);
   const [isAdmin, setIsAdmin] = useState(false);
   const isAdminPage = currentPageName?.startsWith('Admin');
+  const isBroadcastPage = currentPageName === 'BroadcastStream';
 
   useEffect(() => {
     const fetchUser = async () => {
@@ -83,6 +84,11 @@ export default function Layout({ children, currentPageName }) {
   const handleLogout = () => {
     base44.auth.logout();
   };
+
+  // Broadcast Page Layout (minimal, just content)
+  if (isBroadcastPage) {
+    return <div>{children}</div>;
+  }
 
   if (isAdminPage) {
     return (
@@ -281,6 +287,14 @@ export default function Layout({ children, currentPageName }) {
               </div>
 
               <div className="flex items-center gap-3">
+                {user && (
+                  <Link to={createPageUrl("BroadcastStream")}>
+                    <Button className="bg-gradient-to-r from-red-600 to-pink-600 border-2 border-white/30 text-white hover:from-red-700 hover:to-pink-700 font-black shadow-xl">
+                      <Broadcast className="w-4 h-4 mr-2" />
+                      GO LIVE
+                    </Button>
+                  </Link>
+                )}
                 {user ? (
                   <div className="flex items-center gap-3">
                     {isAdmin && (
