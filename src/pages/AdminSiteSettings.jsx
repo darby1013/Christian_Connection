@@ -1,3 +1,4 @@
+
 import React, { useState } from "react";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { base44 } from "@/api/base44Client";
@@ -85,12 +86,12 @@ export default function AdminSiteSettings() {
       </div>
 
       <Tabs defaultValue="hero" className="space-y-6">
-        <TabsList className="bg-slate-800/50 border-2 border-orange-500/20">
-          <TabsTrigger value="hero" className="data-[state=active]:bg-gradient-to-r data-[state=active]:from-orange-600 data-[state=active]:to-red-600 font-bold">
+        <TabsList className="bg-[#1a1f3a] border border-slate-700">
+          <TabsTrigger value="hero" className="data-[state=active]:bg-cyan-500 data-[state=active]:text-white font-bold">
             <Film className="w-4 h-4 mr-2" />
             Hero Section
           </TabsTrigger>
-          <TabsTrigger value="theme" className="data-[state=active]:bg-gradient-to-r data-[state=active]:from-orange-600 data-[state=active]:to-red-600 font-bold">
+          <TabsTrigger value="theme" className="data-[state=active]:bg-cyan-500 data-[state=active]:text-white font-bold">
             <Palette className="w-4 h-4 mr-2" />
             Theme
           </TabsTrigger>
@@ -98,10 +99,10 @@ export default function AdminSiteSettings() {
 
         <TabsContent value="hero" className="space-y-6">
           {/* Hero Video Upload */}
-          <Card className="admin-card border-0 glow-orange">
-            <CardHeader className="border-b-2 border-orange-500/20">
+          <Card className="admin-card border-slate-700">
+            <CardHeader className="border-b border-slate-700">
               <CardTitle className="text-white flex items-center gap-3 text-xl font-black">
-                <Film className="w-6 h-6 text-orange-400" />
+                <Film className="w-6 h-6 text-cyan-400" />
                 Hero Video Background
               </CardTitle>
             </CardHeader>
@@ -121,7 +122,7 @@ export default function AdminSiteSettings() {
                         if (file) handleFileUpload(file, 'hero_video', 'video');
                       }}
                       disabled={uploading}
-                      className="bg-slate-800/50 border-orange-500/30 text-white font-semibold"
+                      className="bg-slate-800/50 border-slate-700 text-white font-semibold"
                     />
                   </div>
                   
@@ -132,7 +133,7 @@ export default function AdminSiteSettings() {
                         <Input
                           value={heroVideo.setting_value}
                           readOnly
-                          className="bg-slate-800/50 border-orange-500/30 text-white font-mono text-sm"
+                          className="bg-slate-800/50 border-slate-700 text-white font-mono text-sm"
                         />
                         <Button
                           variant="outline"
@@ -148,7 +149,7 @@ export default function AdminSiteSettings() {
 
                   {uploading && (
                     <div className="text-center py-8">
-                      <div className="inline-block animate-spin rounded-full h-12 w-12 border-4 border-orange-500 border-t-transparent"></div>
+                      <div className="inline-block animate-spin rounded-full h-12 w-12 border-4 border-cyan-500 border-t-transparent"></div>
                       <p className="text-white font-bold mt-4">Uploading...</p>
                     </div>
                   )}
@@ -157,7 +158,7 @@ export default function AdminSiteSettings() {
                 <div className="space-y-4">
                   <Label className="text-white font-bold">Preview</Label>
                   {heroVideo?.setting_value ? (
-                    <div className="relative aspect-video rounded-lg overflow-hidden bg-slate-900 border-2 border-orange-500/30 shadow-xl">
+                    <div className="relative aspect-video rounded-lg overflow-hidden bg-slate-900 border-2 border-cyan-500/30 shadow-xl">
                       <video
                         src={heroVideo.setting_value}
                         className="w-full h-full object-cover"
@@ -166,7 +167,7 @@ export default function AdminSiteSettings() {
                       />
                     </div>
                   ) : (
-                    <div className="aspect-video rounded-lg bg-slate-900 border-2 border-dashed border-orange-500/30 flex items-center justify-center">
+                    <div className="aspect-video rounded-lg bg-slate-900 border-2 border-dashed border-cyan-500/30 flex items-center justify-center">
                       <div className="text-center">
                         <Film className="w-12 h-12 text-slate-600 mx-auto mb-2" />
                         <p className="text-slate-500 font-semibold">No video uploaded</p>
@@ -179,8 +180,8 @@ export default function AdminSiteSettings() {
           </Card>
 
           {/* Hero Image Upload (Fallback) */}
-          <Card className="admin-card border-0">
-            <CardHeader className="border-b-2 border-orange-500/20">
+          <Card className="admin-card border-slate-700">
+            <CardHeader className="border-b border-slate-700">
               <CardTitle className="text-white flex items-center gap-3 text-xl font-black">
                 <ImageIcon className="w-6 h-6 text-cyan-400" />
                 Hero Image Fallback
@@ -202,7 +203,7 @@ export default function AdminSiteSettings() {
                         if (file) handleFileUpload(file, 'hero_image', 'image');
                       }}
                       disabled={uploading}
-                      className="bg-slate-800/50 border-cyan-500/30 text-white font-semibold"
+                      className="bg-slate-800/50 border-slate-700 text-white font-semibold"
                     />
                   </div>
                   
@@ -213,7 +214,7 @@ export default function AdminSiteSettings() {
                         <Input
                           value={heroImage.setting_value}
                           readOnly
-                          className="bg-slate-800/50 border-cyan-500/30 text-white font-mono text-sm"
+                          className="bg-slate-800/50 border-slate-700 text-white font-mono text-sm"
                         />
                         <Button
                           variant="outline"
@@ -252,7 +253,7 @@ export default function AdminSiteSettings() {
           </Card>
 
           {/* Quick Actions */}
-          <Card className="admin-card border-0">
+          <Card className="admin-card border-slate-700">
             <CardContent className="p-6">
               <div className="flex items-center justify-between">
                 <div>
@@ -272,8 +273,8 @@ export default function AdminSiteSettings() {
         </TabsContent>
 
         <TabsContent value="theme" className="space-y-6">
-          <Card className="admin-card border-0">
-            <CardHeader>
+          <Card className="admin-card border-slate-700">
+            <CardHeader className="border-b border-slate-700">
               <CardTitle className="text-white font-black text-xl">Theme Settings</CardTitle>
             </CardHeader>
             <CardContent className="p-6">
