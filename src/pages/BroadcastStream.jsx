@@ -9,9 +9,12 @@ import { Textarea } from "@/components/ui/textarea";
 import { Badge } from "@/components/ui/badge";
 import {
   Video, VideoOff, Mic, MicOff, Radio, Users, Clock, Activity,
-  CheckCircle, AlertCircle, Settings
+  CheckCircle, AlertCircle, Settings, FileText, Sparkles
 } from "lucide-react";
 import { Alert, AlertDescription } from "@/components/ui/alert";
+import { Tabs, TabsList, TabsTrigger, TabsContent } from "@/components/ui/tabs";
+import Teleprompter from "../components/broadcast/Teleprompter";
+import StreamTools from "../components/broadcast/StreamTools";
 
 export default function BroadcastStream() {
   const [user, setUser] = useState(null);
@@ -24,6 +27,8 @@ export default function BroadcastStream() {
   const [peakViewers, setPeakViewers] = useState(0);
   const [chatCount, setChatCount] = useState(0);
   const [connectionStatus, setConnectionStatus] = useState('disconnected');
+  const [showTeleprompter, setShowTeleprompter] = useState(false);
+  const [selectedScript, setSelectedScript] = useState(null);
   const [streamStats, setStreamStats] = useState({
     resolution: '1080p',
     bitrate: '4500 kbps',
@@ -52,6 +57,13 @@ export default function BroadcastStream() {
     };
     fetchUser();
   }, []);
+
+  const { data: scripts = [] } = useQuery({
+    queryKey: ['streamScripts', user?.id],
+    queryFn: () => base44.entities.StreamScript.filter({ author_id: user?.id }, '-created_date'),
+    enabled: !!user,
+    initialData: [],
+  });
 
   useEffect(() => {
     let interval;
@@ -158,7 +170,6 @@ export default function BroadcastStream() {
     setIsLive(true);
     setStreamStartTime(Date.now());
     
-    // Simulate viewer updates
     const viewerInterval = setInterval(() => {
       const randomChange = Math.floor(Math.random() * 10) - 3;
       setViewerCount(prev => {
@@ -201,11 +212,11 @@ export default function BroadcastStream() {
             )}
             <h1 className="text-3xl font-black text-white">Broadcast Studio</h1>
           </div>
-          <p className="text-slate-400 font-semibold">Share your message with the community</p>
+          <p className="text-slate-400 font-semibold">Professional live streaming with AI-powered tools</p>
         </div>
 
         <div className="grid lg:grid-cols-3 gap-6">
-          {/* Main Video Feed */}
+          {/* Main Video Feed + Teleprompter */}
           <div className="lg:col-span-2 space-y-6">
             {/* Video Preview */}
             <Card className="bg-slate-800/50 border-2 border-orange-500/30 overflow-hidden">
@@ -242,7 +253,7 @@ export default function BroadcastStream() {
 
               {/* Stream Controls */}
               <CardContent className="p-6 bg-slate-900/50">
-                <div className="flex items-center justify-center gap-4">
+                <div className="flex items-center justify-center gap-4 mb-4">
                   <Button
                     size="lg"
                     onClick={cameraOn ? stopCamera : startCamera}
@@ -287,12 +298,67 @@ export default function BroadcastStream() {
                       END STREAM
                     </Button>
                   )}
+
+                  <Button
+                    size="lg"
+                    onClick={() => setShowTeleprompter(!showTeleprompter)}
+                    className={showTeleprompter 
+                      ? "bg-amber-500 hover:bg-amber-600" 
+                      : "bg-slate-700 hover:bg-slate-600"}
+                  >
+                    <FileText className="w-5 h-5 mr-2" />
+                    Script
+                  </Button>
                 </div>
               </CardContent>
             </Card>
 
+            {/* Teleprompter - Only visible to host */}
+            {showTeleprompter && (
+              <div>
+                <Teleprompter script={selectedScript} isVisible={true} />
+                
+                {/* Script Selector */}
+                <Card className="bg-slate-800/50 border-slate-700 mt-4">
+                  <CardHeader className="pb-3">
+                    <CardTitle className="text-white font-bold text-sm">Select Script</CardTitle>
+                  </CardHeader>
+                  <CardContent>
+                    <div className="space-y-2">
+                      {scripts.map((script) => (
+                        <button
+                          key={script.id}
+                          onClick={() => setSelectedScript(script)}
+                          className={`w-full text-left p-3 rounded-lg transition-colors ${
+                            selectedScript?.id === script.id
+                              ? 'bg-amber-500/20 border-2 border-amber-500'
+                              : 'bg-slate-900/50 border-2 border-transparent hover:bg-slate-800'
+                          }`}
+                        >
+                          <div className="flex items-center justify-between">
+                            <div>
+                              <h4 className="text-white font-semibold text-sm">{script.title}</h4>
+                              <p className="text-xs text-slate-400">{script.topic} • {script.duration} min</p>
+                            </div>
+                            <Badge className="bg-purple-500">{script.script_type}</Badge>
+                          </div>
+                        </button>
+                      ))}
+                      {scripts.length === 0 && (
+                        <div className="text-center py-8">
+                          <FileText className="w-12 h-12 text-slate-600 mx-auto mb-3" />
+                          <p className="text-slate-400 text-sm">No scripts available</p>
+                          <p className="text-slate-500 text-xs">Create one using AI Script Generator</p>
+                        </div>
+                      )}
+                    </div>
+                  </CardContent>
+                </Card>
+              </div>
+            )}
+
             {/* Stream Information */}
-            {!isLive && (
+            {!isLive && !showTeleprompter && (
               <Card className="bg-slate-800/50 border-2 border-orange-500/30">
                 <CardHeader>
                   <CardTitle className="text-white font-black">Stream Information</CardTitle>
@@ -330,97 +396,116 @@ export default function BroadcastStream() {
             )}
           </div>
 
-          {/* Stats Sidebar */}
+          {/* Sidebar - Stats & Tools */}
           <div className="space-y-6">
-            {/* Live Stats */}
-            <Card className="bg-slate-800/50 border-2 border-cyan-500/30">
-              <CardHeader className="border-b border-cyan-500/20">
-                <CardTitle className="text-white font-black text-lg flex items-center gap-2">
-                  <Activity className="w-5 h-5 text-cyan-400" />
-                  Live Stats
-                </CardTitle>
-              </CardHeader>
-              <CardContent className="p-6 space-y-4">
-                <div className="flex justify-between items-center">
-                  <span className="text-slate-400 font-semibold">Current Viewers</span>
-                  <span className="text-2xl font-black text-white">{viewerCount}</span>
-                </div>
-                <div className="flex justify-between items-center">
-                  <span className="text-slate-400 font-semibold">Peak Viewers</span>
-                  <span className="text-2xl font-black text-white">{peakViewers}</span>
-                </div>
-                <div className="flex justify-between items-center">
-                  <span className="text-slate-400 font-semibold">Chat Messages</span>
-                  <span className="text-2xl font-black text-white">{chatCount}</span>
-                </div>
-                <div className="flex justify-between items-center">
-                  <span className="text-slate-400 font-semibold">Stream Duration</span>
-                  <span className="text-lg font-black text-cyan-400">
-                    {isLive ? formatDuration(streamDuration) : '00:00:00'}
-                  </span>
-                </div>
-              </CardContent>
-            </Card>
+            <Tabs defaultValue="stats" className="w-full">
+              <TabsList className="w-full bg-slate-800/50 border border-slate-700">
+                <TabsTrigger value="stats" className="flex-1 data-[state=active]:bg-cyan-500">
+                  <Activity className="w-4 h-4 mr-1" />
+                  Stats
+                </TabsTrigger>
+                <TabsTrigger value="tools" className="flex-1 data-[state=active]:bg-cyan-500">
+                  <Settings className="w-4 h-4 mr-1" />
+                  Tools
+                </TabsTrigger>
+              </TabsList>
 
-            {/* System Status */}
-            <Card className="bg-slate-800/50 border-2 border-purple-500/30">
-              <CardHeader className="border-b border-purple-500/20">
-                <CardTitle className="text-white font-black text-lg flex items-center gap-2">
-                  <Settings className="w-5 h-5 text-purple-400" />
-                  System Status
-                </CardTitle>
-              </CardHeader>
-              <CardContent className="p-6 space-y-3">
-                <div className="flex justify-between items-center">
-                  <span className="text-slate-400 font-semibold">Camera</span>
-                  <Badge className={cameraOn ? "bg-green-600" : "bg-slate-600"}>
-                    {cameraOn ? <CheckCircle className="w-3 h-3 mr-1" /> : <AlertCircle className="w-3 h-3 mr-1" />}
-                    {cameraOn ? 'Connected' : 'Off'}
-                  </Badge>
-                </div>
-                <div className="flex justify-between items-center">
-                  <span className="text-slate-400 font-semibold">Microphone</span>
-                  <Badge className={micOn ? "bg-green-600" : "bg-slate-600"}>
-                    {micOn ? <CheckCircle className="w-3 h-3 mr-1" /> : <AlertCircle className="w-3 h-3 mr-1" />}
-                    {micOn ? 'Active' : 'Off'}
-                  </Badge>
-                </div>
-                <div className="flex justify-between items-center">
-                  <span className="text-slate-400 font-semibold">Connection</span>
-                  <Badge className={connectionStatus === 'connected' ? "bg-green-600" : "bg-slate-600"}>
-                    {connectionStatus === 'connected' ? <CheckCircle className="w-3 h-3 mr-1" /> : <AlertCircle className="w-3 h-3 mr-1" />}
-                    {connectionStatus === 'connected' ? 'Stable' : 'Disconnected'}
-                  </Badge>
-                </div>
-              </CardContent>
-            </Card>
+              <TabsContent value="stats" className="mt-4 space-y-4">
+                {/* Live Stats */}
+                <Card className="bg-slate-800/50 border-2 border-cyan-500/30">
+                  <CardHeader className="border-b border-cyan-500/20">
+                    <CardTitle className="text-white font-black text-lg flex items-center gap-2">
+                      <Activity className="w-5 h-5 text-cyan-400" />
+                      Live Stats
+                    </CardTitle>
+                  </CardHeader>
+                  <CardContent className="p-6 space-y-4">
+                    <div className="flex justify-between items-center">
+                      <span className="text-slate-400 font-semibold">Current Viewers</span>
+                      <span className="text-2xl font-black text-white">{viewerCount}</span>
+                    </div>
+                    <div className="flex justify-between items-center">
+                      <span className="text-slate-400 font-semibold">Peak Viewers</span>
+                      <span className="text-2xl font-black text-white">{peakViewers}</span>
+                    </div>
+                    <div className="flex justify-between items-center">
+                      <span className="text-slate-400 font-semibold">Chat Messages</span>
+                      <span className="text-2xl font-black text-white">{chatCount}</span>
+                    </div>
+                    <div className="flex justify-between items-center">
+                      <span className="text-slate-400 font-semibold">Stream Duration</span>
+                      <span className="text-lg font-black text-cyan-400">
+                        {isLive ? formatDuration(streamDuration) : '00:00:00'}
+                      </span>
+                    </div>
+                  </CardContent>
+                </Card>
 
-            {/* Stream Info */}
-            <Card className="bg-slate-800/50 border-2 border-orange-500/30">
-              <CardHeader className="border-b border-orange-500/20">
-                <CardTitle className="text-white font-black text-lg">Stream Information</CardTitle>
-              </CardHeader>
-              <CardContent className="p-6 space-y-3 text-sm">
-                <div className="flex justify-between">
-                  <span className="text-slate-400 font-semibold">Status</span>
-                  <Badge className={isLive ? "bg-red-600" : "bg-slate-600"}>
-                    {isLive ? 'Live' : 'Offline'}
-                  </Badge>
-                </div>
-                <div className="flex justify-between">
-                  <span className="text-slate-400 font-semibold">Resolution</span>
-                  <span className="text-white font-bold">{streamStats.resolution}</span>
-                </div>
-                <div className="flex justify-between">
-                  <span className="text-slate-400 font-semibold">Bitrate</span>
-                  <span className="text-white font-bold">{streamStats.bitrate}</span>
-                </div>
-                <div className="flex justify-between">
-                  <span className="text-slate-400 font-semibold">FPS</span>
-                  <span className="text-white font-bold">{streamStats.fps}</span>
-                </div>
-              </CardContent>
-            </Card>
+                {/* System Status */}
+                <Card className="bg-slate-800/50 border-2 border-purple-500/30">
+                  <CardHeader className="border-b border-purple-500/20">
+                    <CardTitle className="text-white font-black text-lg flex items-center gap-2">
+                      <Settings className="w-5 h-5 text-purple-400" />
+                      System Status
+                    </CardTitle>
+                  </CardHeader>
+                  <CardContent className="p-6 space-y-3">
+                    <div className="flex justify-between items-center">
+                      <span className="text-slate-400 font-semibold">Camera</span>
+                      <Badge className={cameraOn ? "bg-green-600" : "bg-slate-600"}>
+                        {cameraOn ? <CheckCircle className="w-3 h-3 mr-1" /> : <AlertCircle className="w-3 h-3 mr-1" />}
+                        {cameraOn ? 'Connected' : 'Off'}
+                      </Badge>
+                    </div>
+                    <div className="flex justify-between items-center">
+                      <span className="text-slate-400 font-semibold">Microphone</span>
+                      <Badge className={micOn ? "bg-green-600" : "bg-slate-600"}>
+                        {micOn ? <CheckCircle className="w-3 h-3 mr-1" /> : <AlertCircle className="w-3 h-3 mr-1" />}
+                        {micOn ? 'Active' : 'Off'}
+                      </Badge>
+                    </div>
+                    <div className="flex justify-between items-center">
+                      <span className="text-slate-400 font-semibold">Connection</span>
+                      <Badge className={connectionStatus === 'connected' ? "bg-green-600" : "bg-slate-600"}>
+                        {connectionStatus === 'connected' ? <CheckCircle className="w-3 h-3 mr-1" /> : <AlertCircle className="w-3 h-3 mr-1" />}
+                        {connectionStatus === 'connected' ? 'Stable' : 'Disconnected'}
+                      </Badge>
+                    </div>
+                  </CardContent>
+                </Card>
+
+                {/* Stream Info */}
+                <Card className="bg-slate-800/50 border-2 border-orange-500/30">
+                  <CardHeader className="border-b border-orange-500/20">
+                    <CardTitle className="text-white font-black text-lg">Stream Information</CardTitle>
+                  </CardHeader>
+                  <CardContent className="p-6 space-y-3 text-sm">
+                    <div className="flex justify-between">
+                      <span className="text-slate-400 font-semibold">Status</span>
+                      <Badge className={isLive ? "bg-red-600" : "bg-slate-600"}>
+                        {isLive ? 'Live' : 'Offline'}
+                      </Badge>
+                    </div>
+                    <div className="flex justify-between">
+                      <span className="text-slate-400 font-semibold">Resolution</span>
+                      <span className="text-white font-bold">{streamStats.resolution}</span>
+                    </div>
+                    <div className="flex justify-between">
+                      <span className="text-slate-400 font-semibold">Bitrate</span>
+                      <span className="text-white font-bold">{streamStats.bitrate}</span>
+                    </div>
+                    <div className="flex justify-between">
+                      <span className="text-slate-400 font-semibold">FPS</span>
+                      <span className="text-white font-bold">{streamStats.fps}</span>
+                    </div>
+                  </CardContent>
+                </Card>
+              </TabsContent>
+
+              <TabsContent value="tools" className="mt-4">
+                <StreamTools />
+              </TabsContent>
+            </Tabs>
 
             {/* Quick Tips */}
             <Card className="bg-slate-800/50 border-2 border-yellow-500/30">
@@ -431,7 +516,7 @@ export default function BroadcastStream() {
                 <ul className="space-y-2 text-sm text-slate-300">
                   <li className="flex items-start gap-2">
                     <span className="text-yellow-400 mt-0.5">•</span>
-                    <span className="font-semibold">Ensure good lighting for best quality</span>
+                    <span className="font-semibold">Use teleprompter for seamless delivery</span>
                   </li>
                   <li className="flex items-start gap-2">
                     <span className="text-yellow-400 mt-0.5">•</span>
@@ -439,7 +524,7 @@ export default function BroadcastStream() {
                   </li>
                   <li className="flex items-start gap-2">
                     <span className="text-yellow-400 mt-0.5">•</span>
-                    <span className="font-semibold">Keep camera steady or use tripod</span>
+                    <span className="font-semibold">Generate AI scripts for better content</span>
                   </li>
                   <li className="flex items-start gap-2">
                     <span className="text-yellow-400 mt-0.5">•</span>

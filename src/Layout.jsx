@@ -8,7 +8,7 @@ import {
   ShoppingBag, Heart, Settings, LogOut, Bell, Search,
   LayoutDashboard, PlayCircle, Mic2, FileText, UsersRound, MessagesSquare,
   CalendarDays, Store, DollarSign, User as UserIcon, Shield, Settings as SettingsIcon,
-  Image, Film, Palette, Crown, Package, Download, CreditCard, BarChart3
+  Image, Film, Palette, Crown, Package, Download, CreditCard, BarChart3, Sparkles
 } from "lucide-react";
 import {
   Sidebar,
@@ -64,6 +64,7 @@ export default function Layout({ children, currentPageName }) {
     { title: "Analytics", url: createPageUrl("AdminAnalytics"), icon: BarChart3, section: "OVERVIEW" },
     { title: "Site Settings", url: createPageUrl("AdminSiteSettings"), icon: SettingsIcon, section: "OVERVIEW" },
     { title: "Live Streams", url: createPageUrl("AdminLiveStreams"), icon: Video, section: "CONTENT" },
+    { title: "AI Script Generator", url: createPageUrl("AdminAIScriptGenerator"), icon: Sparkles, section: "CONTENT" },
     { title: "Podcasts", url: createPageUrl("AdminPodcasts"), icon: Mic2, section: "CONTENT" },
     { title: "Videos", url: createPageUrl("AdminVideos"), icon: PlayCircle, section: "CONTENT" },
     { title: "Blog Posts", url: createPageUrl("AdminBlog"), icon: FileText, section: "CONTENT" },
@@ -78,6 +79,7 @@ export default function Layout({ children, currentPageName }) {
     { title: "Donations", url: createPageUrl("AdminDonations"), icon: DollarSign, section: "COMMERCE" },
     { title: "Payment Gateways", url: createPageUrl("AdminPaymentGateways"), icon: CreditCard, section: "COMMERCE" },
     { title: "Users", url: createPageUrl("AdminUsers"), icon: UserIcon, section: "MANAGEMENT" },
+    { title: "Roles & Permissions", url: createPageUrl("AdminRoles"), icon: Shield, section: "MANAGEMENT" },
   ];
 
   const groupedAdminItems = adminNavItems.reduce((acc, item) => {
@@ -193,8 +195,8 @@ export default function Layout({ children, currentPageName }) {
                         return (
                           <SidebarMenuItem key={item.title}>
                             <SidebarMenuButton asChild>
-                              <Link
-                                to={item.url}
+                              <Link 
+                                to={item.url} 
                                 className={`flex items-center gap-2.5 px-3 py-2 text-sm font-medium rounded-lg mb-0.5 transition-all sidebar-menu-item ${isActive ? 'active' : ''}`}
                                 style={isActive ? { backgroundColor: '#22d3ee', color: '#ffffff' } : { color: '#94a3b8' }}
                               >

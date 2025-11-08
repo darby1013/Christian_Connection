@@ -14,6 +14,7 @@ import AdminPaymentGateways from './pages/AdminPaymentGateways';
 import AdminAnalytics from './pages/AdminAnalytics';
 import UserProfile from './pages/UserProfile';
 import AdminRoles from './pages/AdminRoles';
+import AdminAIScriptGenerator from './pages/AdminAIScriptGenerator';
 import Layout from './Layout.jsx';
 
 
@@ -34,6 +35,7 @@ export const PAGES = {
     "AdminAnalytics": AdminAnalytics,
     "UserProfile": UserProfile,
     "AdminRoles": AdminRoles,
+    "AdminAIScriptGenerator": AdminAIScriptGenerator,
 }
 
 export const pagesConfig = {
