@@ -56,19 +56,19 @@ export default function Layout({ children, currentPageName }) {
   ];
 
   const adminNavItems = [
-    { title: "Dashboard", url: createPageUrl("AdminDashboard"), icon: LayoutDashboard, section: "Overview" },
-    { title: "Site Settings", url: createPageUrl("AdminSiteSettings"), icon: SettingsIcon, section: "Overview" },
-    { title: "Live Streams", url: createPageUrl("AdminLiveStreams"), icon: Video, section: "Content" },
-    { title: "Podcasts", url: createPageUrl("AdminPodcasts"), icon: Mic2, section: "Content" },
-    { title: "Videos", url: createPageUrl("AdminVideos"), icon: PlayCircle, section: "Content" },
-    { title: "Blog Posts", url: createPageUrl("AdminBlog"), icon: FileText, section: "Content" },
-    { title: "Groups", url: createPageUrl("AdminGroups"), icon: UsersRound, section: "Community" },
-    { title: "Forum", url: createPageUrl("AdminForum"), icon: MessagesSquare, section: "Community" },
-    { title: "Events", url: createPageUrl("AdminEvents"), icon: CalendarDays, section: "Community" },
-    { title: "Products", url: createPageUrl("AdminProducts"), icon: Store, section: "Commerce" },
-    { title: "Orders", url: createPageUrl("AdminOrders"), icon: ShoppingBag, section: "Commerce" },
-    { title: "Donations", url: createPageUrl("AdminDonations"), icon: DollarSign, section: "Commerce" },
-    { title: "Users", url: createPageUrl("AdminUsers"), icon: UserIcon, section: "Management" },
+    { title: "Dashboard", url: createPageUrl("AdminDashboard"), icon: LayoutDashboard, section: "OVERVIEW" },
+    { title: "Site Settings", url: createPageUrl("AdminSiteSettings"), icon: SettingsIcon, section: "OVERVIEW" },
+    { title: "Live Streams", url: createPageUrl("AdminLiveStreams"), icon: Video, section: "CONTENT" },
+    { title: "Podcasts", url: createPageUrl("AdminPodcasts"), icon: Mic2, section: "CONTENT" },
+    { title: "Videos", url: createPageUrl("AdminVideos"), icon: PlayCircle, section: "CONTENT" },
+    { title: "Blog Posts", url: createPageUrl("AdminBlog"), icon: FileText, section: "CONTENT" },
+    { title: "Groups", url: createPageUrl("AdminGroups"), icon: UsersRound, section: "COMMUNITY" },
+    { title: "Forum", url: createPageUrl("AdminForum"), icon: MessagesSquare, section: "COMMUNITY" },
+    { title: "Events", url: createPageUrl("AdminEvents"), icon: CalendarDays, section: "COMMUNITY" },
+    { title: "Products", url: createPageUrl("AdminProducts"), icon: Store, section: "COMMERCE" },
+    { title: "Orders", url: createPageUrl("AdminOrders"), icon: ShoppingBag, section: "COMMERCE" },
+    { title: "Donations", url: createPageUrl("AdminDonations"), icon: DollarSign, section: "COMMERCE" },
+    { title: "Users", url: createPageUrl("AdminUsers"), icon: UserIcon, section: "MANAGEMENT" },
   ];
 
   const groupedAdminItems = adminNavItems.reduce((acc, item) => {
@@ -89,26 +89,18 @@ export default function Layout({ children, currentPageName }) {
     return (
       <SidebarProvider>
         <style>{`
-          :root {
-            --admin-bg: #0a0e27;
-            --admin-card: #1a1f3a;
-            --admin-cyan: #00d9ff;
-            --admin-purple: #7c3aed;
-            --admin-red: #ef4444;
-            --admin-green: #10b981;
-          }
           .admin-layout {
-            background: #0a0e27;
+            background: #1e2139;
             min-height: 100vh;
           }
           .admin-sidebar {
-            background: #0f1629;
-            border-right: 1px solid #1a1f3a;
+            background: #1e2139;
+            border-right: 1px solid rgba(255, 255, 255, 0.05);
           }
           .admin-card {
-            background: #1a1f3a;
-            border: 1px solid #2a2f4a;
-            border-radius: 12px;
+            background: linear-gradient(135deg, #2a2f4a 0%, #1e2139 100%);
+            border: 1px solid rgba(255, 255, 255, 0.05);
+            border-radius: 16px;
           }
           .glow-cyan {
             box-shadow: 0 0 20px rgba(0, 217, 255, 0.3);
@@ -116,14 +108,13 @@ export default function Layout({ children, currentPageName }) {
         `}</style>
         <div className="flex min-h-screen admin-layout">
           <Sidebar className="admin-sidebar">
-            <SidebarHeader className="border-b border-slate-800 p-6">
+            <SidebarHeader className="border-b border-white/5 p-6">
               <div className="flex items-center gap-3">
-                <div className="w-12 h-12 bg-gradient-to-br from-purple-600 to-cyan-500 rounded-xl flex items-center justify-center shadow-xl">
-                  <Shield className="w-7 h-7 text-white" />
+                <div className="w-10 h-10 bg-gradient-to-br from-blue-600 to-cyan-500 rounded-xl flex items-center justify-center shadow-lg">
+                  <Shield className="w-6 h-6 text-white" />
                 </div>
                 <div>
-                  <h2 className="font-black text-white text-xl">Glory Wave</h2>
-                  <p className="text-xs text-cyan-400 font-semibold">Admin Panel</p>
+                  <h2 className="font-bold text-white text-base">Admin Panel</h2>
                 </div>
               </div>
             </SidebarHeader>
@@ -131,7 +122,7 @@ export default function Layout({ children, currentPageName }) {
             <SidebarContent className="p-3">
               {Object.entries(groupedAdminItems).map(([section, items]) => (
                 <SidebarGroup key={section}>
-                  <SidebarGroupLabel className="text-xs font-bold text-cyan-400 uppercase tracking-wider px-3 py-3">
+                  <SidebarGroupLabel className="text-xs font-bold text-cyan-400 uppercase tracking-wider px-3 py-2 mb-1">
                     {section}
                   </SidebarGroupLabel>
                   <SidebarGroupContent>
@@ -140,15 +131,15 @@ export default function Layout({ children, currentPageName }) {
                         <SidebarMenuItem key={item.title}>
                           <SidebarMenuButton
                             asChild
-                            className={`rounded-lg mb-1 transition-all font-semibold ${
+                            className={`rounded-lg mb-0.5 transition-all font-medium text-sm ${
                               location.pathname === item.url
-                                ? 'bg-cyan-500 text-white shadow-lg glow-cyan'
-                                : 'text-slate-300 hover:bg-slate-800/70 hover:text-white'
+                                ? 'bg-cyan-500 text-white shadow-lg'
+                                : 'text-slate-400 hover:bg-white/5 hover:text-white'
                             }`}
                           >
-                            <Link to={item.url} className="flex items-center gap-3 px-3 py-2.5">
-                              <item.icon className="w-5 h-5" />
-                              <span className="text-sm">{item.title}</span>
+                            <Link to={item.url} className="flex items-center gap-3 px-3 py-2">
+                              <item.icon className="w-4 h-4" />
+                              <span>{item.title}</span>
                             </Link>
                           </SidebarMenuButton>
                         </SidebarMenuItem>
@@ -159,19 +150,17 @@ export default function Layout({ children, currentPageName }) {
               ))}
             </SidebarContent>
 
-            <SidebarFooter className="border-t border-slate-800 p-4">
-              <div className="flex items-center justify-between mb-3">
-                <div className="flex items-center gap-3">
-                  <Avatar className="w-10 h-10 border-2 border-cyan-500/40">
-                    <AvatarImage src={user?.profile_image} />
-                    <AvatarFallback className="bg-gradient-to-br from-purple-600 to-cyan-500 text-white font-bold">
-                      {user?.full_name?.[0] || 'A'}
-                    </AvatarFallback>
-                  </Avatar>
-                  <div className="flex-1 min-w-0">
-                    <p className="font-bold text-white text-sm truncate">{user?.full_name || 'Admin'}</p>
-                    <p className="text-xs text-slate-400 truncate">{user?.email}</p>
-                  </div>
+            <SidebarFooter className="border-t border-white/5 p-4">
+              <div className="flex items-center gap-3 mb-3">
+                <Avatar className="w-9 h-9 border-2 border-cyan-500/40">
+                  <AvatarImage src={user?.profile_image} />
+                  <AvatarFallback className="bg-gradient-to-br from-purple-600 to-cyan-500 text-white font-bold text-sm">
+                    {user?.full_name?.[0] || 'A'}
+                  </AvatarFallback>
+                </Avatar>
+                <div className="flex-1 min-w-0">
+                  <p className="font-semibold text-white text-sm truncate">{user?.full_name || 'Admin'}</p>
+                  <p className="text-xs text-slate-400 truncate">{user?.email}</p>
                 </div>
               </div>
               <div className="flex gap-2">
@@ -179,43 +168,43 @@ export default function Layout({ children, currentPageName }) {
                   variant="outline"
                   size="sm"
                   onClick={() => window.location.href = createPageUrl("Home")}
-                  className="flex-1 bg-slate-800/70 border-slate-700 text-slate-300 hover:bg-slate-700"
+                  className="flex-1 bg-white/5 border-white/10 text-slate-300 hover:bg-white/10 text-xs"
                 >
-                  <Home className="w-4 h-4 mr-2" />
+                  <Home className="w-3 h-3 mr-1" />
                   Site
                 </Button>
                 <Button
                   variant="outline"
                   size="sm"
                   onClick={handleLogout}
-                  className="bg-slate-800/70 border-slate-700 text-slate-300 hover:bg-slate-700"
+                  className="bg-white/5 border-white/10 text-slate-300 hover:bg-white/10"
                 >
-                  <LogOut className="w-4 h-4" />
+                  <LogOut className="w-3 h-3" />
                 </Button>
               </div>
             </SidebarFooter>
           </Sidebar>
 
           <main className="flex-1 flex flex-col overflow-hidden">
-            <header className="bg-[#0f1629] border-b border-slate-800 px-6 py-4">
+            <header className="bg-[#2a2f4a] border-b border-white/5 px-6 py-4">
               <div className="flex items-center justify-between">
                 <div className="flex items-center gap-4">
-                  <SidebarTrigger className="lg:hidden text-white hover:bg-slate-800 p-2 rounded-lg" />
-                  <h1 className="text-2xl font-black text-white">{currentPageName?.replace('Admin', '')}</h1>
+                  <SidebarTrigger className="lg:hidden text-white hover:bg-white/10 p-2 rounded-lg" />
+                  <h1 className="text-xl font-bold text-white">{currentPageName?.replace('Admin', '')}</h1>
                 </div>
                 <div className="flex items-center gap-3">
-                  <Button variant="ghost" size="icon" className="text-slate-300 hover:text-white hover:bg-slate-800 rounded-lg relative">
+                  <Button variant="ghost" size="icon" className="text-slate-300 hover:text-white hover:bg-white/10 rounded-lg relative">
                     <Bell className="w-5 h-5" />
-                    <span className="absolute top-1 right-1 w-2 h-2 bg-red-500 rounded-full"></span>
+                    <span className="absolute top-1.5 right-1.5 w-2 h-2 bg-red-500 rounded-full"></span>
                   </Button>
-                  <Button variant="ghost" size="icon" className="text-slate-300 hover:text-white hover:bg-slate-800 rounded-lg">
+                  <Button variant="ghost" size="icon" className="text-slate-300 hover:text-white hover:bg-white/10 rounded-lg">
                     <Settings className="w-5 h-5" />
                   </Button>
                 </div>
               </div>
             </header>
 
-            <div className="flex-1 overflow-auto p-6">
+            <div className="flex-1 overflow-auto p-6 bg-[#1e2139]">
               {children}
             </div>
           </main>
@@ -224,7 +213,6 @@ export default function Layout({ children, currentPageName }) {
     );
   }
 
-  // Public Site Layout
   return (
     <>
       <style>{`
@@ -274,7 +262,7 @@ export default function Layout({ children, currentPageName }) {
                   <div className="flex items-center gap-3">
                     {isAdmin && (
                       <Link to={createPageUrl("AdminDashboard")}>
-                        <Button variant="outline" className="border-slate-700 text-slate-300 hover:bg-slate-800">
+                        <Button variant="outline" className="border-slate-700 bg-white/5 text-slate-300 hover:bg-white/10">
                           <Shield className="w-4 h-4 mr-2" />
                           Admin
                         </Button>
