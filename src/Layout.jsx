@@ -6,7 +6,8 @@ import {
   Home, Video, Radio, BookOpen, Users, MessageSquare, Calendar,
   ShoppingBag, Heart, Settings, LogOut, Menu, X, Bell, Search,
   LayoutDashboard, PlayCircle, Mic2, FileText, UsersRound, MessagesSquare,
-  CalendarDays, Store, DollarSign, User as UserIcon, Shield
+  CalendarDays, Store, DollarSign, User as UserIcon, Shield, Settings as SettingsIcon,
+  Image, Film, Palette
 } from "lucide-react";
 import {
   Sidebar,
@@ -58,111 +59,121 @@ export default function Layout({ children, currentPageName }) {
   ];
 
   const adminNavItems = [
-    { title: "Dashboard", url: createPageUrl("AdminDashboard"), icon: LayoutDashboard },
-    { title: "Live Streams", url: createPageUrl("AdminLiveStreams"), icon: Video },
-    { title: "Podcasts", url: createPageUrl("AdminPodcasts"), icon: Mic2 },
-    { title: "Videos", url: createPageUrl("AdminVideos"), icon: PlayCircle },
-    { title: "Blog Posts", url: createPageUrl("AdminBlog"), icon: FileText },
-    { title: "Groups", url: createPageUrl("AdminGroups"), icon: UsersRound },
-    { title: "Forum", url: createPageUrl("AdminForum"), icon: MessagesSquare },
-    { title: "Events", url: createPageUrl("AdminEvents"), icon: CalendarDays },
-    { title: "Products", url: createPageUrl("AdminProducts"), icon: Store },
-    { title: "Orders", url: createPageUrl("AdminOrders"), icon: ShoppingBag },
-    { title: "Donations", url: createPageUrl("AdminDonations"), icon: DollarSign },
-    { title: "Users", url: createPageUrl("AdminUsers"), icon: UserIcon },
+    { title: "Dashboard", url: createPageUrl("AdminDashboard"), icon: LayoutDashboard, section: "Overview" },
+    { title: "Site Settings", url: createPageUrl("AdminSiteSettings"), icon: SettingsIcon, section: "Overview" },
+    { title: "Live Streams", url: createPageUrl("AdminLiveStreams"), icon: Video, section: "Content" },
+    { title: "Podcasts", url: createPageUrl("AdminPodcasts"), icon: Mic2, section: "Content" },
+    { title: "Videos", url: createPageUrl("AdminVideos"), icon: PlayCircle, section: "Content" },
+    { title: "Blog Posts", url: createPageUrl("AdminBlog"), icon: FileText, section: "Content" },
+    { title: "Groups", url: createPageUrl("AdminGroups"), icon: UsersRound, section: "Community" },
+    { title: "Forum", url: createPageUrl("AdminForum"), icon: MessagesSquare, section: "Community" },
+    { title: "Events", url: createPageUrl("AdminEvents"), icon: CalendarDays, section: "Community" },
+    { title: "Products", url: createPageUrl("AdminProducts"), icon: Store, section: "Commerce" },
+    { title: "Orders", url: createPageUrl("AdminOrders"), icon: ShoppingBag, section: "Commerce" },
+    { title: "Donations", url: createPageUrl("AdminDonations"), icon: DollarSign, section: "Commerce" },
+    { title: "Users", url: createPageUrl("AdminUsers"), icon: UserIcon, section: "Management" },
   ];
 
-  const navItems = isAdminPage ? adminNavItems : publicNavItems;
+  const groupedAdminItems = adminNavItems.reduce((acc, item) => {
+    if (!acc[item.section]) acc[item.section] = [];
+    acc[item.section].push(item);
+    return acc;
+  }, {});
 
   const handleLogout = () => {
     base44.auth.logout();
   };
 
   if (isAdminPage) {
-    // Admin Dark Theme Layout
     return (
       <SidebarProvider>
         <style>{`
           :root {
-            --admin-bg-primary: #0a0e1a;
-            --admin-bg-secondary: #111827;
-            --admin-bg-card: #1e293b;
-            --admin-accent: #6366f1;
-            --admin-accent-light: #818cf8;
+            --admin-bg-primary: #0f172a;
+            --admin-bg-secondary: #1e293b;
+            --admin-bg-card: #334155;
+            --admin-accent: #f97316;
+            --admin-accent-light: #fb923c;
             --admin-cyan: #06b6d4;
-            --admin-purple: #8b5cf6;
+            --admin-purple: #a855f7;
             --admin-text: #f8fafc;
-            --admin-text-muted: #94a3b8;
+            --admin-text-muted: #cbd5e1;
+            --admin-border: rgba(249, 115, 22, 0.2);
           }
           .admin-layout {
-            background: linear-gradient(135deg, #0a0e1a 0%, #1e1b4b 100%);
+            background: linear-gradient(135deg, #0f172a 0%, #1e1b4b 50%, #1e293b 100%);
             min-height: 100vh;
           }
           .admin-sidebar {
-            background: var(--admin-bg-secondary);
-            border-right: 1px solid rgba(99, 102, 241, 0.1);
+            background: linear-gradient(180deg, #1e293b 0%, #0f172a 100%);
+            border-right: 2px solid var(--admin-border);
           }
           .admin-card {
-            background: var(--admin-bg-card);
-            border: 1px solid rgba(99, 102, 241, 0.1);
-            border-radius: 12px;
+            background: linear-gradient(135deg, #334155 0%, #1e293b 100%);
+            border: 2px solid var(--admin-border);
+            border-radius: 16px;
+          }
+          .glow-orange {
+            box-shadow: 0 0 20px rgba(249, 115, 22, 0.3);
           }
         `}</style>
         <div className="flex min-h-screen admin-layout">
-          <Sidebar className="admin-sidebar border-r border-indigo-500/10">
-            <SidebarHeader className="border-b border-indigo-500/10 p-6">
+          <Sidebar className="admin-sidebar">
+            <SidebarHeader className="border-b-2 border-orange-500/20 p-6 bg-gradient-to-br from-orange-600/10 to-red-600/10">
               <div className="flex items-center gap-3">
-                <div className="w-10 h-10 bg-gradient-to-r from-indigo-500 to-purple-500 rounded-lg flex items-center justify-center">
-                  <Shield className="w-6 h-6 text-white" />
+                <div className="w-12 h-12 bg-gradient-to-br from-orange-500 to-red-600 rounded-xl flex items-center justify-center shadow-xl glow-orange">
+                  <Shield className="w-7 h-7 text-white" />
                 </div>
                 <div>
-                  <h2 className="font-bold text-white text-lg">Admin Panel</h2>
-                  <p className="text-xs text-slate-400">Faith Community</p>
+                  <h2 className="font-black text-white text-xl tracking-tight">ADMIN CONTROL</h2>
+                  <p className="text-xs text-orange-300 font-bold">Faith Community</p>
                 </div>
               </div>
             </SidebarHeader>
 
             <SidebarContent className="p-3">
-              <SidebarGroup>
-                <SidebarGroupLabel className="text-xs font-semibold text-slate-400 uppercase tracking-wider px-3 py-2">
-                  Management
-                </SidebarGroupLabel>
-                <SidebarGroupContent>
-                  <SidebarMenu>
-                    {adminNavItems.map((item) => (
-                      <SidebarMenuItem key={item.title}>
-                        <SidebarMenuButton
-                          asChild
-                          className={`rounded-lg mb-1 transition-all duration-200 ${
-                            location.pathname === item.url
-                              ? 'bg-gradient-to-r from-indigo-500 to-purple-500 text-white hover:from-indigo-600 hover:to-purple-600'
-                              : 'text-slate-300 hover:bg-slate-800 hover:text-white'
-                          }`}
-                        >
-                          <Link to={item.url} className="flex items-center gap-3 px-3 py-2.5">
-                            <item.icon className="w-4 h-4" />
-                            <span className="font-medium text-sm">{item.title}</span>
-                          </Link>
-                        </SidebarMenuButton>
-                      </SidebarMenuItem>
-                    ))}
-                  </SidebarMenu>
-                </SidebarGroupContent>
-              </SidebarGroup>
+              {Object.entries(groupedAdminItems).map(([section, items]) => (
+                <SidebarGroup key={section}>
+                  <SidebarGroupLabel className="text-xs font-black text-orange-400 uppercase tracking-widest px-3 py-3">
+                    {section}
+                  </SidebarGroupLabel>
+                  <SidebarGroupContent>
+                    <SidebarMenu>
+                      {items.map((item) => (
+                        <SidebarMenuItem key={item.title}>
+                          <SidebarMenuButton
+                            asChild
+                            className={`rounded-xl mb-1.5 transition-all duration-200 font-semibold ${
+                              location.pathname === item.url
+                                ? 'bg-gradient-to-r from-orange-600 to-red-600 text-white shadow-lg glow-orange'
+                                : 'text-slate-300 hover:bg-slate-800/70 hover:text-white'
+                            }`}
+                          >
+                            <Link to={item.url} className="flex items-center gap-3 px-3 py-3">
+                              <item.icon className="w-5 h-5" />
+                              <span className="text-sm">{item.title}</span>
+                            </Link>
+                          </SidebarMenuButton>
+                        </SidebarMenuItem>
+                      ))}
+                    </SidebarMenu>
+                  </SidebarGroupContent>
+                </SidebarGroup>
+              ))}
             </SidebarContent>
 
-            <SidebarFooter className="border-t border-indigo-500/10 p-4">
+            <SidebarFooter className="border-t-2 border-orange-500/20 p-4 bg-gradient-to-br from-orange-600/5 to-red-600/5">
               <div className="flex items-center justify-between mb-3">
                 <div className="flex items-center gap-3">
-                  <Avatar className="w-9 h-9 border-2 border-indigo-500/30">
+                  <Avatar className="w-10 h-10 border-3 border-orange-500/40 shadow-lg">
                     <AvatarImage src={user?.profile_image} />
-                    <AvatarFallback className="bg-gradient-to-r from-indigo-500 to-purple-500 text-white text-sm">
+                    <AvatarFallback className="bg-gradient-to-br from-orange-500 to-red-600 text-white font-bold">
                       {user?.full_name?.[0] || 'A'}
                     </AvatarFallback>
                   </Avatar>
                   <div className="flex-1 min-w-0">
-                    <p className="font-semibold text-white text-sm truncate">{user?.full_name || 'Admin'}</p>
-                    <p className="text-xs text-slate-400 truncate">{user?.email}</p>
+                    <p className="font-bold text-white text-sm truncate">{user?.full_name || 'Admin'}</p>
+                    <p className="text-xs text-orange-300 truncate">{user?.email}</p>
                   </div>
                 </div>
               </div>
@@ -171,16 +182,16 @@ export default function Layout({ children, currentPageName }) {
                   variant="outline"
                   size="sm"
                   onClick={() => window.location.href = createPageUrl("Home")}
-                  className="flex-1 bg-slate-800 border-slate-700 text-slate-300 hover:bg-slate-700"
+                  className="flex-1 bg-slate-800/70 border-orange-500/30 text-slate-300 hover:bg-slate-700 font-semibold"
                 >
                   <Home className="w-4 h-4 mr-2" />
-                  Public Site
+                  Site
                 </Button>
                 <Button
                   variant="outline"
                   size="sm"
                   onClick={handleLogout}
-                  className="bg-slate-800 border-slate-700 text-slate-300 hover:bg-slate-700"
+                  className="bg-slate-800/70 border-orange-500/30 text-slate-300 hover:bg-slate-700"
                 >
                   <LogOut className="w-4 h-4" />
                 </Button>
@@ -189,17 +200,17 @@ export default function Layout({ children, currentPageName }) {
           </Sidebar>
 
           <main className="flex-1 flex flex-col overflow-hidden">
-            <header className="bg-slate-900/50 backdrop-blur-xl border-b border-indigo-500/10 px-6 py-4">
+            <header className="bg-slate-900/60 backdrop-blur-xl border-b-2 border-orange-500/20 px-6 py-4">
               <div className="flex items-center justify-between">
                 <div className="flex items-center gap-4">
                   <SidebarTrigger className="lg:hidden text-white hover:bg-slate-800 p-2 rounded-lg" />
-                  <h1 className="text-xl font-bold text-white">{currentPageName?.replace('Admin', '')}</h1>
+                  <h1 className="text-2xl font-black text-white tracking-tight">{currentPageName?.replace('Admin', '')}</h1>
                 </div>
                 <div className="flex items-center gap-3">
-                  <Button variant="ghost" size="icon" className="text-slate-300 hover:text-white hover:bg-slate-800">
+                  <Button variant="ghost" size="icon" className="text-slate-300 hover:text-white hover:bg-slate-800 rounded-xl">
                     <Bell className="w-5 h-5" />
                   </Button>
-                  <Button variant="ghost" size="icon" className="text-slate-300 hover:text-white hover:bg-slate-800">
+                  <Button variant="ghost" size="icon" className="text-slate-300 hover:text-white hover:bg-slate-800 rounded-xl">
                     <Settings className="w-5 h-5" />
                   </Button>
                 </div>
@@ -215,18 +226,18 @@ export default function Layout({ children, currentPageName }) {
     );
   }
 
-  // Public Site Layout - Clean Christian Theme
+  // Public Site Layout - Bold Christian Theme
   return (
     <>
       <style>{`
         :root {
-          --faith-primary: #2563eb;
-          --faith-secondary: #7c3aed;
-          --faith-accent: #06b6d4;
-          --faith-gold: #f59e0b;
+          --faith-primary: #f97316;
+          --faith-secondary: #dc2626;
+          --faith-accent: #fbbf24;
+          --faith-gold: #eab308;
         }
         .faith-gradient {
-          background: linear-gradient(135deg, #f0f9ff 0%, #faf5ff 100%);
+          background: linear-gradient(135deg, #fff7ed 0%, #ffedd5 100%);
         }
         .nav-hover {
           transition: all 0.3s ease;
@@ -237,32 +248,30 @@ export default function Layout({ children, currentPageName }) {
       `}</style>
 
       <div className="min-h-screen faith-gradient">
-        {/* Top Navigation */}
-        <nav className="bg-white/80 backdrop-blur-xl border-b border-slate-200 sticky top-0 z-50 shadow-sm">
+        <nav className="bg-gradient-to-r from-orange-600 via-red-600 to-orange-700 backdrop-blur-xl border-b-3 border-orange-800/30 sticky top-0 z-50 shadow-2xl">
           <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-            <div className="flex justify-between items-center h-16">
+            <div className="flex justify-between items-center h-20">
               <Link to={createPageUrl("Home")} className="flex items-center gap-3 group">
-                <div className="w-10 h-10 bg-gradient-to-r from-blue-600 to-purple-600 rounded-lg flex items-center justify-center shadow-lg group-hover:shadow-xl transition-all">
-                  <span className="text-white font-bold text-xl">✝</span>
+                <div className="w-14 h-14 bg-white rounded-xl flex items-center justify-center shadow-2xl group-hover:shadow-orange-400/50 transition-all transform group-hover:scale-105">
+                  <span className="text-orange-600 font-black text-3xl">✝</span>
                 </div>
                 <div>
-                  <h1 className="text-xl font-bold bg-gradient-to-r from-blue-600 to-purple-600 bg-clip-text text-transparent">
-                    Faith Community
+                  <h1 className="text-2xl font-black text-white tracking-tight drop-shadow-lg">
+                    FAITH COMMUNITY
                   </h1>
-                  <p className="text-xs text-slate-500">Live. Connect. Grow.</p>
+                  <p className="text-xs text-orange-200 font-bold tracking-widest">LIVE • WORSHIP • CONNECT</p>
                 </div>
               </Link>
 
-              {/* Desktop Navigation */}
-              <div className="hidden lg:flex items-center gap-1">
+              <div className="hidden lg:flex items-center gap-2">
                 {publicNavItems.slice(0, 5).map((item) => (
                   <Link
                     key={item.title}
                     to={item.url}
-                    className={`nav-hover px-4 py-2 rounded-lg flex items-center gap-2 text-sm font-medium transition-all ${
+                    className={`nav-hover px-5 py-2.5 rounded-xl flex items-center gap-2 font-bold text-sm transition-all ${
                       location.pathname === item.url
-                        ? 'bg-gradient-to-r from-blue-600 to-purple-600 text-white shadow-md'
-                        : 'text-slate-600 hover:bg-slate-100'
+                        ? 'bg-white text-orange-600 shadow-xl'
+                        : 'text-white hover:bg-white/20 border-2 border-white/20'
                     }`}
                   >
                     <item.icon className="w-4 h-4" />
@@ -272,25 +281,19 @@ export default function Layout({ children, currentPageName }) {
               </div>
 
               <div className="flex items-center gap-3">
-                <Button variant="ghost" size="icon" className="rounded-full">
-                  <Search className="w-5 h-5" />
-                </Button>
-                <Button variant="ghost" size="icon" className="rounded-full">
-                  <Bell className="w-5 h-5" />
-                </Button>
                 {user ? (
                   <div className="flex items-center gap-3">
                     {isAdmin && (
                       <Link to={createPageUrl("AdminDashboard")}>
-                        <Button variant="outline" size="sm" className="border-purple-200 text-purple-600 hover:bg-purple-50">
+                        <Button className="bg-white/20 border-2 border-white text-white hover:bg-white hover:text-orange-600 font-bold">
                           <Shield className="w-4 h-4 mr-2" />
                           Admin
                         </Button>
                       </Link>
                     )}
-                    <Avatar className="cursor-pointer border-2 border-blue-200 hover:border-blue-400 transition-all">
+                    <Avatar className="cursor-pointer border-3 border-white hover:border-orange-300 transition-all shadow-xl">
                       <AvatarImage src={user.profile_image} />
-                      <AvatarFallback className="bg-gradient-to-r from-blue-600 to-purple-600 text-white">
+                      <AvatarFallback className="bg-white text-orange-600 font-black">
                         {user.full_name?.[0] || 'U'}
                       </AvatarFallback>
                     </Avatar>
@@ -298,9 +301,9 @@ export default function Layout({ children, currentPageName }) {
                 ) : (
                   <Button
                     onClick={() => base44.auth.redirectToLogin()}
-                    className="bg-gradient-to-r from-blue-600 to-purple-600 text-white hover:from-blue-700 hover:to-purple-700"
+                    className="bg-white text-orange-600 hover:bg-orange-50 font-black shadow-xl"
                   >
-                    Sign In
+                    SIGN IN
                   </Button>
                 )}
               </div>
@@ -308,18 +311,17 @@ export default function Layout({ children, currentPageName }) {
           </div>
         </nav>
 
-        {/* Secondary Navigation Bar */}
-        <div className="bg-white/60 backdrop-blur-lg border-b border-slate-200">
+        <div className="bg-gradient-to-r from-orange-500/20 via-red-500/20 to-orange-500/20 backdrop-blur-lg border-b-2 border-orange-300/30">
           <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-            <div className="flex gap-2 py-2 overflow-x-auto">
+            <div className="flex gap-2 py-3 overflow-x-auto">
               {publicNavItems.slice(5).map((item) => (
                 <Link
                   key={item.title}
                   to={item.url}
-                  className={`nav-hover px-4 py-1.5 rounded-full flex items-center gap-2 text-sm font-medium whitespace-nowrap transition-all ${
+                  className={`nav-hover px-5 py-2 rounded-full flex items-center gap-2 font-bold text-sm whitespace-nowrap transition-all ${
                     location.pathname === item.url
-                      ? 'bg-gradient-to-r from-blue-600 to-purple-600 text-white shadow-md'
-                      : 'text-slate-600 hover:bg-slate-100'
+                      ? 'bg-gradient-to-r from-orange-600 to-red-600 text-white shadow-lg'
+                      : 'text-orange-800 hover:bg-white/50 border-2 border-orange-300/40'
                   }`}
                 >
                   <item.icon className="w-4 h-4" />
@@ -330,45 +332,43 @@ export default function Layout({ children, currentPageName }) {
           </div>
         </div>
 
-        {/* Main Content */}
         <main className="flex-1">
           {children}
         </main>
 
-        {/* Footer */}
-        <footer className="bg-slate-900 text-white mt-20">
+        <footer className="bg-gradient-to-br from-slate-900 via-orange-950 to-slate-900 text-white mt-20 border-t-4 border-orange-600">
           <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-12">
             <div className="grid md:grid-cols-4 gap-8">
               <div className="col-span-2">
                 <div className="flex items-center gap-3 mb-4">
-                  <div className="w-10 h-10 bg-gradient-to-r from-blue-600 to-purple-600 rounded-lg flex items-center justify-center">
-                    <span className="text-white font-bold text-xl">✝</span>
+                  <div className="w-12 h-12 bg-gradient-to-br from-orange-500 to-red-600 rounded-xl flex items-center justify-center shadow-xl">
+                    <span className="text-white font-black text-2xl">✝</span>
                   </div>
-                  <h3 className="text-xl font-bold">Faith Community</h3>
+                  <h3 className="text-2xl font-black">FAITH COMMUNITY</h3>
                 </div>
-                <p className="text-slate-400 mb-4">
+                <p className="text-orange-200 mb-4 font-semibold">
                   Building a vibrant online Christian community through live streaming, content, and connection.
                 </p>
               </div>
               <div>
-                <h4 className="font-semibold mb-3">Quick Links</h4>
+                <h4 className="font-black mb-3 text-orange-400">QUICK LINKS</h4>
                 <div className="space-y-2">
-                  <Link to={createPageUrl("Home")} className="block text-slate-400 hover:text-white transition-colors">Home</Link>
-                  <Link to={createPageUrl("Blog")} className="block text-slate-400 hover:text-white transition-colors">Blog</Link>
-                  <Link to={createPageUrl("Events")} className="block text-slate-400 hover:text-white transition-colors">Events</Link>
-                  <Link to={createPageUrl("Store")} className="block text-slate-400 hover:text-white transition-colors">Store</Link>
+                  <Link to={createPageUrl("Home")} className="block text-orange-200 hover:text-white transition-colors font-semibold">Home</Link>
+                  <Link to={createPageUrl("Blog")} className="block text-orange-200 hover:text-white transition-colors font-semibold">Blog</Link>
+                  <Link to={createPageUrl("Events")} className="block text-orange-200 hover:text-white transition-colors font-semibold">Events</Link>
+                  <Link to={createPageUrl("Store")} className="block text-orange-200 hover:text-white transition-colors font-semibold">Store</Link>
                 </div>
               </div>
               <div>
-                <h4 className="font-semibold mb-3">Connect</h4>
+                <h4 className="font-black mb-3 text-orange-400">CONNECT</h4>
                 <div className="space-y-2">
-                  <Link to={createPageUrl("Groups")} className="block text-slate-400 hover:text-white transition-colors">Groups</Link>
-                  <Link to={createPageUrl("Forum")} className="block text-slate-400 hover:text-white transition-colors">Forum</Link>
-                  <Link to={createPageUrl("Donate")} className="block text-slate-400 hover:text-white transition-colors">Donate</Link>
+                  <Link to={createPageUrl("Groups")} className="block text-orange-200 hover:text-white transition-colors font-semibold">Groups</Link>
+                  <Link to={createPageUrl("Forum")} className="block text-orange-200 hover:text-white transition-colors font-semibold">Forum</Link>
+                  <Link to={createPageUrl("Donate")} className="block text-orange-200 hover:text-white transition-colors font-semibold">Donate</Link>
                 </div>
               </div>
             </div>
-            <div className="border-t border-slate-800 mt-8 pt-8 text-center text-slate-400">
+            <div className="border-t-2 border-orange-800/50 mt-8 pt-8 text-center text-orange-300 font-semibold">
               <p>&copy; 2025 Faith Community. All rights reserved.</p>
             </div>
           </div>
