@@ -5,6 +5,8 @@ import LiveStreamView from './pages/LiveStreamView';
 import Store from './pages/Store';
 import Blog from './pages/Blog';
 import AdminSiteSettings from './pages/AdminSiteSettings';
+import BroadcastStream from './pages/BroadcastStream';
+import AdminLiveStreams from './pages/AdminLiveStreams';
 import Layout from './Layout.jsx';
 
 
@@ -16,6 +18,8 @@ export const PAGES = {
     "Store": Store,
     "Blog": Blog,
     "AdminSiteSettings": AdminSiteSettings,
+    "BroadcastStream": BroadcastStream,
+    "AdminLiveStreams": AdminLiveStreams,
 }
 
 export const pagesConfig = {
