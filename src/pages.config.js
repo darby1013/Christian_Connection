@@ -9,6 +9,8 @@ import BroadcastStream from './pages/BroadcastStream';
 import AdminLiveStreams from './pages/AdminLiveStreams';
 import AdminSubscriptions from './pages/AdminSubscriptions';
 import AdminProductVariants from './pages/AdminProductVariants';
+import AdminDigitalProducts from './pages/AdminDigitalProducts';
+import AdminPaymentGateways from './pages/AdminPaymentGateways';
 import Layout from './Layout.jsx';
 
 
@@ -24,6 +26,8 @@ export const PAGES = {
     "AdminLiveStreams": AdminLiveStreams,
     "AdminSubscriptions": AdminSubscriptions,
     "AdminProductVariants": AdminProductVariants,
+    "AdminDigitalProducts": AdminDigitalProducts,
+    "AdminPaymentGateways": AdminPaymentGateways,
 }
 
 export const pagesConfig = {
