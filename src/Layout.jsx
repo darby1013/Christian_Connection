@@ -89,37 +89,80 @@ export default function Layout({ children, currentPageName }) {
     return (
       <SidebarProvider>
         <style>{`
+          :root {
+            --sidebar-background: #0f1629 !important;
+            --sidebar-foreground: #ffffff !important;
+            --sidebar-primary: #22d3ee !important;
+            --sidebar-primary-foreground: #ffffff !important;
+            --sidebar-accent: rgba(255, 255, 255, 0.05) !important;
+            --sidebar-accent-foreground: #ffffff !important;
+            --sidebar-border: rgba(255, 255, 255, 0.05) !important;
+          }
+          
+          [data-sidebar] {
+            background-color: #0f1629 !important;
+            border-color: rgba(255, 255, 255, 0.05) !important;
+          }
+          
+          [data-sidebar-header],
+          [data-sidebar-content],
+          [data-sidebar-footer] {
+            background-color: #0f1629 !important;
+          }
+          
+          [data-sidebar] * {
+            border-color: rgba(255, 255, 255, 0.05) !important;
+          }
+          
           .admin-layout {
-            background: #0a0e27;
+            background: #0a0e27 !important;
             min-height: 100vh;
           }
-          .admin-sidebar {
-            background: #0f1629;
-            border-right: 1px solid rgba(255, 255, 255, 0.05);
-          }
+          
           .admin-main {
-            background: #0a0e27;
+            background: #0a0e27 !important;
           }
+          
           .admin-header {
-            background: #0f1629;
-            border-bottom: 1px solid rgba(255, 255, 255, 0.05);
+            background: #0f1629 !important;
+            border-bottom: 1px solid rgba(255, 255, 255, 0.05) !important;
           }
+          
           .admin-card {
-            background: linear-gradient(135deg, #1a1f3a 0%, #0f1629 100%);
-            border: 1px solid rgba(255, 255, 255, 0.05);
+            background: linear-gradient(135deg, #1a1f3a 0%, #0f1629 100%) !important;
+            border: 1px solid rgba(255, 255, 255, 0.05) !important;
             border-radius: 16px;
           }
-          .sidebar-section-label {
+          
+          .sidebar-label {
             color: #22d3ee !important;
-            font-size: 11px;
-            font-weight: 700;
-            letter-spacing: 0.05em;
-            text-transform: uppercase;
+            font-size: 11px !important;
+            font-weight: 700 !important;
+            letter-spacing: 0.05em !important;
+            text-transform: uppercase !important;
+          }
+          
+          .sidebar-menu-item {
+            color: #94a3b8 !important;
+          }
+          
+          .sidebar-menu-item:hover {
+            background-color: rgba(255, 255, 255, 0.05) !important;
+            color: #ffffff !important;
+          }
+          
+          .sidebar-menu-item.active {
+            background-color: #22d3ee !important;
+            color: #ffffff !important;
+          }
+          
+          .sidebar-menu-item svg {
+            color: inherit !important;
           }
         `}</style>
         <div className="flex min-h-screen admin-layout">
-          <Sidebar className="admin-sidebar">
-            <SidebarHeader className="border-b border-white/5 p-4">
+          <Sidebar className="border-r border-white/5" style={{ backgroundColor: '#0f1629' }}>
+            <SidebarHeader className="border-b border-white/5 p-4" style={{ backgroundColor: '#0f1629' }}>
               <div className="flex items-center gap-2">
                 <div className="w-8 h-8 bg-gradient-to-br from-blue-600 to-cyan-500 rounded-lg flex items-center justify-center">
                   <Shield className="w-5 h-5 text-white" />
@@ -128,38 +171,38 @@ export default function Layout({ children, currentPageName }) {
               </div>
             </SidebarHeader>
 
-            <SidebarContent className="p-2">
+            <SidebarContent className="p-2" style={{ backgroundColor: '#0f1629' }}>
               {Object.entries(groupedAdminItems).map(([section, items]) => (
                 <SidebarGroup key={section}>
-                  <SidebarGroupLabel className="sidebar-section-label px-3 py-2 mb-0.5">
+                  <SidebarGroupLabel className="sidebar-label px-3 py-2 mb-0.5">
                     {section}
                   </SidebarGroupLabel>
                   <SidebarGroupContent>
                     <SidebarMenu>
-                      {items.map((item) => (
-                        <SidebarMenuItem key={item.title}>
-                          <SidebarMenuButton
-                            asChild
-                            className={`rounded-lg mb-0.5 transition-all ${
-                              location.pathname === item.url
-                                ? 'bg-cyan-500 text-white shadow-lg'
-                                : 'text-slate-400 hover:bg-white/5 hover:text-white'
-                            }`}
-                          >
-                            <Link to={item.url} className="flex items-center gap-2.5 px-3 py-2 text-sm font-medium">
-                              <item.icon className="w-4 h-4" />
-                              <span>{item.title}</span>
-                            </Link>
-                          </SidebarMenuButton>
-                        </SidebarMenuItem>
-                      ))}
+                      {items.map((item) => {
+                        const isActive = location.pathname === item.url;
+                        return (
+                          <SidebarMenuItem key={item.title}>
+                            <SidebarMenuButton asChild>
+                              <Link 
+                                to={item.url} 
+                                className={`flex items-center gap-2.5 px-3 py-2 text-sm font-medium rounded-lg mb-0.5 transition-all sidebar-menu-item ${isActive ? 'active' : ''}`}
+                                style={isActive ? { backgroundColor: '#22d3ee', color: '#ffffff' } : { color: '#94a3b8' }}
+                              >
+                                <item.icon className="w-4 h-4" />
+                                <span>{item.title}</span>
+                              </Link>
+                            </SidebarMenuButton>
+                          </SidebarMenuItem>
+                        );
+                      })}
                     </SidebarMenu>
                   </SidebarGroupContent>
                 </SidebarGroup>
               ))}
             </SidebarContent>
 
-            <SidebarFooter className="border-t border-white/5 p-3">
+            <SidebarFooter className="border-t border-white/5 p-3" style={{ backgroundColor: '#0f1629' }}>
               <div className="flex items-center gap-2.5 mb-2 px-1">
                 <Avatar className="w-8 h-8 border border-cyan-500/30">
                   <AvatarImage src={user?.profile_image} />
