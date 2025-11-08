@@ -1,13 +1,14 @@
+
 import React, { useState, useEffect } from "react";
 import { Link, useLocation } from "react-router-dom";
 import { createPageUrl } from "@/utils";
 import { base44 } from "@/api/base44Client";
 import {
   Home, Video, Radio, BookOpen, Users, MessageSquare, Calendar,
-  ShoppingBag, Heart, Settings, LogOut, Bell,
+  ShoppingBag, Heart, Settings, LogOut, Bell, Search,
   LayoutDashboard, PlayCircle, Mic2, FileText, UsersRound, MessagesSquare,
   CalendarDays, Store, DollarSign, User as UserIcon, Shield, Settings as SettingsIcon,
-  Image, Film, Palette
+  Image, Film, Palette, Crown, Package, Download, CreditCard, BarChart3
 } from "lucide-react";
 import {
   Sidebar,
@@ -25,11 +26,14 @@ import {
 } from "@/components/ui/sidebar";
 import { Button } from "@/components/ui/button";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
+import NotificationBell from "./components/notifications/NotificationBell";
+import GlobalSearch from "./components/search/GlobalSearch";
 
 export default function Layout({ children, currentPageName }) {
   const location = useLocation();
   const [user, setUser] = useState(null);
   const [isAdmin, setIsAdmin] = useState(false);
+  const [searchOpen, setSearchOpen] = useState(false);
   const isAdminPage = currentPageName?.startsWith('Admin');
   const isBroadcastPage = currentPageName === 'BroadcastStream';
 
@@ -57,6 +61,7 @@ export default function Layout({ children, currentPageName }) {
 
   const adminNavItems = [
     { title: "Dashboard", url: createPageUrl("AdminDashboard"), icon: LayoutDashboard, section: "OVERVIEW" },
+    { title: "Analytics", url: createPageUrl("AdminAnalytics"), icon: BarChart3, section: "OVERVIEW" },
     { title: "Site Settings", url: createPageUrl("AdminSiteSettings"), icon: SettingsIcon, section: "OVERVIEW" },
     { title: "Live Streams", url: createPageUrl("AdminLiveStreams"), icon: Video, section: "CONTENT" },
     { title: "Podcasts", url: createPageUrl("AdminPodcasts"), icon: Mic2, section: "CONTENT" },
@@ -66,8 +71,12 @@ export default function Layout({ children, currentPageName }) {
     { title: "Forum", url: createPageUrl("AdminForum"), icon: MessagesSquare, section: "COMMUNITY" },
     { title: "Events", url: createPageUrl("AdminEvents"), icon: CalendarDays, section: "COMMUNITY" },
     { title: "Products", url: createPageUrl("AdminProducts"), icon: Store, section: "COMMERCE" },
+    { title: "Digital Products", url: createPageUrl("AdminDigitalProducts"), icon: Download, section: "COMMERCE" },
+    { title: "Product Variants", url: createPageUrl("AdminProductVariants"), icon: Package, section: "COMMERCE" },
     { title: "Orders", url: createPageUrl("AdminOrders"), icon: ShoppingBag, section: "COMMERCE" },
+    { title: "Subscriptions", url: createPageUrl("AdminSubscriptions"), icon: Crown, section: "COMMERCE" },
     { title: "Donations", url: createPageUrl("AdminDonations"), icon: DollarSign, section: "COMMERCE" },
+    { title: "Payment Gateways", url: createPageUrl("AdminPaymentGateways"), icon: CreditCard, section: "COMMERCE" },
     { title: "Users", url: createPageUrl("AdminUsers"), icon: UserIcon, section: "MANAGEMENT" },
   ];
 
@@ -184,8 +193,8 @@ export default function Layout({ children, currentPageName }) {
                         return (
                           <SidebarMenuItem key={item.title}>
                             <SidebarMenuButton asChild>
-                              <Link 
-                                to={item.url} 
+                              <Link
+                                to={item.url}
                                 className={`flex items-center gap-2.5 px-3 py-2 text-sm font-medium rounded-lg mb-0.5 transition-all sidebar-menu-item ${isActive ? 'active' : ''}`}
                                 style={isActive ? { backgroundColor: '#22d3ee', color: '#ffffff' } : { color: '#94a3b8' }}
                               >
@@ -245,10 +254,7 @@ export default function Layout({ children, currentPageName }) {
                   <h1 className="text-xl font-bold text-white">{currentPageName?.replace('Admin', '')}</h1>
                 </div>
                 <div className="flex items-center gap-2">
-                  <Button variant="ghost" size="icon" className="text-slate-400 hover:text-white hover:bg-white/10 rounded-lg relative">
-                    <Bell className="w-5 h-5" />
-                    <span className="absolute top-1 right-1 w-2 h-2 bg-red-500 rounded-full"></span>
-                  </Button>
+                  <NotificationBell user={user} />
                   <Button variant="ghost" size="icon" className="text-slate-400 hover:text-white hover:bg-white/10 rounded-lg">
                     <Settings className="w-5 h-5" />
                   </Button>
@@ -310,8 +316,18 @@ export default function Layout({ children, currentPageName }) {
               </div>
 
               <div className="flex items-center gap-3">
+                <Button
+                  variant="ghost"
+                  size="icon"
+                  onClick={() => setSearchOpen(true)}
+                  className="text-slate-400 hover:text-white hover:bg-white/10 rounded-lg"
+                >
+                  <Search className="w-5 h-5" />
+                </Button>
+                
                 {user ? (
                   <div className="flex items-center gap-3">
+                    <NotificationBell user={user} />
                     {isAdmin && (
                       <Link to={createPageUrl("AdminDashboard")}>
                         <Button variant="outline" className="border-slate-700 bg-white/5 text-slate-300 hover:bg-white/10">
@@ -320,12 +336,14 @@ export default function Layout({ children, currentPageName }) {
                         </Button>
                       </Link>
                     )}
-                    <Avatar className="cursor-pointer border-2 border-cyan-500/40">
-                      <AvatarImage src={user.profile_image} />
-                      <AvatarFallback className="bg-gradient-to-br from-purple-600 to-cyan-500 text-white font-bold">
-                        {user.full_name?.[0] || 'U'}
-                      </AvatarFallback>
-                    </Avatar>
+                    <Link to={createPageUrl("UserProfile")}>
+                      <Avatar className="cursor-pointer border-2 border-cyan-500/40 hover:border-cyan-500 transition-colors">
+                        <AvatarImage src={user.profile_image} />
+                        <AvatarFallback className="bg-gradient-to-br from-purple-600 to-cyan-500 text-white font-bold">
+                          {user.full_name?.[0] || 'U'}
+                        </AvatarFallback>
+                      </Avatar>
+                    </Link>
                   </div>
                 ) : (
                   <Button
@@ -339,6 +357,8 @@ export default function Layout({ children, currentPageName }) {
             </div>
           </div>
         </nav>
+
+        <GlobalSearch isOpen={searchOpen} onClose={() => setSearchOpen(false)} />
 
         <main className="flex-1">
           {children}
