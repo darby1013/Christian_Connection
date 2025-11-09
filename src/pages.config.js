@@ -63,6 +63,8 @@ import PodcastPlayer from './pages/PodcastPlayer';
 import MyPodcastLibrary from './pages/MyPodcastLibrary';
 import AdminPodcastMarketing from './pages/AdminPodcastMarketing';
 import AdminPodcastAnalytics from './pages/AdminPodcastAnalytics';
+import AdminCourses from './pages/AdminCourses';
+import AdminCourseBuilder from './pages/AdminCourseBuilder';
 import Layout from './Layout.jsx';
 
 
@@ -132,6 +134,8 @@ export const PAGES = {
     "MyPodcastLibrary": MyPodcastLibrary,
     "AdminPodcastMarketing": AdminPodcastMarketing,
     "AdminPodcastAnalytics": AdminPodcastAnalytics,
+    "AdminCourses": AdminCourses,
+    "AdminCourseBuilder": AdminCourseBuilder,
 }
 
 export const pagesConfig = {
