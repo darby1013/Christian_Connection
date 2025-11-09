@@ -46,9 +46,13 @@ export default function AdminPodcastVideoEditor() {
   const canvasRef = useRef(null);
   const queryClient = useQueryClient();
 
-  const { data: podcast } = useQuery({
+  const { data: podcast, isLoading } = useQuery({
     queryKey: ['podcast', podcastId],
-    queryFn: () => base44.entities.Podcast.filter({ id: podcastId }).then(res => res[0]),
+    queryFn: async () => {
+      if (!podcastId) return null;
+      const results = await base44.entities.Podcast.filter({ id: podcastId });
+      return results[0] || null;
+    },
     enabled: !!podcastId,
   });
 
@@ -173,10 +177,35 @@ export default function AdminPodcastVideoEditor() {
     return `${mins}:${secs.toString().padStart(2, '0')}`;
   };
 
+  if (isLoading) {
+    return (
+      <div className="min-h-screen bg-[#0a0e27] flex items-center justify-center">
+        <div className="text-center">
+          <div className="animate-spin rounded-full h-16 w-16 border-4 border-cyan-500 border-t-transparent mx-auto mb-4"></div>
+          <p className="text-white font-semibold">Loading video editor...</p>
+        </div>
+      </div>
+    );
+  }
+
   if (!podcast) {
-    return <div className="min-h-screen bg-[#0a0e27] flex items-center justify-center">
-      <p className="text-white">Loading...</p>
-    </div>;
+    return (
+      <div className="min-h-screen bg-[#0a0e27] flex items-center justify-center">
+        <Card className="bg-[#1a1f3a] border-slate-700 max-w-md">
+          <CardContent className="p-8 text-center">
+            <Film className="w-16 h-16 text-red-400 mx-auto mb-4" />
+            <h2 className="text-white font-bold text-xl mb-2">No Video Found</h2>
+            <p className="text-slate-400 mb-6">Could not load podcast video</p>
+            <Link to={createPageUrl("AdminPodcasts")}>
+              <Button className="bg-cyan-500 hover:bg-cyan-600">
+                <ArrowLeft className="w-4 h-4 mr-2" />
+                Back to Podcasts
+              </Button>
+            </Link>
+          </CardContent>
+        </Card>
+      </div>
+    );
   }
 
   return (
@@ -208,7 +237,246 @@ export default function AdminPodcastVideoEditor() {
       </div>
 
       <div className="grid lg:grid-cols-3 gap-6">
-        {/* ... keep existing code (main video player and editing tools) ... */}
+        {/* Video Player */}
+        <div className="lg:col-span-2">
+          <Card className="bg-[#1a1f3a] border-slate-700">
+            <CardContent className="p-0">
+              <div className="relative aspect-video bg-black">
+                <video
+                  ref={videoRef}
+                  onTimeUpdate={handleTimeUpdate}
+                  onEnded={() => setIsPlaying(false)}
+                  className="w-full h-full"
+                  style={{ objectFit: 'contain' }}
+                />
+                {overlayText && (
+                  <div 
+                    className={`absolute left-1/2 -translate-x-1/2 text-white font-bold text-2xl px-4 py-2 bg-black/50 rounded ${
+                      textPosition === 'top' ? 'top-4' : 'bottom-4'
+                    }`}
+                  >
+                    {overlayText}
+                  </div>
+                )}
+              </div>
+
+              <div className="p-4 space-y-4">
+                {/* Timeline */}
+                <div>
+                  <Slider
+                    value={[currentTime]}
+                    max={duration || 100}
+                    step={0.1}
+                    onValueChange={handleSeek}
+                    className="mb-2"
+                  />
+                  <div className="flex justify-between text-xs text-slate-400">
+                    <span>{formatTime(currentTime)}</span>
+                    <span>{formatTime(duration)}</span>
+                  </div>
+                </div>
+
+                {/* Controls */}
+                <div className="flex items-center justify-center gap-4">
+                  <Button
+                    size="lg"
+                    onClick={togglePlay}
+                    className="bg-cyan-500 hover:bg-cyan-600 w-16 h-16 rounded-full"
+                  >
+                    {isPlaying ? <Pause className="w-6 h-6" /> : <Play className="w-6 h-6" />}
+                  </Button>
+                </div>
+
+                {/* Volume */}
+                <div className="flex items-center gap-3">
+                  <Button
+                    size="sm"
+                    variant="ghost"
+                    onClick={toggleMute}
+                    className="text-white"
+                  >
+                    {isMuted ? <VolumeX className="w-5 h-5" /> : <Volume2 className="w-5 h-5" />}
+                  </Button>
+                  <Slider
+                    value={[volume]}
+                    max={100}
+                    onValueChange={([v]) => setVolume(v)}
+                    className="flex-1"
+                  />
+                  <span className="text-white text-sm w-12">{volume}%</span>
+                </div>
+              </div>
+            </CardContent>
+          </Card>
+        </div>
+
+        {/* Editing Tools */}
+        <div className="lg:col-span-1 space-y-4">
+          <Tabs defaultValue="filters" className="w-full">
+            <TabsList className="bg-slate-800 w-full">
+              <TabsTrigger value="filters" className="flex-1">
+                <Palette className="w-4 h-4 mr-1" />
+                Filters
+              </TabsTrigger>
+              <TabsTrigger value="text" className="flex-1">
+                <Type className="w-4 h-4 mr-1" />
+                Text
+              </TabsTrigger>
+            </TabsList>
+
+            <TabsContent value="filters" className="space-y-4 mt-4">
+              <Card className="bg-[#1a1f3a] border-slate-700">
+                <CardHeader className="pb-3">
+                  <CardTitle className="text-white text-sm">Color Adjustments</CardTitle>
+                </CardHeader>
+                <CardContent className="space-y-4">
+                  <div>
+                    <Label className="text-white text-sm mb-2 block">Brightness: {brightness}%</Label>
+                    <Slider
+                      value={[brightness]}
+                      min={50}
+                      max={150}
+                      onValueChange={([v]) => setBrightness(v)}
+                    />
+                  </div>
+
+                  <div>
+                    <Label className="text-white text-sm mb-2 block">Contrast: {contrast}%</Label>
+                    <Slider
+                      value={[contrast]}
+                      min={50}
+                      max={150}
+                      onValueChange={([v]) => setContrast(v)}
+                    />
+                  </div>
+
+                  <div>
+                    <Label className="text-white text-sm mb-2 block">Saturation: {saturation}%</Label>
+                    <Slider
+                      value={[saturation]}
+                      min={0}
+                      max={200}
+                      onValueChange={([v]) => setSaturation(v)}
+                    />
+                  </div>
+
+                  <div>
+                    <Label className="text-white text-sm mb-2 block">Filter Preset</Label>
+                    <div className="grid grid-cols-2 gap-2">
+                      {['none', 'vintage', 'bw', 'vibrant'].map(preset => (
+                        <Button
+                          key={preset}
+                          size="sm"
+                          variant={filterPreset === preset ? 'default' : 'outline'}
+                          onClick={() => setFilterPreset(preset)}
+                          className={filterPreset === preset ? 'bg-cyan-500' : 'border-slate-700'}
+                        >
+                          {preset}
+                        </Button>
+                      ))}
+                    </div>
+                  </div>
+                </CardContent>
+              </Card>
+
+              <Card className="bg-[#1a1f3a] border-slate-700">
+                <CardHeader className="pb-3">
+                  <CardTitle className="text-white text-sm">Transform</CardTitle>
+                </CardHeader>
+                <CardContent className="space-y-4">
+                  <div>
+                    <Label className="text-white text-sm mb-2 block">Rotation: {rotation}°</Label>
+                    <Slider
+                      value={[rotation]}
+                      min={-180}
+                      max={180}
+                      onValueChange={([v]) => setRotation(v)}
+                    />
+                  </div>
+
+                  <div>
+                    <Label className="text-white text-sm mb-2 block">Zoom: {zoom}%</Label>
+                    <Slider
+                      value={[zoom]}
+                      min={50}
+                      max={200}
+                      onValueChange={([v]) => setZoom(v)}
+                    />
+                  </div>
+                </CardContent>
+              </Card>
+            </TabsContent>
+
+            <TabsContent value="text" className="space-y-4 mt-4">
+              <Card className="bg-[#1a1f3a] border-slate-700">
+                <CardHeader className="pb-3">
+                  <CardTitle className="text-white text-sm">Text Overlay</CardTitle>
+                </CardHeader>
+                <CardContent className="space-y-4">
+                  <div>
+                    <Label className="text-white text-sm mb-2 block">Text</Label>
+                    <Input
+                      placeholder="Enter text..."
+                      value={overlayText}
+                      onChange={(e) => setOverlayText(e.target.value)}
+                      className="bg-slate-900 border-slate-700 text-white"
+                    />
+                  </div>
+
+                  <div>
+                    <Label className="text-white text-sm mb-2 block">Position</Label>
+                    <div className="grid grid-cols-2 gap-2">
+                      <Button
+                        size="sm"
+                        variant={textPosition === 'top' ? 'default' : 'outline'}
+                        onClick={() => setTextPosition('top')}
+                        className={textPosition === 'top' ? 'bg-cyan-500' : 'border-slate-700'}
+                      >
+                        Top
+                      </Button>
+                      <Button
+                        size="sm"
+                        variant={textPosition === 'bottom' ? 'default' : 'outline'}
+                        onClick={() => setTextPosition('bottom')}
+                        className={textPosition === 'bottom' ? 'bg-cyan-500' : 'border-slate-700'}
+                      >
+                        Bottom
+                      </Button>
+                    </div>
+                  </div>
+                </CardContent>
+              </Card>
+            </TabsContent>
+          </Tabs>
+
+          <Card className="bg-[#1a1f3a] border-slate-700">
+            <CardContent className="p-4 space-y-2">
+              <Button
+                onClick={captureFrame}
+                className="w-full bg-purple-500 hover:bg-purple-600"
+              >
+                <Image className="w-4 h-4 mr-2" />
+                Capture Frame
+              </Button>
+              <Button
+                onClick={() => {
+                  setBrightness(100);
+                  setContrast(100);
+                  setSaturation(100);
+                  setBlur(0);
+                  setRotation(0);
+                  setZoom(100);
+                  setFilterPreset('none');
+                  setOverlayText('');
+                }}
+                className="w-full bg-slate-700 hover:bg-slate-600"
+              >
+                <RefreshCw className="w-4 h-4 mr-2" />
+                Reset All
+              </Button>
+            </CardContent>
+          </Card>
+        </div>
       </div>
     </div>
   );
