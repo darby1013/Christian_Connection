@@ -44,6 +44,8 @@ import LiveStreamPlayer from './pages/LiveStreamPlayer';
 import WatchVideos from './pages/WatchVideos';
 import Events from './pages/Events';
 import EventDetail from './pages/EventDetail';
+import Donate from './pages/Donate';
+import BlogPost from './pages/BlogPost';
 import Layout from './Layout.jsx';
 
 
@@ -94,6 +96,8 @@ export const PAGES = {
     "WatchVideos": WatchVideos,
     "Events": Events,
     "EventDetail": EventDetail,
+    "Donate": Donate,
+    "BlogPost": BlogPost,
 }
 
 export const pagesConfig = {
