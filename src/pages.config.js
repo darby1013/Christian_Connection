@@ -56,6 +56,8 @@ import AdminForum from './pages/AdminForum';
 import AdminEvents from './pages/AdminEvents';
 import AdminProducts from './pages/AdminProducts';
 import AdminBlog from './pages/AdminBlog';
+import AdminPodcastLive from './pages/AdminPodcastLive';
+import LivePodcastPlayer from './pages/LivePodcastPlayer';
 import Layout from './Layout.jsx';
 
 
@@ -118,6 +120,8 @@ export const PAGES = {
     "AdminEvents": AdminEvents,
     "AdminProducts": AdminProducts,
     "AdminBlog": AdminBlog,
+    "AdminPodcastLive": AdminPodcastLive,
+    "LivePodcastPlayer": LivePodcastPlayer,
 }
 
 export const pagesConfig = {
