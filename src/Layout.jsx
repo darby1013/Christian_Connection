@@ -30,7 +30,6 @@ import {
   DropdownMenu,
   DropdownMenuContent,
   DropdownMenuItem,
-  DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
 import { Button } from "@/components/ui/button";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
@@ -162,6 +161,8 @@ export default function Layout({ children, currentPageName }) {
     { title: "Live Podcast Studio", url: createPageUrl("AdminPodcastLive"), icon: Mic2, section: "CONTENT" },
     { title: "AI Script Generator", url: createPageUrl("AdminAIScriptGenerator"), icon: Sparkles, section: "CONTENT" },
     { title: "Podcasts", url: createPageUrl("AdminPodcasts"), icon: Mic2, section: "CONTENT" },
+    { title: "Podcast Marketing", url: createPageUrl("AdminPodcastMarketing"), icon: TrendingUp, section: "CONTENT" },
+    { title: "Podcast Analytics", url: createPageUrl("AdminPodcastAnalytics"), icon: BarChart3, section: "CONTENT" },
     { title: "Videos", url: createPageUrl("AdminVideos"), icon: PlayCircle, section: "CONTENT" },
     { title: "Blog Posts", url: createPageUrl("AdminBlog"), icon: FileText, section: "CONTENT" },
     { title: "Groups", url: createPageUrl("AdminGroups"), icon: UsersRound, section: "COMMUNITY" },
