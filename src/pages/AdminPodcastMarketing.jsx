@@ -330,7 +330,7 @@ Professional newsletter format!`
         content_type: 'audiogram',
         content_text: `Audiogram for ${selectedPodcast.title}`,
         image_url: imageResult.url,
-        hashtags: ['podcast', 'newep isode', selectedPodcast.category?.toLowerCase()].filter(Boolean)
+        hashtags: ['podcast', 'newepisode', selectedPodcast.category?.toLowerCase()].filter(Boolean)
       });
 
       alert('✅ Audiogram generated!');
@@ -413,7 +413,6 @@ Professional newsletter format!`
         </Badge>
       </div>
 
-      {/* Stats */}
       <div className="grid md:grid-cols-4 gap-4">
         <Card className="bg-[#1a1f3a] border-0">
           <CardContent className="p-4">
@@ -457,7 +456,6 @@ Professional newsletter format!`
       </div>
 
       <div className="grid lg:grid-cols-4 gap-6">
-        {/* Episode Selector */}
         <div className="lg:col-span-1">
           <Card className="bg-[#1a1f3a] border-slate-700">
             <CardHeader className="border-b border-slate-700">
@@ -517,11 +515,9 @@ Professional newsletter format!`
           </Card>
         </div>
 
-        {/* Marketing Tools */}
         <div className="lg:col-span-3">
           {selectedPodcast ? (
             <div className="space-y-6">
-              {/* Episode Header */}
               <Card className="bg-gradient-to-br from-purple-900/20 to-cyan-900/20 border-purple-500/30">
                 <CardContent className="p-5">
                   <div className="flex items-start justify-between">
@@ -552,7 +548,6 @@ Professional newsletter format!`
                 </CardContent>
               </Card>
 
-              {/* Platform Generation Grid */}
               <Card className="bg-[#1a1f3a] border-slate-700">
                 <CardHeader className="border-b border-slate-700">
                   <CardTitle className="text-white font-black text-lg flex items-center gap-2">
@@ -601,7 +596,6 @@ Professional newsletter format!`
                       );
                     })}
 
-                    {/* Audiogram Tool */}
                     <Card
                       className="bg-slate-900/30 border-slate-700 hover:border-cyan-500/50 transition-all group cursor-pointer"
                       onClick={generateAudiogram}
@@ -633,7 +627,6 @@ Professional newsletter format!`
                       </CardContent>
                     </Card>
 
-                    {/* Blog Post Tool */}
                     <Card className="bg-slate-900/30 border-slate-700">
                       <CardContent className="p-4">
                         <div className="w-12 h-12 rounded-lg bg-gradient-to-br from-indigo-500 to-indigo-600 flex items-center justify-center mb-3">
@@ -652,7 +645,6 @@ Professional newsletter format!`
                       </CardContent>
                     </Card>
 
-                    {/* Press Release Tool */}
                     <Card className="bg-slate-900/30 border-slate-700">
                       <CardContent className="p-4">
                         <div className="w-12 h-12 rounded-lg bg-gradient-to-br from-slate-600 to-slate-700 flex items-center justify-center mb-3">
@@ -664,7 +656,6 @@ Professional newsletter format!`
                       </CardContent>
                     </Card>
 
-                    {/* SEO Meta Tool */}
                     <Card className="bg-slate-900/30 border-slate-700">
                       <CardContent className="p-4">
                         <div className="w-12 h-12 rounded-lg bg-gradient-to-br from-emerald-500 to-emerald-600 flex items-center justify-center mb-3">
@@ -675,335 +666,329 @@ Professional newsletter format!`
                         <Badge className="bg-amber-500 text-xs w-full">Coming Soon</Badge>
                       </CardContent>
                     </Card>
-              </div>
+                  </div>
 
-              {/* Generated Content Display */}
-              {marketing.length > 0 && (
-                <Card className="bg-[#1a1f3a] border-slate-700">
-                  <CardHeader className="border-b border-slate-700">
-                    <CardTitle className="text-white font-black flex items-center gap-2">
-                      <Sparkles className="w-6 h-6 text-purple-400" />
-                      Generated Marketing Content
-                    </CardTitle>
-                  </CardHeader>
-                  <CardContent className="p-5">
-                    <Tabs value={activeTab} onValueChange={setActiveTab} className="w-full">
-                      <TabsList className="bg-slate-800 grid grid-cols-6 gap-1 h-auto flex-wrap p-1">
-                        {allPlatforms.slice(0, 6).map(platform => {
-                          const Icon = platform.icon;
-                          const content = getPlatformContent(platform.id);
-                          return (
-                            <TabsTrigger 
-                              key={platform.id}
-                              value={platform.id} 
-                              className="data-[state=active]:bg-cyan-500 data-[state=active]:text-white relative"
-                            >
-                              <Icon className="w-4 h-4" />
-                              {content && (
-                                <div className="absolute -top-1 -right-1 w-2 h-2 bg-green-500 rounded-full"></div>
-                              )}
-                            </TabsTrigger>
-                          );
-                        })}
-                      </TabsList>
+                  {marketing.length > 0 && (
+                    <Card className="bg-[#1a1f3a] border-slate-700">
+                      <CardHeader className="border-b border-slate-700">
+                        <CardTitle className="text-white font-black flex items-center gap-2">
+                          <Sparkles className="w-6 h-6 text-purple-400" />
+                          Generated Marketing Content
+                        </CardTitle>
+                      </CardHeader>
+                      <CardContent className="p-5">
+                        <Tabs value={activeTab} onValueChange={setActiveTab} className="w-full">
+                          <TabsList className="bg-slate-800 grid grid-cols-6 gap-1 h-auto flex-wrap p-1">
+                            {allPlatforms.slice(0, 6).map(platform => {
+                              const Icon = platform.icon;
+                              const content = getPlatformContent(platform.id);
+                              return (
+                                <TabsTrigger 
+                                  key={platform.id}
+                                  value={platform.id} 
+                                  className="data-[state=active]:bg-cyan-500 data-[state=active]:text-white relative"
+                                >
+                                  <Icon className="w-4 h-4" />
+                                  {content && (
+                                    <div className="absolute -top-1 -right-1 w-2 h-2 bg-green-500 rounded-full"></div>
+                                  )}
+                                </TabsTrigger>
+                              );
+                            })}
+                          </TabsList>
 
-                      {allPlatforms.map(platform => {
-                        const content = getPlatformContent(platform.id);
-                        const Icon = platform.icon;
+                          {allPlatforms.map(platform => {
+                            const content = getPlatformContent(platform.id);
+                            const Icon = platform.icon;
 
-                        return (
-                          <TabsContent key={platform.id} value={platform.id} className="mt-6 space-y-4">
-                            {content ? (
-                              <>
-                                <div className="flex items-center justify-between mb-4">
-                                  <div className="flex items-center gap-3">
-                                    <div className={`w-12 h-12 rounded-lg bg-gradient-to-br ${getPlatformColor(platform.id)} flex items-center justify-center`}>
-                                      <Icon className="w-6 h-6 text-white" />
+                            return (
+                              <TabsContent key={platform.id} value={platform.id} className="mt-6 space-y-4">
+                                {content ? (
+                                  <>
+                                    <div className="flex items-center justify-between mb-4">
+                                      <div className="flex items-center gap-3">
+                                        <div className={`w-12 h-12 rounded-lg bg-gradient-to-br ${getPlatformColor(platform.id)} flex items-center justify-center`}>
+                                          <Icon className="w-6 h-6 text-white" />
+                                        </div>
+                                        <div>
+                                          <h4 className="text-white font-bold">{platform.name} Content</h4>
+                                          <p className="text-slate-400 text-xs">
+                                            Generated {format(new Date(content.created_date), 'MMM d, h:mm a')}
+                                          </p>
+                                        </div>
+                                      </div>
+                                      <Badge className="bg-green-500">
+                                        <TrendingUp className="w-3 h-3 mr-1" />
+                                        {content.engagement_score}% predicted
+                                      </Badge>
                                     </div>
+
                                     <div>
-                                      <h4 className="text-white font-bold">{platform.name} Content</h4>
-                                      <p className="text-slate-400 text-xs">
-                                        Generated {format(new Date(content.created_date), 'MMM d, h:mm a')}
-                                      </p>
+                                      <div className="flex items-center justify-between mb-2">
+                                        <Label className="text-white font-bold">Content</Label>
+                                        <Button
+                                          size="sm"
+                                          onClick={() => handleCopyContent(content.content_text, 'content')}
+                                          className="bg-cyan-500 hover:bg-cyan-600"
+                                        >
+                                          {copiedContent === 'content' ? (
+                                            <><CheckCircle className="w-3 h-3 mr-1" />Copied!</>
+                                          ) : (
+                                            <><Copy className="w-3 h-3 mr-1" />Copy</>
+                                          )}
+                                        </Button>
+                                      </div>
+                                      <Textarea
+                                        value={content.content_text}
+                                        readOnly
+                                        className="bg-slate-900/50 border-slate-700 text-white h-48 font-sans"
+                                      />
                                     </div>
-                                  </div>
-                                  <Badge className="bg-green-500">
-                                    <TrendingUp className="w-3 h-3 mr-1" />
-                                    {content.engagement_score}% predicted
-                                  </Badge>
-                                </div>
 
-                                {/* Content */}
-                                <div>
-                                  <div className="flex items-center justify-between mb-2">
-                                    <Label className="text-white font-bold">Content</Label>
-                                    <Button
-                                      size="sm"
-                                      onClick={() => handleCopyContent(content.content_text, 'content')}
-                                      className="bg-cyan-500 hover:bg-cyan-600"
-                                    >
-                                      {copiedContent === 'content' ? (
-                                        <><CheckCircle className="w-3 h-3 mr-1" />Copied!</>
-                                      ) : (
-                                        <><Copy className="w-3 h-3 mr-1" />Copy</>
-                                      )}
-                                    </Button>
-                                  </div>
-                                  <Textarea
-                                    value={content.content_text}
-                                    readOnly
-                                    className="bg-slate-900/50 border-slate-700 text-white h-48 font-sans"
-                                  />
-                                </div>
+                                    {content.hashtags && content.hashtags.length > 0 && (
+                                      <div>
+                                        <div className="flex items-center justify-between mb-2">
+                                          <Label className="text-white font-bold">
+                                            Hashtags ({content.hashtags.length})
+                                          </Label>
+                                          <Button
+                                            size="sm"
+                                            onClick={() => handleCopyContent(content.hashtags.map(t => `#${t}`).join(' '), 'hashtags')}
+                                            className="bg-purple-500 hover:bg-purple-600"
+                                          >
+                                            {copiedContent === 'hashtags' ? (
+                                              <><CheckCircle className="w-3 h-3 mr-1" />Copied!</>
+                                            ) : (
+                                              <><Copy className="w-3 h-3 mr-1" />Copy All</>
+                                            )}
+                                          </Button>
+                                        </div>
+                                        <div className="flex flex-wrap gap-2 p-3 bg-slate-900/50 rounded-lg">
+                                          {content.hashtags.map((tag, idx) => (
+                                            <button
+                                              key={idx}
+                                              onClick={() => handleCopyContent(`#${tag}`, `tag-${idx}`)}
+                                              className="group"
+                                            >
+                                              <Badge className="bg-purple-500 cursor-pointer hover:bg-purple-600 transition-all">
+                                                #{tag}
+                                                <Copy className="w-3 h-3 ml-1 opacity-0 group-hover:opacity-100 transition-opacity" />
+                                              </Badge>
+                                            </button>
+                                          ))}
+                                        </div>
+                                      </div>
+                                    )}
 
-                                {/* Hashtags */}
-                                {content.hashtags && content.hashtags.length > 0 && (
-                                  <div>
-                                    <div className="flex items-center justify-between mb-2">
-                                      <Label className="text-white font-bold">
-                                        Hashtags ({content.hashtags.length})
-                                      </Label>
+                                    {content.optimal_post_time && (
+                                      <div className="p-4 bg-gradient-to-r from-amber-900/20 to-orange-900/20 border border-amber-500/30 rounded-lg">
+                                        <div className="flex items-start gap-3">
+                                          <div className="w-12 h-12 rounded-lg bg-amber-500/20 flex items-center justify-center flex-shrink-0">
+                                            <Clock className="w-6 h-6 text-amber-400" />
+                                          </div>
+                                          <div className="flex-1">
+                                            <h5 className="text-white font-bold mb-1 flex items-center gap-2">
+                                              Optimal Posting Time
+                                              <Badge className="bg-amber-500 text-xs">AI Predicted</Badge>
+                                            </h5>
+                                            <p className="text-amber-200 font-semibold mb-1">
+                                              {format(new Date(content.optimal_post_time), 'EEEE, MMMM d, yyyy')}
+                                            </p>
+                                            <p className="text-amber-300 text-sm font-bold">
+                                              at {format(new Date(content.optimal_post_time), 'h:mm a')}
+                                            </p>
+                                            <p className="text-amber-400/70 text-xs mt-2">
+                                              <Target className="w-3 h-3 inline mr-1" />
+                                              Based on your audience peak engagement times
+                                            </p>
+                                          </div>
+                                        </div>
+                                      </div>
+                                    )}
+
+                                    {content.image_url && (
+                                      <div>
+                                        <Label className="text-white font-bold mb-2 block">Generated Visual</Label>
+                                        <div className="relative group">
+                                          <img 
+                                            src={content.image_url} 
+                                            alt="Marketing visual"
+                                            className="w-full rounded-lg border border-slate-700"
+                                          />
+                                          <Button
+                                            size="sm"
+                                            className="absolute top-3 right-3 opacity-0 group-hover:opacity-100 transition-opacity bg-black/80 hover:bg-black"
+                                            onClick={() => window.open(content.image_url, '_blank')}
+                                          >
+                                            <Download className="w-3 h-3 mr-1" />
+                                            Download
+                                          </Button>
+                                        </div>
+                                      </div>
+                                    )}
+
+                                    <div className="border-t border-slate-700 pt-4">
                                       <Button
-                                        size="sm"
-                                        onClick={() => handleCopyContent(content.hashtags.map(t => `#${t}`).join(' '), 'hashtags')}
-                                        className="bg-purple-500 hover:bg-purple-600"
+                                        onClick={() => {
+                                          const fullContent = [
+                                            content.content_text,
+                                            '',
+                                            content.hashtags?.map(t => `#${t}`).join(' ') || ''
+                                          ].filter(Boolean).join('\n');
+                                          handleCopyContent(fullContent, 'all');
+                                        }}
+                                        className="w-full bg-gradient-to-r from-green-500 to-emerald-500 hover:from-green-600 hover:to-emerald-600 font-bold"
                                       >
-                                        {copiedContent === 'hashtags' ? (
-                                          <><CheckCircle className="w-3 h-3 mr-1" />Copied!</>
+                                        {copiedContent === 'all' ? (
+                                          <><CheckCircle className="w-4 h-4 mr-2" />Copied Everything!</>
                                         ) : (
-                                          <><Copy className="w-3 h-3 mr-1" />Copy All</>
+                                          <><Copy className="w-4 h-4 mr-2" />Copy Complete Post</>
                                         )}
                                       </Button>
                                     </div>
-                                    <div className="flex flex-wrap gap-2 p-3 bg-slate-900/50 rounded-lg">
-                                      {content.hashtags.map((tag, idx) => (
-                                        <button
-                                          key={idx}
-                                          onClick={() => handleCopyContent(`#${tag}`, `tag-${idx}`)}
-                                          className="group"
-                                        >
-                                          <Badge className="bg-purple-500 cursor-pointer hover:bg-purple-600 transition-all">
-                                            #{tag}
-                                            <Copy className="w-3 h-3 ml-1 opacity-0 group-hover:opacity-100 transition-opacity" />
-                                          </Badge>
-                                        </button>
-                                      ))}
-                                    </div>
+                                  </>
+                                ) : (
+                                  <div className="text-center py-12">
+                                    <Icon className="w-16 h-16 text-slate-600 mx-auto mb-4" />
+                                    <h4 className="text-white font-bold mb-2">No Content Generated</h4>
+                                    <p className="text-slate-400 text-sm mb-6">
+                                      Click Generate above to create {platform.name} content
+                                    </p>
+                                    <Button
+                                      onClick={() => generateContent(platform.id)}
+                                      disabled={generating}
+                                      className={`bg-gradient-to-r ${getPlatformColor(platform.id)}`}
+                                    >
+                                      <Wand2 className="w-4 h-4 mr-2" />
+                                      Generate Now
+                                    </Button>
                                   </div>
                                 )}
+                              </TabsContent>
+                            );
+                          })}
+                        </Tabs>
+                      </CardContent>
+                    </Card>
+                  )}
 
-                                {/* Optimal Posting Time */}
-                                {content.optimal_post_time && (
-                                  <div className="p-4 bg-gradient-to-r from-amber-900/20 to-orange-900/20 border border-amber-500/30 rounded-lg">
-                                    <div className="flex items-start gap-3">
-                                      <div className="w-12 h-12 rounded-lg bg-amber-500/20 flex items-center justify-center flex-shrink-0">
-                                        <Clock className="w-6 h-6 text-amber-400" />
-                                      </div>
-                                      <div className="flex-1">
-                                        <h5 className="text-white font-bold mb-1 flex items-center gap-2">
-                                          Optimal Posting Time
-                                          <Badge className="bg-amber-500 text-xs">AI Predicted</Badge>
-                                        </h5>
-                                        <p className="text-amber-200 font-semibold mb-1">
-                                          {format(new Date(content.optimal_post_time), 'EEEE, MMMM d, yyyy')}
-                                        </p>
-                                        <p className="text-amber-300 text-sm font-bold">
-                                          at {format(new Date(content.optimal_post_time), 'h:mm a')}
-                                        </p>
-                                        <p className="text-amber-400/70 text-xs mt-2">
-                                          <Target className="w-3 h-3 inline mr-1" />
-                                          Based on your audience's peak engagement times
-                                        </p>
-                                      </div>
-                                    </div>
-                                  </div>
-                                )}
-
-                                {/* Image if exists */}
-                                {content.image_url && (
-                                  <div>
-                                    <Label className="text-white font-bold mb-2 block">Generated Visual</Label>
-                                    <div className="relative group">
-                                      <img 
-                                        src={content.image_url} 
-                                        alt="Marketing visual"
-                                        className="w-full rounded-lg border border-slate-700"
-                                      />
-                                      <Button
-                                        size="sm"
-                                        className="absolute top-3 right-3 opacity-0 group-hover:opacity-100 transition-opacity bg-black/80 hover:bg-black"
-                                        onClick={() => window.open(content.image_url, '_blank')}
-                                      >
-                                        <Download className="w-3 h-3 mr-1" />
-                                        Download
-                                      </Button>
-                                    </div>
-                                  </div>
-                                )}
-
-                                {/* Copy All Button */}
-                                <div className="border-t border-slate-700 pt-4">
-                                  <Button
-                                    onClick={() => {
-                                      const fullContent = [
-                                        content.content_text,
-                                        '',
-                                        content.hashtags?.map(t => `#${t}`).join(' ') || ''
-                                      ].filter(Boolean).join('\n');
-                                      handleCopyContent(fullContent, 'all');
-                                    }}
-                                    className="w-full bg-gradient-to-r from-green-500 to-emerald-500 hover:from-green-600 hover:to-emerald-600 font-bold"
-                                  >
-                                    {copiedContent === 'all' ? (
-                                      <><CheckCircle className="w-4 h-4 mr-2" />Copied Everything!</>
-                                    ) : (
-                                      <><Copy className="w-4 h-4 mr-2" />Copy Complete Post</>
-                                    )}
-                                  </Button>
-                                </div>
-                              </>
-                            ) : (
-                              <div className="text-center py-12">
-                                <Icon className="w-16 h-16 text-slate-600 mx-auto mb-4" />
-                                <h4 className="text-white font-bold mb-2">No Content Generated</h4>
-                                <p className="text-slate-400 text-sm mb-6">
-                                  Click "Generate" above to create {platform.name} content
-                                </p>
-                                <Button
-                                  onClick={() => generateContent(platform.id)}
-                                  disabled={generating}
-                                  className={`bg-gradient-to-r ${getPlatformColor(platform.id)}`}
-                                >
-                                  <Wand2 className="w-4 h-4 mr-2" />
-                                  Generate Now
-                                </Button>
-                              </div>
-                            )}
-                          </TabsContent>
-                        );
-                      })}
-                    </Tabs>
-                  </CardContent>
-                </Card>
-
-                {/* Marketing Analytics */}
-                <Card className="bg-[#1a1f3a] border-slate-700">
-                  <CardHeader>
-                    <CardTitle className="text-white font-black flex items-center gap-2">
-                      <BarChart3 className="w-6 h-6 text-green-400" />
-                      Marketing Performance
-                    </CardTitle>
-                  </CardHeader>
-                  <CardContent>
-                    <div className="grid md:grid-cols-3 gap-4">
-                      <div className="p-4 bg-slate-900/30 rounded-lg border border-slate-700">
-                        <div className="flex items-center justify-between mb-2">
-                          <Globe className="w-6 h-6 text-cyan-400" />
-                          <Badge className="bg-cyan-500">{marketing.length}</Badge>
+                  <Card className="bg-[#1a1f3a] border-slate-700">
+                    <CardHeader>
+                      <CardTitle className="text-white font-black flex items-center gap-2">
+                        <BarChart3 className="w-6 h-6 text-green-400" />
+                        Marketing Performance
+                      </CardTitle>
+                    </CardHeader>
+                    <CardContent>
+                      <div className="grid md:grid-cols-3 gap-4">
+                        <div className="p-4 bg-slate-900/30 rounded-lg border border-slate-700">
+                          <div className="flex items-center justify-between mb-2">
+                            <Globe className="w-6 h-6 text-cyan-400" />
+                            <Badge className="bg-cyan-500">{marketing.length}</Badge>
+                          </div>
+                          <p className="text-white font-bold text-xl">{marketing.length}</p>
+                          <p className="text-slate-400 text-xs">Platforms Covered</p>
                         </div>
-                        <p className="text-white font-bold text-xl">{marketing.length}</p>
-                        <p className="text-slate-400 text-xs">Platforms Covered</p>
-                      </div>
 
-                      <div className="p-4 bg-slate-900/30 rounded-lg border border-slate-700">
-                        <div className="flex items-center justify-between mb-2">
-                          <TrendingUp className="w-6 h-6 text-green-400" />
-                          <Badge className="bg-green-500">
+                        <div className="p-4 bg-slate-900/30 rounded-lg border border-slate-700">
+                          <div className="flex items-center justify-between mb-2">
+                            <TrendingUp className="w-6 h-6 text-green-400" />
+                            <Badge className="bg-green-500">
+                              {marketing.length > 0 
+                                ? Math.round(marketing.reduce((sum, m) => sum + (m.engagement_score || 0), 0) / marketing.length)
+                                : 0}%
+                            </Badge>
+                          </div>
+                          <p className="text-white font-bold text-xl">
                             {marketing.length > 0 
                               ? Math.round(marketing.reduce((sum, m) => sum + (m.engagement_score || 0), 0) / marketing.length)
                               : 0}%
-                          </Badge>
+                          </p>
+                          <p className="text-slate-400 text-xs">Avg Predicted Engagement</p>
                         </div>
-                        <p className="text-white font-bold text-xl">
-                          {marketing.length > 0 
-                            ? Math.round(marketing.reduce((sum, m) => sum + (m.engagement_score || 0), 0) / marketing.length)
-                            : 0}%
-                        </p>
-                        <p className="text-slate-400 text-xs">Avg Predicted Engagement</p>
-                      </div>
 
-                      <div className="p-4 bg-slate-900/30 rounded-lg border border-slate-700">
-                        <div className="flex items-center justify-between mb-2">
-                          <Calendar className="w-6 h-6 text-purple-400" />
+                        <div className="p-4 bg-slate-900/30 rounded-lg border border-slate-700">
+                          <div className="flex items-center justify-between mb-2">
+                            <Calendar className="w-6 h-6 text-purple-400" />
+                          </div>
+                          <p className="text-white font-bold text-xl">Ready</p>
+                          <p className="text-slate-400 text-xs">To Post</p>
                         </div>
-                        <p className="text-white font-bold text-xl">Ready</p>
-                        <p className="text-slate-400 text-xs">To Post</p>
                       </div>
-                    </div>
-                  </CardContent>
-                </Card>
+                    </CardContent>
+                  </Card>
 
-                {/* Additional Tools */}
-                <Card className="bg-gradient-to-br from-blue-900/20 to-purple-900/20 border-blue-500/30">
-                  <CardHeader>
-                    <CardTitle className="text-white font-black flex items-center gap-2">
-                      <Info className="w-6 h-6 text-blue-400" />
-                      Marketing Best Practices
-                    </CardTitle>
-                  </CardHeader>
-                  <CardContent className="space-y-3">
-                    <div className="flex items-start gap-3 p-3 bg-slate-900/30 rounded-lg">
-                      <CheckCircle className="w-5 h-5 text-green-400 flex-shrink-0 mt-0.5" />
-                      <div>
-                        <p className="text-white font-semibold text-sm mb-1">Post Timing</p>
-                        <p className="text-slate-400 text-xs">Use AI-predicted optimal times for maximum reach</p>
+                  <Card className="bg-gradient-to-br from-blue-900/20 to-purple-900/20 border-blue-500/30">
+                    <CardHeader>
+                      <CardTitle className="text-white font-black flex items-center gap-2">
+                        <Info className="w-6 h-6 text-blue-400" />
+                        Marketing Best Practices
+                      </CardTitle>
+                    </CardHeader>
+                    <CardContent className="space-y-3">
+                      <div className="flex items-start gap-3 p-3 bg-slate-900/30 rounded-lg">
+                        <CheckCircle className="w-5 h-5 text-green-400 flex-shrink-0 mt-0.5" />
+                        <div>
+                          <p className="text-white font-semibold text-sm mb-1">Post Timing</p>
+                          <p className="text-slate-400 text-xs">Use AI-predicted optimal times for maximum reach</p>
+                        </div>
                       </div>
-                    </div>
 
-                    <div className="flex items-start gap-3 p-3 bg-slate-900/30 rounded-lg">
-                      <CheckCircle className="w-5 h-5 text-green-400 flex-shrink-0 mt-0.5" />
-                      <div>
-                        <p className="text-white font-semibold text-sm mb-1">Platform Customization</p>
-                        <p className="text-slate-400 text-xs">Each platform has optimized content style and format</p>
+                      <div className="flex items-start gap-3 p-3 bg-slate-900/30 rounded-lg">
+                        <CheckCircle className="w-5 h-5 text-green-400 flex-shrink-0 mt-0.5" />
+                        <div>
+                          <p className="text-white font-semibold text-sm mb-1">Platform Customization</p>
+                          <p className="text-slate-400 text-xs">Each platform has optimized content style and format</p>
+                        </div>
                       </div>
-                    </div>
 
-                    <div className="flex items-start gap-3 p-3 bg-slate-900/30 rounded-lg">
-                      <CheckCircle className="w-5 h-5 text-green-400 flex-shrink-0 mt-0.5" />
-                      <div>
-                        <p className="text-white font-semibold text-sm mb-1">Hashtag Strategy</p>
-                        <p className="text-slate-400 text-xs">Mix of trending and niche tags for discoverability</p>
+                      <div className="flex items-start gap-3 p-3 bg-slate-900/30 rounded-lg">
+                        <CheckCircle className="w-5 h-5 text-green-400 flex-shrink-0 mt-0.5" />
+                        <div>
+                          <p className="text-white font-semibold text-sm mb-1">Hashtag Strategy</p>
+                          <p className="text-slate-400 text-xs">Mix of trending and niche tags for discoverability</p>
+                        </div>
                       </div>
-                    </div>
 
-                    <div className="flex items-start gap-3 p-3 bg-slate-900/30 rounded-lg">
-                      <CheckCircle className="w-5 h-5 text-green-400 flex-shrink-0 mt-0.5" />
-                      <div>
-                        <p className="text-white font-semibold text-sm mb-1">Multi-Platform</p>
-                        <p className="text-slate-400 text-xs">Generate for all platforms with one click</p>
+                      <div className="flex items-start gap-3 p-3 bg-slate-900/30 rounded-lg">
+                        <CheckCircle className="w-5 h-5 text-green-400 flex-shrink-0 mt-0.5" />
+                        <div>
+                          <p className="text-white font-semibold text-sm mb-1">Multi-Platform</p>
+                          <p className="text-slate-400 text-xs">Generate for all platforms with one click</p>
+                        </div>
                       </div>
-                    </div>
-                  </CardContent>
-                </Card>
-              </div>
-            ) : (
-              <Card className="bg-[#1a1f3a] border-slate-700">
-                <CardContent className="p-16 text-center">
-                  <div className="max-w-md mx-auto">
-                    <Share2 className="w-20 h-20 text-slate-600 mx-auto mb-6" />
-                    <h3 className="text-white font-black text-2xl mb-3">Select an Episode</h3>
-                    <p className="text-slate-400 mb-8">
-                      Choose a podcast episode from the left to generate professional marketing content for 11+ platforms
-                    </p>
-                    <div className="grid grid-cols-3 gap-2">
-                      <div className="p-3 bg-blue-500/10 rounded-lg">
-                        <Twitter className="w-6 h-6 text-blue-400 mx-auto mb-1" />
-                        <p className="text-xs text-slate-400">Twitter</p>
-                      </div>
-                      <div className="p-3 bg-pink-500/10 rounded-lg">
-                        <Instagram className="w-6 h-6 text-pink-400 mx-auto mb-1" />
-                        <p className="text-xs text-slate-400">Instagram</p>
-                      </div>
-                      <div className="p-3 bg-blue-700/10 rounded-lg">
-                        <Linkedin className="w-6 h-6 text-blue-400 mx-auto mb-1" />
-                        <p className="text-xs text-slate-400">LinkedIn</p>
-                      </div>
-                    </div>
-                  </div>
+                    </CardContent>
+                  </Card>
                 </CardContent>
               </Card>
-            )}
-          </div>
+            </div>
+          ) : (
+            <Card className="bg-[#1a1f3a] border-slate-700">
+              <CardContent className="p-16 text-center">
+                <div className="max-w-md mx-auto">
+                  <Share2 className="w-20 h-20 text-slate-600 mx-auto mb-6" />
+                  <h3 className="text-white font-black text-2xl mb-3">Select an Episode</h3>
+                  <p className="text-slate-400 mb-8">
+                    Choose a podcast episode from the left to generate professional marketing content for 11+ platforms
+                  </p>
+                  <div className="grid grid-cols-3 gap-2">
+                    <div className="p-3 bg-blue-500/10 rounded-lg">
+                      <Twitter className="w-6 h-6 text-blue-400 mx-auto mb-1" />
+                      <p className="text-xs text-slate-400">Twitter</p>
+                    </div>
+                    <div className="p-3 bg-pink-500/10 rounded-lg">
+                      <Instagram className="w-6 h-6 text-pink-400 mx-auto mb-1" />
+                      <p className="text-xs text-slate-400">Instagram</p>
+                    </div>
+                    <div className="p-3 bg-blue-700/10 rounded-lg">
+                      <Linkedin className="w-6 h-6 text-blue-400 mx-auto mb-1" />
+                      <p className="text-xs text-slate-400">LinkedIn</p>
+                    </div>
+                  </div>
+                </div>
+              </CardContent>
+            </Card>
+          )}
         </div>
       </div>
     </div>
