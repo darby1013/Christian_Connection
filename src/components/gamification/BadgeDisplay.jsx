@@ -1,72 +1,74 @@
 import React from "react";
-import { Badge } from "@/components/ui/badge";
+import { useQuery } from "@tanstack/react-query";
+import { base44 } from "@/api/base44Client";
 import { Card, CardContent } from "@/components/ui/card";
-import { Trophy, Star, Zap, Award, Crown, Heart } from "lucide-react";
+import { Badge } from "@/components/ui/badge";
+import { Award, Star, Trophy, Target, Zap } from "lucide-react";
 
-export default function BadgeDisplay({ badges, size = "default", limit = null }) {
-  const displayBadges = limit ? badges.slice(0, limit) : badges;
+export default function BadgeDisplay({ userId }) {
+  const { data: userBadges = [] } = useQuery({
+    queryKey: ['userBadges', userId],
+    queryFn: () => base44.entities.UserBadge.filter({ user_id: userId }),
+    enabled: !!userId,
+    initialData: [],
+  });
 
-  const getBadgeIcon = (icon) => {
-    const iconMap = {
-      "🏆": Trophy,
-      "⭐": Star,
-      "⚡": Zap,
-      "🏅": Award,
-      "👑": Crown,
-      "❤️": Heart
+  const { data: allBadges = [] } = useQuery({
+    queryKey: ['allBadges'],
+    queryFn: () => base44.entities.Badge.list(),
+    initialData: [],
+  });
+
+  const earnedBadges = userBadges.map(ub => {
+    const badge = allBadges.find(b => b.id === ub.badge_id);
+    return { ...badge, earned_date: ub.earned_date, is_showcased: ub.is_showcased };
+  }).filter(b => b);
+
+  const getRarityColor = (rarity) => {
+    const colors = {
+      common: 'bg-slate-600',
+      rare: 'bg-blue-600',
+      epic: 'bg-purple-600',
+      legendary: 'bg-amber-600'
     };
-    return iconMap[icon] || Trophy;
+    return colors[rarity] || 'bg-slate-600';
   };
 
-  const getColorClass = (color) => {
-    const colorMap = {
-      blue: "from-blue-500 to-cyan-500",
-      purple: "from-purple-500 to-pink-500",
-      green: "from-green-500 to-emerald-500",
-      amber: "from-amber-500 to-orange-500",
-      red: "from-red-500 to-rose-500",
-      pink: "from-pink-500 to-fuchsia-500"
+  const getBadgeIcon = (category) => {
+    const icons = {
+      engagement: Zap,
+      content: Star,
+      social: Target,
+      milestone: Trophy,
+      achievement: Award
     };
-    return colorMap[color] || colorMap.blue;
+    const Icon = icons[category] || Award;
+    return Icon;
   };
-
-  if (!badges || badges.length === 0) return null;
-
-  if (size === "compact") {
-    return (
-      <div className="flex items-center gap-1 flex-wrap">
-        {displayBadges.map((badge, idx) => (
-          <div
-            key={idx}
-            className={`w-8 h-8 rounded-full bg-gradient-to-br ${getColorClass(badge.badge_color)} flex items-center justify-center text-white shadow-lg`}
-            title={badge.badge_name}
-          >
-            <span className="text-xs">{badge.badge_icon}</span>
-          </div>
-        ))}
-        {limit && badges.length > limit && (
-          <Badge className="bg-slate-700 text-xs">+{badges.length - limit}</Badge>
-        )}
-      </div>
-    );
-  }
 
   return (
-    <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-4 gap-4">
-      {displayBadges.map((badge, idx) => {
-        const IconComponent = getBadgeIcon(badge.badge_icon);
+    <div className="grid grid-cols-2 md:grid-cols-4 lg:grid-cols-6 gap-4">
+      {earnedBadges.map((badge) => {
+        const Icon = getBadgeIcon(badge.category);
+        
         return (
-          <Card
-            key={idx}
-            className={`bg-gradient-to-br ${getColorClass(badge.badge_color)} border-0 overflow-hidden group hover:scale-105 transition-transform`}
+          <Card 
+            key={badge.id} 
+            className={`bg-[#1a1f3a] border-slate-700 hover:border-cyan-500 transition-all cursor-pointer group`}
           >
             <CardContent className="p-4 text-center">
-              <div className="w-16 h-16 mx-auto mb-3 rounded-full bg-white/20 backdrop-blur-sm flex items-center justify-center">
-                <IconComponent className="w-8 h-8 text-white" />
+              <div className={`w-16 h-16 mx-auto mb-3 rounded-full ${getRarityColor(badge.rarity)} flex items-center justify-center group-hover:scale-110 transition-transform`}>
+                <span className="text-3xl">{badge.icon}</span>
               </div>
-              <h4 className="text-white font-bold text-sm mb-1">{badge.badge_name}</h4>
-              {badge.level > 1 && (
-                <Badge className="bg-white/30 text-white text-xs">Level {badge.level}</Badge>
+              <h4 className="text-white font-bold text-sm mb-1">{badge.name}</h4>
+              <p className="text-slate-400 text-xs line-clamp-2 mb-2">{badge.description}</p>
+              <Badge className={`${getRarityColor(badge.rarity)} text-xs capitalize`}>
+                {badge.rarity}
+              </Badge>
+              {badge.is_showcased && (
+                <div className="mt-2">
+                  <Star className="w-4 h-4 text-yellow-400 fill-yellow-400 mx-auto" />
+                </div>
               )}
             </CardContent>
           </Card>
