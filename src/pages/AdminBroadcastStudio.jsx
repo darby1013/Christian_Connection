@@ -1,3 +1,4 @@
+
 import React, { useState, useEffect, useRef } from "react";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { base44 } from "@/api/base44Client";
@@ -35,6 +36,7 @@ export default function AdminBroadcastStudio() {
   const [showScriptManager, setShowScriptManager] = useState(false);
   const [teleprompterPlaying, setTeleprompterPlaying] = useState(false);
   const [teleprompterSpeed, setTeleprompterSpeed] = useState(1);
+  const [currentStreamId, setCurrentStreamId] = useState(null);
 
   const videoRef = useRef(null);
   const streamRef = useRef(null);
@@ -91,6 +93,13 @@ export default function AdminBroadcastStudio() {
 
   const createStreamMutation = useMutation({
     mutationFn: (streamData) => base44.entities.LiveStream.create(streamData),
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ['liveStreams'] });
+    },
+  });
+
+  const updateStreamMutation = useMutation({
+    mutationFn: ({ id, data }) => base44.entities.LiveStream.update(id, data),
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['liveStreams'] });
     },
@@ -172,10 +181,12 @@ export default function AdminBroadcastStudio() {
       status: 'live',
       started_at: new Date().toISOString(),
       viewer_count: 0,
-      total_donations: 0
+      total_donations: 0,
+      thumbnail_url: 'https://images.unsplash.com/photo-1516450360452-9312f5e86fc7?w=800'
     };
 
-    await createStreamMutation.mutateAsync(streamData);
+    const createdStream = await createStreamMutation.mutateAsync(streamData);
+    setCurrentStreamId(createdStream.id);
     setIsLive(true);
     setStreamStartTime(Date.now());
     
@@ -191,7 +202,22 @@ export default function AdminBroadcastStudio() {
     return () => clearInterval(viewerInterval);
   };
 
-  const endStream = () => {
+  const endStream = async () => {
+    if (currentStreamId) {
+      // Update stream to ended status and save recording info
+      await updateStreamMutation.mutateAsync({
+        id: currentStreamId,
+        data: {
+          status: 'ended',
+          ended_at: new Date().toISOString(),
+          viewer_count: peakViewers,
+          // In production, this would be the actual recording URL from your video service
+          stream_url: `https://example.com/recordings/${currentStreamId}.mp4`,
+          duration: Math.floor(streamDuration / 60) // duration in minutes
+        }
+      });
+    }
+
     setIsLive(false);
     stopCamera();
     setStreamStartTime(null);
@@ -199,6 +225,15 @@ export default function AdminBroadcastStudio() {
     setViewerCount(0);
     setPeakViewers(0);
     setTeleprompterPlaying(false);
+    setCurrentStreamId(null);
+    
+    // Reset form for next stream
+    setStreamInfo({
+      title: '',
+      description: '',
+      category: 'Worship',
+      stream_type: 'video'
+    });
   };
 
   const formatDuration = (seconds) => {

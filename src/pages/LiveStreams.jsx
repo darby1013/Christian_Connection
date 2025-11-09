@@ -1,4 +1,3 @@
-
 import React, { useState } from "react";
 import { Link } from "react-router-dom";
 import { createPageUrl } from "@/utils";
@@ -9,7 +8,8 @@ import { Card, CardContent } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Input } from "@/components/ui/input";
 import { Tabs, TabsList, TabsTrigger } from "@/components/ui/tabs";
-import { Eye, Search, Filter, Video } from "lucide-react";
+import { Eye, Search, Video, Radio, Play, Calendar } from "lucide-react";
+import { format } from "date-fns";
 
 export default function LiveStreams() {
   const [searchQuery, setSearchQuery] = useState("");
@@ -57,7 +57,7 @@ export default function LiveStreams() {
               <TabsTrigger value="all" className="data-[state=active]:bg-cyan-500 data-[state=active]:text-white">All</TabsTrigger>
               <TabsTrigger value="live" className="data-[state=active]:bg-cyan-500 data-[state=active]:text-white">Live</TabsTrigger>
               <TabsTrigger value="scheduled" className="data-[state=active]:bg-cyan-500 data-[state=active]:text-white">Upcoming</TabsTrigger>
-              <TabsTrigger value="ended" className="data-[state=active]:bg-cyan-500 data-[state=active]:text-white">Past</TabsTrigger>
+              <TabsTrigger value="ended" className="data-[state=active]:bg-cyan-500 data-[state=active]:text-white">Replays</TabsTrigger>
             </TabsList>
           </Tabs>
         </div>
@@ -68,7 +68,7 @@ export default function LiveStreams() {
             <div className="flex items-center gap-3 mb-6">
               <div className="flex items-center gap-2">
                 <div className="w-3 h-3 bg-red-500 rounded-full animate-pulse"></div>
-                <h2 className="text-2xl font-bold text-slate-900">LIVE NOW</h2>
+                <h2 className="text-2xl font-bold text-white">LIVE NOW</h2>
               </div>
               <Badge variant="destructive" className="animate-pulse">
                 {liveStreams.length} Streaming
@@ -77,7 +77,7 @@ export default function LiveStreams() {
             <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-6">
               {liveStreams.map((stream) => (
                 <Link key={stream.id} to={createPageUrl(`LiveStreamView?id=${stream.id}`)}>
-                  <Card className="group hover:shadow-2xl transition-all duration-300 border-0 shadow-lg overflow-hidden">
+                  <Card className="group hover:shadow-2xl hover:shadow-red-500/20 transition-all duration-300 border-0 shadow-lg overflow-hidden bg-[#1a1f3a]">
                     <div className="relative aspect-video bg-gradient-to-br from-red-500 to-pink-500">
                       <img
                         src={stream.thumbnail_url || 'https://images.unsplash.com/photo-1516450360452-9312f5e86fc7?w=800'}
@@ -86,7 +86,7 @@ export default function LiveStreams() {
                       />
                       <div className="absolute top-3 left-3">
                         <Badge variant="destructive" className="animate-pulse shadow-lg">
-                          <div className="w-2 h-2 bg-white rounded-full mr-2"></div>
+                          <Radio className="w-3 h-3 mr-1" />
                           LIVE
                         </Badge>
                       </div>
@@ -95,18 +95,69 @@ export default function LiveStreams() {
                         {stream.viewer_count || 0}
                       </div>
                       <div className="absolute inset-0 bg-gradient-to-t from-black/60 to-transparent opacity-0 group-hover:opacity-100 transition-opacity flex items-center justify-center">
-                        <Video className="w-16 h-16 text-white" />
+                        <Play className="w-16 h-16 text-white" />
                       </div>
                     </div>
                     <CardContent className="p-5">
-                      <h3 className="font-bold text-xl mb-2 group-hover:text-blue-600 transition-colors line-clamp-2">
+                      <h3 className="font-bold text-xl mb-2 text-white group-hover:text-cyan-400 transition-colors line-clamp-2">
                         {stream.title}
                       </h3>
-                      <p className="text-sm text-slate-600 mb-3 line-clamp-2">{stream.description}</p>
+                      <p className="text-sm text-slate-400 mb-3 line-clamp-2">{stream.description}</p>
                       <div className="flex items-center justify-between">
-                        <span className="text-sm font-medium text-slate-700">{stream.host_name}</span>
+                        <span className="text-sm font-medium text-slate-300">{stream.host_name}</span>
                         {stream.category && (
-                          <Badge variant="outline">{stream.category}</Badge>
+                          <Badge variant="outline" className="border-cyan-500/30 text-cyan-400">{stream.category}</Badge>
+                        )}
+                      </div>
+                    </CardContent>
+                  </Card>
+                </Link>
+              ))}
+            </div>
+          </div>
+        )}
+
+        {/* Replays Section */}
+        {endedStreams.length > 0 && (filter === 'all' || filter === 'ended') && (
+          <div className="mb-12">
+            <div className="flex items-center gap-3 mb-6">
+              <h2 className="text-2xl font-bold text-white">Watch Replays</h2>
+              <Badge className="bg-purple-500">{endedStreams.length} Available</Badge>
+            </div>
+            <div className="grid md:grid-cols-2 lg:grid-cols-4 gap-6">
+              {endedStreams.map((stream) => (
+                <Link key={stream.id} to={createPageUrl(`LiveStreamView?id=${stream.id}`)}>
+                  <Card className="group hover:shadow-xl hover:shadow-purple-500/20 transition-all duration-300 overflow-hidden bg-[#1a1f3a] border-slate-700">
+                    <div className="relative aspect-video bg-slate-900">
+                      <img
+                        src={stream.thumbnail_url || 'https://images.unsplash.com/photo-1516450360452-9312f5e86fc7?w=800'}
+                        alt={stream.title}
+                        className="w-full h-full object-cover opacity-90"
+                      />
+                      <div className="absolute top-3 left-3">
+                        <Badge className="bg-purple-500 shadow-lg">
+                          <Play className="w-3 h-3 mr-1" />
+                          Replay
+                        </Badge>
+                      </div>
+                      <div className="absolute bottom-3 right-3 bg-black/80 backdrop-blur-sm px-2 py-1 rounded text-xs text-white flex items-center gap-1">
+                        <Eye className="w-3 h-3" />
+                        {stream.viewer_count || 0}
+                      </div>
+                      <div className="absolute inset-0 bg-gradient-to-t from-black/60 to-transparent opacity-0 group-hover:opacity-100 transition-opacity flex items-center justify-center">
+                        <Play className="w-12 h-12 text-white" />
+                      </div>
+                    </div>
+                    <CardContent className="p-4">
+                      <h3 className="font-bold text-sm mb-1 text-white group-hover:text-purple-400 transition-colors line-clamp-2">
+                        {stream.title}
+                      </h3>
+                      <div className="flex items-center justify-between text-xs">
+                        <span className="text-slate-400">{stream.host_name}</span>
+                        {stream.ended_at && (
+                          <span className="text-slate-500">
+                            {format(new Date(stream.ended_at), 'MMM d')}
+                          </span>
                         )}
                       </div>
                     </CardContent>
@@ -118,65 +169,43 @@ export default function LiveStreams() {
         )}
 
         {/* Scheduled Streams */}
-        {scheduledStreams.length > 0 && (
+        {scheduledStreams.length > 0 && (filter === 'all' || filter === 'scheduled') && (
           <div className="mb-12">
-            <h2 className="text-2xl font-bold text-slate-900 mb-6">Upcoming Streams</h2>
+            <h2 className="text-2xl font-bold text-white mb-6">Upcoming Streams</h2>
             <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-6">
               {scheduledStreams.map((stream) => (
-                <Link key={stream.id} to={createPageUrl(`LiveStreamView?id=${stream.id}`)}>
-                  <Card className="group hover:shadow-xl transition-all duration-300 overflow-hidden">
-                    <div className="relative aspect-video bg-gradient-to-br from-blue-500 to-purple-500">
-                      <img
-                        src={stream.thumbnail_url || 'https://images.unsplash.com/photo-1516450360452-9312f5e86fc7?w=800'}
-                        alt={stream.title}
-                        className="w-full h-full object-cover opacity-80"
-                      />
-                      <div className="absolute top-3 left-3">
-                        <Badge className="bg-blue-600">Scheduled</Badge>
-                      </div>
+                <Card key={stream.id} className="hover:shadow-xl transition-all duration-300 overflow-hidden bg-[#1a1f3a] border-slate-700">
+                  <div className="relative aspect-video bg-gradient-to-br from-blue-500 to-purple-500">
+                    <img
+                      src={stream.thumbnail_url || 'https://images.unsplash.com/photo-1516450360452-9312f5e86fc7?w=800'}
+                      alt={stream.title}
+                      className="w-full h-full object-cover opacity-80"
+                    />
+                    <div className="absolute top-3 left-3">
+                      <Badge className="bg-blue-600">
+                        <Calendar className="w-3 h-3 mr-1" />
+                        Scheduled
+                      </Badge>
                     </div>
-                    <CardContent className="p-5">
-                      <h3 className="font-bold text-lg mb-2 group-hover:text-blue-600 transition-colors line-clamp-2">
-                        {stream.title}
-                      </h3>
-                      <p className="text-sm text-slate-600 mb-3 line-clamp-2">{stream.description}</p>
-                      <div className="flex items-center justify-between text-sm">
-                        <span className="text-slate-700 font-medium">{stream.host_name}</span>
-                        {stream.category && (
-                          <Badge variant="outline">{stream.category}</Badge>
-                        )}
-                      </div>
-                    </CardContent>
-                  </Card>
-                </Link>
-              ))}
-            </div>
-          </div>
-        )}
-
-        {/* Past Streams */}
-        {endedStreams.length > 0 && filter === 'ended' && (
-          <div>
-            <h2 className="text-2xl font-bold text-slate-900 mb-6">Past Streams</h2>
-            <div className="grid md:grid-cols-2 lg:grid-cols-4 gap-6">
-              {endedStreams.map((stream) => (
-                <Link key={stream.id} to={createPageUrl(`LiveStreamView?id=${stream.id}`)}>
-                  <Card className="group hover:shadow-xl transition-all duration-300 overflow-hidden">
-                    <div className="relative aspect-video bg-slate-200">
-                      <img
-                        src={stream.thumbnail_url || 'https://images.unsplash.com/photo-1516450360452-9312f5e86fc7?w=800'}
-                        alt={stream.title}
-                        className="w-full h-full object-cover"
-                      />
+                  </div>
+                  <CardContent className="p-5">
+                    <h3 className="font-bold text-lg mb-2 text-white line-clamp-2">
+                      {stream.title}
+                    </h3>
+                    <p className="text-sm text-slate-400 mb-3 line-clamp-2">{stream.description}</p>
+                    {stream.scheduled_time && (
+                      <p className="text-sm text-cyan-400 font-semibold mb-2">
+                        {format(new Date(stream.scheduled_time), 'EEEE, MMMM d @ h:mm a')}
+                      </p>
+                    )}
+                    <div className="flex items-center justify-between text-sm">
+                      <span className="text-slate-300 font-medium">{stream.host_name}</span>
+                      {stream.category && (
+                        <Badge variant="outline" className="border-blue-500/30 text-blue-400">{stream.category}</Badge>
+                      )}
                     </div>
-                    <CardContent className="p-4">
-                      <h3 className="font-bold text-sm mb-1 group-hover:text-blue-600 transition-colors line-clamp-2">
-                        {stream.title}
-                      </h3>
-                      <span className="text-xs text-slate-500">{stream.host_name}</span>
-                    </CardContent>
-                  </Card>
-                </Link>
+                  </CardContent>
+                </Card>
               ))}
             </div>
           </div>
@@ -184,8 +213,8 @@ export default function LiveStreams() {
 
         {filteredStreams.length === 0 && (
           <div className="text-center py-20">
-            <Video className="w-16 h-16 text-slate-300 mx-auto mb-4" />
-            <h3 className="text-xl font-semibold text-slate-700 mb-2">No streams found</h3>
+            <Video className="w-16 h-16 text-slate-600 mx-auto mb-4" />
+            <h3 className="text-xl font-semibold text-slate-300 mb-2">No streams found</h3>
             <p className="text-slate-500">Try adjusting your search or filters</p>
           </div>
         )}

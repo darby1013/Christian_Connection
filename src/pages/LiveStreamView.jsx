@@ -3,12 +3,15 @@ import { useQuery } from "@tanstack/react-query";
 import { base44 } from "@/api/base44Client";
 import { Card, CardContent } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
+import { Button } from "@/components/ui/button";
 import { Tabs, TabsList, TabsTrigger, TabsContent } from "@/components/ui/tabs";
 import { Skeleton } from "@/components/ui/skeleton";
 import {
-  Eye, Users, Radio, Heart, MessageSquare, DollarSign, TrendingUp
+  Eye, Users, Radio, Heart, MessageSquare, DollarSign, 
+  TrendingUp, Play, Calendar, Clock
 } from "lucide-react";
 import { motion } from "framer-motion";
+import { format } from "date-fns";
 import RealtimeChat from "../components/stream/RealtimeChat";
 import RealTimeTipJar from "../components/stream/RealTimeTipJar";
 import SubscriptionOffer from "../components/stream/SubscriptionOffer";
@@ -39,7 +42,7 @@ export default function LiveStreamView() {
       return streams[0];
     },
     enabled: !!streamId,
-    refetchInterval: 5000, // Real-time viewer count updates
+    refetchInterval: stream?.status === 'live' ? 5000 : false,
   });
 
   const { data: tips = [] } = useQuery({
@@ -56,9 +59,16 @@ export default function LiveStreamView() {
     refetchInterval: 2000,
   });
 
+  const { data: nextStream } = useQuery({
+    queryKey: ['nextScheduledStream'],
+    queryFn: async () => {
+      const streams = await base44.entities.LiveStream.filter({ status: 'scheduled' }, 'scheduled_time', 1);
+      return streams[0];
+    },
+  });
+
   useEffect(() => {
-    if (stream) {
-      // Simulate real-time viewer count fluctuation
+    if (stream && stream.status === 'live') {
       const interval = setInterval(() => {
         const variance = Math.floor(Math.random() * 10) - 5;
         setViewerCount(Math.max(0, (stream.viewer_count || 0) + variance));
@@ -68,6 +78,8 @@ export default function LiveStreamView() {
   }, [stream]);
 
   const totalTips = tips.reduce((sum, tip) => sum + (tip.amount || 0), 0);
+  const isLive = stream?.status === 'live';
+  const isEnded = stream?.status === 'ended';
 
   if (isLoading) {
     return (
@@ -91,7 +103,7 @@ export default function LiveStreamView() {
         <div className="text-center">
           <Radio className="w-16 h-16 text-slate-600 mx-auto mb-4" />
           <h2 className="text-2xl font-bold text-white mb-2">Stream Not Found</h2>
-          <p className="text-slate-400">This stream may have ended or doesn't exist</p>
+          <p className="text-slate-400">This stream may not exist</p>
         </div>
       </div>
     );
@@ -106,7 +118,7 @@ export default function LiveStreamView() {
             {/* Video Player */}
             <Card className="bg-[#1a1f3a] border-slate-700 overflow-hidden">
               <div className="relative aspect-video bg-black">
-                {stream.stream_url ? (
+                {isLive && stream.stream_url ? (
                   <video
                     src={stream.stream_url}
                     controls
@@ -114,25 +126,54 @@ export default function LiveStreamView() {
                     className="w-full h-full"
                     poster={stream.thumbnail_url}
                   />
+                ) : isEnded && stream.stream_url ? (
+                  <>
+                    <video
+                      src={stream.stream_url}
+                      controls
+                      className="w-full h-full"
+                      poster={stream.thumbnail_url}
+                    />
+                    <div className="absolute top-4 left-4">
+                      <Badge className="bg-slate-600 text-sm">
+                        <Play className="w-3 h-3 mr-1" />
+                        Replay
+                      </Badge>
+                    </div>
+                  </>
                 ) : (
                   <div className="w-full h-full flex items-center justify-center">
                     <div className="text-center">
                       <Radio className="w-16 h-16 text-slate-600 mx-auto mb-4 animate-pulse" />
-                      <p className="text-slate-400 font-semibold">Stream starting soon...</p>
+                      <p className="text-white font-bold text-xl mb-2">Stream Ended</p>
+                      <p className="text-slate-400 mb-4">This live stream has concluded</p>
+                      {nextStream && (
+                        <div className="bg-cyan-500/20 border border-cyan-500/30 rounded-lg p-4 max-w-md mx-auto">
+                          <p className="text-cyan-400 font-semibold mb-2">Next Live Stream:</p>
+                          <p className="text-white font-bold">{nextStream.title}</p>
+                          <p className="text-slate-300 text-sm mt-2">
+                            <Calendar className="w-4 h-4 inline mr-1" />
+                            {format(new Date(nextStream.scheduled_time), 'EEEE, MMMM d @ h:mm a')}
+                          </p>
+                        </div>
+                      )}
+                      {!nextStream && (
+                        <p className="text-slate-500">Check back soon for the next stream</p>
+                      )}
                     </div>
                   </div>
                 )}
-                {stream.status === 'live' && (
-                  <div className="absolute top-4 left-4 flex items-center gap-3">
-                    <Badge variant="destructive" className="animate-pulse shadow-xl text-sm px-3 py-1">
+                {isLive && (
+                  <>
+                    <Badge variant="destructive" className="absolute top-4 left-4 animate-pulse shadow-xl text-sm">
                       <Radio className="w-3 h-3 mr-1" />
                       LIVE
                     </Badge>
-                    <Badge className="bg-black/80 backdrop-blur-sm border-0 shadow-xl text-sm">
+                    <Badge className="absolute top-4 right-4 bg-black/80 backdrop-blur-sm border-0 shadow-xl text-sm">
                       <Eye className="w-3 h-3 mr-1" />
                       {viewerCount} watching
                     </Badge>
-                  </div>
+                  </>
                 )}
               </div>
             </Card>
@@ -142,7 +183,11 @@ export default function LiveStreamView() {
               <CardContent className="p-6">
                 <div className="flex items-start justify-between mb-4">
                   <div className="flex-1">
-                    <h1 className="text-2xl font-black text-white mb-2">{stream.title}</h1>
+                    <div className="flex items-center gap-3 mb-2">
+                      <h1 className="text-2xl font-black text-white">{stream.title}</h1>
+                      {isLive && <Badge variant="destructive" className="animate-pulse">LIVE</Badge>}
+                      {isEnded && <Badge className="bg-slate-600">Replay</Badge>}
+                    </div>
                     <p className="text-slate-400 mb-4">{stream.description}</p>
                     <div className="flex items-center gap-4 flex-wrap">
                       <div className="flex items-center gap-2">
@@ -167,15 +212,23 @@ export default function LiveStreamView() {
 
                 {/* Real-time Stats */}
                 <div className="grid grid-cols-3 gap-4 pt-4 border-t border-slate-700">
-                  <motion.div
-                    animate={{ scale: [1, 1.05, 1] }}
-                    transition={{ duration: 2, repeat: Infinity }}
-                    className="text-center p-3 bg-slate-900/50 rounded-lg"
-                  >
-                    <Eye className="w-5 h-5 text-blue-400 mx-auto mb-1" />
-                    <p className="text-2xl font-black text-white">{viewerCount}</p>
-                    <p className="text-xs text-slate-400">Viewers</p>
-                  </motion.div>
+                  {isLive ? (
+                    <motion.div
+                      animate={{ scale: [1, 1.05, 1] }}
+                      transition={{ duration: 2, repeat: Infinity }}
+                      className="text-center p-3 bg-slate-900/50 rounded-lg"
+                    >
+                      <Eye className="w-5 h-5 text-blue-400 mx-auto mb-1" />
+                      <p className="text-2xl font-black text-white">{viewerCount}</p>
+                      <p className="text-xs text-slate-400">Watching</p>
+                    </motion.div>
+                  ) : (
+                    <div className="text-center p-3 bg-slate-900/50 rounded-lg">
+                      <Eye className="w-5 h-5 text-slate-500 mx-auto mb-1" />
+                      <p className="text-2xl font-black text-white">{stream.viewer_count || 0}</p>
+                      <p className="text-xs text-slate-400">Watched</p>
+                    </div>
+                  )}
                   <div className="text-center p-3 bg-slate-900/50 rounded-lg">
                     <Heart className="w-5 h-5 text-red-400 mx-auto mb-1 fill-red-400" />
                     <p className="text-2xl font-black text-white">{tips.length}</p>
@@ -240,12 +293,45 @@ export default function LiveStreamView() {
               </TabsList>
 
               <TabsContent value="chat" className="mt-4">
-                <RealtimeChat roomId={streamId} roomType="livestream" user={user} />
+                <RealtimeChat 
+                  roomId={streamId} 
+                  roomType={isLive ? "livestream" : "replay"} 
+                  user={user} 
+                />
+                {isEnded && (
+                  <div className="mt-4 p-4 bg-cyan-500/10 border border-cyan-500/30 rounded-lg">
+                    <p className="text-cyan-400 text-sm font-semibold mb-2">💬 Replay Chat</p>
+                    <p className="text-slate-300 text-xs">
+                      Connect with other viewers watching this replay. Your messages are visible to everyone viewing now.
+                    </p>
+                  </div>
+                )}
               </TabsContent>
 
               <TabsContent value="support" className="mt-4 space-y-4">
                 <RealTimeTipJar stream={stream} user={user} />
                 <SubscriptionOffer user={user} />
+                {isEnded && (
+                  <Card className="bg-gradient-to-r from-purple-500/10 to-pink-500/10 border-purple-500/30">
+                    <CardContent className="p-4">
+                      <h3 className="text-white font-bold mb-2 flex items-center gap-2">
+                        <Heart className="w-5 h-5 text-purple-400 fill-purple-400" />
+                        Support the Mission
+                      </h3>
+                      <p className="text-slate-300 text-sm mb-3">
+                        Enjoyed this message? Support {stream.host_name} and help spread the word!
+                      </p>
+                      <div className="flex gap-2">
+                        <Button className="flex-1 bg-purple-500 hover:bg-purple-600">
+                          💝 Give Tip
+                        </Button>
+                        <Button className="flex-1 bg-pink-500 hover:bg-pink-600">
+                          ✨ Subscribe
+                        </Button>
+                      </div>
+                    </CardContent>
+                  </Card>
+                )}
               </TabsContent>
             </Tabs>
           </div>
