@@ -99,8 +99,39 @@ export default function Layout({ children, currentPageName }) {
     refetchInterval: 3000, // Check every 3 seconds for ULTRA responsiveness
   });
 
+  // REAL-TIME live podcast detection
+  const { data: podcastStatus = { active: [], justEnded: [] } } = useQuery({
+    queryKey: ['activeLivePodcasts'],
+    queryFn: async () => {
+      const podcasts = await base44.entities.Podcast.filter({ is_live: true, content_type: 'video' });
+      
+      const now = new Date();
+      const sixSecondsAgo = new Date(now.getTime() - 6 * 1000);
+      const tenSecondsAgo = new Date(now.getTime() - 10 * 1000);
+      
+      const activePodcasts = podcasts.filter(podcast => {
+        const updatedDate = new Date(podcast.updated_date || podcast.published_date || podcast.created_date);
+        return updatedDate > sixSecondsAgo;
+      });
+      
+      const justEndedPodcasts = podcasts.filter(podcast => {
+        const updatedDate = new Date(podcast.updated_date || podcast.published_date || podcast.created_date);
+        return updatedDate <= sixSecondsAgo && updatedDate > tenSecondsAgo;
+      });
+      
+      return {
+        active: activePodcasts,
+        justEnded: justEndedPodcasts
+      };
+    },
+    initialData: { active: [], justEnded: [] },
+    refetchInterval: 3000,
+  });
+
   const hasActiveLiveStream = streamStatus.active.length > 0;
   const streamJustEnded = streamStatus.justEnded.length > 0;
+  const hasActiveLivePodcast = podcastStatus.active.length > 0;
+  const podcastJustEnded = podcastStatus.justEnded.length > 0;
 
   const publicNavItems = [
     { title: "Home", url: createPageUrl("Home"), icon: Home },
@@ -135,6 +166,7 @@ export default function Layout({ children, currentPageName }) {
     { title: "Site Settings", url: createPageUrl("AdminSiteSettings"), icon: SettingsIcon, section: "OVERVIEW" },
     { title: "Go Live Studio", url: createPageUrl("AdminBroadcastStudio"), icon: Radio, section: "CONTENT" },
     { title: "Live Streams", url: createPageUrl("AdminLiveStreams"), icon: Video, section: "CONTENT" },
+    { title: "Live Podcast Studio", url: createPageUrl("AdminPodcastLive"), icon: Mic2, section: "CONTENT" },
     { title: "AI Script Generator", url: createPageUrl("AdminAIScriptGenerator"), icon: Sparkles, section: "CONTENT" },
     { title: "Podcasts", url: createPageUrl("AdminPodcasts"), icon: Mic2, section: "CONTENT" },
     { title: "Videos", url: createPageUrl("AdminVideos"), icon: PlayCircle, section: "CONTENT" },
@@ -381,7 +413,7 @@ export default function Layout({ children, currentPageName }) {
         }
         
         .fade-out {
-          animation: fade-out 10s ease-in-out forwards; /* Changed to forwards to keep it hidden after animation */
+          animation: fade-out 10s ease-in-out forwards;
         }
         
         .community-dropdown {
@@ -416,7 +448,6 @@ export default function Layout({ children, currentPageName }) {
                   </Link>
                 ))}
                 
-                {/* Community Dropdown */}
                 <DropdownMenu>
                   <DropdownMenuTrigger asChild>
                     <button
@@ -461,10 +492,7 @@ export default function Layout({ children, currentPageName }) {
                   <Search className="w-5 h-5" />
                 </Button>
                 
-                {/* ULTRA REAL-TIME Live Button */}
-                {/* RED: Stream updated in last 6 seconds = LIVE NOW */}
-                {/* AMBER: Stream ended in last 10 seconds = "LIVE Ended" message */}
-                {/* GRAY: No active stream */}
+                {/* LIVE Stream Button */}
                 {hasActiveLiveStream ? (
                   <Link to={createPageUrl("LiveStreamPlayer")}>
                     <Button className="bg-red-600 hover:bg-red-700 text-white font-bold relative overflow-hidden">
@@ -488,6 +516,33 @@ export default function Layout({ children, currentPageName }) {
                   >
                     <Radio className="w-4 h-4 mr-2" />
                     LIVE NOW
+                  </Button>
+                )}
+
+                {/* LIVE Podcast Button */}
+                {hasActiveLivePodcast ? (
+                  <Link to={createPageUrl("LivePodcastPlayer")}>
+                    <Button className="bg-purple-600 hover:bg-purple-700 text-white font-bold relative overflow-hidden">
+                      <span className="absolute inset-0 bg-purple-500 live-pulse"></span>
+                      <Mic2 className="w-4 h-4 mr-2 relative z-10" />
+                      <span className="relative z-10">LIVE PODCAST</span>
+                    </Button>
+                  </Link>
+                ) : podcastJustEnded ? (
+                  <Button 
+                    disabled
+                    className="bg-pink-600/50 text-pink-200 font-bold cursor-not-allowed relative overflow-hidden fade-out"
+                  >
+                    <Mic2 className="w-4 h-4 mr-2" />
+                    PODCAST Ended
+                  </Button>
+                ) : (
+                  <Button 
+                    disabled
+                    className="bg-slate-700 text-slate-400 font-bold cursor-not-allowed opacity-50"
+                  >
+                    <Mic2 className="w-4 h-4 mr-2" />
+                    LIVE PODCAST
                   </Button>
                 )}
                 
