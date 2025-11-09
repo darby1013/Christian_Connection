@@ -1,3 +1,4 @@
+
 import React, { useState } from "react";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { base44 } from "@/api/base44Client";
@@ -10,7 +11,7 @@ import { Badge } from "@/components/ui/badge";
 import { Tabs, TabsList, TabsTrigger, TabsContent } from "@/components/ui/tabs";
 import {
   GraduationCap, Plus, Search, Edit, Trash2, BookOpen, Users,
-  Clock, Play, Star, DollarSign, Award, TrendingUp
+  Clock, Play, Star, DollarSign, Award, TrendingUp, Wand2
 } from "lucide-react";
 import {
   Dialog,
@@ -186,143 +187,151 @@ export default function AdminCourses() {
       <div className="flex items-center justify-between">
         <div>
           <h2 className="text-3xl font-black text-white mb-2">Course Management</h2>
-          <p className="text-slate-400 font-semibold">Create and manage video courses</p>
+          <p className="text-slate-400 font-semibold">Create and manage educational courses</p>
         </div>
-        <Dialog open={dialogOpen} onOpenChange={setDialogOpen}>
-          <DialogTrigger asChild>
-            <Button className="bg-cyan-500 hover:bg-cyan-600 font-bold">
-              <Plus className="w-4 h-4 mr-2" />
-              New Course
+        <div className="flex gap-2">
+          <Link to={createPageUrl("AdminAICourseTools")}>
+            <Button className="bg-gradient-to-r from-purple-600 to-cyan-500 hover:from-purple-700 hover:to-cyan-600 font-bold">
+              <Wand2 className="w-4 h-4 mr-2" />
+              AI Course Tools
             </Button>
-          </DialogTrigger>
-          <DialogContent className="bg-[#1a1f3a] border-slate-700 max-w-3xl max-h-[90vh] overflow-y-auto">
-            <DialogHeader>
-              <DialogTitle className="text-white font-black text-xl">
-                {editingCourse ? 'Edit Course' : 'Create New Course'}
-              </DialogTitle>
-            </DialogHeader>
-            <div className="grid gap-4 py-4">
-              <div>
-                <Label className="text-white mb-2 block">Course Title *</Label>
-                <Input
-                  placeholder="e.g., Introduction to Biblical Studies"
-                  value={courseForm.title}
-                  onChange={(e) => setCourseForm({...courseForm, title: e.target.value})}
-                  className="bg-slate-900/50 border-slate-700 text-white"
-                />
-              </div>
-
-              <div>
-                <Label className="text-white mb-2 block">Description</Label>
-                <Textarea
-                  placeholder="Course description"
-                  value={courseForm.description}
-                  onChange={(e) => setCourseForm({...courseForm, description: e.target.value})}
-                  className="bg-slate-900/50 border-slate-700 text-white h-24"
-                />
-              </div>
-
-              <div className="grid grid-cols-2 gap-4">
+          </Link>
+          <Dialog open={dialogOpen} onOpenChange={setDialogOpen}>
+            <DialogTrigger asChild>
+              <Button onClick={() => { setEditingCourse(null); resetForm(); }} className="bg-cyan-500 hover:bg-cyan-600 font-bold">
+                <Plus className="w-4 h-4 mr-2" />
+                Add Course
+              </Button>
+            </DialogTrigger>
+            <DialogContent className="bg-[#1a1f3a] border-slate-700 max-w-3xl max-h-[90vh] overflow-y-auto">
+              <DialogHeader>
+                <DialogTitle className="text-white font-black text-xl">
+                  {editingCourse ? 'Edit Course' : 'Create New Course'}
+                </DialogTitle>
+              </DialogHeader>
+              <div className="grid gap-4 py-4">
                 <div>
-                  <Label className="text-white mb-2 block">Category</Label>
-                  <select
-                    value={courseForm.category}
-                    onChange={(e) => setCourseForm({...courseForm, category: e.target.value})}
-                    className="w-full h-10 px-3 rounded-md bg-slate-900/50 border border-slate-700 text-white"
-                  >
-                    <option value="faith">Faith</option>
-                    <option value="leadership">Leadership</option>
-                    <option value="ministry">Ministry</option>
-                    <option value="bible_study">Bible Study</option>
-                    <option value="personal_growth">Personal Growth</option>
-                    <option value="worship">Worship</option>
-                    <option value="counseling">Counseling</option>
-                    <option value="theology">Theology</option>
-                    <option value="practical_skills">Practical Skills</option>
-                  </select>
-                </div>
-                <div>
-                  <Label className="text-white mb-2 block">Difficulty</Label>
-                  <select
-                    value={courseForm.difficulty_level}
-                    onChange={(e) => setCourseForm({...courseForm, difficulty_level: e.target.value})}
-                    className="w-full h-10 px-3 rounded-md bg-slate-900/50 border border-slate-700 text-white"
-                  >
-                    <option value="beginner">Beginner</option>
-                    <option value="intermediate">Intermediate</option>
-                    <option value="advanced">Advanced</option>
-                  </select>
-                </div>
-              </div>
-
-              <div className="grid grid-cols-3 gap-4">
-                <div>
-                  <Label className="text-white mb-2 block">Duration (hours)</Label>
+                  <Label className="text-white mb-2 block">Course Title *</Label>
                   <Input
-                    type="number"
-                    step="0.5"
-                    value={courseForm.duration_hours}
-                    onChange={(e) => setCourseForm({...courseForm, duration_hours: parseFloat(e.target.value)})}
+                    placeholder="e.g., Introduction to Biblical Studies"
+                    value={courseForm.title}
+                    onChange={(e) => setCourseForm({...courseForm, title: e.target.value})}
                     className="bg-slate-900/50 border-slate-700 text-white"
                   />
                 </div>
+
                 <div>
-                  <Label className="text-white mb-2 block">Price ($)</Label>
-                  <Input
-                    type="number"
-                    step="0.01"
-                    value={courseForm.price}
-                    onChange={(e) => setCourseForm({...courseForm, price: parseFloat(e.target.value)})}
-                    className="bg-slate-900/50 border-slate-700 text-white"
+                  <Label className="text-white mb-2 block">Description</Label>
+                  <Textarea
+                    placeholder="Course description"
+                    value={courseForm.description}
+                    onChange={(e) => setCourseForm({...courseForm, description: e.target.value})}
+                    className="bg-slate-900/50 border-slate-700 text-white h-24"
                   />
                 </div>
+
+                <div className="grid grid-cols-2 gap-4">
+                  <div>
+                    <Label className="text-white mb-2 block">Category</Label>
+                    <select
+                      value={courseForm.category}
+                      onChange={(e) => setCourseForm({...courseForm, category: e.target.value})}
+                      className="w-full h-10 px-3 rounded-md bg-slate-900/50 border border-slate-700 text-white"
+                    >
+                      <option value="faith">Faith</option>
+                      <option value="leadership">Leadership</option>
+                      <option value="ministry">Ministry</option>
+                      <option value="bible_study">Bible Study</option>
+                      <option value="personal_growth">Personal Growth</option>
+                      <option value="worship">Worship</option>
+                      <option value="counseling">Counseling</option>
+                      <option value="theology">Theology</option>
+                      <option value="practical_skills">Practical Skills</option>
+                    </select>
+                  </div>
+                  <div>
+                    <Label className="text-white mb-2 block">Difficulty</Label>
+                    <select
+                      value={courseForm.difficulty_level}
+                      onChange={(e) => setCourseForm({...courseForm, difficulty_level: e.target.value})}
+                      className="w-full h-10 px-3 rounded-md bg-slate-900/50 border border-slate-700 text-white"
+                    >
+                      <option value="beginner">Beginner</option>
+                      <option value="intermediate">Intermediate</option>
+                      <option value="advanced">Advanced</option>
+                    </select>
+                  </div>
+                </div>
+
+                <div className="grid grid-cols-3 gap-4">
+                  <div>
+                    <Label className="text-white mb-2 block">Duration (hours)</Label>
+                    <Input
+                      type="number"
+                      step="0.5"
+                      value={courseForm.duration_hours}
+                      onChange={(e) => setCourseForm({...courseForm, duration_hours: parseFloat(e.target.value)})}
+                      className="bg-slate-900/50 border-slate-700 text-white"
+                    />
+                  </div>
+                  <div>
+                    <Label className="text-white mb-2 block">Price ($)</Label>
+                    <Input
+                      type="number"
+                      step="0.01"
+                      value={courseForm.price}
+                      onChange={(e) => setCourseForm({...courseForm, price: parseFloat(e.target.value)})}
+                      className="bg-slate-900/50 border-slate-700 text-white"
+                    />
+                  </div>
+                  <div>
+                    <Label className="text-white mb-2 block">Access Type</Label>
+                    <select
+                      value={courseForm.access_type}
+                      onChange={(e) => setCourseForm({...courseForm, access_type: e.target.value})}
+                      className="w-full h-10 px-3 rounded-md bg-slate-900/50 border border-slate-700 text-white"
+                    >
+                      <option value="free">Free</option>
+                      <option value="paid">Paid</option>
+                      <option value="subscription">Subscription</option>
+                    </select>
+                  </div>
+                </div>
+
                 <div>
-                  <Label className="text-white mb-2 block">Access Type</Label>
-                  <select
-                    value={courseForm.access_type}
-                    onChange={(e) => setCourseForm({...courseForm, access_type: e.target.value})}
-                    className="w-full h-10 px-3 rounded-md bg-slate-900/50 border border-slate-700 text-white"
-                  >
-                    <option value="free">Free</option>
-                    <option value="paid">Paid</option>
-                    <option value="subscription">Subscription</option>
-                  </select>
+                  <Label className="text-white mb-2 block">Thumbnail</Label>
+                  <Input
+                    type="file"
+                    accept="image/*"
+                    onChange={handleImageUpload}
+                    className="bg-slate-900/50 border-slate-700 text-white"
+                  />
+                  {courseForm.thumbnail_url && (
+                    <img src={courseForm.thumbnail_url} alt="Thumbnail" className="mt-2 w-full h-40 object-cover rounded" />
+                  )}
+                </div>
+
+                <div className="flex items-center gap-2">
+                  <input
+                    type="checkbox"
+                    checked={courseForm.certificate_enabled}
+                    onChange={(e) => setCourseForm({...courseForm, certificate_enabled: e.target.checked})}
+                    className="w-4 h-4"
+                  />
+                  <Label className="text-white">Award certificate upon completion</Label>
                 </div>
               </div>
-
-              <div>
-                <Label className="text-white mb-2 block">Thumbnail</Label>
-                <Input
-                  type="file"
-                  accept="image/*"
-                  onChange={handleImageUpload}
-                  className="bg-slate-900/50 border-slate-700 text-white"
-                />
-                {courseForm.thumbnail_url && (
-                  <img src={courseForm.thumbnail_url} alt="Thumbnail" className="mt-2 w-full h-40 object-cover rounded" />
-                )}
-              </div>
-
-              <div className="flex items-center gap-2">
-                <input
-                  type="checkbox"
-                  checked={courseForm.certificate_enabled}
-                  onChange={(e) => setCourseForm({...courseForm, certificate_enabled: e.target.checked})}
-                  className="w-4 h-4"
-                />
-                <Label className="text-white">Award certificate upon completion</Label>
-              </div>
-            </div>
-            <DialogFooter>
-              <Button variant="outline" onClick={() => { setDialogOpen(false); resetForm(); }} className="border-slate-700">
-                Cancel
-              </Button>
-              <Button onClick={handleSubmit} disabled={!courseForm.title} className="bg-cyan-500 hover:bg-cyan-600">
-                {editingCourse ? 'Update' : 'Create'} Course
-              </Button>
-            </DialogFooter>
-          </DialogContent>
-        </Dialog>
+              <DialogFooter>
+                <Button variant="outline" onClick={() => { setDialogOpen(false); resetForm(); }} className="border-slate-700">
+                  Cancel
+                </Button>
+                <Button onClick={handleSubmit} disabled={!courseForm.title} className="bg-cyan-500 hover:bg-cyan-600">
+                  {editingCourse ? 'Update' : 'Create'} Course
+                </Button>
+              </DialogFooter>
+            </DialogContent>
+          </Dialog>
+        </div>
       </div>
 
       <div className="grid md:grid-cols-4 gap-4">
