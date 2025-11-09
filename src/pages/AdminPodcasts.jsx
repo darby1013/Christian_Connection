@@ -42,6 +42,7 @@ export default function AdminPodcasts() {
   const [convertingAudio, setConvertingAudio] = useState(false);
   const [previewAudio, setPreviewAudio] = useState(null);
   const [previewDialogOpen, setPreviewDialogOpen] = useState(false);
+  const [extractingAudio, setExtractingAudio] = useState(false);
 
   const [showAITools, setShowAITools] = useState(false);
   const [selectedPodcastForAI, setSelectedPodcastForAI] = useState(null);
@@ -373,44 +374,190 @@ export default function AdminPodcasts() {
   }, {});
 
   const copySettingsToClipboard = () => {
-    // ... keep existing code ...
+    // This function was originally a placeholder. If there's specific logic, it should be added here.
+    // Otherwise, it can remain empty or be removed if unused.
   };
 
   const formatTime = (seconds) => {
-    // ... keep existing code ...
+    // This function was originally a placeholder. If there's specific logic, it should be added here.
+    // Otherwise, it can remain empty or be removed if unused.
+    const minutes = Math.floor(seconds / 60);
+    const remainingSeconds = Math.floor(seconds % 60);
+    return `${minutes}:${remainingSeconds < 10 ? '0' : ''}${remainingSeconds}`;
+  };
+
+  const extractAudioFromVideo = async (podcast) => {
+    if (!podcast?.audio_url && !podcast?.video_url) {
+      alert('No media file found');
+      return;
+    }
+
+    setExtractingAudio(true);
+    try {
+      // Fetch the video/audio file
+      const mediaUrl = podcast.video_url || podcast.audio_url; // Prioritize video if available
+      const response = await fetch(mediaUrl);
+      const blob = await response.blob();
+      
+      // Create video element to extract audio
+      const video = document.createElement('video');
+      const videoUrl = URL.createObjectURL(blob);
+      video.src = videoUrl;
+      video.autoplay = true; // Required for MediaStreamSource to pick up audio
+      video.muted = true; // Mute to avoid playing sound during extraction
+
+      await new Promise((resolve, reject) => {
+        video.onloadedmetadata = () => {
+          if (video.duration === Infinity) { // Handle live streams or unknown duration
+            reject(new Error("Cannot extract audio from media with unknown duration."));
+          } else {
+            resolve();
+          }
+        };
+        video.onerror = (e) => reject(new Error(`Error loading video for extraction: ${e.message}`));
+      });
+
+      // Create audio context to extract audio track
+      const audioContext = new (window.AudioContext || window.webkitAudioContext)();
+      const source = audioContext.createMediaElementSource(video);
+      const dest = audioContext.createMediaStreamDestination();
+      source.connect(dest);
+      // We don't connect to audioContext.destination because we only want to record, not play
+      
+      // Record audio only
+      const mediaRecorder = new MediaRecorder(dest.stream, {
+        mimeType: 'audio/webm;codecs=opus' // Use WebM for broader browser support
+      });
+
+      const chunks = [];
+      mediaRecorder.ondataavailable = (e) => {
+        if (e.data.size > 0) {
+          chunks.push(e.data);
+        }
+      };
+
+      return new Promise((resolve, reject) => {
+        mediaRecorder.onstop = () => {
+          const audioBlob = new Blob(chunks, { type: 'audio/webm' });
+          
+          // Download audio file
+          const audioFileName = `${podcast.title.replace(/[^a-z0-9]/gi, '_')}_S${podcast.season}E${podcast.episode_number}_AUDIO.webm`;
+          const audioDownloadUrl = URL.createObjectURL(audioBlob);
+          const audioLink = document.createElement('a');
+          audioLink.href = audioDownloadUrl;
+          audioLink.download = audioFileName;
+          document.body.appendChild(audioLink);
+          audioLink.click();
+          document.body.removeChild(audioLink);
+          URL.revokeObjectURL(audioDownloadUrl);
+
+          // Download cover image
+          if (podcast.image_url) {
+            setTimeout(() => {
+              const imgLink = document.createElement('a');
+              imgLink.href = podcast.image_url;
+              imgLink.download = `${podcast.title.replace(/[^a-z0-9]/gi, '_')}_Cover.jpg`;
+              imgLink.target = '_blank';
+              document.body.appendChild(imgLink);
+              imgLink.click();
+              document.body.removeChild(imgLink);
+            }, 500);
+          }
+
+          URL.revokeObjectURL(videoUrl);
+          setExtractingAudio(false);
+          resolve();
+        };
+
+        mediaRecorder.onerror = (error) => {
+          setExtractingAudio(false);
+          reject(error);
+        };
+        
+        mediaRecorder.start();
+        
+        // Record for full duration
+        setTimeout(() => {
+          mediaRecorder.stop();
+          video.pause(); // Ensure video playback stops
+          source.disconnect();
+          audioContext.close(); // Close audio context
+        }, video.duration * 1000);
+      });
+
+    } catch (error) {
+      console.error('Audio extraction error:', error);
+      setExtractingAudio(false);
+      alert('Error extracting audio. Try the desktop tool method instead:\n\n1. Download the file as-is\n2. Use free tools like Audacity, FFmpeg, or VLC to extract audio\n3. Add cover art in iTunes/Windows Media Player');
+    }
   };
 
   const handleDownloadAudioWithCover = async (podcast) => {
-    if (!podcast?.audio_url) return;
+    if (!podcast?.audio_url && !podcast?.video_url) return;
 
-    try {
-      // Download the audio file
-      const audioFileName = `${podcast.title.replace(/[^a-z0-9]/gi, '_')}_S${podcast.season}E${podcast.episode_number}.webm`;
-      
-      const audioLink = document.createElement('a');
-      audioLink.href = podcast.audio_url;
-      audioLink.download = audioFileName;
-      audioLink.target = '_blank';
-      document.body.appendChild(audioLink);
-      audioLink.click();
-      document.body.removeChild(audioLink);
+    const mediaUrl = podcast.video_url || podcast.audio_url; // Prioritize video if it exists
+    const isVideoPodcast = (podcast.content_type === 'video' || !!podcast.video_url);
 
-      // Also download the cover art if available
-      if (podcast.image_url) {
-        setTimeout(() => {
-          const imgLink = document.createElement('a');
-          imgLink.href = podcast.image_url;
-          imgLink.download = `${podcast.title.replace(/[^a-z0-9]/gi, '_')}_Cover.jpg`;
-          imgLink.target = '_blank';
-          document.body.appendChild(imgLink);
-          imgLink.click();
-          document.body.removeChild(imgLink);
-        }, 500);
+    if (isVideoPodcast) {
+      // Show dialog explaining the situation
+      if (confirm(`This podcast was recorded as a video. Download options:\n\nPress OK to EXTRACT AUDIO ONLY (browser-based, may take a moment)\n\nPress CANCEL to DOWNLOAD THE FULL VIDEO FILE + Cover (then use a desktop tool to extract audio)`)) {
+        await extractAudioFromVideo(podcast);
+        alert('✅ Audio extracted and downloaded!\n\nTo add cover art:\n1. Use iTunes: Right-click → Get Info → Artwork\n2. Or Windows Media Player: Properties → Pictures\n3. Or VLC: Tools → Media Information → Artwork');
+      } else {
+        // Download as-is with instructions
+        try {
+          const link = document.createElement('a');
+          link.href = mediaUrl;
+          link.download = `${podcast.title.replace(/[^a-z0-9]/gi, '_')}_S${podcast.season}E${podcast.episode_number}.${mediaUrl.includes('.mp4') ? 'mp4' : 'webm'}`; // Determine extension
+          link.target = '_blank';
+          document.body.appendChild(link);
+          link.click();
+          document.body.removeChild(link);
+
+          if (podcast.image_url) {
+            setTimeout(() => {
+              const imgLink = document.createElement('a');
+              imgLink.href = podcast.image_url;
+              imgLink.download = `${podcast.title.replace(/[^a-z0-9]/gi, '_')}_Cover.jpg`;
+              imgLink.target = '_blank';
+              document.body.appendChild(imgLink);
+              imgLink.click();
+              document.body.removeChild(imgLink);
+            }, 500);
+          }
+
+          alert('✅ Video file downloaded!\n\nTo convert to audio with cover art:\n\n📱 FREE TOOLS:\n\n1. AUDACITY (easiest):\n   - Open video file\n   - File → Export → Export as MP3\n   - Add cover art after\n\n2. VLC MEDIA PLAYER:\n   - Media → Convert/Save\n   - Add video → Convert\n   - Choose Audio - MP3\n   - Convert & save\n\n3. FFMPEG (command line):\n   ffmpeg -i input.webm -vn output.mp3\n\n4. Online: cloudconvert.com\n\nThen add cover art in iTunes/Media Player!');
+        } catch (error) {
+          alert('Download error: ' + error.message);
+        }
       }
+    } else {
+      // Pure audio file - download directly
+      try {
+        const audioLink = document.createElement('a');
+        audioLink.href = mediaUrl;
+        audioLink.download = `${podcast.title.replace(/[^a-z0-9]/gi, '_')}_S${podcast.season}E${podcast.episode_number}.${mediaUrl.includes('.mp3') ? 'mp3' : 'webm'}`; // Determine extension
+        audioLink.target = '_blank';
+        document.body.appendChild(audioLink);
+        audioLink.click();
+        document.body.removeChild(audioLink);
 
-      alert('✅ Downloads started!\n\nAudio file and cover image are being downloaded.\n\nTo add cover art to audio:\n1. Use iTunes, Windows Media Player, or VLC\n2. Right-click audio → Properties/Get Info\n3. Add the cover image as album art');
-    } catch (error) {
-      alert('Download error: ' + error.message);
+        if (podcast.image_url) {
+          setTimeout(() => {
+            const imgLink = document.createElement('a');
+            imgLink.href = podcast.image_url;
+            imgLink.download = `${podcast.title.replace(/[^a-z0-9]/gi, '_')}_Cover.jpg`;
+            imgLink.target = '_blank';
+            document.body.appendChild(imgLink);
+            imgLink.click();
+            document.body.removeChild(imgLink);
+          }, 500);
+        }
+
+        alert('✅ Audio downloaded!\n\nTo add cover art:\n1. iTunes: Right-click → Get Info → Artwork tab\n2. Windows Media Player: Properties → Pictures tab\n3. VLC: Tools → Media Information → Artwork');
+      } catch (error) {
+        alert('Download error: ' + error.message);
+      }
     }
   };
 
@@ -1112,11 +1259,28 @@ export default function AdminPodcasts() {
                   <Music className="w-24 h-24 text-white opacity-30" />
                 )}
               </div>
-              <audio controls className="w-full mb-4">
-                <source src={previewAudio.audio_url} type="audio/webm" />
-                <source src={previewAudio.audio_url} type="audio/mpeg" />
-                <source src={previewAudio.audio_url} type="audio/mp3" />
-              </audio>
+              
+              {/* Show appropriate player based on content type */}
+              {(previewAudio.content_type === 'video' || previewAudio.video_url) ? (
+                <div className="mb-4">
+                  <Badge className="bg-purple-500 mb-2">Video Recording (audio+video)</Badge>
+                  <video controls className="w-full rounded">
+                    <source src={previewAudio.video_url} type="video/webm" />
+                    <source src={previewAudio.video_url} type="video/mp4" />
+                    Your browser does not support the video tag.
+                  </video>
+                </div>
+              ) : (
+                <div className="mb-4">
+                  <Badge className="bg-green-500 mb-2">Audio Only</Badge>
+                  <audio controls className="w-full">
+                    <source src={previewAudio.audio_url} type="audio/webm" />
+                    <source src={previewAudio.audio_url} type="audio/mpeg" />
+                    Your browser does not support the audio tag.
+                  </audio>
+                </div>
+              )}
+              
               <div className="space-y-2 text-sm">
                 <div className="flex justify-between">
                   <span className="text-slate-400">Duration</span>
@@ -1132,24 +1296,34 @@ export default function AdminPodcasts() {
                   <span className="text-slate-400">Host</span>
                   <span className="text-white font-semibold">{previewAudio.host_name}</span>
                 </div>
+                <div className="flex justify-between">
+                  <span className="text-slate-400">Format</span>
+                  <span className="text-white font-semibold">
+                    {(previewAudio.content_type === 'video' || !!previewAudio.video_url) ? 'Video (WebM/MP4)' : 'Audio (WebM/MP3)'}
+                  </span>
+                </div>
               </div>
             </div>
           )}
-          <DialogFooter className="gap-2">
-            <Button variant="outline" onClick={() => setPreviewDialogOpen(false)} className="border-slate-700">
+          <DialogFooter className="gap-2 flex-col sm:flex-row">
+            <Button variant="outline" onClick={() => setPreviewDialogOpen(false)} className="border-slate-700 w-full sm:w-auto">
               Close
             </Button>
             {previewAudio && (
               <>
                 <Button 
                   onClick={() => handleDownloadAudioWithCover(previewAudio)}
-                  className="bg-green-500 hover:bg-green-600"
+                  disabled={extractingAudio}
+                  className="bg-green-500 hover:bg-green-600 w-full sm:w-auto"
                 >
-                  <Download className="w-4 h-4 mr-2" />
-                  Download Audio + Cover
+                  {extractingAudio ? (
+                    <><RefreshCw className="w-4 h-4 mr-2 animate-spin" />Extracting Audio...</>
+                  ) : (
+                    <><Download className="w-4 h-4 mr-2" />Download Audio + Cover</>
+                  )}
                 </Button>
                 <Link to={createPageUrl("AdminPodcastAudioEditor") + `?id=${previewAudio.id}`}>
-                  <Button className="bg-purple-500 hover:bg-purple-600">
+                  <Button className="bg-purple-500 hover:bg-purple-600 w-full sm:w-auto">
                     <Sliders className="w-4 h-4 mr-2" />
                     Edit Audio
                   </Button>
