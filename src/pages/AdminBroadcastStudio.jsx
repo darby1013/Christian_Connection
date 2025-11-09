@@ -1,3 +1,4 @@
+
 import React, { useState, useEffect, useRef } from "react";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { base44 } from "@/api/base44Client";
@@ -468,7 +469,85 @@ export default function AdminBroadcastStudio() {
 
       <div className="grid lg:grid-cols-4 gap-6">
         {/* Main Video + Teleprompter Area */}
-        <div className="lg:col-span-3 space-y-6">
+        <div className="lg:col-span-3 space-y-4">
+          {/* Teleprompter - NOW ABOVE VIDEO */}
+          {showTeleprompter && (
+            <Card className="bg-black border-2 border-amber-500/30">
+              <CardHeader className="border-b border-amber-500/20 py-2 px-4">
+                <div className="flex items-center justify-between">
+                  <CardTitle className="text-amber-400 font-bold text-sm flex items-center gap-2">
+                    <FileText className="w-4 h-4" />
+                    Teleprompter
+                    {selectedScript && (
+                      <Badge className="bg-purple-500 ml-2 text-xs">{selectedScript.title}</Badge>
+                    )}
+                  </CardTitle>
+                  <div className="flex items-center gap-2">
+                    <Button
+                      size="sm"
+                      onClick={() => setTeleprompterPlaying(!teleprompterPlaying)}
+                      disabled={!selectedScript}
+                      className={teleprompterPlaying ? "bg-amber-500 h-7 px-2" : "bg-slate-700 h-7 px-2"}
+                    >
+                      {teleprompterPlaying ? <Pause className="w-3 h-3" /> : <Play className="w-3 h-3" />}
+                    </Button>
+                    <div className="flex items-center gap-1">
+                      <span className="text-amber-400 text-xs">{teleprompterFontSize}px</span>
+                      <Slider
+                        value={[teleprompterFontSize]}
+                        onValueChange={([value]) => setTeleprompterFontSize(value)}
+                        min={14}
+                        max={32}
+                        step={2}
+                        className="w-16"
+                      />
+                    </div>
+                    <div className="flex items-center gap-1">
+                      <span className="text-amber-400 text-xs">Speed</span>
+                      <Slider
+                        value={[teleprompterSpeed]}
+                        onValueChange={([value]) => setTeleprompterSpeed(value)}
+                        min={0.5}
+                        max={3}
+                        step={0.5}
+                        className="w-16"
+                      />
+                    </div>
+                    <Button
+                      size="sm"
+                      variant="ghost"
+                      onClick={() => setShowTeleprompter(false)}
+                      className="text-slate-400 hover:text-white h-7 px-2"
+                    >
+                      <EyeOff className="w-3 h-3" />
+                    </Button>
+                  </div>
+                </div>
+              </CardHeader>
+              <div 
+                ref={teleprompterRef}
+                className="h-48 overflow-y-auto p-4 bg-black"
+                style={{
+                  fontSize: `${teleprompterFontSize}px`,
+                  lineHeight: '1.8'
+                }}
+              >
+                {selectedScript ? (
+                  <div className="text-amber-100 font-mono text-center">
+                    {selectedScript.content.split('\n').map((line, idx) => (
+                      <p key={idx} className="mb-4">{line}</p>
+                    ))}
+                  </div>
+                ) : (
+                  <div className="text-center text-slate-500 py-8">
+                    <FileText className="w-8 h-8 mx-auto mb-2 opacity-50" />
+                    <p className="font-semibold text-sm">No script selected</p>
+                  </div>
+                )}
+              </div>
+            </Card>
+          )}
+
           {/* Video Preview */}
           <Card className="bg-[#1a1f3a] border-0">
             <div className="relative aspect-video bg-black">
@@ -543,8 +622,8 @@ export default function AdminBroadcastStudio() {
                     onClick={() => setShowTeleprompter(!showTeleprompter)}
                     className={showTeleprompter ? "bg-amber-500 hover:bg-amber-600" : "bg-slate-700 hover:bg-slate-600"}
                   >
-                    {showTeleprompter ? <EyeOff className="w-4 h-4 mr-1" /> : <Eye className="w-4 h-4 mr-1" />}
-                    Script
+                    {showTeleprompter ? <Eye className="w-4 h-4 mr-1" /> : <EyeOff className="w-4 h-4 mr-1" />}
+                    Prompter
                   </Button>
                 </div>
 
@@ -584,77 +663,6 @@ export default function AdminBroadcastStudio() {
               </div>
             </CardContent>
           </Card>
-
-          {/* Teleprompter */}
-          {showTeleprompter && (
-            <Card className="bg-black border-2 border-amber-500/30">
-              <CardHeader className="border-b border-amber-500/20 py-3 px-4">
-                <div className="flex items-center justify-between">
-                  <CardTitle className="text-amber-400 font-bold text-base flex items-center gap-2">
-                    <FileText className="w-5 h-5" />
-                    Teleprompter
-                    {selectedScript && (
-                      <Badge className="bg-purple-500 ml-2">{selectedScript.title}</Badge>
-                    )}
-                  </CardTitle>
-                  <div className="flex items-center gap-3">
-                    <Button
-                      size="sm"
-                      onClick={() => setTeleprompterPlaying(!teleprompterPlaying)}
-                      disabled={!selectedScript}
-                      className={teleprompterPlaying ? "bg-amber-500" : "bg-slate-700"}
-                    >
-                      {teleprompterPlaying ? <Pause className="w-3 h-3" /> : <Play className="w-3 h-3" />}
-                    </Button>
-                    <div className="flex items-center gap-2">
-                      <span className="text-amber-400 text-xs">{teleprompterFontSize}px</span>
-                      <Slider
-                        value={[teleprompterFontSize]}
-                        onValueChange={([value]) => setTeleprompterFontSize(value)}
-                        min={14}
-                        max={28}
-                        step={2}
-                        className="w-20"
-                      />
-                    </div>
-                    <div className="flex items-center gap-2">
-                      <span className="text-amber-400 text-xs">Speed</span>
-                      <Slider
-                        value={[teleprompterSpeed]}
-                        onValueChange={([value]) => setTeleprompterSpeed(value)}
-                        min={0.5}
-                        max={3}
-                        step={0.5}
-                        className="w-20"
-                      />
-                    </div>
-                  </div>
-                </div>
-              </CardHeader>
-              <div 
-                ref={teleprompterRef}
-                className="h-64 overflow-y-auto p-6 bg-black"
-                style={{
-                  fontSize: `${teleprompterFontSize}px`,
-                  lineHeight: '1.8'
-                }}
-              >
-                {selectedScript ? (
-                  <div className="text-amber-100 font-mono">
-                    {selectedScript.content.split('\n').map((line, idx) => (
-                      <p key={idx} className="mb-4">{line}</p>
-                    ))}
-                  </div>
-                ) : (
-                  <div className="text-center text-slate-500 py-16">
-                    <FileText className="w-12 h-12 mx-auto mb-3 opacity-50" />
-                    <p className="font-semibold">No script selected</p>
-                    <p className="text-sm">Select or create a script below</p>
-                  </div>
-                )}
-              </div>
-            </Card>
-          )}
 
           {/* Stream Information Form */}
           <Card className="bg-[#1a1f3a] border-slate-700">
