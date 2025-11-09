@@ -1,3 +1,4 @@
+
 import React, { useState, useEffect } from "react";
 import { useQuery } from "@tanstack/react-query";
 import { base44 } from "@/api/base44Client";
@@ -7,7 +8,7 @@ import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { Tabs, TabsList, TabsTrigger, TabsContent } from "@/components/ui/tabs";
 import {
   Trophy, TrendingUp, Crown, Medal, Star, Zap,
-  MessageSquare, Users, Heart, Calendar
+  MessageSquare, Users, Heart, Award
 } from "lucide-react";
 import { motion } from "framer-motion";
 
@@ -41,13 +42,21 @@ export default function Leaderboard() {
     initialData: [],
   });
 
+  const { data: allUserBadges = [] } = useQuery({
+    queryKey: ['allUserBadges'],
+    queryFn: () => base44.entities.UserBadge.list(),
+    initialData: [],
+  });
+
   // Merge points with user data
   const leaderboardData = allPoints.map(pointRecord => {
     const userData = users.find(u => u.id === pointRecord.user_id);
+    const badgeCount = allUserBadges.filter(ub => ub.user_id === pointRecord.user_id).length;
     return {
       ...pointRecord,
       user_name: userData?.full_name || 'Unknown',
-      user_image: userData?.profile_image
+      user_image: userData?.profile_image,
+      badge_count: badgeCount
     };
   });
 
@@ -142,6 +151,10 @@ export default function Leaderboard() {
             <TabsTrigger value="engagement" className="data-[state=active]:bg-cyan-500">
               <Heart className="w-4 h-4 mr-2" />
               Most Engaged
+            </TabsTrigger>
+            <TabsTrigger value="badges" className="data-[state=active]:bg-cyan-500">
+              <Award className="w-4 h-4 mr-2" />
+              Badges
             </TabsTrigger>
           </TabsList>
 
@@ -326,6 +339,89 @@ export default function Leaderboard() {
                             <Heart className="w-4 h-4 text-pink-400" />
                             <span className="text-white font-bold">{engagementScore}</span>
                             <span className="text-slate-400 text-sm">actions</span>
+                          </div>
+                        </div>
+                      </CardContent>
+                    </Card>
+                  );
+                })}
+            </div>
+          </TabsContent>
+
+          <TabsContent value="badges" className="mt-8">
+            {/* Top Badge Collectors */}
+            <div className="mb-8">
+              <h3 className="text-white font-bold text-xl mb-4">Top Badge Collectors</h3>
+              <div className="grid md:grid-cols-3 gap-6">
+                {leaderboardData
+                  .sort((a, b) => b.badge_count - a.badge_count)
+                  .slice(0, 3)
+                  .map((entry, index) => {
+                    const position = index + 1;
+                    return (
+                      <Card key={entry.id} className={`bg-gradient-to-br ${getRankColor(position)} border-0`}>
+                        <CardContent className="p-6 text-center">
+                          <div className="mb-4">
+                            {getRankIcon(position)}
+                          </div>
+                          <Avatar className="w-20 h-20 mx-auto mb-4 border-4 border-white/30">
+                            <AvatarImage src={entry.user_image} />
+                            <AvatarFallback className="bg-white/20 text-white font-bold text-xl">
+                              {entry.user_name?.[0]}
+                            </AvatarFallback>
+                          </Avatar>
+                          <h3 className="text-white font-black text-lg mb-2">{entry.user_name}</h3>
+                          <div className="bg-white/10 rounded-lg p-3">
+                            <p className="text-white/70 text-sm font-semibold">Badges Earned</p>
+                            <p className="text-3xl font-black text-white">{entry.badge_count}</p>
+                          </div>
+                        </CardContent>
+                      </Card>
+                    );
+                  })}
+              </div>
+            </div>
+
+            {/* Full Badge Leaderboard */}
+            <div className="space-y-3">
+              {leaderboardData
+                .sort((a, b) => b.badge_count - a.badge_count)
+                .slice(3)
+                .map((entry, index) => {
+                  const position = index + 4;
+                  return (
+                    <Card key={entry.id} className={`bg-[#1a1f3a] border-slate-700 hover:border-amber-500 transition-all ${
+                      entry.user_id === user?.id ? 'border-purple-500 border-2' : ''
+                    }`}>
+                      <CardContent className="p-4">
+                        <div className="flex items-center gap-4">
+                          <div className="w-12 h-12 rounded-full bg-slate-800 flex items-center justify-center">
+                            <span className="text-white font-black text-lg">#{position}</span>
+                          </div>
+                          
+                          <Avatar className="w-12 h-12">
+                            <AvatarImage src={entry.user_image} />
+                            <AvatarFallback className="bg-gradient-to-br from-amber-500 to-orange-500 text-white font-bold">
+                              {entry.user_name?.[0]}
+                            </AvatarFallback>
+                          </Avatar>
+                          
+                          <div className="flex-1">
+                            <h4 className="text-white font-bold">{entry.user_name}</h4>
+                            <div className="flex items-center gap-2">
+                              <Badge className="bg-slate-700 capitalize text-xs">{entry.rank}</Badge>
+                              <span className="text-slate-400 text-sm">Level {entry.level}</span>
+                            </div>
+                          </div>
+                          
+                          <div className="text-right">
+                            <div className="flex items-center gap-2 justify-end mb-1">
+                              <Award className="w-5 h-5 text-amber-400" />
+                              <p className="text-2xl font-black text-transparent bg-clip-text bg-gradient-to-r from-amber-400 to-orange-400">
+                                {entry.badge_count}
+                              </p>
+                            </div>
+                            <p className="text-slate-400 text-xs">badges</p>
                           </div>
                         </div>
                       </CardContent>

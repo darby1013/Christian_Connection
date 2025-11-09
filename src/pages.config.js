@@ -35,6 +35,9 @@ import KnowledgeBase from './pages/KnowledgeBase';
 import RSSFeeds from './pages/RSSFeeds';
 import AdminPodcastDashboard from './pages/AdminPodcastDashboard';
 import Leaderboard from './pages/Leaderboard';
+import PodcastClipStudio from './pages/PodcastClipStudio';
+import GroupAnalytics from './pages/GroupAnalytics';
+import AdminGroupManagement from './pages/AdminGroupManagement';
 import Layout from './Layout.jsx';
 
 
@@ -76,6 +79,9 @@ export const PAGES = {
     "RSSFeeds": RSSFeeds,
     "AdminPodcastDashboard": AdminPodcastDashboard,
     "Leaderboard": Leaderboard,
+    "PodcastClipStudio": PodcastClipStudio,
+    "GroupAnalytics": GroupAnalytics,
+    "AdminGroupManagement": AdminGroupManagement,
 }
 
 export const pagesConfig = {
