@@ -1,72 +1,71 @@
 import React, { useState } from "react";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { base44 } from "@/api/base44Client";
-import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import { Card, CardContent } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Badge } from "@/components/ui/badge";
 import {
-  Select,
-  SelectContent,
-  SelectItem,
-  SelectTrigger,
-  SelectValue,
-} from "@/components/ui/select";
+  Package, Plus, Search, Edit, Trash2, Palette, Ruler, Box
+} from "lucide-react";
 import {
   Dialog,
   DialogContent,
+  DialogFooter,
   DialogHeader,
   DialogTitle,
   DialogTrigger,
 } from "@/components/ui/dialog";
-import {
-  Table,
-  TableBody,
-  TableCell,
-  TableHead,
-  TableHeader,
-  TableRow,
-} from "@/components/ui/table";
-import { Shirt, Plus, Pencil, Trash2, Package, Palette, Ruler } from "lucide-react";
 
 export default function AdminProductVariants() {
-  const [isCreating, setIsCreating] = useState(false);
-  const [selectedProduct, setSelectedProduct] = useState("");
-  const queryClient = useQueryClient();
+  const [searchQuery, setSearchQuery] = useState("");
+  const [dialogOpen, setDialogOpen] = useState(false);
+  const [editingVariant, setEditingVariant] = useState(null);
 
   const [variantForm, setVariantForm] = useState({
-    product_id: "",
-    size: "M",
-    color: "",
-    color_hex: "#000000",
-    material: "100% Cotton",
-    brand: "Gildan",
-    fit_type: "Regular",
+    product_id: '',
+    size: 'M',
+    color: '',
+    color_hex: '#000000',
+    material: '100% Cotton',
+    brand: '',
+    fit_type: 'Regular',
     stock_quantity: 0,
-    sku: "",
+    sku: '',
     price_adjustment: 0,
-    weight: "5.3 oz",
+    weight: '',
     is_available: true
   });
 
-  const { data: products = [] } = useQuery({
-    queryKey: ['adminProducts'],
-    queryFn: () => base44.entities.Product.list('-created_date'),
+  const queryClient = useQueryClient();
+
+  const { data: variants = [] } = useQuery({
+    queryKey: ['productVariants'],
+    queryFn: () => base44.entities.ProductVariant.list('-created_date'),
     initialData: [],
   });
 
-  const { data: variants = [] } = useQuery({
-    queryKey: ['adminProductVariants'],
-    queryFn: () => base44.entities.ProductVariant.list('-created_date'),
+  const { data: products = [] } = useQuery({
+    queryKey: ['products'],
+    queryFn: () => base44.entities.Product.list(),
     initialData: [],
   });
 
   const createVariantMutation = useMutation({
     mutationFn: (data) => base44.entities.ProductVariant.create(data),
     onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ['adminProductVariants'] });
-      setIsCreating(false);
+      queryClient.invalidateQueries({ queryKey: ['productVariants'] });
+      setDialogOpen(false);
+      resetForm();
+    },
+  });
+
+  const updateVariantMutation = useMutation({
+    mutationFn: ({ id, data }) => base44.entities.ProductVariant.update(id, data),
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ['productVariants'] });
+      setDialogOpen(false);
       resetForm();
     },
   });
@@ -74,380 +73,373 @@ export default function AdminProductVariants() {
   const deleteVariantMutation = useMutation({
     mutationFn: (id) => base44.entities.ProductVariant.delete(id),
     onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ['adminProductVariants'] });
+      queryClient.invalidateQueries({ queryKey: ['productVariants'] });
     },
   });
 
+  const handleSubmit = () => {
+    if (editingVariant) {
+      updateVariantMutation.mutate({ id: editingVariant.id, data: variantForm });
+    } else {
+      createVariantMutation.mutate(variantForm);
+    }
+  };
+
+  const handleEdit = (variant) => {
+    setEditingVariant(variant);
+    setVariantForm(variant);
+    setDialogOpen(true);
+  };
+
+  const handleDelete = (id) => {
+    if (confirm('Are you sure you want to delete this variant?')) {
+      deleteVariantMutation.mutate(id);
+    }
+  };
+
   const resetForm = () => {
     setVariantForm({
-      product_id: "",
-      size: "M",
-      color: "",
-      color_hex: "#000000",
-      material: "100% Cotton",
-      brand: "Gildan",
-      fit_type: "Regular",
+      product_id: '',
+      size: 'M',
+      color: '',
+      color_hex: '#000000',
+      material: '100% Cotton',
+      brand: '',
+      fit_type: 'Regular',
       stock_quantity: 0,
-      sku: "",
+      sku: '',
       price_adjustment: 0,
-      weight: "5.3 oz",
+      weight: '',
       is_available: true
     });
+    setEditingVariant(null);
   };
 
-  const handleSubmit = () => {
-    createVariantMutation.mutate(variantForm);
+  const filteredVariants = variants.filter(v =>
+    v.color?.toLowerCase().includes(searchQuery.toLowerCase()) ||
+    v.size?.toLowerCase().includes(searchQuery.toLowerCase()) ||
+    v.sku?.toLowerCase().includes(searchQuery.toLowerCase())
+  );
+
+  const getProductName = (productId) => {
+    const product = products.find(p => p.id === productId);
+    return product?.name || 'Unknown Product';
   };
 
-  const filteredVariants = selectedProduct
-    ? variants.filter(v => v.product_id === selectedProduct)
-    : variants;
-
-  const getProduct = (productId) => products.find(p => p.id === productId);
-
-  const sizes = ["XS", "S", "M", "L", "XL", "2XL", "3XL", "4XL"];
-  const materials = ["100% Cotton", "Cotton Blend", "Polyester", "Tri-Blend", "Organic Cotton", "Performance Fabric"];
-  const fitTypes = ["Regular", "Slim", "Relaxed", "Athletic", "Oversized"];
-  const brands = ["Gildan", "Bella+Canvas", "Next Level", "Hanes", "Fruit of the Loom", "Custom Brand"];
-
-  const popularColors = [
-    { name: "Black", hex: "#000000" },
-    { name: "White", hex: "#FFFFFF" },
-    { name: "Navy", hex: "#000080" },
-    { name: "Gray", hex: "#808080" },
-    { name: "Red", hex: "#FF0000" },
-    { name: "Royal Blue", hex: "#4169E1" },
-    { name: "Forest Green", hex: "#228B22" },
-    { name: "Purple", hex: "#800080" },
-  ];
+  const totalStock = variants.reduce((sum, v) => sum + (v.stock_quantity || 0), 0);
+  const availableVariants = variants.filter(v => v.is_available).length;
+  const uniqueProducts = new Set(variants.map(v => v.product_id)).size;
 
   return (
     <div className="space-y-6">
-      {/* Stats */}
-      <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
-        <Card className="bg-[#1a1f3a] border-0">
-          <CardContent className="p-6">
-            <div className="flex items-center justify-between">
+      <div className="flex items-center justify-between">
+        <div>
+          <h2 className="text-3xl font-black text-white mb-2">Product Variants</h2>
+          <p className="text-slate-400 font-semibold">Manage product sizes, colors, and styles</p>
+        </div>
+        <Dialog open={dialogOpen} onOpenChange={setDialogOpen}>
+          <DialogTrigger asChild>
+            <Button className="bg-cyan-500 hover:bg-cyan-600 font-bold">
+              <Plus className="w-4 h-4 mr-2" />
+              Add Variant
+            </Button>
+          </DialogTrigger>
+          <DialogContent className="bg-[#1a1f3a] border-slate-700 max-w-3xl max-h-[90vh] overflow-y-auto">
+            <DialogHeader>
+              <DialogTitle className="text-white font-black text-xl">
+                {editingVariant ? 'Edit Variant' : 'Add New Variant'}
+              </DialogTitle>
+            </DialogHeader>
+            <div className="grid gap-4 py-4">
               <div>
-                <p className="text-slate-400 text-sm font-semibold">Total Variants</p>
-                <p className="text-3xl font-black text-white mt-1">{variants.length}</p>
+                <Label className="text-white mb-2 block">Product *</Label>
+                <select
+                  value={variantForm.product_id}
+                  onChange={(e) => setVariantForm({...variantForm, product_id: e.target.value})}
+                  className="w-full h-10 px-3 rounded-md bg-slate-900/50 border border-slate-700 text-white"
+                >
+                  <option value="">Select Product</option>
+                  {products.map(p => (
+                    <option key={p.id} value={p.id}>{p.name}</option>
+                  ))}
+                </select>
               </div>
-              <div className="w-12 h-12 bg-gradient-to-br from-purple-500 to-pink-500 rounded-xl flex items-center justify-center">
-                <Shirt className="w-6 h-6 text-white" />
+
+              <div className="grid grid-cols-2 gap-4">
+                <div>
+                  <Label className="text-white mb-2 block">Size *</Label>
+                  <select
+                    value={variantForm.size}
+                    onChange={(e) => setVariantForm({...variantForm, size: e.target.value})}
+                    className="w-full h-10 px-3 rounded-md bg-slate-900/50 border border-slate-700 text-white"
+                  >
+                    <option value="XS">XS</option>
+                    <option value="S">S</option>
+                    <option value="M">M</option>
+                    <option value="L">L</option>
+                    <option value="XL">XL</option>
+                    <option value="2XL">2XL</option>
+                    <option value="3XL">3XL</option>
+                    <option value="4XL">4XL</option>
+                  </select>
+                </div>
+                <div>
+                  <Label className="text-white mb-2 block">Color *</Label>
+                  <Input
+                    placeholder="e.g., Navy Blue"
+                    value={variantForm.color}
+                    onChange={(e) => setVariantForm({...variantForm, color: e.target.value})}
+                    className="bg-slate-900/50 border-slate-700 text-white"
+                  />
+                </div>
+              </div>
+
+              <div className="grid grid-cols-2 gap-4">
+                <div>
+                  <Label className="text-white mb-2 block">Color Hex</Label>
+                  <div className="flex gap-2">
+                    <Input
+                      type="color"
+                      value={variantForm.color_hex}
+                      onChange={(e) => setVariantForm({...variantForm, color_hex: e.target.value})}
+                      className="w-16 h-10 bg-slate-900/50 border-slate-700"
+                    />
+                    <Input
+                      placeholder="#000000"
+                      value={variantForm.color_hex}
+                      onChange={(e) => setVariantForm({...variantForm, color_hex: e.target.value})}
+                      className="flex-1 bg-slate-900/50 border-slate-700 text-white"
+                    />
+                  </div>
+                </div>
+                <div>
+                  <Label className="text-white mb-2 block">Material</Label>
+                  <select
+                    value={variantForm.material}
+                    onChange={(e) => setVariantForm({...variantForm, material: e.target.value})}
+                    className="w-full h-10 px-3 rounded-md bg-slate-900/50 border border-slate-700 text-white"
+                  >
+                    <option value="100% Cotton">100% Cotton</option>
+                    <option value="Cotton Blend">Cotton Blend</option>
+                    <option value="Polyester">Polyester</option>
+                    <option value="Tri-Blend">Tri-Blend</option>
+                    <option value="Organic Cotton">Organic Cotton</option>
+                    <option value="Performance Fabric">Performance Fabric</option>
+                  </select>
+                </div>
+              </div>
+
+              <div className="grid grid-cols-2 gap-4">
+                <div>
+                  <Label className="text-white mb-2 block">Fit Type</Label>
+                  <select
+                    value={variantForm.fit_type}
+                    onChange={(e) => setVariantForm({...variantForm, fit_type: e.target.value})}
+                    className="w-full h-10 px-3 rounded-md bg-slate-900/50 border border-slate-700 text-white"
+                  >
+                    <option value="Regular">Regular</option>
+                    <option value="Slim">Slim</option>
+                    <option value="Relaxed">Relaxed</option>
+                    <option value="Athletic">Athletic</option>
+                    <option value="Oversized">Oversized</option>
+                  </select>
+                </div>
+                <div>
+                  <Label className="text-white mb-2 block">Brand</Label>
+                  <Input
+                    placeholder="e.g., Bella+Canvas"
+                    value={variantForm.brand}
+                    onChange={(e) => setVariantForm({...variantForm, brand: e.target.value})}
+                    className="bg-slate-900/50 border-slate-700 text-white"
+                  />
+                </div>
+              </div>
+
+              <div className="grid grid-cols-3 gap-4">
+                <div>
+                  <Label className="text-white mb-2 block">Stock</Label>
+                  <Input
+                    type="number"
+                    value={variantForm.stock_quantity}
+                    onChange={(e) => setVariantForm({...variantForm, stock_quantity: parseInt(e.target.value)})}
+                    className="bg-slate-900/50 border-slate-700 text-white"
+                  />
+                </div>
+                <div>
+                  <Label className="text-white mb-2 block">SKU</Label>
+                  <Input
+                    placeholder="SKU"
+                    value={variantForm.sku}
+                    onChange={(e) => setVariantForm({...variantForm, sku: e.target.value})}
+                    className="bg-slate-900/50 border-slate-700 text-white"
+                  />
+                </div>
+                <div>
+                  <Label className="text-white mb-2 block">Price +/-</Label>
+                  <Input
+                    type="number"
+                    step="0.01"
+                    value={variantForm.price_adjustment}
+                    onChange={(e) => setVariantForm({...variantForm, price_adjustment: parseFloat(e.target.value)})}
+                    className="bg-slate-900/50 border-slate-700 text-white"
+                  />
+                </div>
+              </div>
+
+              <div className="flex items-center gap-2">
+                <input
+                  type="checkbox"
+                  checked={variantForm.is_available}
+                  onChange={(e) => setVariantForm({...variantForm, is_available: e.target.checked})}
+                  className="w-4 h-4"
+                />
+                <Label className="text-white">Available for sale</Label>
               </div>
             </div>
+            <DialogFooter>
+              <Button variant="outline" onClick={() => { setDialogOpen(false); resetForm(); }} className="border-slate-700">
+                Cancel
+              </Button>
+              <Button onClick={handleSubmit} disabled={!variantForm.product_id || !variantForm.size || !variantForm.color} className="bg-cyan-500 hover:bg-cyan-600">
+                {editingVariant ? 'Update' : 'Create'} Variant
+              </Button>
+            </DialogFooter>
+          </DialogContent>
+        </Dialog>
+      </div>
+
+      <div className="grid md:grid-cols-4 gap-4">
+        <Card className="bg-[#1a1f3a] border-0">
+          <CardContent className="p-6">
+            <div className="flex items-center justify-between mb-2">
+              <Package className="w-8 h-8 text-purple-400" />
+              <Badge className="bg-purple-500">{variants.length}</Badge>
+            </div>
+            <p className="text-2xl font-black text-white mb-1">{variants.length}</p>
+            <p className="text-slate-400 text-sm font-semibold">Total Variants</p>
           </CardContent>
         </Card>
 
         <Card className="bg-[#1a1f3a] border-0">
           <CardContent className="p-6">
-            <div className="flex items-center justify-between">
-              <div>
-                <p className="text-slate-400 text-sm font-semibold">Total Stock</p>
-                <p className="text-3xl font-black text-white mt-1">
-                  {variants.reduce((sum, v) => sum + (v.stock_quantity || 0), 0)}
-                </p>
-              </div>
-              <div className="w-12 h-12 bg-gradient-to-br from-green-500 to-emerald-500 rounded-xl flex items-center justify-center">
-                <Package className="w-6 h-6 text-white" />
-              </div>
+            <div className="flex items-center justify-between mb-2">
+              <Box className="w-8 h-8 text-cyan-400" />
             </div>
+            <p className="text-2xl font-black text-white mb-1">{totalStock}</p>
+            <p className="text-slate-400 text-sm font-semibold">Total Stock</p>
           </CardContent>
         </Card>
 
         <Card className="bg-[#1a1f3a] border-0">
           <CardContent className="p-6">
-            <div className="flex items-center justify-between">
-              <div>
-                <p className="text-slate-400 text-sm font-semibold">Unique Colors</p>
-                <p className="text-3xl font-black text-white mt-1">
-                  {new Set(variants.map(v => v.color)).size}
-                </p>
-              </div>
-              <div className="w-12 h-12 bg-gradient-to-br from-cyan-500 to-blue-500 rounded-xl flex items-center justify-center">
-                <Palette className="w-6 h-6 text-white" />
-              </div>
+            <div className="flex items-center justify-between mb-2">
+              <Palette className="w-8 h-8 text-pink-400" />
+              <Badge className="bg-pink-500">{availableVariants}</Badge>
             </div>
+            <p className="text-2xl font-black text-white mb-1">{availableVariants}</p>
+            <p className="text-slate-400 text-sm font-semibold">Available</p>
           </CardContent>
         </Card>
 
         <Card className="bg-[#1a1f3a] border-0">
           <CardContent className="p-6">
-            <div className="flex items-center justify-between">
-              <div>
-                <p className="text-slate-400 text-sm font-semibold">Unique Sizes</p>
-                <p className="text-3xl font-black text-white mt-1">
-                  {new Set(variants.map(v => v.size)).size}
-                </p>
-              </div>
-              <div className="w-12 h-12 bg-gradient-to-br from-amber-500 to-orange-500 rounded-xl flex items-center justify-center">
-                <Ruler className="w-6 h-6 text-white" />
-              </div>
+            <div className="flex items-center justify-between mb-2">
+              <Ruler className="w-8 h-8 text-amber-400" />
             </div>
+            <p className="text-2xl font-black text-white mb-1">{uniqueProducts}</p>
+            <p className="text-slate-400 text-sm font-semibold">Products</p>
           </CardContent>
         </Card>
       </div>
 
-      {/* Product Variants */}
-      <Card className="bg-[#1a1f3a] border-0">
-        <CardHeader className="border-b border-white/5 flex flex-row items-center justify-between">
-          <CardTitle className="text-white font-black text-xl flex items-center gap-2">
-            <Shirt className="w-6 h-6 text-cyan-400" />
-            Product Variants (T-Shirts & Merchandise)
-          </CardTitle>
-          <div className="flex gap-3">
-            <Select value={selectedProduct} onValueChange={setSelectedProduct}>
-              <SelectTrigger className="w-64 bg-slate-900/50 border-slate-700 text-white">
-                <SelectValue placeholder="Filter by product" />
-              </SelectTrigger>
-              <SelectContent className="bg-slate-800 border-slate-700">
-                <SelectItem value=" " className="text-white">All Products</SelectItem>
-                {products.map((product) => (
-                  <SelectItem key={product.id} value={product.id} className="text-white">
-                    {product.name}
-                  </SelectItem>
-                ))}
-              </SelectContent>
-            </Select>
-            <Dialog open={isCreating} onOpenChange={setIsCreating}>
-              <DialogTrigger asChild>
-                <Button className="bg-cyan-500 hover:bg-cyan-600 font-bold">
-                  <Plus className="w-4 h-4 mr-2" />
-                  Add Variant
-                </Button>
-              </DialogTrigger>
-              <DialogContent className="bg-[#1a1f3a] border-slate-700 max-w-3xl max-h-[90vh] overflow-y-auto">
-                <DialogHeader>
-                  <DialogTitle className="text-white font-black text-xl">Create Product Variant</DialogTitle>
-                </DialogHeader>
-                <div className="space-y-4 mt-4">
-                  <div>
-                    <Label className="text-white font-bold">Select Product</Label>
-                    <Select value={variantForm.product_id} onValueChange={(value) => setVariantForm({...variantForm, product_id: value})}>
-                      <SelectTrigger className="bg-slate-900/50 border-slate-700 text-white mt-2">
-                        <SelectValue placeholder="Choose a product" />
-                      </SelectTrigger>
-                      <SelectContent className="bg-slate-800 border-slate-700">
-                        {products.map((product) => (
-                          <SelectItem key={product.id} value={product.id} className="text-white">
-                            {product.name}
-                          </SelectItem>
-                        ))}
-                      </SelectContent>
-                    </Select>
-                  </div>
+      <div className="relative max-w-md">
+        <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-slate-400 w-5 h-5" />
+        <Input
+          placeholder="Search variants..."
+          value={searchQuery}
+          onChange={(e) => setSearchQuery(e.target.value)}
+          className="pl-10 bg-[#1a1f3a] border-slate-700 text-white"
+        />
+      </div>
 
-                  <div className="grid grid-cols-3 gap-4">
-                    <div>
-                      <Label className="text-white font-bold">Size</Label>
-                      <Select value={variantForm.size} onValueChange={(value) => setVariantForm({...variantForm, size: value})}>
-                        <SelectTrigger className="bg-slate-900/50 border-slate-700 text-white mt-2">
-                          <SelectValue />
-                        </SelectTrigger>
-                        <SelectContent className="bg-slate-800 border-slate-700">
-                          {sizes.map((size) => (
-                            <SelectItem key={size} value={size} className="text-white">{size}</SelectItem>
-                          ))}
-                        </SelectContent>
-                      </Select>
-                    </div>
-
-                    <div>
-                      <Label className="text-white font-bold">Material</Label>
-                      <Select value={variantForm.material} onValueChange={(value) => setVariantForm({...variantForm, material: value})}>
-                        <SelectTrigger className="bg-slate-900/50 border-slate-700 text-white mt-2">
-                          <SelectValue />
-                        </SelectTrigger>
-                        <SelectContent className="bg-slate-800 border-slate-700">
-                          {materials.map((material) => (
-                            <SelectItem key={material} value={material} className="text-white">{material}</SelectItem>
-                          ))}
-                        </SelectContent>
-                      </Select>
-                    </div>
-
-                    <div>
-                      <Label className="text-white font-bold">Fit Type</Label>
-                      <Select value={variantForm.fit_type} onValueChange={(value) => setVariantForm({...variantForm, fit_type: value})}>
-                        <SelectTrigger className="bg-slate-900/50 border-slate-700 text-white mt-2">
-                          <SelectValue />
-                        </SelectTrigger>
-                        <SelectContent className="bg-slate-800 border-slate-700">
-                          {fitTypes.map((fit) => (
-                            <SelectItem key={fit} value={fit} className="text-white">{fit}</SelectItem>
-                          ))}
-                        </SelectContent>
-                      </Select>
-                    </div>
-                  </div>
-
-                  <div>
-                    <Label className="text-white font-bold mb-2 block">Color</Label>
-                    <div className="grid grid-cols-4 gap-2 mb-3">
-                      {popularColors.map((color) => (
-                        <button
-                          key={color.name}
-                          onClick={() => setVariantForm({...variantForm, color: color.name, color_hex: color.hex})}
-                          className={`p-2 rounded-lg border-2 transition-all ${
-                            variantForm.color === color.name ? 'border-cyan-500' : 'border-slate-700'
-                          }`}
-                        >
-                          <div
-                            className="w-full h-8 rounded mb-1"
-                            style={{ backgroundColor: color.hex, border: color.hex === '#FFFFFF' ? '1px solid #ccc' : 'none' }}
-                          />
-                          <p className="text-xs text-white font-semibold">{color.name}</p>
-                        </button>
-                      ))}
-                    </div>
-                    <div className="grid grid-cols-2 gap-2">
-                      <Input
-                        placeholder="Custom color name"
-                        value={variantForm.color}
-                        onChange={(e) => setVariantForm({...variantForm, color: e.target.value})}
-                        className="bg-slate-900/50 border-slate-700 text-white"
+      <Card className="bg-[#1a1f3a] border-slate-700">
+        <div className="overflow-x-auto">
+          <table className="w-full">
+            <thead>
+              <tr className="border-b border-slate-700">
+                <th className="text-left p-4 text-slate-400 font-semibold text-sm">Product</th>
+                <th className="text-left p-4 text-slate-400 font-semibold text-sm">Size</th>
+                <th className="text-left p-4 text-slate-400 font-semibold text-sm">Color</th>
+                <th className="text-left p-4 text-slate-400 font-semibold text-sm">Material</th>
+                <th className="text-left p-4 text-slate-400 font-semibold text-sm">Stock</th>
+                <th className="text-left p-4 text-slate-400 font-semibold text-sm">SKU</th>
+                <th className="text-right p-4 text-slate-400 font-semibold text-sm">Actions</th>
+              </tr>
+            </thead>
+            <tbody>
+              {filteredVariants.map((variant) => (
+                <tr key={variant.id} className="border-b border-slate-700/50 hover:bg-slate-800/30">
+                  <td className="p-4">
+                    <p className="text-white font-semibold">{getProductName(variant.product_id)}</p>
+                  </td>
+                  <td className="p-4">
+                    <Badge className="bg-blue-500">{variant.size}</Badge>
+                  </td>
+                  <td className="p-4">
+                    <div className="flex items-center gap-2">
+                      <div
+                        className="w-6 h-6 rounded border border-slate-600"
+                        style={{ backgroundColor: variant.color_hex }}
                       />
-                      <Input
-                        type="color"
-                        value={variantForm.color_hex}
-                        onChange={(e) => setVariantForm({...variantForm, color_hex: e.target.value})}
-                        className="bg-slate-900/50 border-slate-700 h-10"
-                      />
+                      <span className="text-white">{variant.color}</span>
                     </div>
-                  </div>
-
-                  <div className="grid grid-cols-2 gap-4">
-                    <div>
-                      <Label className="text-white font-bold">Brand</Label>
-                      <Select value={variantForm.brand} onValueChange={(value) => setVariantForm({...variantForm, brand: value})}>
-                        <SelectTrigger className="bg-slate-900/50 border-slate-700 text-white mt-2">
-                          <SelectValue />
-                        </SelectTrigger>
-                        <SelectContent className="bg-slate-800 border-slate-700">
-                          {brands.map((brand) => (
-                            <SelectItem key={brand} value={brand} className="text-white">{brand}</SelectItem>
-                          ))}
-                        </SelectContent>
-                      </Select>
-                    </div>
-
-                    <div>
-                      <Label className="text-white font-bold">Fabric Weight</Label>
-                      <Input
-                        value={variantForm.weight}
-                        onChange={(e) => setVariantForm({...variantForm, weight: e.target.value})}
-                        className="bg-slate-900/50 border-slate-700 text-white mt-2"
-                        placeholder="e.g., 5.3 oz"
-                      />
-                    </div>
-                  </div>
-
-                  <div className="grid grid-cols-3 gap-4">
-                    <div>
-                      <Label className="text-white font-bold">Stock Quantity</Label>
-                      <Input
-                        type="number"
-                        value={variantForm.stock_quantity}
-                        onChange={(e) => setVariantForm({...variantForm, stock_quantity: parseInt(e.target.value)})}
-                        className="bg-slate-900/50 border-slate-700 text-white mt-2"
-                      />
-                    </div>
-
-                    <div>
-                      <Label className="text-white font-bold">SKU</Label>
-                      <Input
-                        value={variantForm.sku}
-                        onChange={(e) => setVariantForm({...variantForm, sku: e.target.value})}
-                        className="bg-slate-900/50 border-slate-700 text-white mt-2"
-                        placeholder="e.g., TSH-BLK-M"
-                      />
-                    </div>
-
-                    <div>
-                      <Label className="text-white font-bold">Price Adjustment ($)</Label>
-                      <Input
-                        type="number"
-                        step="0.01"
-                        value={variantForm.price_adjustment}
-                        onChange={(e) => setVariantForm({...variantForm, price_adjustment: parseFloat(e.target.value)})}
-                        className="bg-slate-900/50 border-slate-700 text-white mt-2"
-                      />
-                    </div>
-                  </div>
-
-                  <Button
-                    onClick={handleSubmit}
-                    className="w-full bg-cyan-500 hover:bg-cyan-600 font-bold"
-                    disabled={createVariantMutation.isPending || !variantForm.product_id}
-                  >
-                    Create Variant
-                  </Button>
-                </div>
-              </DialogContent>
-            </Dialog>
-          </div>
-        </CardHeader>
-        <CardContent className="p-0">
-          <Table>
-            <TableHeader>
-              <TableRow className="border-white/5 hover:bg-transparent">
-                <TableHead className="text-slate-400 font-bold">Product</TableHead>
-                <TableHead className="text-slate-400 font-bold">Size</TableHead>
-                <TableHead className="text-slate-400 font-bold">Color</TableHead>
-                <TableHead className="text-slate-400 font-bold">Material</TableHead>
-                <TableHead className="text-slate-400 font-bold">Brand</TableHead>
-                <TableHead className="text-slate-400 font-bold">Fit</TableHead>
-                <TableHead className="text-slate-400 font-bold">Stock</TableHead>
-                <TableHead className="text-slate-400 font-bold">SKU</TableHead>
-                <TableHead className="text-slate-400 font-bold">Actions</TableHead>
-              </TableRow>
-            </TableHeader>
-            <TableBody>
-              {filteredVariants.map((variant) => {
-                const product = getProduct(variant.product_id);
-                return (
-                  <TableRow key={variant.id} className="border-white/5">
-                    <TableCell>
-                      <p className="text-white font-semibold">{product?.name}</p>
-                    </TableCell>
-                    <TableCell>
-                      <Badge className="bg-blue-500">{variant.size}</Badge>
-                    </TableCell>
-                    <TableCell>
-                      <div className="flex items-center gap-2">
-                        <div
-                          className="w-6 h-6 rounded border border-slate-600"
-                          style={{ backgroundColor: variant.color_hex }}
-                        />
-                        <span className="text-white text-sm">{variant.color}</span>
-                      </div>
-                    </TableCell>
-                    <TableCell className="text-slate-300 text-sm">{variant.material}</TableCell>
-                    <TableCell className="text-slate-300 text-sm">{variant.brand}</TableCell>
-                    <TableCell className="text-slate-300 text-sm">{variant.fit_type}</TableCell>
-                    <TableCell>
-                      <Badge className={variant.stock_quantity > 10 ? 'bg-green-500' : variant.stock_quantity > 0 ? 'bg-yellow-500' : 'bg-red-500'}>
-                        {variant.stock_quantity}
-                      </Badge>
-                    </TableCell>
-                    <TableCell className="text-slate-300 text-sm font-mono">{variant.sku}</TableCell>
-                    <TableCell>
+                  </td>
+                  <td className="p-4">
+                    <p className="text-slate-300">{variant.material}</p>
+                  </td>
+                  <td className="p-4">
+                    <Badge className={variant.stock_quantity > 0 ? 'bg-green-500' : 'bg-red-500'}>
+                      {variant.stock_quantity}
+                    </Badge>
+                  </td>
+                  <td className="p-4">
+                    <p className="text-slate-300 font-mono text-sm">{variant.sku}</p>
+                  </td>
+                  <td className="p-4">
+                    <div className="flex justify-end gap-2">
+                      <Button size="sm" onClick={() => handleEdit(variant)} className="bg-cyan-500 hover:bg-cyan-600">
+                        <Edit className="w-3 h-3" />
+                      </Button>
                       <Button
-                        variant="outline"
                         size="sm"
-                        onClick={() => deleteVariantMutation.mutate(variant.id)}
-                        className="border-red-500/50 text-red-400 hover:bg-red-500/20"
+                        variant="outline"
+                        onClick={() => handleDelete(variant.id)}
+                        className="border-red-500/30 text-red-400"
                       >
                         <Trash2 className="w-3 h-3" />
                       </Button>
-                    </TableCell>
-                  </TableRow>
-                );
-              })}
-            </TableBody>
-          </Table>
-        </CardContent>
+                    </div>
+                  </td>
+                </tr>
+              ))}
+            </tbody>
+          </table>
+        </div>
       </Card>
+
+      {filteredVariants.length === 0 && (
+        <Card className="bg-[#1a1f3a] border-slate-700">
+          <CardContent className="p-12 text-center">
+            <Package className="w-16 h-16 text-slate-600 mx-auto mb-4" />
+            <h3 className="text-white font-bold text-lg mb-2">No Variants</h3>
+            <p className="text-slate-400 mb-6">Add variants for your products</p>
+            <Button onClick={() => setDialogOpen(true)} className="bg-cyan-500 hover:bg-cyan-600">
+              <Plus className="w-4 h-4 mr-2" />
+              Add First Variant
+            </Button>
+          </CardContent>
+        </Card>
+      )}
     </div>
   );
 }
