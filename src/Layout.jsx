@@ -1,3 +1,4 @@
+
 import React, { useState, useEffect } from "react";
 import { Link, useLocation } from "react-router-dom";
 import { createPageUrl } from "@/utils";
@@ -125,8 +126,6 @@ export default function Layout({ children, currentPageName }) {
   const hasActiveLivePodcast = podcastStatus.active.length > 0;
   const podcastJustEnded = podcastStatus.justEnded.length > 0;
 
-  const showLiveStreamButton = hasActiveLiveStream || streamJustEnded;
-  const showLivePodcastButton = hasActiveLivePodcast || podcastJustEnded;
 
   const publicNavItems = [
     { title: "Home", url: createPageUrl("Home"), icon: Home },
@@ -413,6 +412,22 @@ export default function Layout({ children, currentPageName }) {
         .community-dropdown {
           min-width: 280px;
         }
+        
+        /* Compact button styles */
+        .live-button-compact {
+          padding: 0.5rem 0.75rem;
+          font-size: 0.75rem;
+          opacity: 0.6;
+          cursor: default;
+          height: 28px; /* Ensure consistent height */
+        }
+        
+        .live-button-active {
+          padding: 0.5rem 1rem;
+          font-size: 0.875rem;
+          opacity: 1;
+          height: 36px; /* Ensure consistent height for active */
+        }
       `}</style>
 
       <div className="min-h-screen glory-gradient">
@@ -476,7 +491,7 @@ export default function Layout({ children, currentPageName }) {
                 </DropdownMenu>
               </div>
 
-              <div className="flex items-center gap-3">
+              <div className="flex items-center gap-2">
                 <Button
                   variant="ghost"
                   size="icon"
@@ -486,48 +501,58 @@ export default function Layout({ children, currentPageName }) {
                   <Search className="w-5 h-5" />
                 </Button>
                 
-                {showLiveStreamButton && (
-                  <>
-                    {hasActiveLiveStream ? (
-                      <Link to={createPageUrl("LiveStreamPlayer")}>
-                        <Button className="bg-red-600 hover:bg-red-700 text-white font-bold relative overflow-hidden">
-                          <span className="absolute inset-0 bg-red-500 live-pulse"></span>
-                          <Radio className="w-4 h-4 mr-2 relative z-10" />
-                          <span className="relative z-10">LIVE NOW</span>
-                        </Button>
-                      </Link>
-                    ) : (
-                      <Button 
-                        disabled
-                        className="bg-amber-600/50 text-amber-200 font-bold cursor-not-allowed relative overflow-hidden fade-out"
-                      >
-                        <Radio className="w-4 h-4 mr-2" />
-                        LIVE Ended
-                      </Button>
-                    )}
-                  </>
+                {/* LIVE Stream Button - Always visible, changes style based on state */}
+                {hasActiveLiveStream ? (
+                  <Link to={createPageUrl("LiveStreamPlayer")}>
+                    <Button className="bg-red-600 hover:bg-red-700 text-white font-bold relative overflow-hidden live-button-active transition-all">
+                      <span className="absolute inset-0 bg-red-500 live-pulse"></span>
+                      <Radio className="w-3 h-3 mr-1.5 relative z-10" />
+                      <span className="relative z-10">LIVE</span>
+                    </Button>
+                  </Link>
+                ) : streamJustEnded ? (
+                  <Button 
+                    disabled
+                    className="bg-amber-600/50 text-amber-200 font-semibold cursor-not-allowed live-button-compact fade-out transition-all"
+                  >
+                    <Radio className="w-3 h-3 mr-1" />
+                    Ended
+                  </Button>
+                ) : (
+                  <Button 
+                    disabled
+                    className="bg-slate-800/50 text-slate-500 font-semibold cursor-not-allowed live-button-compact border border-slate-700/50"
+                  >
+                    <Radio className="w-3 h-3 mr-1" />
+                    LIVE
+                  </Button>
                 )}
 
-                {showLivePodcastButton && (
-                  <>
-                    {hasActiveLivePodcast ? (
-                      <Link to={createPageUrl("LivePodcastPlayer")}>
-                        <Button className="bg-purple-600 hover:bg-purple-700 text-white font-bold relative overflow-hidden">
-                          <span className="absolute inset-0 bg-purple-500 live-pulse"></span>
-                          <Mic2 className="w-4 h-4 mr-2 relative z-10" />
-                          <span className="relative z-10">LIVE PODCAST</span>
-                        </Button>
-                      </Link>
-                    ) : (
-                      <Button 
-                        disabled
-                        className="bg-pink-600/50 text-pink-200 font-bold cursor-not-allowed relative overflow-hidden fade-out"
-                      >
-                        <Mic2 className="w-4 h-4 mr-2" />
-                        PODCAST Ended
-                      </Button>
-                    )}
-                  </>
+                {/* LIVE Podcast Button - Always visible, changes style based on state */}
+                {hasActiveLivePodcast ? (
+                  <Link to={createPageUrl("LivePodcastPlayer")}>
+                    <Button className="bg-purple-600 hover:bg-purple-700 text-white font-bold relative overflow-hidden live-button-active transition-all">
+                      <span className="absolute inset-0 bg-purple-500 live-pulse"></span>
+                      <Mic2 className="w-3 h-3 mr-1.5 relative z-10" />
+                      <span className="relative z-10">PODCAST</span>
+                    </Button>
+                  </Link>
+                ) : podcastJustEnded ? (
+                  <Button 
+                    disabled
+                    className="bg-pink-600/50 text-pink-200 font-semibold cursor-not-allowed live-button-compact fade-out transition-all"
+                  >
+                    <Mic2 className="w-3 h-3 mr-1" />
+                    Ended
+                  </Button>
+                ) : (
+                  <Button 
+                    disabled
+                    className="bg-slate-800/50 text-slate-500 font-semibold cursor-not-allowed live-button-compact border border-slate-700/50"
+                  >
+                    <Mic2 className="w-3 h-3 mr-1" />
+                    PODCAST
+                  </Button>
                 )}
                 
                 {user ? (
