@@ -1,4 +1,3 @@
-
 import React, { useState, useEffect, useRef } from "react";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { base44 } from "@/api/base44Client";
@@ -41,6 +40,7 @@ export default function AdminBroadcastStudio() {
   const videoRef = useRef(null);
   const streamRef = useRef(null);
   const teleprompterRef = useRef(null);
+  const heartbeatIntervalRef = useRef(null);
   const queryClient = useQueryClient();
 
   const [streamInfo, setStreamInfo] = useState({
@@ -69,6 +69,38 @@ export default function AdminBroadcastStudio() {
     initialData: [],
   });
 
+  // HEARTBEAT: Keep stream "alive" by updating every 4 seconds while broadcasting
+  useEffect(() => {
+    if (isLive && currentStreamId) {
+      // Update immediately when going live
+      updateStreamMutation.mutate({
+        id: currentStreamId,
+        data: {
+          viewer_count: viewerCount,
+          status: 'live'
+        }
+      });
+
+      // Then update every 4 seconds to keep it "active"
+      heartbeatIntervalRef.current = setInterval(() => {
+        updateStreamMutation.mutate({
+          id: currentStreamId,
+          data: {
+            viewer_count: viewerCount,
+            status: 'live'
+          }
+        });
+      }, 4000); // Update every 4 seconds
+    }
+
+    return () => {
+      if (heartbeatIntervalRef.current) {
+        clearInterval(heartbeatIntervalRef.current);
+        heartbeatIntervalRef.current = null;
+      }
+    };
+  }, [isLive, currentStreamId, viewerCount]);
+
   useEffect(() => {
     let interval;
     if (isLive && streamStartTime) {
@@ -95,6 +127,7 @@ export default function AdminBroadcastStudio() {
     mutationFn: (streamData) => base44.entities.LiveStream.create(streamData),
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['liveStreams'] });
+      queryClient.invalidateQueries({ queryKey: ['activeLiveStreams'] });
     },
   });
 
@@ -102,6 +135,7 @@ export default function AdminBroadcastStudio() {
     mutationFn: ({ id, data }) => base44.entities.LiveStream.update(id, data),
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['liveStreams'] });
+      queryClient.invalidateQueries({ queryKey: ['activeLiveStreams'] });
     },
   });
 
@@ -203,17 +237,22 @@ export default function AdminBroadcastStudio() {
   };
 
   const endStream = async () => {
+    // Stop heartbeat immediately
+    if (heartbeatIntervalRef.current) {
+      clearInterval(heartbeatIntervalRef.current);
+      heartbeatIntervalRef.current = null;
+    }
+
     if (currentStreamId) {
-      // Update stream to ended status and save recording info
+      // Update stream to ended status
       await updateStreamMutation.mutateAsync({
         id: currentStreamId,
         data: {
           status: 'ended',
           ended_at: new Date().toISOString(),
           viewer_count: peakViewers,
-          // In production, this would be the actual recording URL from your video service
           stream_url: `https://example.com/recordings/${currentStreamId}.mp4`,
-          duration: Math.floor(streamDuration / 60) // duration in minutes
+          duration: Math.floor(streamDuration / 60)
         }
       });
     }
@@ -227,7 +266,6 @@ export default function AdminBroadcastStudio() {
     setTeleprompterPlaying(false);
     setCurrentStreamId(null);
     
-    // Reset form for next stream
     setStreamInfo({
       title: '',
       description: '',
@@ -439,7 +477,7 @@ export default function AdminBroadcastStudio() {
             </Card>
           )}
 
-          {/* Stream Information Form - Always Visible */}
+          {/* Stream Information Form */}
           <Card className="bg-[#1a1f3a] border-slate-700">
             <CardHeader className="border-b border-slate-700">
               <CardTitle className="text-white font-black flex items-center gap-2">
