@@ -130,13 +130,13 @@ export default function Layout({ children, currentPageName }) {
   const publicNavItems = [
     { title: "Home", url: createPageUrl("Home"), icon: Home },
     { title: "Watch Videos", url: createPageUrl("WatchVideos"), icon: Video },
-    { title: "Blog", url: createPageUrl("Blog"), icon: BookOpen },
-    { title: "Events", url: createPageUrl("Events"), icon: Calendar },
     { title: "Store", url: createPageUrl("Store"), icon: ShoppingBag },
     { title: "Give", url: createPageUrl("Donate"), icon: Heart },
   ];
 
   const communityItems = [
+    { title: "Blog", url: createPageUrl("Blog"), icon: BookOpen, description: "Latest articles & teachings" },
+    { title: "Events", url: createPageUrl("Events"), icon: Calendar, description: "Upcoming gatherings" },
     { title: "Groups", url: createPageUrl("Groups"), icon: Users, description: "Join communities" },
     { title: "Forums", url: createPageUrl("Forum"), icon: MessagesSquare, description: "Engage in discussions" },
     { title: "Chatrooms", url: createPageUrl("Chatrooms"), icon: MessageSquare, description: "Real-time conversations" },
@@ -412,22 +412,6 @@ export default function Layout({ children, currentPageName }) {
         .community-dropdown {
           min-width: 280px;
         }
-        
-        /* Compact button styles */
-        .live-button-compact {
-          padding: 0.5rem 0.75rem;
-          font-size: 0.75rem;
-          opacity: 0.6;
-          cursor: default;
-          height: 28px; /* Ensure consistent height */
-        }
-        
-        .live-button-active {
-          padding: 0.5rem 1rem;
-          font-size: 0.875rem;
-          opacity: 1;
-          height: 36px; /* Ensure consistent height for active */
-        }
       `}</style>
 
       <div className="min-h-screen glory-gradient">
@@ -489,9 +473,63 @@ export default function Layout({ children, currentPageName }) {
                     ))}
                   </DropdownMenuContent>
                 </DropdownMenu>
+
+                {/* LIVE Stream Button - Now has permanent spot in navigation */}
+                {hasActiveLiveStream ? (
+                  <Link to={createPageUrl("LiveStreamPlayer")}>
+                    <button className="px-4 py-2 rounded-lg flex items-center gap-2 font-semibold text-sm transition-all bg-red-600 hover:bg-red-700 text-white relative overflow-hidden">
+                      <span className="absolute inset-0 bg-red-500 live-pulse"></span>
+                      <Radio className="w-4 h-4 relative z-10" />
+                      <span className="relative z-10">LIVE NOW</span>
+                    </button>
+                  </Link>
+                ) : streamJustEnded ? (
+                  <button 
+                    disabled
+                    className="px-4 py-2 rounded-lg flex items-center gap-2 font-semibold text-sm transition-all bg-amber-600/50 text-amber-200 cursor-not-allowed fade-out"
+                  >
+                    <Radio className="w-4 h-4" />
+                    LIVE Ended
+                  </button>
+                ) : (
+                  <button 
+                    disabled
+                    className="px-4 py-2 rounded-lg flex items-center gap-2 font-semibold text-sm transition-all bg-slate-700 text-slate-400 cursor-not-allowed opacity-50"
+                  >
+                    <Radio className="w-4 h-4" />
+                    LIVE
+                  </button>
+                )}
+
+                {/* LIVE Podcast Button - Now has permanent spot in navigation */}
+                {hasActiveLivePodcast ? (
+                  <Link to={createPageUrl("LivePodcastPlayer")}>
+                    <button className="px-4 py-2 rounded-lg flex items-center gap-2 font-semibold text-sm transition-all bg-purple-600 hover:bg-purple-700 text-white relative overflow-hidden">
+                      <span className="absolute inset-0 bg-purple-500 live-pulse"></span>
+                      <Mic2 className="w-4 h-4 relative z-10" />
+                      <span className="relative z-10">PODCAST</span>
+                    </button>
+                  </Link>
+                ) : podcastJustEnded ? (
+                  <button 
+                    disabled
+                    className="px-4 py-2 rounded-lg flex items-center gap-2 font-semibold text-sm transition-all bg-pink-600/50 text-pink-200 cursor-not-allowed fade-out"
+                  >
+                    <Mic2 className="w-4 h-4" />
+                    PODCAST Ended
+                  </button>
+                ) : (
+                  <button 
+                    disabled
+                    className="px-4 py-2 rounded-lg flex items-center gap-2 font-semibold text-sm transition-all bg-slate-700 text-slate-400 cursor-not-allowed opacity-50"
+                  >
+                    <Mic2 className="w-4 h-4" />
+                    PODCAST
+                  </button>
+                )}
               </div>
 
-              <div className="flex items-center gap-2">
+              <div className="flex items-center gap-3">
                 <Button
                   variant="ghost"
                   size="icon"
@@ -500,60 +538,6 @@ export default function Layout({ children, currentPageName }) {
                 >
                   <Search className="w-5 h-5" />
                 </Button>
-                
-                {/* LIVE Stream Button - Always visible, changes style based on state */}
-                {hasActiveLiveStream ? (
-                  <Link to={createPageUrl("LiveStreamPlayer")}>
-                    <Button className="bg-red-600 hover:bg-red-700 text-white font-bold relative overflow-hidden live-button-active transition-all">
-                      <span className="absolute inset-0 bg-red-500 live-pulse"></span>
-                      <Radio className="w-3 h-3 mr-1.5 relative z-10" />
-                      <span className="relative z-10">LIVE</span>
-                    </Button>
-                  </Link>
-                ) : streamJustEnded ? (
-                  <Button 
-                    disabled
-                    className="bg-amber-600/50 text-amber-200 font-semibold cursor-not-allowed live-button-compact fade-out transition-all"
-                  >
-                    <Radio className="w-3 h-3 mr-1" />
-                    Ended
-                  </Button>
-                ) : (
-                  <Button 
-                    disabled
-                    className="bg-slate-800/50 text-slate-500 font-semibold cursor-not-allowed live-button-compact border border-slate-700/50"
-                  >
-                    <Radio className="w-3 h-3 mr-1" />
-                    LIVE
-                  </Button>
-                )}
-
-                {/* LIVE Podcast Button - Always visible, changes style based on state */}
-                {hasActiveLivePodcast ? (
-                  <Link to={createPageUrl("LivePodcastPlayer")}>
-                    <Button className="bg-purple-600 hover:bg-purple-700 text-white font-bold relative overflow-hidden live-button-active transition-all">
-                      <span className="absolute inset-0 bg-purple-500 live-pulse"></span>
-                      <Mic2 className="w-3 h-3 mr-1.5 relative z-10" />
-                      <span className="relative z-10">PODCAST</span>
-                    </Button>
-                  </Link>
-                ) : podcastJustEnded ? (
-                  <Button 
-                    disabled
-                    className="bg-pink-600/50 text-pink-200 font-semibold cursor-not-allowed live-button-compact fade-out transition-all"
-                  >
-                    <Mic2 className="w-3 h-3 mr-1" />
-                    Ended
-                  </Button>
-                ) : (
-                  <Button 
-                    disabled
-                    className="bg-slate-800/50 text-slate-500 font-semibold cursor-not-allowed live-button-compact border border-slate-700/50"
-                  >
-                    <Mic2 className="w-3 h-3 mr-1" />
-                    PODCAST
-                  </Button>
-                )}
                 
                 {user ? (
                   <div className="flex items-center gap-3">
