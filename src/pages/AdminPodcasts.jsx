@@ -768,7 +768,7 @@ export default function AdminPodcasts() {
                             <Play className="w-3 h-3 mr-1" />
                             Listen to Preview
                           </Button>
-                          <Link to={createPageUrl("PodcastAudioEditor") + `?id=${podcast.id}`}>
+                          <Link to={createPageUrl("AdminPodcastAudioEditor") + `?id=${podcast.id}`}>
                             <Button size="sm" className="bg-purple-500 hover:bg-purple-600">
                               <Sliders className="w-3 h-3 mr-1" />
                               Edit Audio
@@ -779,7 +779,7 @@ export default function AdminPodcasts() {
                       
                       {/* Video Edit Button */}
                       {podcast.video_url && (
-                        <Link to={createPageUrl("PodcastVideoEditor") + `?id=${podcast.id}`}>
+                        <Link to={createPageUrl("AdminPodcastVideoEditor") + `?id=${podcast.id}`}>
                           <Button size="sm" className="bg-pink-500 hover:bg-pink-600">
                             <Film className="w-3 h-3 mr-1" />
                             Edit Video
@@ -1053,6 +1053,7 @@ export default function AdminPodcasts() {
               <audio controls className="w-full mb-4">
                 <source src={previewAudio.audio_url} type="audio/webm" />
                 <source src={previewAudio.audio_url} type="audio/mpeg" />
+                <source src={previewAudio.audio_url} type="audio/mp3" />
               </audio>
               <div className="space-y-2 text-sm">
                 <div className="flex justify-between">
@@ -1077,7 +1078,7 @@ export default function AdminPodcasts() {
               Close
             </Button>
             {previewAudio && (
-              <Link to={createPageUrl("PodcastAudioEditor") + `?id=${previewAudio.id}`}>
+              <Link to={createPageUrl("AdminPodcastAudioEditor") + `?id=${previewAudio.id}`}>
                 <Button className="bg-purple-500 hover:bg-purple-600">
                   <Sliders className="w-4 h-4 mr-2" />
                   Edit Audio
