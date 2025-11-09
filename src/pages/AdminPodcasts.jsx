@@ -12,7 +12,7 @@ import { Tabs, TabsList, TabsTrigger, TabsContent } from "@/components/ui/tabs";
 import {
   Mic2, Plus, Search, TrendingUp, Play, Trash2, Edit, Upload,
   Eye, BarChart3, Clock, Star, Video, Film, Calendar as CalendarIcon,
-  DollarSign, Download, Wand2, RefreshCw, FileVideo, Music
+  DollarSign, Download, Wand2, RefreshCw, FileVideo, Music, Sliders
 } from "lucide-react";
 import {
   Dialog,
@@ -330,7 +330,7 @@ export default function AdminPodcasts() {
   const draftPodcasts = filteredPodcasts.filter(p => p.publish_status === 'draft');
 
   // Separate live recorded podcasts
-  const liveRecordedPodcasts = publishedPodcasts.filter(p => p.content_type === 'video' && p.video_url);
+  const liveRecordedPodcasts = publishedPodcasts.filter(p => (p.content_type === 'video' && p.video_url) || p.audio_url);
   const audioPodcasts = publishedPodcasts.filter(p => p.content_type === 'audio' || !p.video_url);
 
   const totalPlays = podcasts.reduce((sum, p) => sum + (p.plays || 0), 0);
@@ -756,7 +756,7 @@ export default function AdminPodcasts() {
                       {podcast.audio_url && (
                         <Link to={createPageUrl("PodcastAudioEditor") + `?id=${podcast.id}`}>
                           <Button size="sm" className="bg-purple-500 hover:bg-purple-600">
-                            <Music className="w-3 h-3 mr-1" />
+                            <Sliders className="w-3 h-3 mr-1" />
                             Edit Audio
                           </Button>
                         </Link>

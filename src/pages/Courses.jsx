@@ -1,4 +1,3 @@
-
 import React, { useState } from "react";
 import { useQuery } from "@tanstack/react-query";
 import { base44 } from "@/api/base44Client";
@@ -57,7 +56,9 @@ export default function Courses() {
       case 'popular':
         return (b.enrollment_count || 0) - (a.enrollment_count || 0);
       case 'rating':
-        return (b.rating || 0) - (a.rating || 0); // Assuming course.rating is available from API for sorting
+        const aRating = getCourseRating(a.id).avg;
+        const bRating = getCourseRating(b.id).avg;
+        return bRating - aRating;
       case 'newest':
         return new Date(b.created_date) - new Date(a.created_date);
       case 'price_low':
@@ -108,7 +109,6 @@ export default function Courses() {
   return (
     <div className="min-h-screen bg-gradient-to-br from-[#0a0e27] to-[#1a1f3a] py-12">
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-        {/* Header */}
         <div className="text-center mb-12">
           <h1 className="text-5xl font-black text-white mb-4">
             <GraduationCap className="w-12 h-12 inline-block mr-3 text-purple-400" />
@@ -119,7 +119,6 @@ export default function Courses() {
           </p>
         </div>
 
-        {/* Filters */}
         <Card className="bg-[#1a1f3a] border-slate-700 mb-8">
           <CardContent className="p-6">
             <div className="grid md:grid-cols-4 gap-4">
@@ -144,10 +143,6 @@ export default function Courses() {
                   <SelectItem value="ministry" className="text-white">Ministry</SelectItem>
                   <SelectItem value="bible_study" className="text-white">Bible Study</SelectItem>
                   <SelectItem value="personal_growth" className="text-white">Personal Growth</SelectItem>
-                  <SelectItem value="worship" className="text-white">Worship</SelectItem>
-                  <SelectItem value="counseling" className="text-white">Counseling</SelectItem>
-                  <SelectItem value="theology" className="text-white">Theology</SelectItem>
-                  <SelectItem value="practical_skills" className="text-white">Practical Skills</SelectItem>
                 </SelectContent>
               </Select>
 
@@ -188,14 +183,12 @@ export default function Courses() {
           </CardContent>
         </Card>
 
-        {/* Results Count */}
         <div className="mb-6">
           <p className="text-slate-400">
             Showing <span className="text-white font-bold">{sortedCourses.length}</span> courses
           </p>
         </div>
 
-        {/* Course Grid */}
         <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-6">
           {sortedCourses.map((course) => {
             const { avg: courseRating, count: reviewCount } = getCourseRating(course.id);
