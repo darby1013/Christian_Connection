@@ -28,6 +28,7 @@ import CommunityBoard from './pages/CommunityBoard';
 import PrayerWall from './pages/PrayerWall';
 import Volunteer from './pages/Volunteer';
 import Resources from './pages/Resources';
+import GroupDetail from './pages/GroupDetail';
 import Layout from './Layout.jsx';
 
 
@@ -62,6 +63,7 @@ export const PAGES = {
     "PrayerWall": PrayerWall,
     "Volunteer": Volunteer,
     "Resources": Resources,
+    "GroupDetail": GroupDetail,
 }
 
 export const pagesConfig = {
