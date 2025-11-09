@@ -58,7 +58,7 @@ export default function Layout({ children, currentPageName }) {
     fetchUser();
   }, []);
 
-  // Check for active live streams (real-time only, not pre-recorded)
+  // Check for active live streams (real-time only)
   const { data: liveStreams = [] } = useQuery({
     queryKey: ['activeLiveStreams'],
     queryFn: async () => {
@@ -408,8 +408,8 @@ export default function Layout({ children, currentPageName }) {
                   <Search className="w-5 h-5" />
                 </Button>
                 
-                {/* Live Button - Only when actual live stream is happening */}
-                {hasActiveLiveStream && (
+                {/* Live Button - Grayed out when no live stream, clickable when live */}
+                {hasActiveLiveStream ? (
                   <Link to={createPageUrl("LiveStreamPlayer")}>
                     <Button className="bg-red-600 hover:bg-red-700 text-white font-bold relative overflow-hidden">
                       <span className="absolute inset-0 bg-red-500 live-pulse"></span>
@@ -417,6 +417,14 @@ export default function Layout({ children, currentPageName }) {
                       <span className="relative z-10">LIVE NOW</span>
                     </Button>
                   </Link>
+                ) : (
+                  <Button 
+                    disabled
+                    className="bg-slate-700 text-slate-400 font-bold cursor-not-allowed opacity-50"
+                  >
+                    <Radio className="w-4 h-4 mr-2" />
+                    LIVE NOW
+                  </Button>
                 )}
                 
                 {user ? (
