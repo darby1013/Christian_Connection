@@ -13,7 +13,7 @@ import {
   Video, VideoOff, Mic, MicOff, Radio, Users, Activity,
   CheckCircle, AlertCircle, FileText, Settings as SettingsIcon, 
   Plus, Eye, EyeOff, Play, Pause, Volume2, Zap, Layers,
-  MessageSquare, Timer, MonitorPlay, RefreshCw, Download
+  MessageSquare, Timer, MonitorPlay, RefreshCw, Download, Save
 } from "lucide-react";
 import StreamTools from "../components/broadcast/StreamTools";
 import ScriptEditor from "../components/broadcast/ScriptEditor";
@@ -24,6 +24,7 @@ export default function AdminBroadcastStudio() {
   const [cameraOn, setCameraOn] = useState(false);
   const [micOn, setMicOn] = useState(false);
   const [isLive, setIsLive] = useState(false);
+  const [isRecording, setIsRecording] = useState(false);
   const [streamStartTime, setStreamStartTime] = useState(null);
   const [streamDuration, setStreamDuration] = useState(0);
   const [viewerCount, setViewerCount] = useState(0);
@@ -36,9 +37,13 @@ export default function AdminBroadcastStudio() {
   const [teleprompterPlaying, setTeleprompterPlaying] = useState(false);
   const [teleprompterSpeed, setTeleprompterSpeed] = useState(1);
   const [currentStreamId, setCurrentStreamId] = useState(null);
+  const [recordedChunks, setRecordedChunks] = useState([]);
+  const [isSavingVideo, setIsSavingVideo] = useState(false);
 
   const videoRef = useRef(null);
   const streamRef = useRef(null);
+  const mediaRecorderRef = useRef(null);
+  const recordedChunksRef = useRef([]);
   const teleprompterRef = useRef(null);
   const heartbeatIntervalRef = useRef(null);
   const queryClient = useQueryClient();
@@ -72,7 +77,6 @@ export default function AdminBroadcastStudio() {
   // HEARTBEAT: Keep stream "alive" by updating every 4 seconds while broadcasting
   useEffect(() => {
     if (isLive && currentStreamId) {
-      // Update immediately when going live
       updateStreamMutation.mutate({
         id: currentStreamId,
         data: {
@@ -81,7 +85,6 @@ export default function AdminBroadcastStudio() {
         }
       });
 
-      // Then update every 4 seconds to keep it "active"
       heartbeatIntervalRef.current = setInterval(() => {
         updateStreamMutation.mutate({
           id: currentStreamId,
@@ -90,7 +93,7 @@ export default function AdminBroadcastStudio() {
             status: 'live'
           }
         });
-      }, 4000); // Update every 4 seconds
+      }, 4000);
     }
 
     return () => {
@@ -147,16 +150,17 @@ export default function AdminBroadcastStudio() {
           height: { ideal: 1080 },
           frameRate: { ideal: 30 }
         }, 
-        audio: false 
+        audio: true // Enable audio by default
       });
       if (videoRef.current) {
         videoRef.current.srcObject = stream;
         streamRef.current = stream;
       }
       setCameraOn(true);
+      setMicOn(true); // Auto-enable mic with camera
       setConnectionStatus('connected');
     } catch (error) {
-      alert('Error accessing camera: ' + error.message);
+      alert('Error accessing camera/microphone: ' + error.message);
       setConnectionStatus('error');
     }
   };
@@ -170,30 +174,132 @@ export default function AdminBroadcastStudio() {
       streamRef.current = null;
     }
     setCameraOn(false);
+    setMicOn(false);
     setConnectionStatus('disconnected');
   };
 
   const toggleMicrophone = async () => {
-    if (!micOn) {
-      try {
-        const audioStream = await navigator.mediaDevices.getUserMedia({ audio: true });
-        if (streamRef.current) {
-          const audioTrack = audioStream.getAudioTracks()[0];
-          streamRef.current.addTrack(audioTrack);
+    if (!streamRef.current) {
+      alert('Please start the camera first');
+      return;
+    }
+
+    const audioTracks = streamRef.current.getAudioTracks();
+    if (audioTracks.length > 0) {
+      audioTracks.forEach(track => {
+        track.enabled = !track.enabled;
+      });
+      setMicOn(!micOn);
+    }
+  };
+
+  const startRecording = () => {
+    if (!streamRef.current) {
+      alert('No stream to record');
+      return;
+    }
+
+    try {
+      recordedChunksRef.current = [];
+      
+      const options = {
+        mimeType: 'video/webm;codecs=vp8,opus',
+        videoBitsPerSecond: 2500000 // 2.5 Mbps for good quality
+      };
+
+      // Check if the mimeType is supported
+      if (!MediaRecorder.isTypeSupported(options.mimeType)) {
+        options.mimeType = 'video/webm';
+      }
+
+      const mediaRecorder = new MediaRecorder(streamRef.current, options);
+      
+      mediaRecorder.ondataavailable = (event) => {
+        if (event.data && event.data.size > 0) {
+          recordedChunksRef.current.push(event.data);
         }
-        setMicOn(true);
-      } catch (error) {
-        alert('Error accessing microphone: ' + error.message);
+      };
+
+      mediaRecorder.onstop = async () => {
+        console.log('Recording stopped, chunks:', recordedChunksRef.current.length);
+      };
+
+      mediaRecorder.start(1000); // Collect data every second
+      mediaRecorderRef.current = mediaRecorder;
+      setIsRecording(true);
+      console.log('Recording started');
+    } catch (error) {
+      console.error('Error starting recording:', error);
+      alert('Error starting recording: ' + error.message);
+    }
+  };
+
+  const stopRecording = () => {
+    return new Promise((resolve) => {
+      if (mediaRecorderRef.current && mediaRecorderRef.current.state !== 'inactive') {
+        mediaRecorderRef.current.onstop = () => {
+          console.log('Recording stopped, total chunks:', recordedChunksRef.current.length);
+          setIsRecording(false);
+          resolve();
+        };
+        mediaRecorderRef.current.stop();
+      } else {
+        resolve();
       }
-    } else {
-      if (streamRef.current) {
-        const audioTracks = streamRef.current.getAudioTracks();
-        audioTracks.forEach(track => {
-          track.stop();
-          streamRef.current.removeTrack(track);
-        });
+    });
+  };
+
+  const captureVideoThumbnail = () => {
+    return new Promise((resolve) => {
+      if (!videoRef.current) {
+        resolve(null);
+        return;
       }
-      setMicOn(false);
+
+      const canvas = document.createElement('canvas');
+      canvas.width = 1280;
+      canvas.height = 720;
+      const ctx = canvas.getContext('2d');
+      ctx.drawImage(videoRef.current, 0, 0, canvas.width, canvas.height);
+      
+      canvas.toBlob((blob) => {
+        resolve(blob);
+      }, 'image/jpeg', 0.9);
+    });
+  };
+
+  const uploadRecordedVideo = async () => {
+    if (recordedChunksRef.current.length === 0) {
+      console.log('No recorded chunks to upload');
+      return null;
+    }
+
+    try {
+      const blob = new Blob(recordedChunksRef.current, { type: 'video/webm' });
+      const file = new File([blob], `stream_${currentStreamId}_${Date.now()}.webm`, { type: 'video/webm' });
+      
+      console.log('Uploading video file, size:', (blob.size / 1024 / 1024).toFixed(2), 'MB');
+      
+      const { file_url } = await base44.integrations.Core.UploadFile({ file });
+      console.log('Video uploaded successfully:', file_url);
+      return file_url;
+    } catch (error) {
+      console.error('Error uploading video:', error);
+      throw error;
+    }
+  };
+
+  const uploadThumbnail = async (thumbnailBlob) => {
+    if (!thumbnailBlob) return null;
+
+    try {
+      const file = new File([thumbnailBlob], `thumbnail_${currentStreamId}.jpg`, { type: 'image/jpeg' });
+      const { file_url } = await base44.integrations.Core.UploadFile({ file });
+      console.log('Thumbnail uploaded successfully:', file_url);
+      return file_url;
+    } catch (error) {
+      console.error('Error uploading thumbnail:', error);
+      return null;
     }
   };
 
@@ -208,6 +314,17 @@ export default function AdminBroadcastStudio() {
       return;
     }
 
+    // Capture thumbnail before going live
+    const thumbnailBlob = await captureVideoThumbnail();
+    let thumbnailUrl = 'https://images.unsplash.com/photo-1516450360452-9312f5e86fc7?w=800';
+    
+    if (thumbnailBlob) {
+      const uploadedThumbnail = await uploadThumbnail(thumbnailBlob);
+      if (uploadedThumbnail) {
+        thumbnailUrl = uploadedThumbnail;
+      }
+    }
+
     const streamData = {
       ...streamInfo,
       host_id: user.id,
@@ -216,13 +333,16 @@ export default function AdminBroadcastStudio() {
       started_at: new Date().toISOString(),
       viewer_count: 0,
       total_donations: 0,
-      thumbnail_url: 'https://images.unsplash.com/photo-1516450360452-9312f5e86fc7?w=800'
+      thumbnail_url: thumbnailUrl
     };
 
     const createdStream = await createStreamMutation.mutateAsync(streamData);
     setCurrentStreamId(createdStream.id);
     setIsLive(true);
     setStreamStartTime(Date.now());
+    
+    // Start recording
+    startRecording();
     
     const viewerInterval = setInterval(() => {
       const randomChange = Math.floor(Math.random() * 10) - 3;
@@ -237,27 +357,59 @@ export default function AdminBroadcastStudio() {
   };
 
   const endStream = async () => {
+    setIsSavingVideo(true);
+
     // Stop heartbeat immediately
     if (heartbeatIntervalRef.current) {
       clearInterval(heartbeatIntervalRef.current);
       heartbeatIntervalRef.current = null;
     }
 
+    // Stop recording
+    await stopRecording();
+
+    // Upload the recorded video
+    let videoUrl = null;
+    try {
+      videoUrl = await uploadRecordedVideo();
+    } catch (error) {
+      console.error('Failed to upload video:', error);
+      alert('Warning: Video upload failed. Stream will be saved without video file.');
+    }
+
+    // Capture final thumbnail
+    const thumbnailBlob = await captureVideoThumbnail();
+    let thumbnailUrl = null;
+    if (thumbnailBlob) {
+      thumbnailUrl = await uploadThumbnail(thumbnailBlob);
+    }
+
     if (currentStreamId) {
-      // Update stream to ended status
+      const updateData = {
+        status: 'ended',
+        ended_at: new Date().toISOString(),
+        viewer_count: peakViewers,
+        duration: Math.floor(streamDuration / 60)
+      };
+
+      // Add video URL if upload was successful
+      if (videoUrl) {
+        updateData.stream_url = videoUrl;
+      }
+
+      // Add thumbnail if captured
+      if (thumbnailUrl) {
+        updateData.thumbnail_url = thumbnailUrl;
+      }
+
       await updateStreamMutation.mutateAsync({
         id: currentStreamId,
-        data: {
-          status: 'ended',
-          ended_at: new Date().toISOString(),
-          viewer_count: peakViewers,
-          stream_url: `https://example.com/recordings/${currentStreamId}.mp4`,
-          duration: Math.floor(streamDuration / 60)
-        }
+        data: updateData
       });
     }
 
     setIsLive(false);
+    setIsRecording(false);
     stopCamera();
     setStreamStartTime(null);
     setStreamDuration(0);
@@ -265,6 +417,8 @@ export default function AdminBroadcastStudio() {
     setPeakViewers(0);
     setTeleprompterPlaying(false);
     setCurrentStreamId(null);
+    setIsSavingVideo(false);
+    recordedChunksRef.current = [];
     
     setStreamInfo({
       title: '',
@@ -272,6 +426,8 @@ export default function AdminBroadcastStudio() {
       category: 'Worship',
       stream_type: 'video'
     });
+
+    alert('Stream ended and video saved successfully!');
   };
 
   const formatDuration = (seconds) => {
@@ -298,9 +454,15 @@ export default function AdminBroadcastStudio() {
                 LIVE
               </Badge>
             )}
+            {isRecording && (
+              <Badge className="bg-red-600 animate-pulse">
+                <div className="w-2 h-2 rounded-full bg-white mr-2" />
+                Recording
+              </Badge>
+            )}
             <h2 className="text-3xl font-black text-white">Broadcast Studio</h2>
           </div>
-          <p className="text-slate-400 font-semibold">Professional live streaming with advanced tools</p>
+          <p className="text-slate-400 font-semibold">Professional live streaming with recording</p>
         </div>
       </div>
 
@@ -341,6 +503,12 @@ export default function AdminBroadcastStudio() {
                       <Timer className="w-3 h-3 mr-1" />
                       {formatDuration(streamDuration)}
                     </Badge>
+                    {isRecording && (
+                      <Badge className="bg-red-600/80 backdrop-blur-sm border-0 shadow-xl animate-pulse">
+                        <div className="w-2 h-2 rounded-full bg-white mr-2" />
+                        REC
+                      </Badge>
+                    )}
                   </div>
                 </>
               )}
@@ -363,7 +531,7 @@ export default function AdminBroadcastStudio() {
                   <Button
                     size="sm"
                     onClick={toggleMicrophone}
-                    disabled={!cameraOn || isLive}
+                    disabled={!cameraOn}
                     className={micOn ? "bg-green-600 hover:bg-green-700" : "bg-slate-700 hover:bg-slate-600"}
                   >
                     {micOn ? <Mic className="w-4 h-4 mr-1" /> : <MicOff className="w-4 h-4 mr-1" />}
@@ -395,10 +563,21 @@ export default function AdminBroadcastStudio() {
                     <Button
                       size="lg"
                       onClick={endStream}
+                      disabled={isSavingVideo}
                       variant="destructive"
                       className="font-black text-base px-8"
                     >
-                      END STREAM
+                      {isSavingVideo ? (
+                        <>
+                          <RefreshCw className="w-5 h-5 mr-2 animate-spin" />
+                          SAVING...
+                        </>
+                      ) : (
+                        <>
+                          <Save className="w-5 h-5 mr-2" />
+                          END & SAVE
+                        </>
+                      )}
                     </Button>
                   )}
                 </div>
@@ -626,6 +805,12 @@ export default function AdminBroadcastStudio() {
                     <span className="text-sm font-black text-cyan-400">
                       {isLive ? formatDuration(streamDuration) : '00:00:00'}
                     </span>
+                  </div>
+                  <div className="flex justify-between items-center">
+                    <span className="text-slate-400 text-xs font-semibold">Recording</span>
+                    <Badge className={isRecording ? "bg-red-600" : "bg-slate-600"}>
+                      {isRecording ? 'Active' : 'Stopped'}
+                    </Badge>
                   </div>
                 </CardContent>
               </Card>
