@@ -59,30 +59,48 @@ export default function Layout({ children, currentPageName }) {
     fetchUser();
   }, []);
 
-  // REAL-TIME LIVE STREAM DETECTION
-  // Check every 3 seconds for maximum responsiveness
-  // Only show LIVE button if stream was updated in the last 6 seconds
-  const { data: liveStreams = [] } = useQuery({
+  // REAL-TIME live stream detection - checks every 3 seconds
+  // Shows RED if stream updated in last 6 seconds (ultra responsive)
+  // Shows "LIVE Ended" message if stream ended in last 10 seconds
+  const { data: streamStatus = { active: [], justEnded: [] } } = useQuery({
     queryKey: ['activeLiveStreams'],
     queryFn: async () => {
       const streams = await base44.entities.LiveStream.filter({ status: 'live' });
       
-      // Filter to ACTIVELY broadcasting streams (updated within last 6 seconds)
       const now = new Date();
       const sixSecondsAgo = new Date(now.getTime() - 6 * 1000);
+      const tenSecondsAgo = new Date(now.getTime() - 10 * 1000);
       
+      // ACTIVE: Updated within last 6 seconds = LIVE RIGHT NOW
       const activeStreams = streams.filter(stream => {
         const updatedDate = new Date(stream.updated_date || stream.started_at || stream.created_date);
         return updatedDate > sixSecondsAgo;
       });
       
-      return activeStreams;
+      // JUST ENDED: Updated 6-10 seconds ago = Recently ended
+      const justEndedStreams = streams.filter(stream => {
+        const updatedDate = new Date(stream.updated_date || stream.started_at || stream.created_date);
+        return updatedDate <= sixSecondsAgo && updatedDate > tenSecondsAgo;
+      });
+      
+      // Also check for streams with status 'ended' in last 10 seconds
+      const endedStreams = await base44.entities.LiveStream.filter({ status: 'ended' });
+      const recentlyEnded = endedStreams.filter(stream => {
+        const endedDate = new Date(stream.ended_at || stream.updated_date || stream.created_date);
+        return endedDate > tenSecondsAgo;
+      });
+      
+      return {
+        active: activeStreams,
+        justEnded: [...justEndedStreams, ...recentlyEnded]
+      };
     },
-    initialData: [],
-    refetchInterval: 3000, // Check every 3 seconds for real-time detection
+    initialData: { active: [], justEnded: [] },
+    refetchInterval: 3000, // Check every 3 seconds for ULTRA responsiveness
   });
 
-  const hasActiveLiveStream = liveStreams.length > 0;
+  const hasActiveLiveStream = streamStatus.active.length > 0;
+  const streamJustEnded = streamStatus.justEnded.length > 0;
 
   const publicNavItems = [
     { title: "Home", url: createPageUrl("Home"), icon: Home },
@@ -344,6 +362,15 @@ export default function Layout({ children, currentPageName }) {
           animation: pulse-red 1.5s cubic-bezier(0.4, 0, 0.6, 1) infinite;
         }
         
+        @keyframes fade-out {
+          0% { opacity: 1; }
+          100% { opacity: 0; }
+        }
+        
+        .fade-out {
+          animation: fade-out 10s ease-in-out forwards; /* Changed to forwards to keep it hidden after animation */
+        }
+        
         .community-dropdown {
           min-width: 280px;
         }
@@ -421,7 +448,10 @@ export default function Layout({ children, currentPageName }) {
                   <Search className="w-5 h-5" />
                 </Button>
                 
-                {/* REAL-TIME LIVE BUTTON - Checks every 3s, shows RED only if updated in last 6s */}
+                {/* ULTRA REAL-TIME Live Button */}
+                {/* RED: Stream updated in last 6 seconds = LIVE NOW */}
+                {/* AMBER: Stream ended in last 10 seconds = "LIVE Ended" message */}
+                {/* GRAY: No active stream */}
                 {hasActiveLiveStream ? (
                   <Link to={createPageUrl("LiveStreamPlayer")}>
                     <Button className="bg-red-600 hover:bg-red-700 text-white font-bold relative overflow-hidden">
@@ -430,6 +460,14 @@ export default function Layout({ children, currentPageName }) {
                       <span className="relative z-10">LIVE NOW</span>
                     </Button>
                   </Link>
+                ) : streamJustEnded ? (
+                  <Button 
+                    disabled
+                    className="bg-amber-600/50 text-amber-200 font-bold cursor-not-allowed relative overflow-hidden fade-out"
+                  >
+                    <Radio className="w-4 h-4 mr-2" />
+                    LIVE Ended
+                  </Button>
                 ) : (
                   <Button 
                     disabled
