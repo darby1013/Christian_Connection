@@ -10,6 +10,7 @@ import { Textarea } from "@/components/ui/textarea";
 import { Badge } from "@/components/ui/badge";
 import { Tabs, TabsList, TabsTrigger, TabsContent } from "@/components/ui/tabs";
 import { Slider } from "@/components/ui/slider";
+import { format } from 'date-fns';
 import {
   Video, VideoOff, Mic, MicOff, Radio, Users, Activity,
   CheckCircle, AlertCircle, FileText, Settings as SettingsIcon,
@@ -42,6 +43,13 @@ export default function AdminPodcastLive() {
   const [isSavingMedia, setIsSavingMedia] = useState(false);
   const [broadcastMode, setBroadcastMode] = useState('video'); // 'video' or 'audio'
 
+  // Auto-save state
+  const [autoSaveEnabled, setAutoSaveEnabled] = useState(true);
+  const [lastAutoSave, setLastAutoSave] = useState(null);
+  const [autoSaveProgress, setAutoSaveProgress] = useState(0);
+  const [isAutoSaving, setIsAutoSaving] = useState(false);
+  const [autoSaveStatus, setAutoSaveStatus] = useState('idle'); // 'idle', 'saving', 'success', 'error'
+
   const videoRef = useRef(null);
   const streamRef = useRef(null);
   const mediaRecorderRef = useRef(null);
@@ -50,6 +58,7 @@ export default function AdminPodcastLive() {
   const audioChunksRef = useRef([]);
   const teleprompterRef = useRef(null);
   const heartbeatIntervalRef = useRef(null);
+  const autoSaveIntervalRef = useRef(null);
   const queryClient = useQueryClient();
 
   const [podcastInfo, setPodcastInfo] = useState({
@@ -132,6 +141,91 @@ export default function AdminPodcastLive() {
     }
     return () => clearInterval(interval);
   }, [teleprompterPlaying, teleprompterSpeed]);
+
+  // AUTO-SAVE: Save recording chunks every 5 minutes
+  useEffect(() => {
+    if (isRecording && autoSaveEnabled && currentPodcastId) {
+      const autoSaveInterval = 5 * 60 * 1000; // 5 minutes
+
+      autoSaveIntervalRef.current = setInterval(async () => {
+        await performAutoSave();
+      }, autoSaveInterval);
+    }
+
+    return () => {
+      if (autoSaveIntervalRef.current) {
+        clearInterval(autoSaveIntervalRef.current);
+        autoSaveIntervalRef.current = null;
+      }
+    };
+  }, [isRecording, autoSaveEnabled, currentPodcastId, broadcastMode, streamDuration]);
+
+  const performAutoSave = async () => {
+    if (!currentPodcastId) return;
+
+    setIsAutoSaving(true);
+    setAutoSaveStatus('saving');
+
+    try {
+      // Create backup of current chunks
+      const chunks = broadcastMode === 'video' ? recordedChunksRef.current : audioChunksRef.current;
+
+      if (chunks.length === 0) {
+        console.log('No chunks to auto-save yet');
+        setAutoSaveStatus('idle');
+        setIsAutoSaving(false);
+        return;
+      }
+
+      const blob = broadcastMode === 'video'
+        ? new Blob(chunks, { type: 'video/webm' })
+        : new Blob(chunks, { type: 'audio/webm' });
+
+      const file = new File(
+        [blob],
+        `autosave_${currentPodcastId}_${Date.now()}.webm`,
+        { type: broadcastMode === 'video' ? 'video/webm' : 'audio/webm' }
+      );
+
+      setAutoSaveProgress(30);
+
+      // Upload backup
+      const { file_url } = await base44.integrations.Core.UploadFile({ file });
+
+      setAutoSaveProgress(70);
+
+      // Update podcast with backup URL
+      const updateData = broadcastMode === 'video'
+        ? { video_url: file_url, duration: Math.floor(streamDuration) }
+        : { audio_url: file_url, duration: Math.floor(streamDuration) };
+
+      await updatePodcastMutation.mutateAsync({
+        id: currentPodcastId,
+        data: updateData
+      });
+
+      setAutoSaveProgress(100);
+      setLastAutoSave(new Date());
+      setAutoSaveStatus('success');
+
+      console.log('Auto-save successful at', new Date().toLocaleTimeString());
+
+      setTimeout(() => {
+        setAutoSaveStatus('idle');
+        setAutoSaveProgress(0);
+      }, 3000);
+
+    } catch (error) {
+      console.error('Auto-save error:', error);
+      setAutoSaveStatus('error');
+
+      setTimeout(() => {
+        setAutoSaveStatus('idle');
+      }, 5000);
+    } finally {
+      setIsAutoSaving(false);
+    }
+  };
 
   const createPodcastMutation = useMutation({
     mutationFn: (podcastData) => base44.entities.Podcast.create(podcastData),
@@ -462,6 +556,12 @@ export default function AdminPodcastLive() {
   const endPodcast = async () => {
     setIsSavingMedia(true);
 
+    // Stop auto-save interval
+    if (autoSaveIntervalRef.current) {
+      clearInterval(autoSaveIntervalRef.current);
+      autoSaveIntervalRef.current = null;
+    }
+
     // Stop heartbeat immediately
     if (heartbeatIntervalRef.current) {
       clearInterval(heartbeatIntervalRef.current);
@@ -532,6 +632,9 @@ export default function AdminPodcastLive() {
     setTeleprompterPlaying(false);
     setCurrentPodcastId(null);
     setIsSavingMedia(false);
+    setLastAutoSave(null);
+    setAutoSaveProgress(0);
+    setAutoSaveStatus('idle');
     recordedChunksRef.current = [];
     audioChunksRef.current = [];
 
@@ -576,6 +679,22 @@ export default function AdminPodcastLive() {
               <Badge className="bg-red-600 animate-pulse">
                 <div className="w-2 h-2 rounded-full bg-white mr-2" />
                 Recording {broadcastMode === 'video' ? 'Video' : 'Audio'}
+              </Badge>
+            )}
+            {/* Auto-save status indicator */}
+            {isRecording && autoSaveEnabled && (
+              <Badge className={
+                autoSaveStatus === 'saving' ? "bg-amber-500" :
+                autoSaveStatus === 'success' ? "bg-green-500" :
+                autoSaveStatus === 'error' ? "bg-red-500" : "bg-slate-600"
+              }>
+                {autoSaveStatus === 'saving' && <RefreshCw className="w-3 h-3 mr-1 animate-spin" />}
+                {autoSaveStatus === 'success' && <CheckCircle className="w-3 h-3 mr-1" />}
+                {autoSaveStatus === 'error' && <AlertCircle className="w-3 h-3 mr-1" />}
+                {autoSaveStatus === 'saving' ? 'Auto-saving...' :
+                 autoSaveStatus === 'success' ? 'Auto-saved' :
+                 autoSaveStatus === 'error' ? 'Auto-save failed' :
+                 lastAutoSave ? `Last save: ${format(lastAutoSave, 'HH:mm')}` : 'Auto-save active'}
               </Badge>
             )}
             <h2 className="text-3xl font-black text-white">Live Podcast Studio</h2>
@@ -700,6 +819,19 @@ export default function AdminPodcastLive() {
                     <Users className="w-3 h-3 mr-1" />
                     {listenerCount} listening
                   </Badge>
+
+                  {/* Auto-save progress indicator */}
+                  {isAutoSaving && (
+                    <div className="absolute top-14 right-4 z-10">
+                      <Card className="bg-amber-500/90 backdrop-blur-sm border-0 shadow-xl">
+                        <CardContent className="p-2 flex items-center gap-2">
+                          <RefreshCw className="w-3 h-3 text-white animate-spin" />
+                          <span className="text-white text-xs font-bold">Auto-saving... {autoSaveProgress}%</span>
+                        </CardContent>
+                      </Card>
+                    </div>
+                  )}
+
                   <div className="absolute bottom-4 left-4 right-4 flex items-center justify-between">
                     <Badge className="bg-black/80 backdrop-blur-sm border-0 shadow-xl">
                       <Timer className="w-3 h-3 mr-1" />
@@ -1044,6 +1176,62 @@ export default function AdminPodcastLive() {
                   </div>
                 </CardContent>
               </Card>
+
+              {/* Auto-Save Status Card */}
+              {isRecording && (
+                <Card className="bg-slate-800/50 border-slate-700">
+                  <CardHeader className="border-b border-slate-700 py-2 px-3">
+                    <div className="flex items-center justify-between">
+                      <CardTitle className="text-white font-bold text-sm">Auto-Save</CardTitle>
+                      <div className="flex items-center gap-1">
+                        <input
+                          type="checkbox"
+                          checked={autoSaveEnabled}
+                          onChange={(e) => setAutoSaveEnabled(e.target.checked)}
+                          className="w-3 h-3"
+                        />
+                        <span className="text-xs text-slate-400">On</span>
+                      </div>
+                    </div>
+                  </CardHeader>
+                  <CardContent className="p-3 space-y-2">
+                    <div className="flex justify-between items-center">
+                      <span className="text-slate-400 text-xs font-semibold">Status</span>
+                      <Badge className={
+                        autoSaveStatus === 'saving' ? "bg-amber-500" :
+                        autoSaveStatus === 'success' ? "bg-green-500" :
+                        autoSaveStatus === 'error' ? "bg-red-500" : "bg-cyan-600"
+                      }>
+                        {autoSaveStatus === 'saving' ? 'Saving...' :
+                         autoSaveStatus === 'success' ? 'Saved' :
+                         autoSaveStatus === 'error' ? 'Failed' : 'Active'}
+                      </Badge>
+                    </div>
+                    {lastAutoSave && (
+                      <div className="flex justify-between items-center">
+                        <span className="text-slate-400 text-xs font-semibold">Last Save</span>
+                        <span className="text-xs text-cyan-400 font-bold">
+                          {format(lastAutoSave, 'HH:mm:ss')}
+                        </span>
+                      </div>
+                    )}
+                    {isAutoSaving && (
+                      <div className="space-y-1">
+                        <div className="h-1.5 bg-slate-700 rounded-full overflow-hidden">
+                          <div
+                            className="h-full bg-gradient-to-r from-amber-500 to-orange-500 transition-all duration-300"
+                            style={{ width: `${autoSaveProgress}%` }}
+                          />
+                        </div>
+                        <p className="text-xs text-amber-300 text-center">{autoSaveProgress}%</p>
+                      </div>
+                    )}
+                    <p className="text-xs text-slate-500 text-center pt-1">
+                      Auto-saves every 5 minutes
+                    </p>
+                  </CardContent>
+                </Card>
+              )}
 
               {/* System Status */}
               <Card className="bg-slate-800/50 border-slate-700">

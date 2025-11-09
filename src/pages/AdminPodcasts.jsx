@@ -10,10 +10,17 @@ import { Textarea } from "@/components/ui/textarea";
 import { Badge } from "@/components/ui/badge";
 import { Tabs, TabsList, TabsTrigger, TabsContent } from "@/components/ui/tabs";
 import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "@/components/ui/select";
+import {
   Mic2, Plus, Search, TrendingUp, Play, Trash2, Edit, Upload,
   Eye, BarChart3, Clock, Star, Video, Film, Calendar as CalendarIcon,
   DollarSign, Download, Wand2, RefreshCw, FileVideo, Music, Sliders,
-  AlertCircle, AlertTriangle // Added for Conversion Guide
+  AlertCircle, AlertTriangle, Filter, SortAsc, SortDesc, User
 } from "lucide-react";
 import {
   Dialog,
@@ -44,10 +51,20 @@ export default function AdminPodcasts() {
   const [previewAudio, setPreviewAudio] = useState(null);
   const [previewDialogOpen, setPreviewDialogOpen] = useState(false);
   const [extractingAudio, setExtractingAudio] = useState(false);
-  const [showConversionGuide, setShowConversionGuide] = useState(false); // NEW STATE
+  const [showConversionGuide, setShowConversionGuide] = useState(false);
 
   const [showAITools, setShowAITools] = useState(false);
   const [selectedPodcastForAI, setSelectedPodcastForAI] = useState(null);
+
+  // Advanced filtering and sorting
+  const [showFilters, setShowFilters] = useState(false);
+  const [filterCategory, setFilterCategory] = useState("all");
+  const [filterHost, setFilterHost] = useState("all");
+  const [filterDateFrom, setFilterDateFrom] = useState("");
+  const [filterDateTo, setFilterDateTo] = useState("");
+  const [filterDurationMin, setFilterDurationMin] = useState("");
+  const [filterDurationMax, setFilterDurationMax] = useState("");
+  const [sortBy, setSortBy] = useState("date_desc");
 
   const [podcastForm, setPodcastForm] = useState({
     title: '',
@@ -332,24 +349,125 @@ export default function AdminPodcasts() {
     setEditingPodcast(null);
   };
 
-  const filteredPodcasts = podcasts.filter(p =>
-    p.title?.toLowerCase().includes(searchQuery.toLowerCase()) ||
-    p.host_name?.toLowerCase().includes(searchQuery.toLowerCase())
-  );
+  // Advanced filtering and sorting logic
+  const applyFiltersAndSort = (podcastList) => {
+    let filtered = [...podcastList];
 
-  const publishedPodcasts = filteredPodcasts.filter(p => p.publish_status === 'published');
-  const scheduledPodcasts = filteredPodcasts.filter(p => p.publish_status === 'scheduled');
-  const draftPodcasts = filteredPodcasts.filter(p => p.publish_status === 'draft');
+    // Text search across title, description
+    if (searchQuery) {
+      filtered = filtered.filter(p =>
+        p.title?.toLowerCase().includes(searchQuery.toLowerCase()) ||
+        p.description?.toLowerCase().includes(searchQuery.toLowerCase()) ||
+        p.host_name?.toLowerCase().includes(searchQuery.toLowerCase()) ||
+        p.category?.toLowerCase().includes(searchQuery.toLowerCase())
+      );
+    }
 
-  // Separate live recorded podcasts
-  const liveRecordedPodcasts = publishedPodcasts.filter(p => (p.content_type === 'video' && p.video_url) || p.audio_url);
-  const audioPodcasts = publishedPodcasts.filter(p => p.content_type === 'audio' || !p.video_url);
+    // Category filter
+    if (filterCategory !== "all") {
+      filtered = filtered.filter(p => p.category === filterCategory);
+    }
+
+    // Host filter
+    if (filterHost !== "all") {
+      filtered = filtered.filter(p => p.host_name === filterHost);
+    }
+
+    // Date range filter
+    if (filterDateFrom) {
+      filtered = filtered.filter(p => {
+        const pubDate = new Date(p.published_date || p.created_date);
+        return pubDate >= new Date(filterDateFrom);
+      });
+    }
+    if (filterDateTo) {
+      filtered = filtered.filter(p => {
+        const pubDate = new Date(p.published_date || p.created_date);
+        // Set time to end of day for 'to' date to include full day
+        const toDate = new Date(filterDateTo);
+        toDate.setHours(23, 59, 59, 999);
+        return pubDate <= toDate;
+      });
+    }
+
+    // Duration filter (convert minutes to seconds)
+    if (filterDurationMin) {
+      filtered = filtered.filter(p => (p.duration || 0) >= parseInt(filterDurationMin) * 60);
+    }
+    if (filterDurationMax) {
+      filtered = filtered.filter(p => (p.duration || 0) <= parseInt(filterDurationMax) * 60);
+    }
+
+    // Sorting
+    switch (sortBy) {
+      case "date_desc":
+        filtered.sort((a, b) => new Date(b.published_date || b.created_date) - new Date(a.published_date || a.created_date));
+        break;
+      case "date_asc":
+        filtered.sort((a, b) => new Date(a.published_date || a.created_date) - new Date(b.published_date || b.created_date));
+        break;
+      case "plays_desc":
+        filtered.sort((a, b) => (b.plays || 0) - (a.plays || 0));
+        break;
+      case "plays_asc":
+        filtered.sort((a, b) => (a.plays || 0) - (b.plays || 0));
+        break;
+      case "duration_desc":
+        filtered.sort((a, b) => (b.duration || 0) - (a.duration || 0));
+        break;
+      case "duration_asc":
+        filtered.sort((a, b) => (a.duration || 0) - (b.duration || 0));
+        break;
+      case "title_asc":
+        filtered.sort((a, b) => (a.title || "").localeCompare(b.title || ""));
+        break;
+      case "title_desc":
+        filtered.sort((a, b) => (b.title || "").localeCompare(a.title || ""));
+        break;
+      default:
+        break;
+    }
+
+    return filtered;
+  };
+
+  const filteredPodcasts = applyFiltersAndSort(podcasts);
+
+  const publishedPodcasts = applyFiltersAndSort(podcasts.filter(p => p.publish_status === 'published'));
+  const scheduledPodcasts = applyFiltersAndSort(podcasts.filter(p => p.publish_status === 'scheduled'));
+  const draftPodcasts = applyFiltersAndSort(podcasts.filter(p => p.publish_status === 'draft'));
+
+  const liveRecordedPodcasts = applyFiltersAndSort(publishedPodcasts.filter(p => (p.content_type === 'video' && p.video_url) || p.audio_url));
+  const audioPodcasts = applyFiltersAndSort(publishedPodcasts.filter(p => p.content_type === 'audio' || !p.video_url));
+
+  // Get unique categories and hosts for filter dropdowns
+  const uniqueCategories = [...new Set(podcasts.map(p => p.category).filter(Boolean))];
+  const uniqueHosts = [...new Set(podcasts.map(p => p.host_name).filter(Boolean))];
 
   const totalPlays = podcasts.reduce((sum, p) => sum + (p.plays || 0), 0);
   const avgDuration = podcasts.length > 0
     ? Math.floor(podcasts.reduce((sum, p) => sum + (p.duration || 0), 0) / podcasts.length)
     : 0;
   const videoPodcasts = podcasts.filter(p => p.content_type === 'video' || p.video_url).length;
+
+  const activeFiltersCount = [
+    filterCategory !== "all",
+    filterHost !== "all",
+    filterDateFrom,
+    filterDateTo,
+    filterDurationMin,
+    filterDurationMax
+  ].filter(Boolean).length;
+
+  const clearAllFilters = () => {
+    setFilterCategory("all");
+    setFilterHost("all");
+    setFilterDateFrom("");
+    setFilterDateTo("");
+    setFilterDurationMin("");
+    setFilterDurationMax("");
+    setSearchQuery(""); // Also clear search query
+  };
 
   const formatDuration = (seconds) => {
     const mins = Math.floor(seconds / 60);
@@ -498,13 +616,11 @@ export default function AdminPodcasts() {
     if (!podcast?.audio_url && !podcast?.video_url) return;
 
     try {
-      // Check if it's truly audio-only or video
       const isAudioOnly = podcast.content_type === 'audio' && podcast.audio_url && !podcast.video_url;
 
-      // Determine media URL and file name
       const mediaUrl = podcast.audio_url || podcast.video_url;
-      let fileExtension = 'webm'; // Default to webm as browsers often record in it
-
+      // Determine file extension based on mediaUrl, default to 'webm' if not clear
+      let fileExtension = 'webm';
       if (mediaUrl.includes('.mp3')) {
         fileExtension = 'mp3';
       } else if (mediaUrl.includes('.mp4')) {
@@ -513,7 +629,6 @@ export default function AdminPodcasts() {
 
       const fileName = `${podcast.title.replace(/[^a-z0-9]/gi, '_')}_S${podcast.season}E${podcast.episode_number}${isAudioOnly ? '_AUDIO' : ''}.${fileExtension}`;
 
-      // Download the media file
       const mediaLink = document.createElement('a');
       mediaLink.href = mediaUrl;
       mediaLink.download = fileName;
@@ -522,7 +637,6 @@ export default function AdminPodcasts() {
       mediaLink.click();
       document.body.removeChild(mediaLink);
 
-      // Download cover art
       if (podcast.image_url) {
         setTimeout(() => {
           const imgLink = document.createElement('a');
@@ -535,7 +649,6 @@ export default function AdminPodcasts() {
         }, 500);
       }
 
-      // Show appropriate message and the conversion guide
       if (isAudioOnly) {
         alert('📥 Audio file downloaded (likely WebM/MP3).\n\nSee the Conversion Guide for converting to MP3 + adding cover art if needed.');
         setShowConversionGuide(true);
@@ -845,20 +958,160 @@ export default function AdminPodcasts() {
         </Card>
       </div>
 
-      <div className="relative max-w-md">
-        <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-slate-400 w-5 h-5" />
-        <Input
-          placeholder="Search podcasts..."
-          value={searchQuery}
-          onChange={(e) => setSearchQuery(e.target.value)}
-          className="pl-10 bg-[#1a1f3a] border-slate-700 text-white"
-        />
+      {/* Search and Filters */}
+      <div className="space-y-4">
+        <div className="flex gap-3 flex-wrap">
+          <div className="relative flex-1 min-w-[250px]">
+            <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-slate-400 w-5 h-5" />
+            <Input
+              placeholder="Search titles, descriptions, hosts, categories..."
+              value={searchQuery}
+              onChange={(e) => setSearchQuery(e.target.value)}
+              className="pl-10 bg-[#1a1f3a] border-slate-700 text-white"
+            />
+          </div>
+          <Button
+            onClick={() => setShowFilters(!showFilters)}
+            variant="outline"
+            className="border-slate-700 text-slate-300 hover:bg-slate-800"
+          >
+            <Filter className="w-4 h-4 mr-2" />
+            Filters
+            {activeFiltersCount > 0 && (
+              <Badge className="ml-2 bg-cyan-500">{activeFiltersCount}</Badge>
+            )}
+          </Button>
+          <Select value={sortBy} onValueChange={setSortBy}>
+            <SelectTrigger className="w-[200px] bg-[#1a1f3a] border-slate-700 text-white">
+              <SortAsc className="w-4 h-4 mr-2" />
+              <SelectValue placeholder="Sort by..." />
+            </SelectTrigger>
+            <SelectContent className="bg-slate-800 border-slate-700">
+              <SelectItem value="date_desc" className="text-white">Newest First</SelectItem>
+              <SelectItem value="date_asc" className="text-white">Oldest First</SelectItem>
+              <SelectItem value="plays_desc" className="text-white">Most Popular</SelectItem>
+              <SelectItem value="plays_asc" className="text-white">Least Popular</SelectItem>
+              <SelectItem value="duration_desc" className="text-white">Longest First</SelectItem>
+              <SelectItem value="duration_asc" className="text-white">Shortest First</SelectItem>
+              <SelectItem value="title_asc" className="text-white">Title A-Z</SelectItem>
+              <SelectItem value="title_desc" className="text-white">Title Z-A</SelectItem>
+            </SelectContent>
+          </Select>
+        </div>
+
+        {/* Advanced Filters Panel */}
+        {showFilters && (
+          <Card className="bg-[#1a1f3a] border-slate-700">
+            <CardHeader className="border-b border-slate-700 pb-3">
+              <div className="flex items-center justify-between">
+                <CardTitle className="text-white font-bold text-base flex items-center gap-2">
+                  <Filter className="w-5 h-5 text-cyan-400" />
+                  Advanced Filters
+                </CardTitle>
+                {activeFiltersCount > 0 && (
+                  <Button
+                    size="sm"
+                    variant="outline"
+                    onClick={clearAllFilters}
+                    className="border-red-500/30 text-red-400 hover:bg-red-500/10"
+                  >
+                    Clear All ({activeFiltersCount})
+                  </Button>
+                )}
+              </div>
+            </CardHeader>
+            <CardContent className="p-4">
+              <div className="grid md:grid-cols-3 gap-4">
+                <div>
+                  <Label className="text-white font-bold mb-2 block">Category</Label>
+                  <Select value={filterCategory} onValueChange={setFilterCategory}>
+                    <SelectTrigger className="bg-slate-900 border-slate-700 text-white">
+                      <SelectValue placeholder="All Categories" />
+                    </SelectTrigger>
+                    <SelectContent className="bg-slate-800 border-slate-700">
+                      <SelectItem value="all" className="text-white">All Categories</SelectItem>
+                      {uniqueCategories.map(cat => (
+                        <SelectItem key={cat} value={cat} className="text-white">{cat}</SelectItem>
+                      ))}
+                    </SelectContent>
+                  </Select>
+                </div>
+
+                <div>
+                  <Label className="text-white font-bold mb-2 block">Host</Label>
+                  <Select value={filterHost} onValueChange={setFilterHost}>
+                    <SelectTrigger className="bg-slate-900 border-slate-700 text-white">
+                      <SelectValue placeholder="All Hosts" />
+                    </SelectTrigger>
+                    <SelectContent className="bg-slate-800 border-slate-700">
+                      <SelectItem value="all" className="text-white">All Hosts</SelectItem>
+                      {uniqueHosts.map(host => (
+                        <SelectItem key={host} value={host} className="text-white">{host}</SelectItem>
+                      ))}
+                    </SelectContent>
+                  </Select>
+                </div>
+
+                <div className="grid grid-cols-2 gap-2">
+                  <div>
+                    <Label className="text-white font-bold mb-2 block text-xs">Duration Min (mins)</Label>
+                    <Input
+                      type="number"
+                      placeholder="0"
+                      value={filterDurationMin}
+                      onChange={(e) => setFilterDurationMin(e.target.value)}
+                      className="bg-slate-900 border-slate-700 text-white"
+                    />
+                  </div>
+                  <div>
+                    <Label className="text-white font-bold mb-2 block text-xs">Duration Max (mins)</Label>
+                    <Input
+                      type="number"
+                      placeholder="∞"
+                      value={filterDurationMax}
+                      onChange={(e) => setFilterDurationMax(e.target.value)}
+                      className="bg-slate-900 border-slate-700 text-white"
+                    />
+                  </div>
+                </div>
+              </div>
+
+              <div className="grid md:grid-cols-2 gap-4 mt-4">
+                <div>
+                  <Label className="text-white font-bold mb-2 block">Published From</Label>
+                  <Input
+                    type="date"
+                    value={filterDateFrom}
+                    onChange={(e) => setFilterDateFrom(e.target.value)}
+                    className="bg-slate-900 border-slate-700 text-white"
+                  />
+                </div>
+                <div>
+                  <Label className="text-white font-bold mb-2 block">Published To</Label>
+                  <Input
+                    type="date"
+                    value={filterDateTo}
+                    onChange={(e) => setFilterDateTo(e.target.value)}
+                    className="bg-slate-900 border-slate-700 text-white"
+                  />
+                </div>
+              </div>
+
+              <div className="mt-4 p-3 bg-cyan-900/20 border border-cyan-500/30 rounded-lg">
+                <p className="text-cyan-300 text-sm">
+                  <strong>Showing {filteredPodcasts.length}</strong> of {podcasts.length} podcasts
+                  {activeFiltersCount > 0 && ` (${activeFiltersCount} filter${activeFiltersCount > 1 ? 's' : ''} active)`}
+                </p>
+              </div>
+            </CardContent>
+          </Card>
+        )}
       </div>
 
       <Tabs value={activeTab} onValueChange={setActiveTab} className="w-full">
         <TabsList className="bg-[#1a1f3a] border border-slate-700">
           <TabsTrigger value="all" className="data-[state=active]:bg-cyan-500">
-            All ({podcasts.length})
+            All ({filteredPodcasts.length})
           </TabsTrigger>
           <TabsTrigger value="published" className="data-[state=active]:bg-cyan-500">
             Published ({publishedPodcasts.length})
@@ -877,187 +1130,206 @@ export default function AdminPodcasts() {
         </TabsList>
 
         <TabsContent value="all" className="mt-6 space-y-3">
-          {filteredPodcasts.map((podcast) => (
-            <Card key={podcast.id} className="bg-[#1a1f3a] border-slate-700">
-              <CardContent className="p-5">
-                <div className="flex items-start gap-4">
-                  <div className="relative w-24 h-24 rounded-lg bg-gradient-to-br from-purple-500 to-pink-500 flex-shrink-0 overflow-hidden">
-                    {podcast.video_thumbnail_url || podcast.image_url ? (
-                      <img
-                        src={podcast.video_thumbnail_url || podcast.image_url}
-                        alt={podcast.title}
-                        className="w-full h-full object-cover"
-                      />
-                    ) : (
-                      <div className="w-full h-full flex items-center justify-center">
-                        {podcast.content_type === 'video' || podcast.video_url ? (
-                          <Video className="w-10 h-10 text-white" />
-                        ) : (
-                          <Mic2 className="w-10 h-10 text-white" />
-                        )}
-                      </div>
-                    )}
-                    {(podcast.content_type === 'video' || podcast.video_url) && (
-                      <div className="absolute top-1 right-1">
-                        <Badge className="bg-purple-500 text-xs">
-                          <Film className="w-3 h-3 mr-1" />
-                          Video
-                        </Badge>
-                      </div>
-                    )}
-                  </div>
-                  <div className="flex-1">
-                    <div className="flex items-start justify-between mb-2">
-                      <div>
-                        <h3 className="text-white font-bold text-lg mb-1">{podcast.title}</h3>
-                        <p className="text-slate-400 text-sm mb-2">
-                          S{podcast.season}E{podcast.episode_number} • {podcast.host_name} • {formatDuration(podcast.duration || 0)}
-                        </p>
-                      </div>
-                      <div className="flex items-center gap-2">
-                        {getStatusBadge(podcast.publish_status)}
-                        <Badge className="bg-purple-500">
-                          <Play className="w-3 h-3 mr-1" />
-                          {podcast.plays || 0}
-                        </Badge>
-                      </div>
+          {filteredPodcasts.length === 0 ? (
+            <Card className="bg-[#1a1f3a] border-slate-700">
+              <CardContent className="p-12 text-center">
+                <Search className="w-16 h-16 text-slate-600 mx-auto mb-4" />
+                <h3 className="text-white font-bold text-lg mb-2">No Podcasts Found</h3>
+                <p className="text-slate-400 mb-6">
+                  {searchQuery || activeFiltersCount > 0
+                    ? "Try adjusting your filters or search query"
+                    : "Create your first podcast to get started"}
+                </p>
+                {(searchQuery || activeFiltersCount > 0) && (
+                  <Button onClick={clearAllFilters} className="bg-cyan-500 hover:bg-cyan-600">
+                    Clear Filters
+                  </Button>
+                )}
+              </CardContent>
+            </Card>
+          ) : (
+            filteredPodcasts.map((podcast) => (
+              <Card key={podcast.id} className="bg-[#1a1f3a] border-slate-700">
+                <CardContent className="p-5">
+                  <div className="flex items-start gap-4">
+                    <div className="relative w-24 h-24 rounded-lg bg-gradient-to-br from-purple-500 to-pink-500 flex-shrink-0 overflow-hidden">
+                      {podcast.video_thumbnail_url || podcast.image_url ? (
+                        <img
+                          src={podcast.video_thumbnail_url || podcast.image_url}
+                          alt={podcast.title}
+                          className="w-full h-full object-cover"
+                        />
+                      ) : (
+                        <div className="w-full h-full flex items-center justify-center">
+                          {podcast.content_type === 'video' || podcast.video_url ? (
+                            <Video className="w-10 h-10 text-white" />
+                          ) : (
+                            <Mic2 className="w-10 h-10 text-white" />
+                          )}
+                        </div>
+                      )}
+                      {(podcast.content_type === 'video' || podcast.video_url) && (
+                        <div className="absolute top-1 right-1">
+                          <Badge className="bg-purple-500 text-xs">
+                            <Film className="w-3 h-3 mr-1" />
+                            Video
+                          </Badge>
+                        </div>
+                      )}
                     </div>
-                    {podcast.scheduled_publish_date && podcast.publish_status === 'scheduled' && (
-                      <div className="mb-3 p-2 bg-amber-500/10 border border-amber-500/30 rounded">
-                        <p className="text-amber-400 text-xs font-semibold">
-                          <CalendarIcon className="w-3 h-3 inline mr-1" />
-                          Scheduled for: {format(new Date(podcast.scheduled_publish_date), 'MMM d, yyyy h:mm a')}
-                        </p>
+                    <div className="flex-1">
+                      <div className="flex items-start justify-between mb-2">
+                        <div>
+                          <h3 className="text-white font-bold text-lg mb-1">{podcast.title}</h3>
+                          <p className="text-slate-400 text-sm mb-2">
+                            S{podcast.season}E{podcast.episode_number} • {podcast.host_name} • {formatDuration(podcast.duration || 0)}
+                          </p>
+                        </div>
+                        <div className="flex items-center gap-2">
+                          {getStatusBadge(podcast.publish_status)}
+                          <Badge className="bg-purple-500">
+                            <Play className="w-3 h-3 mr-1" />
+                            {podcast.plays || 0}
+                          </Badge>
+                        </div>
                       </div>
-                    )}
-                    <p className="text-slate-400 text-sm mb-3 line-clamp-2">{podcast.description}</p>
-                    <div className="flex items-center gap-2 flex-wrap">
-                      <Button size="sm" onClick={() => handleEdit(podcast)} className="bg-cyan-500 hover:bg-cyan-600">
-                        <Edit className="w-3 h-3 mr-1" />
-                        Edit
-                      </Button>
+                      {podcast.scheduled_publish_date && podcast.publish_status === 'scheduled' && (
+                        <div className="mb-3 p-2 bg-amber-500/10 border border-amber-500/30 rounded">
+                          <p className="text-amber-400 text-xs font-semibold">
+                            <CalendarIcon className="w-3 h-3 inline mr-1" />
+                            Scheduled for: {format(new Date(podcast.scheduled_publish_date), 'MMM d, yyyy h:mm a')}
+                          </p>
+                        </div>
+                      )}
+                      <p className="text-slate-400 text-sm mb-3 line-clamp-2">{podcast.description}</p>
+                      <div className="flex items-center gap-2 flex-wrap">
+                        <Button size="sm" onClick={() => handleEdit(podcast)} className="bg-cyan-500 hover:bg-cyan-600">
+                          <Edit className="w-3 h-3 mr-1" />
+                          Edit
+                        </Button>
 
-                      {/* Audio Preview & Edit Buttons */}
-                      {podcast.audio_url && (
-                        <>
+                        {/* Audio Preview & Edit Buttons */}
+                        {podcast.audio_url && (
+                          <>
+                            <Button
+                              size="sm"
+                              onClick={() => {
+                                setPreviewAudio(podcast);
+                                setPreviewDialogOpen(true);
+                              }}
+                              className="bg-green-500 hover:bg-green-600"
+                            >
+                              <Play className="w-3 h-3 mr-1" />
+                              Listen to Preview
+                            </Button>
+                            <Link to={createPageUrl("AdminPodcastAudioEditor") + `?id=${podcast.id}`}>
+                              <Button size="sm" className="bg-purple-500 hover:bg-purple-600">
+                                <Sliders className="w-3 h-3 mr-1" />
+                                Edit Audio
+                              </Button>
+                            </Link>
+                          </>
+                        )}
+
+                        {/* Video Edit Button */}
+                        {podcast.video_url && (
+                          <Link to={createPageUrl("AdminPodcastVideoEditor") + `?id=${podcast.id}`}>
+                            <Button size="sm" className="bg-pink-500 hover:bg-pink-600">
+                              <Film className="w-3 h-3 mr-1" />
+                              Edit Video
+                            </Button>
+                          </Link>
+                        )}
+
+                        {/* NEW: AI Marketing Tools */}
+                        <Button
+                          size="sm"
+                          onClick={() => {
+                            setSelectedPodcastForAI(podcast);
+                            setShowAITools(true);
+                          }}
+                          className="bg-gradient-to-r from-purple-600 to-pink-600 hover:from-purple-700 hover:to-pink-700"
+                        >
+                          <Wand2 className="w-3 h-3 mr-1" />
+                          AI Tools
+                        </Button>
+
+                        {podcast.publish_status === 'scheduled' && (
                           <Button
                             size="sm"
-                            onClick={() => {
-                              setPreviewAudio(podcast);
-                              setPreviewDialogOpen(true);
-                            }}
+                            onClick={() => handlePublishNow(podcast)}
                             className="bg-green-500 hover:bg-green-600"
                           >
                             <Play className="w-3 h-3 mr-1" />
-                            Listen to Preview
+                            Publish Now
                           </Button>
-                          <Link to={createPageUrl("AdminPodcastAudioEditor") + `?id=${podcast.id}`}>
-                            <Button size="sm" className="bg-purple-500 hover:bg-purple-600">
-                              <Sliders className="w-3 h-3 mr-1" />
-                              Edit Audio
+                        )}
+
+                        {/* Audio to Video Conversion */}
+                        {podcast.audio_url && !podcast.has_converted_video && (
+                          <Button
+                            size="sm"
+                            onClick={() => handleConvertAudioToVideo(podcast)}
+                            disabled={convertingPodcast === podcast.id}
+                            className="bg-gradient-to-r from-purple-600 to-pink-600 hover:from-purple-700 hover:to-pink-700"
+                          >
+                            {convertingPodcast === podcast.id ? (
+                              <><RefreshCw className="w-3 h-3 mr-1 animate-spin" />Converting...</>
+                            ) : (
+                              <><Wand2 className="w-3 h-3 mr-1" />Convert to Video</>
+                            )}
+                          </Button>
+                        )}
+
+                        {/* Download Options */}
+                        {(podcast.has_converted_video || podcast.video_url) && (
+                          <div className="flex gap-1">
+                            <Button
+                              size="sm"
+                              variant="outline"
+                              onClick={() => handleDownloadVideo(podcast, 'mp4')}
+                              className="border-green-500/30 text-green-400 hover:bg-green-500/10"
+                            >
+                              <Download className="w-3 h-3 mr-1" />
+                              MP4
                             </Button>
-                          </Link>
-                        </>
-                      )}
+                            <Button
+                              size="sm"
+                              variant="outline"
+                              onClick={() => handleDownloadVideo(podcast, 'webm')}
+                              className="border-blue-500/30 text-blue-400 hover:bg-blue-500/10"
+                            >
+                              <Download className="w-3 h-3 mr-1" />
+                              WebM
+                            </Button>
+                            <Button
+                              size="sm"
+                              variant="outline"
+                              onClick={() => handleDownloadVideo(podcast, 'avi')}
+                              className="border-amber-500/30 text-amber-400 hover:bg-amber-500/10"
+                            >
+                              <Download className="w-3 h-3 mr-1" />
+                              AVI
+                            </Button>
+                          </div>
+                        )}
 
-                      {/* Video Edit Button */}
-                      {podcast.video_url && (
-                        <Link to={createPageUrl("AdminPodcastVideoEditor") + `?id=${podcast.id}`}>
-                          <Button size="sm" className="bg-pink-500 hover:bg-pink-600">
-                            <Film className="w-3 h-3 mr-1" />
-                            Edit Video
-                          </Button>
-                        </Link>
-                      )}
-
-                      {/* NEW: AI Marketing Tools */}
-                      <Button
-                        size="sm"
-                        onClick={() => {
-                          setSelectedPodcastForAI(podcast);
-                          setShowAITools(true);
-                        }}
-                        className="bg-gradient-to-r from-purple-600 to-pink-600 hover:from-purple-700 hover:to-pink-700"
-                      >
-                        <Wand2 className="w-3 h-3 mr-1" />
-                        AI Tools
-                      </Button>
-
-                      {podcast.publish_status === 'scheduled' && (
                         <Button
                           size="sm"
-                          onClick={() => handlePublishNow(podcast)}
-                          className="bg-green-500 hover:bg-green-600"
+                          variant="outline"
+                          onClick={() => handleDelete(podcast.id)}
+                          className="border-red-500/30 text-red-400"
                         >
-                          <Play className="w-3 h-3 mr-1" />
-                          Publish Now
+                          <Trash2 className="w-3 h-3 mr-1" />
+                          Delete
                         </Button>
-                      )}
-
-                      {/* Audio to Video Conversion */}
-                      {podcast.audio_url && !podcast.has_converted_video && (
-                        <Button
-                          size="sm"
-                          onClick={() => handleConvertAudioToVideo(podcast)}
-                          disabled={convertingPodcast === podcast.id}
-                          className="bg-gradient-to-r from-purple-600 to-pink-600 hover:from-purple-700 hover:to-pink-700"
-                        >
-                          {convertingPodcast === podcast.id ? (
-                            <><RefreshCw className="w-3 h-3 mr-1 animate-spin" />Converting...</>
-                          ) : (
-                            <><Wand2 className="w-3 h-3 mr-1" />Convert to Video</>
-                          )}
-                        </Button>
-                      )}
-
-                      {/* Download Options */}
-                      {(podcast.has_converted_video || podcast.video_url) && (
-                        <div className="flex gap-1">
-                          <Button
-                            size="sm"
-                            variant="outline"
-                            onClick={() => handleDownloadVideo(podcast, 'mp4')}
-                            className="border-green-500/30 text-green-400 hover:bg-green-500/10"
-                          >
-                            <Download className="w-3 h-3 mr-1" />
-                            MP4
-                          </Button>
-                          <Button
-                            size="sm"
-                            variant="outline"
-                            onClick={() => handleDownloadVideo(podcast, 'webm')}
-                            className="border-blue-500/30 text-blue-400 hover:bg-blue-500/10"
-                          >
-                            <Download className="w-3 h-3 mr-1" />
-                            WebM
-                          </Button>
-                          <Button
-                            size="sm"
-                            variant="outline"
-                            onClick={() => handleDownloadVideo(podcast, 'avi')}
-                            className="border-amber-500/30 text-amber-400 hover:bg-amber-500/10"
-                          >
-                            <Download className="w-3 h-3 mr-1" />
-                            AVI
-                          </Button>
-                        </div>
-                      )}
-
-                      <Button
-                        size="sm"
-                        variant="outline"
-                        onClick={() => handleDelete(podcast.id)}
-                        className="border-red-500/30 text-red-400"
-                      >
-                        <Trash2 className="w-3 h-3 mr-1" />
-                        Delete
-                      </Button>
+                      </div>
                     </div>
                   </div>
-                </div>
-              </CardContent>
-            </Card>
-          ))}
+                </CardContent>
+              </Card>
+            ))
+          )}
         </TabsContent>
 
         <TabsContent value="published" className="mt-6 space-y-3">
