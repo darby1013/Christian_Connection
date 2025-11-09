@@ -66,6 +66,7 @@ import AdminPodcastAnalytics from './pages/AdminPodcastAnalytics';
 import AdminCourses from './pages/AdminCourses';
 import AdminCourseBuilder from './pages/AdminCourseBuilder';
 import Courses from './pages/Courses';
+import CourseDetail from './pages/CourseDetail';
 import Layout from './Layout.jsx';
 
 
@@ -138,6 +139,7 @@ export const PAGES = {
     "AdminCourses": AdminCourses,
     "AdminCourseBuilder": AdminCourseBuilder,
     "Courses": Courses,
+    "CourseDetail": CourseDetail,
 }
 
 export const pagesConfig = {
