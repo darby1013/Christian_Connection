@@ -257,10 +257,82 @@ EAAAl...xyz`
         }
       ],
       testInstructions: "Use Square Sandbox with test card: 4111 1111 1111 1111"
+    },
+    authorize_net: {
+      name: "Authorize.Net",
+      icon: "🔐",
+      description: "Accept payments with Authorize.Net",
+      color: "from-red-500 to-orange-600",
+      steps: [
+        {
+          title: "Create Account",
+          description: "Sign up for Authorize.Net",
+          instructions: [
+            "Visit Authorize.Net and create an account",
+            "Complete merchant application",
+            "Wait for approval",
+            "Receive account credentials"
+          ],
+          links: [
+            { label: "Authorize.Net Signup", url: "https://www.authorize.net" }
+          ]
+        },
+        {
+          title: "Get API Credentials",
+          description: "Retrieve your API credentials",
+          instructions: [
+            "Log in to Merchant Interface",
+            "Go to Account → API Credentials & Keys",
+            "Generate API Login ID and Transaction Key",
+            "Use Sandbox for testing"
+          ],
+          links: [
+            { label: "Merchant Interface", url: "https://account.authorize.net" }
+          ],
+          codeExample: `// API Login ID
+1234567890
+
+// Transaction Key
+abc123xyz456`
+        },
+        {
+          title: "Configure Settings",
+          description: "Set up payment settings",
+          instructions: [
+            "Configure payment acceptance settings",
+            "Set up transaction reporting",
+            "Enable webhooks if needed",
+            "Test the integration"
+          ],
+          links: [
+            { label: "Documentation", url: "https://developer.authorize.net/api/reference/" }
+          ]
+        }
+      ],
+      testInstructions: "Use test card: 4007000000027 for successful transactions"
     }
   };
 
+  // Safe access to config with fallback
   const config = gatewayConfigs[gatewayType];
+
+  // If gateway type is invalid, show error
+  if (!config) {
+    return (
+      <Card className="bg-[#1a1f3a] border-red-500/30">
+        <CardContent className="p-12 text-center">
+          <AlertCircle className="w-16 h-16 text-red-400 mx-auto mb-4" />
+          <h3 className="text-white font-bold text-xl mb-2">Invalid Gateway Type</h3>
+          <p className="text-slate-400 mb-6">
+            The gateway type "{gatewayType}" is not supported.
+          </p>
+          <Button onClick={onComplete} className="bg-cyan-500 hover:bg-cyan-600">
+            Go Back
+          </Button>
+        </CardContent>
+      </Card>
+    );
+  }
 
   const copyToClipboard = (text) => {
     navigator.clipboard.writeText(text);
@@ -300,7 +372,7 @@ EAAAl...xyz`
     setIsTesting(false);
   };
 
-  const currentStepData = config.steps[currentStep];
+  const currentStepData = config.steps[currentStep] || config.steps[0];
 
   return (
     <div className="space-y-6">
@@ -380,7 +452,7 @@ EAAAl...xyz`
 
             <TabsContent value="instructions" className="space-y-4 mt-4">
               <div className="bg-slate-900/50 rounded-lg p-4 space-y-3">
-                {currentStepData.instructions.map((instruction, idx) => (
+                {currentStepData.instructions?.map((instruction, idx) => (
                   <div key={idx} className="flex items-start gap-3">
                     <div className="w-6 h-6 rounded-full bg-cyan-500 flex items-center justify-center text-white font-bold text-sm flex-shrink-0">
                       {idx + 1}
