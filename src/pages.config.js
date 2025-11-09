@@ -43,6 +43,7 @@ import ForumDetail from './pages/ForumDetail';
 import LiveStreamPlayer from './pages/LiveStreamPlayer';
 import WatchVideos from './pages/WatchVideos';
 import Events from './pages/Events';
+import EventDetail from './pages/EventDetail';
 import Layout from './Layout.jsx';
 
 
@@ -92,6 +93,7 @@ export const PAGES = {
     "LiveStreamPlayer": LiveStreamPlayer,
     "WatchVideos": WatchVideos,
     "Events": Events,
+    "EventDetail": EventDetail,
 }
 
 export const pagesConfig = {
