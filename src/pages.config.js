@@ -52,6 +52,8 @@ import AdminVideos from './pages/AdminVideos';
 import AdminOrders from './pages/AdminOrders';
 import AdminDonations from './pages/AdminDonations';
 import AdminGroups from './pages/AdminGroups';
+import AdminForum from './pages/AdminForum';
+import AdminEvents from './pages/AdminEvents';
 import Layout from './Layout.jsx';
 
 
@@ -110,6 +112,8 @@ export const PAGES = {
     "AdminOrders": AdminOrders,
     "AdminDonations": AdminDonations,
     "AdminGroups": AdminGroups,
+    "AdminForum": AdminForum,
+    "AdminEvents": AdminEvents,
 }
 
 export const pagesConfig = {
