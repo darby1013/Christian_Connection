@@ -36,6 +36,8 @@ export default function AdminPodcasts() {
   const [activeTab, setActiveTab] = useState("all");
   const [convertingPodcast, setConvertingPodcast] = useState(null);
   const [convertingAudio, setConvertingAudio] = useState(false);
+  const [previewAudio, setPreviewAudio] = useState(null);
+  const [previewDialogOpen, setPreviewDialogOpen] = useState(false);
 
   const [podcastForm, setPodcastForm] = useState({
     title: '',
@@ -752,16 +754,30 @@ export default function AdminPodcasts() {
                         Edit
                       </Button>
                       
-                      {/* Edit Buttons */}
+                      {/* Audio Preview & Edit Buttons */}
                       {podcast.audio_url && (
-                        <Link to={createPageUrl("PodcastAudioEditor") + `?id=${podcast.id}`}>
-                          <Button size="sm" className="bg-purple-500 hover:bg-purple-600">
-                            <Sliders className="w-3 h-3 mr-1" />
-                            Edit Audio
+                        <>
+                          <Button 
+                            size="sm" 
+                            onClick={() => {
+                              setPreviewAudio(podcast);
+                              setPreviewDialogOpen(true);
+                            }}
+                            className="bg-green-500 hover:bg-green-600"
+                          >
+                            <Play className="w-3 h-3 mr-1" />
+                            Listen to Preview
                           </Button>
-                        </Link>
+                          <Link to={createPageUrl("PodcastAudioEditor") + `?id=${podcast.id}`}>
+                            <Button size="sm" className="bg-purple-500 hover:bg-purple-600">
+                              <Sliders className="w-3 h-3 mr-1" />
+                              Edit Audio
+                            </Button>
+                          </Link>
+                        </>
                       )}
                       
+                      {/* Video Edit Button */}
                       {podcast.video_url && (
                         <Link to={createPageUrl("PodcastVideoEditor") + `?id=${podcast.id}`}>
                           <Button size="sm" className="bg-pink-500 hover:bg-pink-600">
@@ -1012,6 +1028,65 @@ export default function AdminPodcasts() {
           ))}
         </TabsContent>
       </Tabs>
+
+      {/* Audio Preview Modal */}
+      <Dialog open={previewDialogOpen} onOpenChange={setPreviewDialogOpen}>
+        <DialogContent className="bg-[#1a1f3a] border-slate-700 max-w-2xl">
+          <DialogHeader>
+            <DialogTitle className="text-white font-black text-xl flex items-center gap-2">
+              <Music className="w-6 h-6 text-purple-400" />
+              Audio Preview
+            </DialogTitle>
+            <DialogDescription className="text-slate-400">
+              {previewAudio?.title}
+            </DialogDescription>
+          </DialogHeader>
+          {previewAudio && (
+            <div className="py-4">
+              <div className="relative aspect-video bg-gradient-to-br from-purple-900 to-cyan-900 rounded-lg mb-4 flex items-center justify-center overflow-hidden">
+                {previewAudio.image_url ? (
+                  <img src={previewAudio.image_url} alt={previewAudio.title} className="w-full h-full object-cover" />
+                ) : (
+                  <Music className="w-24 h-24 text-white opacity-30" />
+                )}
+              </div>
+              <audio controls className="w-full mb-4">
+                <source src={previewAudio.audio_url} type="audio/webm" />
+                <source src={previewAudio.audio_url} type="audio/mpeg" />
+              </audio>
+              <div className="space-y-2 text-sm">
+                <div className="flex justify-between">
+                  <span className="text-slate-400">Duration</span>
+                  <span className="text-white font-semibold">
+                    {Math.floor((previewAudio.duration || 0) / 60)}:{((previewAudio.duration || 0) % 60).toString().padStart(2, '0')}
+                  </span>
+                </div>
+                <div className="flex justify-between">
+                  <span className="text-slate-400">Episode</span>
+                  <span className="text-white font-semibold">S{previewAudio.season}E{previewAudio.episode_number}</span>
+                </div>
+                <div className="flex justify-between">
+                  <span className="text-slate-400">Host</span>
+                  <span className="text-white font-semibold">{previewAudio.host_name}</span>
+                </div>
+              </div>
+            </div>
+          )}
+          <DialogFooter>
+            <Button variant="outline" onClick={() => setPreviewDialogOpen(false)} className="border-slate-700">
+              Close
+            </Button>
+            {previewAudio && (
+              <Link to={createPageUrl("PodcastAudioEditor") + `?id=${previewAudio.id}`}>
+                <Button className="bg-purple-500 hover:bg-purple-600">
+                  <Sliders className="w-4 h-4 mr-2" />
+                  Edit Audio
+                </Button>
+              </Link>
+            )}
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
     </div>
   );
 }

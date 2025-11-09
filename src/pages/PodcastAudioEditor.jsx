@@ -6,10 +6,11 @@ import { Button } from "@/components/ui/button";
 import { Slider } from "@/components/ui/slider";
 import { Badge } from "@/components/ui/badge";
 import { Label } from "@/components/ui/label";
+import { Input } from "@/components/ui/input";
 import {
   Play, Pause, Volume2, VolumeX, Scissors, Copy, Trash2, Undo, Redo,
   Zap, Music, Wand2, Download, Save, RefreshCw, Settings, Sliders,
-  TrendingUp, TrendingDown, Waves, Filter, Mic2
+  TrendingUp, TrendingDown, Waves, Filter, Mic2, Upload, Image
 } from "lucide-react";
 import { Tabs, TabsList, TabsTrigger, TabsContent } from "@/components/ui/tabs";
 
@@ -24,6 +25,12 @@ export default function PodcastAudioEditor() {
   const [isMuted, setIsMuted] = useState(false);
   const [saving, setSaving] = useState(false);
   const [mastering, setMastering] = useState(false);
+  const [uploadingImage, setUploadingImage] = useState(false);
+  const [audioImage, setAudioImage] = useState('');
+
+  // Real-time waveform
+  const [audioData, setAudioData] = useState([]);
+  const [isAnalyzing, setIsAnalyzing] = useState(false);
 
   // Audio editing controls
   const [trimStart, setTrimStart] = useState(0);
@@ -41,8 +48,8 @@ export default function PodcastAudioEditor() {
 
   const audioRef = useRef(null);
   const audioContextRef = useRef(null);
-  const sourceNodeRef = useRef(null);
-  const gainNodeRef = useRef(null);
+  const analyserRef = useRef(null);
+  const animationFrameRef = useRef(null);
   const queryClient = useQueryClient();
 
   const { data: podcast } = useQuery({
@@ -55,15 +62,101 @@ export default function PodcastAudioEditor() {
     mutationFn: ({ id, data }) => base44.entities.Podcast.update(id, data),
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['podcast'] });
+      alert('Audio image saved successfully!');
     },
   });
+
+  useEffect(() => {
+    if (podcast) {
+      setAudioImage(podcast.image_url || '');
+    }
+  }, [podcast]);
 
   useEffect(() => {
     if (audioRef.current && podcast?.audio_url) {
       audioRef.current.src = podcast.audio_url;
       audioRef.current.volume = volume / 100;
+      initializeAudioContext();
     }
   }, [podcast, volume]);
+
+  const initializeAudioContext = async () => {
+    if (!audioRef.current) return;
+
+    setIsAnalyzing(true);
+    try {
+      const audioContext = new (window.AudioContext || window.webkitAudioContext)();
+      audioContextRef.current = audioContext;
+
+      const source = audioContext.createMediaElementSource(audioRef.current);
+      const analyser = audioContext.createAnalyser();
+      analyser.fftSize = 256;
+      
+      source.connect(analyser);
+      analyser.connect(audioContext.destination);
+      analyserRef.current = analyser;
+
+      visualizeWaveform();
+    } catch (error) {
+      console.error('Audio context error:', error);
+    } finally {
+      setIsAnalyzing(false);
+    }
+  };
+
+  const visualizeWaveform = () => {
+    if (!analyserRef.current) return;
+
+    const bufferLength = analyserRef.current.frequencyBinCount;
+    const dataArray = new Uint8Array(bufferLength);
+
+    const animate = () => {
+      analyserRef.current.getByteFrequencyData(dataArray);
+      setAudioData([...dataArray]);
+      animationFrameRef.current = requestAnimationFrame(animate);
+    };
+
+    animate();
+  };
+
+  useEffect(() => {
+    return () => {
+      if (animationFrameRef.current) {
+        cancelAnimationFrame(animationFrameRef.current);
+      }
+    };
+  }, []);
+
+  const handleImageUpload = async (e) => {
+    const file = e.target.files?.[0];
+    if (!file) return;
+
+    setUploadingImage(true);
+    try {
+      const { file_url } = await base44.integrations.Core.UploadFile({ file });
+      setAudioImage(file_url);
+    } catch (error) {
+      alert('Error uploading image: ' + error.message);
+    } finally {
+      setUploadingImage(false);
+    }
+  };
+
+  const handleSaveAudioImage = async () => {
+    if (!podcastId || !audioImage) return;
+    
+    setSaving(true);
+    try {
+      await updatePodcastMutation.mutateAsync({
+        id: podcastId,
+        data: { image_url: audioImage }
+      });
+    } catch (error) {
+      alert('Error saving: ' + error.message);
+    } finally {
+      setSaving(false);
+    }
+  };
 
   const togglePlay = () => {
     if (audioRef.current) {
@@ -98,7 +191,6 @@ export default function PodcastAudioEditor() {
   };
 
   const applyEffects = () => {
-    // In a real implementation, these would use Web Audio API
     alert('Effects applied! (In production, this would process audio with Web Audio API)');
   };
 
@@ -194,15 +286,35 @@ export default function PodcastAudioEditor() {
           <div className="lg:col-span-2 space-y-6">
             <Card className="bg-[#1a1f3a] border-slate-700">
               <CardContent className="p-6">
-                {/* Waveform Display */}
-                <div className="relative h-40 bg-slate-900 rounded-lg mb-6 flex items-center justify-center overflow-hidden">
-                  <Waves className="w-full h-24 text-cyan-500/20 absolute" />
-                  <div className="absolute inset-0 flex items-center">
-                    <div 
-                      className="h-1 bg-cyan-500"
-                      style={{ width: `${(currentTime / duration) * 100}%` }}
-                    />
-                  </div>
+                {/* Real-time Waveform Display */}
+                <div className="relative h-40 bg-slate-900 rounded-lg mb-6 flex items-end justify-around px-2 overflow-hidden">
+                  {isAnalyzing && (
+                    <div className="absolute inset-0 flex items-center justify-center">
+                      <RefreshCw className="w-8 h-8 text-cyan-400 animate-spin" />
+                    </div>
+                  )}
+                  {audioData.length > 0 ? (
+                    audioData.slice(0, 64).map((value, index) => {
+                      const height = (value / 255) * 100;
+                      return (
+                        <div
+                          key={index}
+                          className="bg-gradient-to-t from-cyan-500 to-purple-500 rounded-t transition-all duration-75"
+                          style={{
+                            height: `${Math.max(height, 2)}%`,
+                            width: '2%',
+                            opacity: isPlaying ? 1 : 0.3
+                          }}
+                        />
+                      );
+                    })
+                  ) : (
+                    <Waves className="w-full h-24 text-cyan-500/20 absolute top-1/2 -translate-y-1/2" />
+                  )}
+                  <div 
+                    className="absolute bottom-0 left-0 h-1 bg-cyan-400 transition-all duration-100"
+                    style={{ width: `${(currentTime / duration) * 100}%` }}
+                  />
                 </div>
 
                 {/* Audio Player */}
@@ -211,6 +323,7 @@ export default function PodcastAudioEditor() {
                   onTimeUpdate={handleTimeUpdate}
                   onEnded={() => setIsPlaying(false)}
                   className="hidden"
+                  crossOrigin="anonymous"
                 />
 
                 {/* Timeline */}
@@ -257,6 +370,71 @@ export default function PodcastAudioEditor() {
                   />
                   <span className="text-white text-sm w-12">{volume}%</span>
                 </div>
+              </CardContent>
+            </Card>
+
+            {/* Audio Image Upload */}
+            <Card className="bg-[#1a1f3a] border-slate-700">
+              <CardHeader className="border-b border-slate-700">
+                <CardTitle className="text-white font-bold text-base flex items-center gap-2">
+                  <Image className="w-5 h-5 text-purple-400" />
+                  Audio Cover Image
+                </CardTitle>
+              </CardHeader>
+              <CardContent className="p-6">
+                <div className="grid md:grid-cols-2 gap-6">
+                  <div>
+                    <Label className="text-white font-bold mb-3 block">Upload Cover Image</Label>
+                    <Input
+                      type="file"
+                      accept="image/*"
+                      onChange={handleImageUpload}
+                      disabled={uploadingImage}
+                      className="bg-slate-900/50 border-slate-700 text-white mb-3"
+                    />
+                    {uploadingImage && (
+                      <Badge className="bg-amber-500">
+                        <RefreshCw className="w-3 h-3 mr-1 animate-spin" />
+                        Uploading...
+                      </Badge>
+                    )}
+                    {audioImage && (
+                      <Button
+                        onClick={handleSaveAudioImage}
+                        disabled={saving}
+                        className="w-full bg-green-500 hover:bg-green-600 mt-3"
+                      >
+                        {saving ? (
+                          <><RefreshCw className="w-4 h-4 mr-2 animate-spin" />Saving...</>
+                        ) : (
+                          <><Save className="w-4 h-4 mr-2" />Save Audio Image</>
+                        )}
+                      </Button>
+                    )}
+                  </div>
+                  <div>
+                    {audioImage ? (
+                      <div className="relative">
+                        <img 
+                          src={audioImage} 
+                          alt="Audio cover" 
+                          className="w-full aspect-square object-cover rounded-lg"
+                        />
+                        <Badge className="absolute top-2 right-2 bg-green-500">
+                          <Image className="w-3 h-3 mr-1" />
+                          Active
+                        </Badge>
+                      </div>
+                    ) : (
+                      <div className="w-full aspect-square bg-gradient-to-br from-purple-900 to-cyan-900 rounded-lg flex items-center justify-center">
+                        <Music className="w-16 h-16 text-white opacity-30" />
+                      </div>
+                    )}
+                  </div>
+                </div>
+                <p className="text-slate-400 text-sm mt-4">
+                  This image will be displayed when playing this audio podcast
+                </p>
               </CardContent>
             </Card>
 
@@ -582,6 +760,12 @@ export default function PodcastAudioEditor() {
                 <div className="flex justify-between">
                   <span className="text-slate-400">Episode</span>
                   <span className="text-white font-semibold">S{podcast.season}E{podcast.episode_number}</span>
+                </div>
+                <div className="flex justify-between">
+                  <span className="text-slate-400">Status</span>
+                  <Badge className={isAnalyzing ? "bg-amber-500" : "bg-green-500"}>
+                    {isAnalyzing ? 'Analyzing...' : 'Ready'}
+                  </Badge>
                 </div>
               </CardContent>
             </Card>
