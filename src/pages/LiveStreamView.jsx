@@ -42,7 +42,7 @@ export default function LiveStreamView() {
       return streams[0];
     },
     enabled: !!streamId,
-    refetchInterval: stream?.status === 'live' ? 5000 : false,
+    refetchInterval: (data) => data?.status === 'live' ? 5000 : false,
   });
 
   const { data: tips = [] } = useQuery({
@@ -77,9 +77,11 @@ export default function LiveStreamView() {
     }
   }, [stream]);
 
-  const totalTips = tips.reduce((sum, tip) => sum + (tip.amount || 0), 0);
+  // Calculate derived values after stream is loaded
   const isLive = stream?.status === 'live';
   const isEnded = stream?.status === 'ended';
+  const totalTips = tips.reduce((sum, tip) => sum + (tip.amount || 0), 0);
+  const hasActiveSubscription = false; // Replace with actual subscription check
 
   if (isLoading) {
     return (
