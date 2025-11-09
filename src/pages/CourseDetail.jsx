@@ -1,4 +1,3 @@
-
 import React, { useState, useEffect } from "react";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { base44 } from "@/api/base44Client";
@@ -66,20 +65,37 @@ export default function CourseDetail() {
     enabled: !!user && !!courseId,
   });
 
+  const { data: reviews = [] } = useQuery({
+    queryKey: ['courseReviews', courseId],
+    queryFn: () => base44.entities.CourseReview.filter({ course_id: courseId, is_approved: true }),
+    enabled: !!courseId,
+    initialData: [],
+  });
+
   useEffect(() => {
     setIsEnrolled(!!progress);
   }, [progress]);
 
   const enrollMutation = useMutation({
-    mutationFn: () => base44.entities.CourseProgress.create({
-      user_id: user.id,
-      course_id: courseId,
-      enrolled_date: new Date().toISOString(),
-      completed_lessons: [],
-      progress_percentage: 0
-    }),
+    mutationFn: async () => {
+      const enrollment = await base44.entities.CourseProgress.create({
+        user_id: user.id,
+        course_id: courseId,
+        enrolled_date: new Date().toISOString(),
+        completed_lessons: [],
+        progress_percentage: 0
+      });
+      
+      // Update course enrollment count
+      await base44.entities.Course.update(courseId, {
+        enrollment_count: (course.enrollment_count || 0) + 1
+      });
+      
+      return enrollment;
+    },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['courseProgress'] });
+      queryClient.invalidateQueries({ queryKey: ['course'] });
       setIsEnrolled(true);
     },
   });
@@ -120,6 +136,7 @@ export default function CourseDetail() {
   const totalLessons = lessons.length;
   const completedLessons = progress?.completed_lessons?.length || 0;
   const progressPercentage = totalLessons > 0 ? (completedLessons / totalLessons) * 100 : 0;
+  const avgRating = reviews.length > 0 ? reviews.reduce((sum, r) => sum + r.rating, 0) / reviews.length : 0;
 
   return (
     <div className="min-h-screen bg-gradient-to-br from-[#0a0e27] to-[#1a1f3a] py-12">
@@ -139,8 +156,8 @@ export default function CourseDetail() {
             <div className="flex items-center gap-6 mb-6">
               <div className="flex items-center gap-2">
                 <Star className="w-5 h-5 text-amber-400 fill-amber-400" />
-                <span className="text-white font-bold">{course.rating?.toFixed(1) || '0.0'}</span>
-                <span className="text-slate-400">({course.review_count || 0} reviews)</span>
+                <span className="text-white font-bold">{avgRating.toFixed(1)}</span>
+                <span className="text-slate-400">({reviews.length} reviews)</span>
               </div>
               <div className="flex items-center gap-2 text-slate-300">
                 <Users className="w-5 h-5" />
@@ -240,7 +257,7 @@ export default function CourseDetail() {
               </CardContent>
             </Card>
 
-            <Card className="bg-[#1a1f3a] border-slate-700">
+            <Card className="bg-[#1a1f3a] border-slate-700 mb-8">
               <CardContent className="p-6">
                 <h2 className="text-2xl font-black text-white mb-4">Course Content</h2>
                 <Accordion type="single" collapsible className="space-y-2">
@@ -301,6 +318,9 @@ export default function CourseDetail() {
                 </Accordion>
               </CardContent>
             </Card>
+
+            {/* Reviews Section */}
+            <CourseReviews courseId={courseId} user={user} />
           </div>
 
           <div>
@@ -335,11 +355,6 @@ export default function CourseDetail() {
               </Card>
             )}
           </div>
-        </div>
-
-        {/* Reviews Section */}
-        <div className="mt-12">
-          <CourseReviews courseId={courseId} user={user} />
         </div>
       </div>
     </div>
