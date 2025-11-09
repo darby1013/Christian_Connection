@@ -1,15 +1,15 @@
-
 import React, { useState, useEffect } from "react";
 import { Link, useLocation } from "react-router-dom";
 import { createPageUrl } from "@/utils";
 import { base44 } from "@/api/base44Client";
+import { useQuery } from "@tanstack/react-query";
 import {
   Home, Video, Radio, BookOpen, Users, MessageSquare, Calendar,
   ShoppingBag, Heart, Settings, LogOut, Bell, Search,
   LayoutDashboard, PlayCircle, Mic2, FileText, UsersRound, MessagesSquare,
   CalendarDays, Store, DollarSign, User as UserIcon, Shield, Settings as SettingsIcon,
   Image, Film, Palette, Crown, Package, Download, CreditCard, BarChart3, Sparkles,
-  AlertOctagon, TrendingUp
+  AlertOctagon, TrendingUp, Globe, Star, Book, Rss, UserPlus
 } from "lucide-react";
 import {
   Sidebar,
@@ -25,8 +25,15 @@ import {
   SidebarProvider,
   SidebarTrigger,
 } from "@/components/ui/sidebar";
+import {
+  DropdownMenu,
+  DropdownMenuContent,
+  DropdownMenuItem,
+  DropdownMenuTrigger,
+} from "@/components/ui/dropdown-menu";
 import { Button } from "@/components/ui/button";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
+import { Badge } from "@/components/ui/badge";
 import NotificationBell from "./components/notifications/NotificationBell";
 import GlobalSearch from "./components/search/GlobalSearch";
 
@@ -51,6 +58,19 @@ export default function Layout({ children, currentPageName }) {
     fetchUser();
   }, []);
 
+  // Check for active live streams
+  const { data: liveStreams = [] } = useQuery({
+    queryKey: ['activeLiveStreams'],
+    queryFn: async () => {
+      const streams = await base44.entities.LiveStream.filter({ status: 'live' });
+      return streams;
+    },
+    initialData: [],
+    refetchInterval: 30000, // Check every 30 seconds
+  });
+
+  const hasActiveLiveStream = liveStreams.length > 0;
+
   const publicNavItems = [
     { title: "Home", url: createPageUrl("Home"), icon: Home },
     { title: "Watch", url: createPageUrl("LiveStreams"), icon: Video },
@@ -58,8 +78,25 @@ export default function Layout({ children, currentPageName }) {
     { title: "Events", url: createPageUrl("Events"), icon: Calendar },
     { title: "Store", url: createPageUrl("Store"), icon: ShoppingBag },
     { title: "Give", url: createPageUrl("Donate"), icon: Heart },
-    { title: "Community", url: createPageUrl("Community"), icon: Users },
   ];
+
+  // Community sections with icons
+  const communityItems = [
+    { title: "Groups", url: createPageUrl("Groups"), icon: Users, description: "Join communities" },
+    { title: "Forums", url: createPageUrl("Forum"), icon: MessagesSquare, description: "Engage in discussions" },
+    { title: "Chatrooms", url: createPageUrl("Chatrooms"), icon: MessageSquare, description: "Real-time conversations" },
+    { title: "Prayer Wall", url: createPageUrl("PrayerWall"), icon: Heart, description: "Share prayer requests" },
+    { title: "Community Board", url: createPageUrl("CommunityBoard"), icon: Globe, description: "Announcements & updates" },
+    { title: "Testimonies", url: createPageUrl("Testimonies"), icon: Star, description: "Share faith stories" },
+    { title: "Member Directory", url: createPageUrl("MemberDirectory"), icon: UsersRound, description: "Connect with members" },
+    { title: "Knowledge Base", url: createPageUrl("KnowledgeBase"), icon: Book, description: "Learn and grow" },
+    { title: "Volunteer", url: createPageUrl("Volunteer"), icon: UserPlus, description: "Serve the community" },
+    { title: "Resources", url: createPageUrl("Resources"), icon: Download, description: "Bible studies & courses" },
+    { title: "RSS Feeds", url: createPageUrl("RSSFeeds"), icon: Rss, description: "Stay updated" },
+  ];
+
+  const isCommunityPage = communityItems.some(item => location.pathname === item.url) || 
+                         location.pathname === createPageUrl("Community");
 
   const adminNavItems = [
     { title: "Dashboard", url: createPageUrl("AdminDashboard"), icon: LayoutDashboard, section: "OVERVIEW" },
@@ -284,6 +321,19 @@ export default function Layout({ children, currentPageName }) {
         .glory-gradient {
           background: #0a0e27;
         }
+        
+        @keyframes pulse-red {
+          0%, 100% { opacity: 1; }
+          50% { opacity: 0.5; }
+        }
+        
+        .live-pulse {
+          animation: pulse-red 1.5s cubic-bezier(0.4, 0, 0.6, 1) infinite;
+        }
+        
+        .community-dropdown {
+          min-width: 280px;
+        }
       `}</style>
 
       <div className="min-h-screen glory-gradient">
@@ -312,11 +362,46 @@ export default function Layout({ children, currentPageName }) {
                     {item.title}
                   </Link>
                 ))}
+                
+                {/* Community Dropdown */}
+                <DropdownMenu>
+                  <DropdownMenuTrigger asChild>
+                    <button
+                      className={`px-4 py-2 rounded-lg flex items-center gap-2 font-semibold text-sm transition-all ${
+                        isCommunityPage
+                          ? 'bg-cyan-500 text-white'
+                          : 'text-slate-300 hover:text-white hover:bg-slate-800/50'
+                      }`}
+                    >
+                      <Users className="w-4 h-4" />
+                      Community
+                    </button>
+                  </DropdownMenuTrigger>
+                  <DropdownMenuContent className="community-dropdown bg-[#1a1f3a] border-slate-700 p-2">
+                    {communityItems.map((item) => (
+                      <DropdownMenuItem key={item.title} asChild className="cursor-pointer">
+                        <Link 
+                          to={item.url}
+                          className="flex items-center gap-3 p-3 rounded-lg hover:bg-slate-800/50 transition-all"
+                        >
+                          <div className="w-10 h-10 rounded-lg bg-gradient-to-br from-cyan-500 to-blue-500 flex items-center justify-center flex-shrink-0">
+                            <item.icon className="w-5 h-5 text-white" />
+                          </div>
+                          <div className="flex-1">
+                            <p className="text-white font-semibold text-sm">{item.title}</p>
+                            <p className="text-slate-400 text-xs">{item.description}</p>
+                          </div>
+                        </Link>
+                      </DropdownMenuItem>
+                    ))}
+                  </DropdownMenuContent>
+                </DropdownMenu>
+                
                 {user && (
                   <Link to={createPageUrl("BroadcastStream")}>
                     <Button className="ml-2 bg-cyan-500 hover:bg-cyan-600 text-white font-bold">
                       <Radio className="w-4 h-4 mr-2" />
-                      Live
+                      Go Live
                     </Button>
                   </Link>
                 )}
@@ -331,6 +416,17 @@ export default function Layout({ children, currentPageName }) {
                 >
                   <Search className="w-5 h-5" />
                 </Button>
+                
+                {/* Live Button - Only active when stream is live */}
+                {hasActiveLiveStream ? (
+                  <Link to={createPageUrl("LiveStreams")}>
+                    <Button className="bg-red-600 hover:bg-red-700 text-white font-bold relative overflow-hidden">
+                      <span className="absolute inset-0 bg-red-500 live-pulse"></span>
+                      <Radio className="w-4 h-4 mr-2 relative z-10" />
+                      <span className="relative z-10">WATCH LIVE</span>
+                    </Button>
+                  </Link>
+                ) : null}
                 
                 {user ? (
                   <div className="flex items-center gap-3">
