@@ -13,9 +13,9 @@ import { Progress } from "@/components/ui/progress";
 import {
   User, Settings, ShoppingBag, Crown, Video, MessageSquare,
   Upload, Camera, Calendar, Heart, Package, FileText, Edit2, Check,
-  Award, Star, TrendingUp, Zap, Target
+  Award, TrendingUp, Star, Trophy, Zap, Target
 } from "lucide-react";
-import { motion, AnimatePresence } from "framer-motion";
+import { motion } from "framer-motion";
 
 export default function UserProfile() {
   const [user, setUser] = useState(null);
@@ -47,28 +47,6 @@ export default function UserProfile() {
     };
     fetchUser();
   }, []);
-
-  const { data: userProgress } = useQuery({
-    queryKey: ['userProgress', user?.id],
-    queryFn: async () => {
-      const progress = await base44.entities.UserProgress.filter({ user_id: user.id });
-      return progress[0];
-    },
-    enabled: !!user,
-  });
-
-  const { data: userBadges = [] } = useQuery({
-    queryKey: ['userBadges', user?.id],
-    queryFn: () => base44.entities.UserBadge.filter({ user_id: user.id }),
-    enabled: !!user,
-    initialData: [],
-  });
-
-  const { data: allBadges = [] } = useQuery({
-    queryKey: ['badges'],
-    queryFn: () => base44.entities.Badge.filter({ is_active: true }),
-    initialData: [],
-  });
 
   const { data: subscriptions = [] } = useQuery({
     queryKey: ['userSubscriptions', user?.id],
@@ -105,6 +83,47 @@ export default function UserProfile() {
     initialData: [],
   });
 
+  // Badges System
+  const { data: userBadges = [] } = useQuery({
+    queryKey: ['userBadges', user?.id],
+    queryFn: () => base44.entities.UserBadge.filter({ user_id: user?.id }),
+    enabled: !!user,
+    initialData: [],
+  });
+
+  const { data: allBadges = [] } = useQuery({
+    queryKey: ['allBadges'],
+    queryFn: () => base44.entities.Badge.filter({ is_active: true }),
+    initialData: [],
+  });
+
+  const { data: userPoints } = useQuery({
+    queryKey: ['userPoints', user?.id],
+    queryFn: async () => {
+      const points = await base44.entities.UserPoints.filter({ user_id: user?.id });
+      return points[0];
+    },
+    enabled: !!user,
+  });
+
+  const { data: levels = [] } = useQuery({
+    queryKey: ['userLevels'],
+    queryFn: () => base44.entities.UserLevel.list('level_number'),
+    initialData: [],
+  });
+
+  const updateBadgeShowcaseMutation = useMutation({
+    mutationFn: async ({ badgeId, isShowcased, order }) => {
+      return base44.entities.UserBadge.update(badgeId, {
+        is_showcased: isShowcased,
+        showcase_order: order
+      });
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ['userBadges'] });
+    },
+  });
+
   const updateProfileMutation = useMutation({
     mutationFn: (data) => base44.auth.updateMe(data),
     onSuccess: async () => {
@@ -112,38 +131,6 @@ export default function UserProfile() {
       setUser(updatedUser);
       setIsEditing(false);
       queryClient.invalidateQueries({ queryKey: ['userProfile'] });
-    },
-  });
-
-  const showcaseBadgeMutation = useMutation({
-    mutationFn: async (badgeId) => {
-      const showcasedBadges = userBadges.filter(b => b.is_showcased);
-      if (showcasedBadges.length >= 5) {
-        alert('You can only showcase up to 5 badges');
-        return;
-      }
-      
-      const userBadge = userBadges.find(b => b.badge_id === badgeId);
-      return base44.entities.UserBadge.update(userBadge.id, {
-        is_showcased: true,
-        showcase_order: showcasedBadges.length + 1
-      });
-    },
-    onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ['userBadges'] });
-    },
-  });
-
-  const removeBadgeShowcaseMutation = useMutation({
-    mutationFn: async (badgeId) => {
-      const userBadge = userBadges.find(b => b.badge_id === badgeId);
-      return base44.entities.UserBadge.update(userBadge.id, {
-        is_showcased: false,
-        showcase_order: null
-      });
-    },
-    onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ['userBadges'] });
     },
   });
 
@@ -163,36 +150,50 @@ export default function UserProfile() {
     updateProfileMutation.mutate(profileForm);
   };
 
-  const earnedBadges = userBadges
-    .map(ub => ({
-      ...allBadges.find(b => b.id === ub.badge_id),
-      earned_date: ub.earned_date,
-      is_showcased: ub.is_showcased,
-      showcase_order: ub.showcase_order
-    }))
-    .filter(b => b.name);
-
-  const showcasedBadges = earnedBadges
-    .filter(b => b.is_showcased)
-    .sort((a, b) => (a.showcase_order || 0) - (b.showcase_order || 0));
+  const handleToggleBadgeShowcase = (badgeId, currentStatus) => {
+    const showcasedBadges = userBadges.filter(ub => ub.is_showcased);
+    if (!currentStatus && showcasedBadges.length >= 5) {
+      alert('You can only showcase up to 5 badges');
+      return;
+    }
+    updateBadgeShowcaseMutation.mutate({
+      badgeId,
+      isShowcased: !currentStatus,
+      order: currentStatus ? null : showcasedBadges.length + 1
+    });
+  };
 
   const activeSubscription = subscriptions.find(s => s.status === 'active');
   const totalSpent = orders.reduce((sum, o) => sum + (o.total_amount || 0), 0);
 
-  // Progress calculations
-  const progressPercent = userProgress 
-    ? (userProgress.current_level_points / userProgress.next_level_points) * 100 
-    : 0;
+  const showcasedBadges = userBadges
+    .filter(ub => ub.is_showcased)
+    .sort((a, b) => (a.showcase_order || 0) - (b.showcase_order || 0))
+    .map(ub => allBadges.find(b => b.id === ub.badge_id))
+    .filter(Boolean);
 
-  const getRankColor = (rank) => {
+  const currentLevel = levels.find(l => 
+    userPoints && userPoints.total_points >= l.required_points
+  ) || levels[0];
+
+  const nextLevel = levels.find(l => 
+    userPoints && userPoints.total_points < l.required_points
+  );
+
+  const progressToNextLevel = nextLevel 
+    ? ((userPoints?.total_points || 0) / nextLevel.required_points) * 100
+    : 100;
+
+  const getBadgeColor = (color) => {
     const colors = {
-      bronze: "from-amber-700 to-orange-800",
-      silver: "from-slate-300 to-slate-400",
-      gold: "from-yellow-400 to-amber-500",
-      platinum: "from-cyan-400 to-blue-500",
-      diamond: "from-purple-500 to-pink-500"
+      blue: "from-blue-500 to-cyan-500",
+      purple: "from-purple-500 to-pink-500",
+      green: "from-green-500 to-emerald-500",
+      amber: "from-amber-500 to-orange-500",
+      red: "from-red-500 to-rose-500",
+      pink: "from-pink-500 to-fuchsia-500"
     };
-    return colors[rank] || colors.bronze;
+    return colors[color] || colors.blue;
   };
 
   if (!user) {
@@ -292,16 +293,16 @@ export default function UserProfile() {
                         <User className="w-3 h-3 mr-1" />
                         {user.role}
                       </Badge>
-                      {userProgress && (
-                        <Badge className={`bg-gradient-to-r ${getRankColor(userProgress.rank)} capitalize`}>
-                          <Award className="w-3 h-3 mr-1" />
-                          {userProgress.rank}
-                        </Badge>
-                      )}
                       {activeSubscription && (
                         <Badge className="bg-purple-500">
                           <Crown className="w-3 h-3 mr-1" />
                           {activeSubscription.plan_name}
+                        </Badge>
+                      )}
+                      {currentLevel && (
+                        <Badge className={`bg-gradient-to-r ${getBadgeColor(currentLevel.color || 'blue')}`}>
+                          <Trophy className="w-3 h-3 mr-1" />
+                          {currentLevel.name}
                         </Badge>
                       )}
                       <Badge variant="outline" className="border-slate-700 text-slate-400">
@@ -354,84 +355,89 @@ export default function UserProfile() {
           </CardContent>
         </Card>
 
-        {/* Progress & Badges Showcase */}
-        {userProgress && (
-          <Card className="bg-gradient-to-br from-purple-500/10 to-pink-500/10 border-2 border-purple-500/30 mb-6">
+        {/* Level & Progress Card */}
+        {userPoints && nextLevel && (
+          <Card className="bg-gradient-to-br from-amber-500/10 to-orange-500/10 border-2 border-amber-500/30 mb-6">
             <CardContent className="p-6">
               <div className="grid md:grid-cols-2 gap-6">
-                {/* Level Progress */}
                 <div>
-                  <div className="flex items-center justify-between mb-3">
-                    <h3 className="text-white font-bold text-lg flex items-center gap-2">
-                      <Zap className="w-5 h-5 text-amber-400" />
-                      Level {userProgress.current_level}
-                    </h3>
-                    <Badge className="bg-amber-500">
-                      {userProgress.total_points} points
-                    </Badge>
-                  </div>
-                  <div className="relative">
-                    <Progress value={progressPercent} className="h-4 bg-slate-900" />
-                    <div className="absolute inset-0 flex items-center justify-center">
-                      <span className="text-white text-xs font-bold">
-                        {progressPercent.toFixed(0)}%
-                      </span>
+                  <h3 className="text-white font-bold text-lg mb-4 flex items-center gap-2">
+                    <Trophy className="w-5 h-5 text-amber-400" />
+                    Level Progress
+                  </h3>
+                  <div className="space-y-4">
+                    <div className="flex items-center justify-between mb-2">
+                      <span className="text-slate-300">Current Level</span>
+                      <span className="text-white font-bold text-lg">{currentLevel?.name}</span>
                     </div>
-                  </div>
-                  <div className="flex justify-between text-sm mt-2">
-                    <span className="text-slate-400">
-                      {userProgress.current_level_points} / {userProgress.next_level_points}
-                    </span>
-                    <span className="text-cyan-400 font-bold">
-                      {userProgress.next_level_points - userProgress.current_level_points} to next level
-                    </span>
-                  </div>
-
-                  <div className="grid grid-cols-2 gap-3 mt-4">
-                    <div className="bg-slate-900/50 rounded-lg p-3 text-center">
-                      <Target className="w-5 h-5 text-cyan-400 mx-auto mb-1" />
-                      <p className="text-white font-bold">{userProgress.badges_earned}</p>
-                      <p className="text-slate-400 text-xs">Badges</p>
-                    </div>
-                    <div className="bg-slate-900/50 rounded-lg p-3 text-center">
-                      <TrendingUp className="w-5 h-5 text-green-400 mx-auto mb-1" />
-                      <p className="text-white font-bold">#{userProgress.rank_position || 'N/A'}</p>
-                      <p className="text-slate-400 text-xs">Rank</p>
+                    <div>
+                      <div className="flex items-center justify-between mb-2">
+                        <span className="text-slate-400 text-sm">Progress to {nextLevel.name}</span>
+                        <span className="text-cyan-400 font-bold">{progressToNextLevel.toFixed(0)}%</span>
+                      </div>
+                      <Progress value={progressToNextLevel} className="h-3 mb-2" />
+                      <div className="flex items-center justify-between text-sm">
+                        <span className="text-slate-400">{userPoints.total_points} points</span>
+                        <span className="text-slate-400">{nextLevel.required_points} points needed</span>
+                      </div>
                     </div>
                   </div>
                 </div>
-
-                {/* Badge Showcase */}
+                
                 <div>
-                  <div className="flex items-center justify-between mb-3">
-                    <h3 className="text-white font-bold text-lg flex items-center gap-2">
-                      <Award className="w-5 h-5 text-amber-400" />
-                      Badge Showcase
-                    </h3>
-                    <Badge className="bg-slate-700">
-                      {showcasedBadges.length} / 5
-                    </Badge>
+                  <h3 className="text-white font-bold text-lg mb-4 flex items-center gap-2">
+                    <Target className="w-5 h-5 text-cyan-400" />
+                    Next Badge
+                  </h3>
+                  <div className="space-y-3">
+                    {allBadges
+                      .filter(b => !userBadges.find(ub => ub.badge_id === b.id))
+                      .slice(0, 2)
+                      .map(badge => {
+                        const progress = ((userPoints.total_points || 0) / badge.requirement_count) * 100;
+                        return (
+                          <div key={badge.id} className="bg-slate-900/50 rounded-lg p-3">
+                            <div className="flex items-center gap-2 mb-2">
+                              <span className="text-2xl">{badge.icon}</span>
+                              <div className="flex-1">
+                                <p className="text-white font-bold text-sm">{badge.name}</p>
+                                <p className="text-slate-400 text-xs">{badge.description}</p>
+                              </div>
+                            </div>
+                            <Progress value={Math.min(progress, 100)} className="h-2" />
+                          </div>
+                        );
+                      })}
                   </div>
-                  <div className="grid grid-cols-5 gap-2">
-                    {Array.from({ length: 5 }).map((_, index) => {
-                      const badge = showcasedBadges[index];
-                      return (
-                        <div
-                          key={index}
-                          className={`aspect-square rounded-lg flex items-center justify-center text-3xl ${
-                            badge ? `bg-gradient-to-br ${badge.color ? `from-${badge.color}-500 to-${badge.color}-700` : 'from-slate-700 to-slate-800'}` : 'bg-slate-900/50 border-2 border-dashed border-slate-700'
-                          }`}
-                          title={badge?.name || 'Empty slot'}
-                        >
-                          {badge ? badge.icon : '🏆'}
-                        </div>
-                      );
-                    })}
-                  </div>
-                  <p className="text-slate-400 text-xs mt-2 text-center">
-                    Select up to 5 badges to showcase on your profile
-                  </p>
                 </div>
+              </div>
+            </CardContent>
+          </Card>
+        )}
+
+        {/* Badge Showcase */}
+        {showcasedBadges.length > 0 && (
+          <Card className="bg-[#1a1f3a] border-slate-700 mb-6">
+            <CardContent className="p-6">
+              <h3 className="text-white font-bold text-xl mb-4 flex items-center gap-2">
+                <Award className="w-6 h-6 text-amber-400" />
+                Badge Showcase
+              </h3>
+              <div className="grid grid-cols-3 md:grid-cols-5 gap-4">
+                {showcasedBadges.map((badge, index) => (
+                  <motion.div
+                    key={badge.id}
+                    initial={{ opacity: 0, scale: 0.8 }}
+                    animate={{ opacity: 1, scale: 1 }}
+                    transition={{ delay: index * 0.1 }}
+                  >
+                    <div className={`relative group cursor-pointer bg-gradient-to-br ${getBadgeColor(badge.color)} p-4 rounded-xl aspect-square flex flex-col items-center justify-center`}>
+                      <span className="text-4xl mb-2">{badge.icon}</span>
+                      <p className="text-white font-bold text-xs text-center">{badge.name}</p>
+                      <Badge className="absolute top-2 right-2 bg-amber-500">#{index + 1}</Badge>
+                    </div>
+                  </motion.div>
+                ))}
               </div>
             </CardContent>
           </Card>
@@ -455,28 +461,28 @@ export default function UserProfile() {
           </Card>
           <Card className="bg-[#1a1f3a] border-slate-700">
             <CardContent className="p-4 text-center">
-              <MessageSquare className="w-6 h-6 text-green-400 mx-auto mb-2" />
-              <p className="text-2xl font-black text-white">{forumThreads.length}</p>
-              <p className="text-xs text-slate-400">Threads</p>
+              <Award className="w-6 h-6 text-amber-400 mx-auto mb-2" />
+              <p className="text-2xl font-black text-white">{userBadges.length}</p>
+              <p className="text-xs text-slate-400">Badges</p>
             </CardContent>
           </Card>
           <Card className="bg-[#1a1f3a] border-slate-700">
             <CardContent className="p-4 text-center">
-              <ShoppingBag className="w-6 h-6 text-amber-400 mx-auto mb-2" />
-              <p className="text-2xl font-black text-white">{orders.length}</p>
-              <p className="text-xs text-slate-400">Orders</p>
+              <Zap className="w-6 h-6 text-yellow-400 mx-auto mb-2" />
+              <p className="text-2xl font-black text-white">{userPoints?.total_points || 0}</p>
+              <p className="text-xs text-slate-400">Points</p>
             </CardContent>
           </Card>
         </div>
 
         {/* Tabs */}
-        <Tabs defaultValue="badges" className="w-full mb-12">
+        <Tabs defaultValue="activity" className="w-full mb-12">
           <TabsList className="bg-[#1a1f3a] border border-slate-700">
-            <TabsTrigger value="badges" className="data-[state=active]:bg-cyan-500 data-[state=active]:text-white">
-              Badges
-            </TabsTrigger>
             <TabsTrigger value="activity" className="data-[state=active]:bg-cyan-500 data-[state=active]:text-white">
               Activity
+            </TabsTrigger>
+            <TabsTrigger value="badges" className="data-[state=active]:bg-cyan-500 data-[state=active]:text-white">
+              All Badges
             </TabsTrigger>
             <TabsTrigger value="subscription" className="data-[state=active]:bg-cyan-500 data-[state=active]:text-white">
               Subscription
@@ -485,79 +491,6 @@ export default function UserProfile() {
               Orders
             </TabsTrigger>
           </TabsList>
-
-          {/* Badges Tab */}
-          <TabsContent value="badges" className="space-y-6 mt-6">
-            <Card className="bg-[#1a1f3a] border-slate-700">
-              <CardHeader>
-                <CardTitle className="text-white font-black flex items-center gap-2">
-                  <Award className="w-6 h-6 text-amber-400" />
-                  My Badges ({earnedBadges.length})
-                </CardTitle>
-              </CardHeader>
-              <CardContent>
-                <div className="grid md:grid-cols-3 lg:grid-cols-4 gap-4">
-                  <AnimatePresence>
-                    {earnedBadges.map((badge, index) => (
-                      <motion.div
-                        key={badge.id}
-                        initial={{ opacity: 0, scale: 0.9 }}
-                        animate={{ opacity: 1, scale: 1 }}
-                        transition={{ delay: index * 0.05 }}
-                      >
-                        <Card className={`${
-                          badge.is_showcased 
-                            ? 'bg-gradient-to-br from-amber-500/20 to-orange-500/20 border-2 border-amber-500' 
-                            : 'bg-slate-900/50 border-slate-700'
-                        } hover:border-cyan-500 transition-all`}>
-                          <CardContent className="p-4 text-center">
-                            <div className={`w-16 h-16 mx-auto mb-3 rounded-lg bg-gradient-to-br ${
-                              badge.color ? `from-${badge.color}-500 to-${badge.color}-700` : 'from-slate-600 to-slate-700'
-                            } flex items-center justify-center text-3xl`}>
-                              {badge.icon}
-                            </div>
-                            <h4 className="text-white font-bold text-sm mb-1">{badge.name}</h4>
-                            <p className="text-slate-400 text-xs mb-2">{badge.description}</p>
-                            <Badge className={`mb-2 ${
-                              badge.rarity === 'legendary' ? 'bg-purple-500' :
-                              badge.rarity === 'epic' ? 'bg-blue-500' :
-                              badge.rarity === 'rare' ? 'bg-green-500' :
-                              'bg-slate-700'
-                            }`}>
-                              {badge.rarity}
-                            </Badge>
-                            <div className="mt-2">
-                              {badge.is_showcased ? (
-                                <Button
-                                  size="sm"
-                                  variant="outline"
-                                  onClick={() => removeBadgeShowcaseMutation.mutate(badge.id)}
-                                  className="w-full border-amber-500 text-amber-400 text-xs"
-                                >
-                                  <Star className="w-3 h-3 mr-1 fill-amber-400" />
-                                  Showcased
-                                </Button>
-                              ) : (
-                                <Button
-                                  size="sm"
-                                  onClick={() => showcaseBadgeMutation.mutate(badge.id)}
-                                  disabled={showcasedBadges.length >= 5}
-                                  className="w-full bg-slate-700 hover:bg-slate-600 text-xs"
-                                >
-                                  <Star className="w-3 h-3 mr-1" />
-                                  Showcase
-                                </Button>
-                              )}
-                            </div>
-                          </CardContent>
-                        </Card>
-                      </motion.div>
-                    ))}
-                  </AnimatePresence>
-                </div>
-              </CardContent>
-            </Card>
-          </TabsContent>
 
           {/* Activity Tab */}
           <TabsContent value="activity" className="space-y-6 mt-6">
@@ -592,6 +525,61 @@ export default function UserProfile() {
                       </Badge>
                     </div>
                   ))}
+                </div>
+              </CardContent>
+            </Card>
+          </TabsContent>
+
+          {/* All Badges Tab */}
+          <TabsContent value="badges" className="space-y-6 mt-6">
+            <Card className="bg-[#1a1f3a] border-slate-700">
+              <CardHeader>
+                <CardTitle className="text-white font-black flex items-center justify-between">
+                  <span>Your Badges ({userBadges.length}/{allBadges.length})</span>
+                  <span className="text-sm text-slate-400 font-normal">Showcase up to 5 badges</span>
+                </CardTitle>
+              </CardHeader>
+              <CardContent>
+                <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-4">
+                  {allBadges.map(badge => {
+                    const userBadge = userBadges.find(ub => ub.badge_id === badge.id);
+                    const isEarned = !!userBadge;
+                    const isShowcased = userBadge?.is_showcased;
+                    
+                    return (
+                      <div
+                        key={badge.id}
+                        className={`relative p-4 rounded-xl transition-all ${
+                          isEarned 
+                            ? `bg-gradient-to-br ${getBadgeColor(badge.color)} cursor-pointer hover:scale-105`
+                            : 'bg-slate-900/50 opacity-50 cursor-not-allowed'
+                        }`}
+                        onClick={() => isEarned && handleToggleBadgeShowcase(userBadge.id, isShowcased)}
+                      >
+                        {isShowcased && (
+                          <Badge className="absolute top-2 right-2 bg-amber-500">
+                            <Star className="w-3 h-3 mr-1 fill-white" />
+                            Shown
+                          </Badge>
+                        )}
+                        <div className="text-center">
+                          <span className="text-4xl mb-2 block">{badge.icon}</span>
+                          <p className="text-white font-bold text-sm mb-1">{badge.name}</p>
+                          <p className="text-white/70 text-xs mb-2">{badge.description}</p>
+                          {isEarned ? (
+                            <Badge className="bg-green-500 text-xs">
+                              <CheckCircle className="w-3 h-3 mr-1" />
+                              Earned
+                            </Badge>
+                          ) : (
+                            <Badge className="bg-slate-700 text-xs">
+                              {badge.requirement_count} {badge.requirement_type} needed
+                            </Badge>
+                          )}
+                        </div>
+                      </div>
+                    );
+                  })}
                 </div>
               </CardContent>
             </Card>
