@@ -46,6 +46,8 @@ import Events from './pages/Events';
 import EventDetail from './pages/EventDetail';
 import Donate from './pages/Donate';
 import BlogDetail from './pages/BlogDetail';
+import AdminPodcasts from './pages/AdminPodcasts';
+import AdminUsers from './pages/AdminUsers';
 import Layout from './Layout.jsx';
 
 
@@ -98,6 +100,8 @@ export const PAGES = {
     "EventDetail": EventDetail,
     "Donate": Donate,
     "BlogDetail": BlogDetail,
+    "AdminPodcasts": AdminPodcasts,
+    "AdminUsers": AdminUsers,
 }
 
 export const pagesConfig = {
