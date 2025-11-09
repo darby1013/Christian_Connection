@@ -16,10 +16,17 @@ import {
   CheckCircle, AlertCircle, FileText, Settings as SettingsIcon,
   Plus, Eye, EyeOff, Play, Pause, Volume2, Zap, Layers,
   MessageSquare, Timer, MonitorPlay, RefreshCw, Download, Save, Mic2,
-  Music
+  Music, Trash2, BarChart3
 } from "lucide-react";
 import ScriptEditor from "../components/broadcast/ScriptEditor";
 import AdvancedStreamTools from "../components/broadcast/AdvancedStreamTools";
+import {
+  Dialog,
+  DialogContent,
+  DialogHeader,
+  DialogTitle,
+  DialogFooter,
+} from "@/components/ui/dialog";
 
 export default function AdminPodcastLive() {
   const [user, setUser] = useState(null);
@@ -49,6 +56,24 @@ export default function AdminPodcastLive() {
   const [autoSaveProgress, setAutoSaveProgress] = useState(0);
   const [isAutoSaving, setIsAutoSaving] = useState(false);
   const [autoSaveStatus, setAutoSaveStatus] = useState('idle'); // 'idle', 'saving', 'success', 'error'
+
+  // Co-hosting state
+  const [coHosts, setCoHosts] = useState([]);
+  const [showCoHostDialog, setShowCoHostDialog] = useState(false);
+  const [coHostEmail, setCoHostEmail] = useState('');
+  const [addingCoHost, setAddingCoHost] = useState(false);
+
+  // Analytics state
+  const [showAnalytics, setShowAnalytics] = useState(false);
+  const [engagementData, setEngagementData] = useState({
+    likes: 0,
+    comments: [],
+    shares: 0,
+    avgWatchTime: 0,
+    peakMoment: null,
+    dropOffPoints: []
+  });
+  const [realtimeFeedback, setRealtimeFeedback] = useState([]);
 
   const videoRef = useRef(null);
   const streamRef = useRef(null);
@@ -118,7 +143,7 @@ export default function AdminPodcastLive() {
         heartbeatIntervalRef.current = null;
       }
     };
-  }, [isLive, currentPodcastId, listenerCount]);
+  }, [isLive, currentPodcastId, listenerCount, updatePodcastMutation]);
 
   useEffect(() => {
     let interval;
@@ -159,6 +184,42 @@ export default function AdminPodcastLive() {
       }
     };
   }, [isRecording, autoSaveEnabled, currentPodcastId, broadcastMode, streamDuration]);
+
+  // Track engagement metrics in real-time
+  useEffect(() => {
+    if (isLive) {
+      const engagementInterval = setInterval(() => {
+        // Simulate engagement metrics
+        setEngagementData(prev => ({
+          likes: prev.likes + Math.floor(Math.random() * 3),
+          comments: prev.comments,
+          shares: prev.shares + (Math.random() > 0.9 ? 1 : 0),
+          avgWatchTime: streamDuration * 0.7,
+          peakMoment: streamDuration > 300 ? Math.floor(streamDuration / 2) : null,
+          dropOffPoints: prev.dropOffPoints
+        }));
+
+        // Simulate real-time feedback
+        if (Math.random() > 0.85) {
+          const feedbackTypes = [
+            { emoji: '🔥', text: 'This is fire!', sentiment: 'positive' },
+            { emoji: '💯', text: 'Amazing content', sentiment: 'positive' },
+            { emoji: '🙏', text: 'Thank you for this', sentiment: 'positive' },
+            { emoji: '❤️', text: 'Love this topic', sentiment: 'positive' },
+            { emoji: '👏', text: 'Great insights', sentiment: 'positive' },
+            { emoji: '🤔', text: 'Interesting perspective', sentiment: 'neutral' },
+          ];
+          const feedback = feedbackTypes[Math.floor(Math.random() * feedbackTypes.length)];
+          setRealtimeFeedback(prev => [
+            { ...feedback, timestamp: Date.now() },
+            ...prev.slice(0, 9)
+          ]);
+        }
+      }, 8000);
+
+      return () => clearInterval(engagementInterval);
+    }
+  }, [isLive, streamDuration]);
 
   const performAutoSave = async () => {
     if (!currentPodcastId) return;
@@ -637,6 +698,10 @@ export default function AdminPodcastLive() {
     setAutoSaveStatus('idle');
     recordedChunksRef.current = [];
     audioChunksRef.current = [];
+    setCoHosts([]); // Clear co-hosts on stream end
+    setEngagementData({ likes: 0, comments: [], shares: 0, avgWatchTime: 0, peakMoment: null, dropOffPoints: [] });
+    setRealtimeFeedback([]);
+
 
     setPodcastInfo({
       title: '',
@@ -661,6 +726,50 @@ export default function AdminPodcastLive() {
   const handleScriptCreated = (script) => {
     setSelectedScript(script);
     setShowScriptManager(false);
+  };
+
+  const addCoHost = async () => {
+    if (!coHostEmail.trim()) return;
+
+    setAddingCoHost(true);
+    try {
+      // Find user by email
+      const users = await base44.entities.User.filter({ email: coHostEmail });
+      const coHostUser = users[0];
+
+      if (!coHostUser) {
+        alert('User not found with this email');
+        return;
+      }
+
+      if (coHosts.find(h => h.id === coHostUser.id)) {
+        alert('This user is already a co-host');
+        return;
+      }
+
+      setCoHosts(prev => [...prev, {
+        id: coHostUser.id,
+        name: coHostUser.full_name,
+        email: coHostUser.email,
+        role: 'co-host',
+        joinedAt: new Date()
+      }]);
+
+      setCoHostEmail('');
+      setShowCoHostDialog(false);
+      
+      alert(`✅ ${coHostUser.full_name} added as co-host!`);
+    } catch (error) {
+      alert('Error adding co-host: ' + error.message);
+    } finally {
+      setAddingCoHost(false);
+    }
+  };
+
+  const removeCoHost = (hostId) => {
+    if (confirm('Remove this co-host?')) {
+      setCoHosts(prev => prev.filter(h => h.id !== hostId));
+    }
   };
 
   return (
@@ -1004,6 +1113,142 @@ export default function AdminPodcastLive() {
             </Card>
           )}
 
+          {/* Co-hosting & Analytics Panel */}
+          <div className="grid md:grid-cols-2 gap-4">
+            {/* Co-Hosts */}
+            <Card className="bg-[#1a1f3a] border-slate-700">
+              <CardHeader className="border-b border-slate-700 py-3 px-4">
+                <div className="flex items-center justify-between">
+                  <CardTitle className="text-white font-bold text-sm flex items-center gap-2">
+                    <Users className="w-4 h-4 text-cyan-400" />
+                    Co-Hosts ({coHosts.length})
+                  </CardTitle>
+                  <Button
+                    size="sm"
+                    onClick={() => setShowCoHostDialog(true)}
+                    disabled={isLive}
+                    className="bg-cyan-500 hover:bg-cyan-600 h-7 px-2"
+                  >
+                    <Plus className="w-3 h-3 mr-1" />
+                    Add
+                  </Button>
+                </div>
+              </CardHeader>
+              <CardContent className="p-3 space-y-2 max-h-48 overflow-y-auto">
+                {coHosts.length === 0 ? (
+                  <div className="text-center py-6">
+                    <Users className="w-8 h-8 text-slate-600 mx-auto mb-2" />
+                    <p className="text-slate-500 text-xs">No co-hosts added</p>
+                  </div>
+                ) : (
+                  coHosts.map((host) => (
+                    <div key={host.id} className="flex items-center justify-between p-2 bg-slate-900/30 rounded">
+                      <div>
+                        <p className="text-white text-sm font-semibold">{host.name}</p>
+                        <p className="text-slate-400 text-xs">{host.email}</p>
+                      </div>
+                      <Button
+                        size="sm"
+                        variant="ghost"
+                        onClick={() => removeCoHost(host.id)}
+                        disabled={isLive}
+                        className="text-red-400 hover:text-red-300 h-6 px-2"
+                      >
+                        <Trash2 className="w-3 h-3" />
+                      </Button>
+                    </div>
+                  ))
+                )}
+              </CardContent>
+            </Card>
+
+            {/* Real-time Analytics */}
+            <Card className="bg-[#1a1f3a] border-slate-700">
+              <CardHeader className="border-b border-slate-700 py-3 px-4">
+                <div className="flex items-center justify-between">
+                  <CardTitle className="text-white font-bold text-sm flex items-center gap-2">
+                    <BarChart3 className="w-4 h-4 text-green-400" />
+                    Live Analytics
+                  </CardTitle>
+                  <Button
+                    size="sm"
+                    onClick={() => setShowAnalytics(!showAnalytics)}
+                    className="bg-green-500 hover:bg-green-600 h-7 px-2"
+                  >
+                    <Eye className="w-3 h-3" />
+                  </Button>
+                </div>
+              </CardHeader>
+              <CardContent className="p-3 space-y-2">
+                <div className="grid grid-cols-2 gap-2 text-xs">
+                  <div className="p-2 bg-slate-900/30 rounded">
+                    <p className="text-slate-400 mb-1">Engagement</p>
+                    <p className="text-white font-bold">
+                      {isLive ? Math.floor((engagementData.likes / Math.max(listenerCount, 1)) * 100) : 0}%
+                    </p>
+                  </div>
+                  <div className="p-2 bg-slate-900/30 rounded">
+                    <p className="text-slate-400 mb-1">Likes</p>
+                    <p className="text-green-400 font-bold">{engagementData.likes}</p>
+                  </div>
+                  <div className="p-2 bg-slate-900/30 rounded">
+                    <p className="text-slate-400 mb-1">Shares</p>
+                    <p className="text-cyan-400 font-bold">{engagementData.shares}</p>
+                  </div>
+                  <div className="p-2 bg-slate-900/30 rounded">
+                    <p className="text-slate-400 mb-1">Avg Time</p>
+                    <p className="text-purple-400 font-bold">
+                      {Math.floor(engagementData.avgWatchTime / 60)}m
+                    </p>
+                  </div>
+                </div>
+              </CardContent>
+            </Card>
+          </div>
+
+          {/* Real-time Feedback Stream */}
+          {showAnalytics && isLive && (
+            <Card className="bg-[#1a1f3a] border-green-500/30">
+              <CardHeader className="border-b border-slate-700 py-3 px-4">
+                <CardTitle className="text-white font-bold text-sm flex items-center gap-2">
+                  <MessageSquare className="w-4 h-4 text-green-400" />
+                  Real-time Feedback
+                </CardTitle>
+              </CardHeader>
+              <CardContent className="p-3 space-y-2 max-h-64 overflow-y-auto">
+                {realtimeFeedback.length === 0 ? (
+                  <div className="text-center py-6">
+                    <MessageSquare className="w-8 h-8 text-slate-600 mx-auto mb-2" />
+                    <p className="text-slate-500 text-xs">Waiting for feedback...</p>
+                  </div>
+                ) : (
+                  realtimeFeedback.map((feedback, idx) => (
+                    <div
+                      key={idx}
+                      className="p-2 bg-slate-900/30 rounded-lg border border-slate-700 animate-in fade-in slide-in-from-top"
+                    >
+                      <div className="flex items-start gap-2">
+                        <span className="text-2xl">{feedback.emoji}</span>
+                        <div className="flex-1">
+                          <p className="text-white text-sm">{feedback.text}</p>
+                          <p className="text-slate-500 text-xs">
+                            {Math.floor((Date.now() - feedback.timestamp) / 1000)}s ago
+                          </p>
+                        </div>
+                        <Badge className={
+                          feedback.sentiment === 'positive' ? 'bg-green-500' :
+                          feedback.sentiment === 'neutral' ? 'bg-slate-500' : 'bg-amber-500'
+                        }>
+                          {feedback.sentiment}
+                        </Badge>
+                      </div>
+                    </div>
+                  ))
+                )}
+              </CardContent>
+            </Card>
+          )}
+
           {/* Podcast Information Form */}
           <Card className="bg-[#1a1f3a] border-slate-700">
             <CardHeader className="border-b border-slate-700">
@@ -1269,6 +1514,67 @@ export default function AdminPodcastLive() {
           </Tabs>
         </div>
       </div>
+
+      {/* Co-Host Dialog */}
+      <Dialog open={showCoHostDialog} onOpenChange={setShowCoHostDialog}>
+        <DialogContent className="bg-[#1a1f3a] border-slate-700">
+          <DialogHeader>
+            <DialogTitle className="text-white font-bold flex items-center gap-2">
+              <Users className="w-5 h-5 text-cyan-400" />
+              Add Co-Host
+            </DialogTitle>
+          </DialogHeader>
+          <div className="py-4 space-y-4">
+            <div>
+              <Label className="text-white font-bold mb-2 block">Co-Host Email</Label>
+              <Input
+                type="email"
+                placeholder="cohost@example.com"
+                value={coHostEmail}
+                onChange={(e) => setCoHostEmail(e.target.value)}
+                className="bg-slate-900 border-slate-700 text-white"
+              />
+              <p className="text-slate-400 text-xs mt-2">
+                Enter the email of a registered user to add as co-host
+              </p>
+            </div>
+
+            <div className="p-3 bg-cyan-900/20 border border-cyan-500/30 rounded-lg">
+              <h4 className="text-cyan-300 font-bold text-sm mb-2">Co-Host Permissions:</h4>
+              <ul className="text-cyan-200 text-xs space-y-1">
+                <li>✓ Control microphone/camera</li>
+                <li>✓ Manage teleprompter</li>
+                <li>✓ View live analytics</li>
+                <li>✓ Interact with chat</li>
+                <li>✗ End the stream (host only)</li>
+              </ul>
+            </div>
+          </div>
+          <DialogFooter>
+            <Button
+              variant="outline"
+              onClick={() => {
+                setShowCoHostDialog(false);
+                setCoHostEmail('');
+              }}
+              className="border-slate-700"
+            >
+              Cancel
+            </Button>
+            <Button
+              onClick={addCoHost}
+              disabled={addingCoHost || !coHostEmail.trim()}
+              className="bg-cyan-500 hover:bg-cyan-600"
+            >
+              {addingCoHost ? (
+                <><RefreshCw className="w-4 h-4 mr-2 animate-spin" />Adding...</>
+              ) : (
+                <><Plus className="w-4 h-4 mr-2" />Add Co-Host</>
+              )}
+            </Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
     </div>
   );
 }

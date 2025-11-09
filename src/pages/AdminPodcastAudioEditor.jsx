@@ -13,7 +13,7 @@ import { Alert, AlertDescription } from "@/components/ui/alert";
 import {
   Play, Pause, Volume2, VolumeX, Download, ArrowLeft, Info,
   Settings, AlertTriangle, ExternalLink, Music, CheckCircle, Copy,
-  Wand2, RefreshCw, FileText, Edit, Save
+  Wand2, RefreshCw, FileText, Edit, Save, Film
 } from "lucide-react";
 import { Tabs, TabsList, TabsTrigger, TabsContent } from "@/components/ui/tabs";
 import { Link } from "react-router-dom";
@@ -58,6 +58,11 @@ export default function AdminPodcastAudioEditor() {
   const [reverb, setReverb] = useState(0);
   const [pitch, setPitch] = useState(0);
   const [tempo, setTempo] = useState(100);
+
+  // Trailer generation state
+  const [generatingTrailer, setGeneratingTrailer] = useState(false);
+  const [generatedTrailer, setGeneratedTrailer] = useState(null);
+  const [showTrailerDialog, setShowTrailerDialog] = useState(false);
 
   const audioRef = useRef(null);
   const audioContextRef = useRef(null);
@@ -173,85 +178,135 @@ export default function AdminPodcastAudioEditor() {
     };
   }, []);
 
-  const generateTranscript = async () => {
-    if (!podcast?.audio_url && !podcast?.video_url) {
-      alert('No audio file to transcribe');
-      return;
-    }
+  const generateShowNotes = async () => {
+    if (!podcast) return;
 
     setGeneratingTranscript(true);
     try {
-      // Use AI to generate transcript
       const result = await base44.integrations.Core.InvokeLLM({
-        prompt: `You are transcribing a podcast episode. 
+        prompt: `Generate comprehensive show notes for this podcast:
 
-Podcast Title: ${podcast.title}
-Host: ${podcast.host_name}
+Title: ${podcast.title}
 Description: ${podcast.description}
+Host: ${podcast.host_name}
 Duration: ${Math.floor((podcast.duration || 0) / 60)} minutes
+${existingTranscript?.transcript_text ? `\n\nTranscript:\n${existingTranscript.transcript_text.slice(0, 3000)}...` : ''}
 
-Since I cannot directly access the audio file, generate a realistic, professional podcast transcript based on the title, host, and description above.
+Create:
+1. Executive Summary (2-3 engaging sentences)
+2. 5-7 Key Topics Discussed (as bullet points)
+3. Main Takeaways (3-5 actionable insights)
+4. Timestamps for major topics
+5. Guest information (if applicable)
+6. Resources mentioned
+7. SEO-optimized description (150-200 words)
 
-Create a detailed transcript that:
-1. Includes timestamps every 1-2 minutes (format: [00:00])
-2. Identifies speakers (Host, Guest if applicable)
-3. Captures natural conversation flow with filler words occasionally
-4. Includes topic transitions
-5. Sounds authentic to the podcast's theme
-6. Is comprehensive and spans approximately ${Math.floor((podcast.duration || 300) / 60)} minutes of content
-
-Also generate:
-- A concise summary (2-3 sentences)
-- 5-7 key topics discussed
-- Show notes with main points
-
-Make it sound like a real transcript!`,
+Make it professional and comprehensive!`,
         response_json_schema: {
           type: "object",
           properties: {
-            transcript: { type: "string" },
+            transcript: { type: "string" }, // LLM might return a cleaned transcript as well
             summary: { type: "string" },
             key_topics: { type: "array", items: { type: "string" } },
-            show_notes: { type: "string" }
+            show_notes: { type: "string" },
+            takeaways: { type: "array", items: { type: "string" } },
+            timestamps: { type: "array", items: { type: "string" } },
+            seo_description: { type: "string" }
           }
         }
       });
 
-      setTranscript(result.transcript);
+      setTranscript(result.transcript || result.show_notes || '');
 
-      // Save transcript
       if (existingTranscript) {
         await updateTranscriptMutation.mutateAsync({
           id: existingTranscript.id,
           data: {
-            transcript_text: result.transcript,
+            transcript_text: result.transcript || result.show_notes,
             summary: result.summary,
             key_topics: result.key_topics,
             show_notes: result.show_notes,
             is_ai_generated: true,
-            is_verified: false
+            is_verified: false,
+            // New fields
+            takeaways: result.takeaways,
+            timestamps: result.timestamps,
+            seo_description: result.seo_description,
           }
         });
       } else {
         await createTranscriptMutation.mutateAsync({
           podcast_id: podcast.id,
           podcast_title: podcast.title,
-          transcript_text: result.transcript,
+          transcript_text: result.transcript || result.show_notes,
           summary: result.summary,
           key_topics: result.key_topics,
           show_notes: result.show_notes,
           is_ai_generated: true,
           is_verified: false,
           language: 'en',
-          searchable: true
+          searchable: true,
+          // New fields
+          takeaways: result.takeaways,
+          timestamps: result.timestamps,
+          seo_description: result.seo_description,
         });
       }
 
-      alert('✅ Transcript generated successfully!');
+      alert('✅ Show notes and key topics generated!');
     } catch (error) {
-      alert('Error generating transcript: ' + error.message);
+      alert('Error: ' + error.message);
     } finally {
       setGeneratingTranscript(false);
+    }
+  };
+
+  const generatePromotionalTrailer = async () => {
+    if (!podcast) return;
+
+    setGeneratingTrailer(true);
+    try {
+      const result = await base44.integrations.Core.InvokeLLM({
+        prompt: `Create a compelling promotional trailer script for this podcast episode:
+
+Title: ${podcast.title}
+Description: ${podcast.description}
+Host: ${podcast.host_name}
+Duration: ${Math.floor((podcast.duration || 0) / 60)} minutes
+
+Create a 30-60 second promotional trailer that includes:
+1. Attention-grabbing hook (first 5 seconds)
+2. Teaser of most interesting moment
+3. 2-3 key points covered
+4. Emotional appeal or curiosity gap
+5. Strong call-to-action
+
+Also generate:
+- Social media promo text (140 chars)
+- YouTube video description
+- Email subject line
+- 5 promotional hashtags`,
+        response_json_schema: {
+          type: "object",
+          properties: {
+            trailer_script: { type: "string" },
+            duration_seconds: { type: "number" },
+            social_promo: { type: "string" },
+            youtube_description: { type: "string" },
+            email_subject: { type: "string" },
+            hashtags: { type: "array", items: { type: "string" } },
+            visual_suggestions: { type: "array", items: { type: "string" } }
+          }
+        }
+      });
+
+      setGeneratedTrailer(result);
+      setShowTrailerDialog(true);
+      alert('✅ Promotional trailer generated!');
+    } catch (error) {
+      alert('Error: ' + error.message);
+    } finally {
+      setGeneratingTrailer(false);
     }
   };
 
@@ -274,6 +329,9 @@ Make it sound like a real transcript!`,
             key_topics: existingTranscript.key_topics,
             show_notes: existingTranscript.show_notes,
             is_ai_generated: existingTranscript.is_ai_generated, // Preserve original AI generation status
+            takeaways: existingTranscript.takeaways,
+            timestamps: existingTranscript.timestamps,
+            seo_description: existingTranscript.seo_description,
           }
         });
       } else {
@@ -718,50 +776,99 @@ PAID:
               </CardContent>
             </Card>
 
-            {/* AI Transcript Generator & Editor */}
+            {/* AI Show Notes & Transcript Generator */}
             <Card className="bg-[#1a1f3a] border-slate-700">
               <CardHeader className="border-b border-slate-700">
                 <div className="flex items-center justify-between">
                   <CardTitle className="text-white font-bold text-base flex items-center gap-2">
                     <FileText className="w-5 h-5 text-green-400" />
-                    AI Transcript Generator
+                    AI Show Notes & Transcript
                   </CardTitle>
-                  {existingTranscript && (
-                    <Badge className={existingTranscript.is_verified ? "bg-green-500" : "bg-amber-500"}>
-                      {existingTranscript.is_verified ? 'Verified' : 'AI Generated'}
-                    </Badge>
-                  )}
+                  <div className="flex gap-2">
+                    {!existingTranscript?.transcript_text && (
+                      <Button
+                        size="sm"
+                        onClick={generateShowNotes}
+                        disabled={generatingTranscript}
+                        className="bg-gradient-to-r from-green-500 to-emerald-500 hover:from-green-600 hover:to-emerald-600"
+                      >
+                        {generatingTranscript ? (
+                          <><RefreshCw className="w-3 h-3 mr-1 animate-spin" />Generating...</>
+                        ) : (
+                          <><Wand2 className="w-3 h-3 mr-1" />Generate All</>
+                        )}
+                      </Button>
+                    )}
+                    {existingTranscript && (
+                      <Badge className={existingTranscript.is_verified ? "bg-green-500" : "bg-amber-500"}>
+                        {existingTranscript.is_verified ? 'Verified' : 'AI Generated'}
+                      </Badge>
+                    )}
+                  </div>
                 </div>
               </CardHeader>
               <CardContent className="p-6 space-y-4">
-                {!transcript && !generatingTranscript ? (
+                {!existingTranscript?.transcript_text && !generatingTranscript ? (
                   <div className="text-center py-8">
                     <FileText className="w-16 h-16 text-slate-600 mx-auto mb-4" />
-                    <h3 className="text-white font-bold mb-2">No Transcript Yet</h3>
+                    <h3 className="text-white font-bold mb-2">Generate Show Notes</h3>
                     <p className="text-slate-400 text-sm mb-6">
-                      Generate an AI transcript to make your podcast searchable and accessible
+                      AI will create comprehensive show notes, transcript, and key topics
                     </p>
                     <Button
-                      onClick={generateTranscript}
+                      onClick={generateShowNotes}
                       disabled={generatingTranscript}
                       className="bg-gradient-to-r from-green-500 to-emerald-500 hover:from-green-600 hover:to-emerald-600"
                     >
                       <Wand2 className="w-4 h-4 mr-2" />
-                      Generate Transcript with AI
+                      Generate All with AI
                     </Button>
                   </div>
                 ) : generatingTranscript ? (
                   <div className="text-center py-8">
                     <RefreshCw className="w-12 h-12 text-green-400 mx-auto mb-4 animate-spin" />
-                    <h3 className="text-white font-bold mb-2">Generating Transcript...</h3>
+                    <h3 className="text-white font-bold mb-2">Generating...</h3>
                     <p className="text-slate-400 text-sm">
-                      AI is analyzing your podcast and creating a detailed transcript
+                      Creating transcript, show notes, and key topics
                     </p>
                   </div>
                 ) : (
                   <div className="space-y-4">
+                    {/* Key Topics & Summary */}
+                    {existingTranscript && (
+                      <div className="space-y-3">
+                        {existingTranscript.summary && (
+                          <div className="p-3 bg-green-900/20 border border-green-500/30 rounded-lg">
+                            <Label className="text-green-300 text-xs mb-1 block font-bold">SUMMARY</Label>
+                            <p className="text-green-100 text-sm">{existingTranscript.summary}</p>
+                          </div>
+                        )}
+                        
+                        {existingTranscript.key_topics && existingTranscript.key_topics.length > 0 && (
+                          <div>
+                            <Label className="text-white font-bold text-sm mb-2 block">Key Topics</Label>
+                            <div className="flex flex-wrap gap-2">
+                              {existingTranscript.key_topics.map((topic, idx) => (
+                                <Badge key={idx} className="bg-purple-500">{topic}</Badge>
+                              ))}
+                            </div>
+                          </div>
+                        )}
+
+                        {existingTranscript.show_notes && (
+                          <div className="p-3 bg-cyan-900/20 border border-cyan-500/30 rounded-lg">
+                            <Label className="text-cyan-300 text-xs mb-2 block font-bold">SHOW NOTES</Label>
+                            <pre className="text-cyan-100 text-sm whitespace-pre-wrap">
+                              {existingTranscript.show_notes}
+                            </pre>
+                          </div>
+                        )}
+                      </div>
+                    )}
+
+                    {/* Transcript Editor */}
                     <div className="flex items-center justify-between">
-                      <Label className="text-white font-bold">Transcript</Label>
+                      <Label className="text-white font-bold">Full Transcript</Label>
                       <div className="flex gap-2">
                         {!editingTranscript ? (
                           <>
@@ -777,7 +884,7 @@ PAID:
                               size="sm"
                               onClick={() => {
                                 navigator.clipboard.writeText(transcript);
-                                alert('Transcript copied to clipboard!');
+                                alert('Transcript copied!');
                               }}
                               className="bg-purple-500 hover:bg-purple-600"
                             >
@@ -786,13 +893,13 @@ PAID:
                             </Button>
                             <Button
                               size="sm"
-                              onClick={generateTranscript}
+                              onClick={generateShowNotes}
                               disabled={generatingTranscript}
                               variant="outline"
                               className="border-slate-700"
                             >
                               <RefreshCw className="w-3 h-3 mr-1" />
-                              Regenerate
+                              Regenerate All
                             </Button>
                           </>
                         ) : (
@@ -813,7 +920,7 @@ PAID:
                               size="sm"
                               onClick={() => {
                                 setEditingTranscript(false);
-                                setTranscript(existingTranscript?.transcript_text || transcript); // Revert to saved or previous generated
+                                setTranscript(existingTranscript?.transcript_text || transcript);
                                 setTranscriptEdited(false);
                               }}
                               variant="outline"
@@ -841,27 +948,6 @@ PAID:
                         <pre className="text-slate-300 text-sm whitespace-pre-wrap font-mono">
                           {transcript}
                         </pre>
-                      </div>
-                    )}
-
-                    {existingTranscript && (
-                      <div className="grid grid-cols-2 gap-4 pt-4 border-t border-slate-700">
-                        {existingTranscript.summary && (
-                          <div>
-                            <Label className="text-slate-400 text-xs mb-1 block">Summary</Label>
-                            <p className="text-white text-sm">{existingTranscript.summary}</p>
-                          </div>
-                        )}
-                        {existingTranscript.key_topics && existingTranscript.key_topics.length > 0 && (
-                          <div>
-                            <Label className="text-slate-400 text-xs mb-1 block">Key Topics</Label>
-                            <div className="flex flex-wrap gap-1">
-                              {existingTranscript.key_topics.map((topic, idx) => (
-                                <Badge key={idx} className="bg-purple-500 text-xs">{topic}</Badge>
-                              ))}
-                            </div>
-                          </div>
-                        )}
                       </div>
                     )}
                   </div>
@@ -1009,6 +1095,37 @@ PAID:
           <div className="space-y-6">
             <Card className="bg-[#1a1f3a] border-slate-700">
               <CardHeader className="border-b border-slate-700">
+                <CardTitle className="text-white font-bold text-base">AI Marketing Tools</CardTitle>
+              </CardHeader>
+              <CardContent className="p-4 space-y-2">
+                <Button
+                  onClick={generateShowNotes}
+                  disabled={generatingTranscript}
+                  className="w-full bg-gradient-to-r from-green-500 to-emerald-500 hover:from-green-600 hover:to-emerald-600 justify-start font-semibold"
+                >
+                  {generatingTranscript ? (
+                    <><RefreshCw className="w-4 h-4 mr-2 animate-spin" />Generating...</>
+                  ) : (
+                    <><Wand2 className="w-4 h-4 mr-2" />Generate Show Notes</>
+                  )}
+                </Button>
+
+                <Button
+                  onClick={generatePromotionalTrailer}
+                  disabled={generatingTrailer}
+                  className="w-full bg-gradient-to-r from-orange-500 to-red-500 hover:from-orange-600 hover:to-red-600 justify-start font-semibold"
+                >
+                  {generatingTrailer ? (
+                    <><RefreshCw className="w-4 h-4 mr-2 animate-spin" />Creating...</>
+                  ) : (
+                    <><Film className="w-4 h-4 mr-2" />Create Promo Trailer</>
+                  )}
+                </Button>
+              </CardContent>
+            </Card>
+
+            <Card className="bg-[#1a1f3a] border-slate-700">
+              <CardHeader className="border-b border-slate-700">
                 <CardTitle className="text-white font-bold text-base">Actions</CardTitle>
               </CardHeader>
               <CardContent className="p-4 space-y-2">
@@ -1128,6 +1245,158 @@ PAID:
             </Card>
           </div>
         </div>
+
+        {/* Promotional Trailer Dialog */}
+        <Dialog open={showTrailerDialog} onOpenChange={setShowTrailerDialog}>
+          <DialogContent className="bg-[#1a1f3a] border-slate-700 max-w-3xl max-h-[90vh] overflow-y-auto">
+            <DialogHeader>
+              <DialogTitle className="text-white font-black text-xl flex items-center gap-2">
+                <Film className="w-6 h-6 text-orange-400" />
+                Promotional Trailer Package
+              </DialogTitle>
+              <DialogDescription className="text-slate-400">
+                {podcast?.title}
+              </DialogDescription>
+            </DialogHeader>
+            {generatedTrailer && (
+              <div className="space-y-4 py-4">
+                {/* Trailer Script */}
+                <Card className="bg-slate-900/30 border-orange-500/30">
+                  <CardHeader className="py-3 px-4 border-b border-slate-700">
+                    <CardTitle className="text-white font-bold text-sm flex items-center gap-2">
+                      <FileText className="w-4 h-4 text-orange-400" />
+                      Trailer Script ({generatedTrailer.duration_seconds}s)
+                    </CardTitle>
+                  </CardHeader>
+                  <CardContent className="p-4">
+                    <Textarea
+                      value={generatedTrailer.trailer_script}
+                      readOnly
+                      className="bg-slate-900 border-slate-700 text-white h-64 mb-3 font-mono text-sm"
+                    />
+                    <Button
+                      size="sm"
+                      onClick={() => {
+                        navigator.clipboard.writeText(generatedTrailer.trailer_script);
+                        alert('Trailer script copied!');
+                      }}
+                      className="bg-orange-500 hover:bg-orange-600"
+                    >
+                      <Copy className="w-3 h-3 mr-1" />
+                      Copy Script
+                    </Button>
+                  </CardContent>
+                </Card>
+
+                {/* Visual Suggestions */}
+                {generatedTrailer.visual_suggestions && (
+                  <Card className="bg-slate-900/30 border-purple-500/30">
+                    <CardHeader className="py-3 px-4 border-b border-slate-700">
+                      <CardTitle className="text-white font-bold text-sm">Visual Suggestions</CardTitle>
+                    </CardHeader>
+                    <CardContent className="p-4">
+                      <ul className="space-y-2">
+                        {generatedTrailer.visual_suggestions.map((suggestion, idx) => (
+                          <li key={idx} className="text-purple-200 text-sm flex items-start gap-2">
+                            <Film className="w-3 h-3 mt-1 flex-shrink-0" />
+                            {suggestion}
+                          </li>
+                        ))}
+                      </ul>
+                    </CardContent>
+                  </Card>
+                )}
+
+                {/* Promotional Copy */}
+                <div className="grid md:grid-cols-2 gap-4">
+                  <Card className="bg-slate-900/30 border-blue-500/30">
+                    <CardHeader className="py-3 px-4 border-b border-slate-700">
+                      <CardTitle className="text-white font-bold text-sm">Social Media Promo</CardTitle>
+                    </CardHeader>
+                    <CardContent className="p-4">
+                      <p className="text-blue-200 text-sm mb-3">{generatedTrailer.social_promo}</p>
+                      <Button
+                        size="sm"
+                        onClick={() => {
+                          navigator.clipboard.writeText(generatedTrailer.social_promo);
+                          alert('Copied!');
+                        }}
+                        className="bg-blue-500 hover:bg-blue-600 w-full"
+                      >
+                        <Copy className="w-3 h-3 mr-1" />
+                        Copy
+                      </Button>
+                    </CardContent>
+                  </Card>
+
+                  <Card className="bg-slate-900/30 border-red-500/30">
+                    <CardHeader className="py-3 px-4 border-b border-slate-700">
+                      <CardTitle className="text-white font-bold text-sm">Email Subject</CardTitle>
+                    </CardHeader>
+                    <CardContent className="p-4">
+                      <p className="text-red-200 text-sm mb-3">{generatedTrailer.email_subject}</p>
+                      <Button
+                        size="sm"
+                        onClick={() => {
+                          navigator.clipboard.writeText(generatedTrailer.email_subject);
+                          alert('Copied!');
+                        }}
+                        className="bg-red-500 hover:bg-red-600 w-full"
+                      >
+                        <Copy className="w-3 h-3 mr-1" />
+                        Copy
+                      </Button>
+                    </CardContent>
+                  </Card>
+                </div>
+
+                {/* YouTube Description */}
+                <Card className="bg-slate-900/30 border-red-600/30">
+                  <CardHeader className="py-3 px-4 border-b border-slate-700">
+                    <CardTitle className="text-white font-bold text-sm">YouTube Description</CardTitle>
+                  </CardHeader>
+                  <CardContent className="p-4">
+                    <Textarea
+                      value={generatedTrailer.youtube_description}
+                      readOnly
+                      className="bg-slate-900 border-slate-700 text-white h-32 mb-3 text-sm"
+                    />
+                    <Button
+                      size="sm"
+                      onClick={() => {
+                        navigator.clipboard.writeText(generatedTrailer.youtube_description);
+                        alert('Copied!');
+                      }}
+                      className="bg-red-600 hover:bg-red-700 w-full"
+                    >
+                      <Copy className="w-3 h-3 mr-1" />
+                      Copy Description
+                    </Button>
+                  </CardContent>
+                </Card>
+
+                {/* Hashtags */}
+                <div>
+                  <Label className="text-white font-bold mb-2 block">Promotional Hashtags</Label>
+                  <div className="flex flex-wrap gap-2">
+                    {generatedTrailer.hashtags?.map((tag, idx) => (
+                      <Badge key={idx} className="bg-cyan-500 cursor-pointer" onClick={() => {
+                        navigator.clipboard.writeText(`#${tag}`);
+                      }}>
+                        #{tag}
+                      </Badge>
+                    ))}
+                  </div>
+                </div>
+              </div>
+            )}
+            <DialogFooter>
+              <Button onClick={() => setShowTrailerDialog(false)} className="bg-cyan-500 hover:bg-cyan-600">
+                Done
+              </Button>
+            </DialogFooter>
+          </DialogContent>
+        </Dialog>
 
         {/* WebM to MP3 Conversion Guide Dialog */}
         <Dialog open={showConversionGuide} onOpenChange={setShowConversionGuide}>

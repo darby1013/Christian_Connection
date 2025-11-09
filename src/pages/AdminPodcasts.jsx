@@ -20,7 +20,8 @@ import {
   Mic2, Plus, Search, TrendingUp, Play, Trash2, Edit, Upload,
   Eye, BarChart3, Clock, Star, Video, Film, Calendar as CalendarIcon,
   DollarSign, Download, Wand2, RefreshCw, FileVideo, Music, Sliders,
-  AlertCircle, AlertTriangle, Filter, SortAsc, SortDesc, User
+  AlertCircle, AlertTriangle, Filter, SortAsc, SortDesc, User,
+  Share2, Copy // Added Share2 and Copy icons
 } from "lucide-react";
 import {
   Dialog,
@@ -65,6 +66,16 @@ export default function AdminPodcasts() {
   const [filterDurationMin, setFilterDurationMin] = useState("");
   const [filterDurationMax, setFilterDurationMax] = useState("");
   const [sortBy, setSortBy] = useState("date_desc");
+
+  // Auto social media & chapters state
+  const [generatingSocial, setGeneratingSocial] = useState(null);
+  const [generatingChapters, setGeneratingChapters] = useState(null);
+  const [socialMediaDialog, setSocialMediaDialog] = useState(false);
+  const [chaptersDialog, setChaptersDialog] = useState(false);
+  const [selectedForSocial, setSelectedForSocial] = useState(null);
+  const [selectedForChapters, setSelectedForChapters] = useState(null);
+  const [generatedSocial, setGeneratedSocial] = useState(null);
+  const [generatedChapters, setGeneratedChapters] = useState(null);
 
   const [podcastForm, setPodcastForm] = useState({
     title: '',
@@ -544,7 +555,6 @@ export default function AdminPodcasts() {
       source.connect(dest);
       // We don't connect to audioContext.destination because we only want to record, not play
 
-      // Record audio only
       const mediaRecorder = new MediaRecorder(dest.stream, {
         mimeType: 'audio/webm;codecs=opus' // Use WebM for broader browser support
       });
@@ -658,6 +668,142 @@ export default function AdminPodcasts() {
       }
     } catch (error) {
       alert('Download error: ' + error.message);
+    }
+  };
+
+  const generateSocialMediaPosts = async (podcast) => {
+    setGeneratingSocial(podcast.id);
+    setSelectedForSocial(podcast);
+
+    try {
+      const result = await base44.integrations.Core.InvokeLLM({
+        prompt: `Generate social media posts for this podcast episode:
+
+Title: ${podcast.title}
+Description: ${podcast.description}
+Host: ${podcast.host_name}
+Duration: ${Math.floor((podcast.duration || 0) / 60)} minutes
+Episode: S${podcast.season}E${podcast.episode_number}
+
+Create optimized posts for:
+
+1. TWITTER/X (280 chars max):
+   - Hook in first line
+   - Key insight
+   - Call to action
+   - 3-5 hashtags
+
+2. LINKEDIN (1300 chars max):
+   - Professional hook
+   - 3 key takeaways
+   - Professional hashtags
+   - Thought-provoking question
+
+3. INSTAGRAM Caption (2200 chars max):
+   - Storytelling hook
+   - Episode highlights
+   - Emojis
+   - 20-25 hashtags
+
+4. FACEBOOK (few paragraphs):
+   - Community-focused
+   - Engaging question
+   - Call to action
+
+Make each post platform-specific and engaging!`,
+        response_json_schema: {
+          type: "object",
+          properties: {
+            twitter: {
+              type: "object",
+              properties: {
+                post: { type: "string" },
+                hashtags: { type: "array", items: { type: "string" } }
+              }
+            },
+            linkedin: {
+              type: "object",
+              properties: {
+                post: { type: "string" },
+                hashtags: { type: "array", items: { type: "string" } }
+              }
+            },
+            instagram: {
+              type: "object",
+              properties: {
+                caption: { type: "string" },
+                hashtags: { type: "array", items: { type: "string" } }
+              }
+            },
+            facebook: {
+              type: "object",
+              properties: {
+                post: { type: "string" }
+              }
+            }
+          }
+        }
+      });
+
+      setGeneratedSocial(result);
+      setSocialMediaDialog(true);
+      alert('✅ Social media posts generated!');
+    } catch (error) {
+      alert('Error generating social posts: ' + error.message);
+    } finally {
+      setGeneratingSocial(null);
+    }
+  };
+
+  const generateChapterMarkers = async (podcast) => {
+    setGeneratingChapters(podcast.id);
+    setSelectedForChapters(podcast);
+
+    try {
+      const result = await base44.integrations.Core.InvokeLLM({
+        prompt: `Generate chapter markers for this podcast episode:
+
+Title: ${podcast.title}
+Description: ${podcast.description}
+Host: ${podcast.host_name}
+Duration: ${Math.floor((podcast.duration || 0) / 60)} minutes
+
+Create 8-12 chapter markers with:
+- Timestamp (format: MM:SS)
+- Chapter title (concise, descriptive)
+- Brief description (1 sentence)
+- Keywords for SEO (3-5 per chapter)
+
+Distribute chapters evenly across the episode duration.
+Make chapters searchable and descriptive for SEO optimization.`,
+        response_json_schema: {
+          type: "object",
+          properties: {
+            chapters: {
+              type: "array",
+              items: {
+                type: "object",
+                properties: {
+                  timestamp: { type: "string" },
+                  title: { type: "string" },
+                  description: { type: "string" },
+                  keywords: { type: "array", items: { type: "string" } }
+                }
+              }
+            },
+            seo_description: { type: "string" },
+            seo_keywords: { type: "array", items: { type: "string" } }
+          }
+        }
+      });
+
+      setGeneratedChapters(result);
+      setChaptersDialog(true);
+      alert('✅ Chapter markers generated!');
+    } catch (error) {
+      alert('Error generating chapters: ' + error.message);
+    } finally {
+      setGeneratingChapters(null);
     }
   };
 
@@ -1241,6 +1387,34 @@ export default function AdminPodcasts() {
                           </Link>
                         )}
 
+                        {/* AI Social Media Generator */}
+                        <Button
+                          size="sm"
+                          onClick={() => generateSocialMediaPosts(podcast)}
+                          disabled={generatingSocial === podcast.id}
+                          className="bg-gradient-to-r from-blue-600 to-cyan-600 hover:from-blue-700 hover:to-cyan-700"
+                        >
+                          {generatingSocial === podcast.id ? (
+                            <><RefreshCw className="w-3 h-3 mr-1 animate-spin" />Generating...</>
+                          ) : (
+                            <><Wand2 className="w-3 h-3 mr-1" />Social Posts</>
+                          )}
+                        </Button>
+
+                        {/* AI Chapter Markers */}
+                        <Button
+                          size="sm"
+                          onClick={() => generateChapterMarkers(podcast)}
+                          disabled={generatingChapters === podcast.id}
+                          className="bg-gradient-to-r from-green-600 to-emerald-600 hover:from-green-700 hover:to-emerald-700"
+                        >
+                          {generatingChapters === podcast.id ? (
+                            <><RefreshCw className="w-3 h-3 mr-1 animate-spin" />Generating...</>
+                          ) : (
+                            <><Wand2 className="w-3 h-3 mr-1" />Chapters</>
+                          )}
+                        </Button>
+
                         {/* NEW: AI Marketing Tools */}
                         <Button
                           size="sm"
@@ -1752,6 +1926,245 @@ export default function AdminPodcasts() {
           <DialogFooter>
             <Button onClick={() => setShowConversionGuide(false)} className="bg-cyan-500 hover:bg-cyan-600">
               Got It!
+            </Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
+
+      {/* Social Media Posts Dialog */}
+      <Dialog open={socialMediaDialog} onOpenChange={setSocialMediaDialog}>
+        <DialogContent className="bg-[#1a1f3a] border-slate-700 max-w-4xl max-h-[90vh] overflow-y-auto">
+          <DialogHeader>
+            <DialogTitle className="text-white font-black text-xl flex items-center gap-2">
+              <Wand2 className="w-6 h-6 text-blue-400" />
+              AI-Generated Social Media Posts
+            </DialogTitle>
+            <DialogDescription className="text-slate-400">
+              {selectedForSocial?.title}
+            </DialogDescription>
+          </DialogHeader>
+          {generatedSocial && (
+            <div className="space-y-4 py-4">
+              {/* Twitter */}
+              <Card className="bg-slate-900/30 border-blue-500/30">
+                <CardHeader className="py-3 px-4 border-b border-slate-700">
+                  <CardTitle className="text-white font-bold text-sm flex items-center gap-2">
+                    <Share2 className="w-4 h-4 text-blue-400" />
+                    Twitter/X
+                  </CardTitle>
+                </CardHeader>
+                <CardContent className="p-4">
+                  <Textarea
+                    value={generatedSocial.twitter?.post}
+                    readOnly
+                    className="bg-slate-900 border-slate-700 text-white h-32 mb-3"
+                  />
+                  <div className="flex flex-wrap gap-1 mb-3">
+                    {generatedSocial.twitter?.hashtags?.map((tag, idx) => (
+                      <Badge key={idx} className="bg-blue-500">#{tag}</Badge>
+                    ))}
+                  </div>
+                  <Button
+                    size="sm"
+                    onClick={() => {
+                      navigator.clipboard.writeText(generatedSocial.twitter?.post + '\n\n' + generatedSocial.twitter?.hashtags?.map(t => `#${t}`).join(' '));
+                      alert('Twitter post copied!');
+                    }}
+                    className="bg-blue-500 hover:bg-blue-600"
+                  >
+                    <Copy className="w-3 h-3 mr-1" />
+                    Copy Post
+                  </Button>
+                </CardContent>
+              </Card>
+
+              {/* LinkedIn */}
+              <Card className="bg-slate-900/30 border-blue-700/30">
+                <CardHeader className="py-3 px-4 border-b border-slate-700">
+                  <CardTitle className="text-white font-bold text-sm flex items-center gap-2">
+                    <Share2 className="w-4 h-4 text-blue-600" />
+                    LinkedIn
+                  </CardTitle>
+                </CardHeader>
+                <CardContent className="p-4">
+                  <Textarea
+                    value={generatedSocial.linkedin?.post}
+                    readOnly
+                    className="bg-slate-900 border-slate-700 text-white h-48 mb-3"
+                  />
+                  <div className="flex flex-wrap gap-1 mb-3">
+                    {generatedSocial.linkedin?.hashtags?.map((tag, idx) => (
+                      <Badge key={idx} className="bg-blue-700">#{tag}</Badge>
+                    ))}
+                  </div>
+                  <Button
+                    size="sm"
+                    onClick={() => {
+                      navigator.clipboard.writeText(generatedSocial.linkedin?.post + '\n\n' + generatedSocial.linkedin?.hashtags?.map(t => `#${t}`).join(' '));
+                      alert('LinkedIn post copied!');
+                    }}
+                    className="bg-blue-700 hover:bg-blue-800"
+                  >
+                    <Copy className="w-3 h-3 mr-1" />
+                    Copy Post
+                  </Button>
+                </CardContent>
+              </Card>
+
+              {/* Instagram */}
+              <Card className="bg-slate-900/30 border-pink-500/30">
+                <CardHeader className="py-3 px-4 border-b border-slate-700">
+                  <CardTitle className="text-white font-bold text-sm flex items-center gap-2">
+                    <Share2 className="w-4 h-4 text-pink-400" />
+                    Instagram
+                  </CardTitle>
+                </CardHeader>
+                <CardContent className="p-4">
+                  <Textarea
+                    value={generatedSocial.instagram?.caption}
+                    readOnly
+                    className="bg-slate-900 border-slate-700 text-white h-64 mb-3"
+                  />
+                  <div className="flex flex-wrap gap-1 mb-3 max-h-32 overflow-y-auto">
+                    {generatedSocial.instagram?.hashtags?.map((tag, idx) => (
+                      <Badge key={idx} className="bg-pink-500">#{tag}</Badge>
+                    ))}
+                  </div>
+                  <Button
+                    size="sm"
+                    onClick={() => {
+                      navigator.clipboard.writeText(generatedSocial.instagram?.caption + '\n\n' + generatedSocial.instagram?.hashtags?.map(t => `#${t}`).join(' '));
+                      alert('Instagram caption copied!');
+                    }}
+                    className="bg-pink-500 hover:bg-pink-600"
+                  >
+                    <Copy className="w-3 h-3 mr-1" />
+                    Copy Caption
+                  </Button>
+                </CardContent>
+              </Card>
+
+              {/* Facebook */}
+              <Card className="bg-slate-900/30 border-blue-600/30">
+                <CardHeader className="py-3 px-4 border-b border-slate-700">
+                  <CardTitle className="text-white font-bold text-sm flex items-center gap-2">
+                    <Share2 className="w-4 h-4 text-blue-500" />
+                    Facebook
+                  </CardTitle>
+                </CardHeader>
+                <CardContent className="p-4">
+                  <Textarea
+                    value={generatedSocial.facebook?.post}
+                    readOnly
+                    className="bg-slate-900 border-slate-700 text-white h-48 mb-3"
+                  />
+                  <Button
+                    size="sm"
+                    onClick={() => {
+                      navigator.clipboard.writeText(generatedSocial.facebook?.post);
+                      alert('Facebook post copied!');
+                    }}
+                    className="bg-blue-600 hover:bg-blue-700"
+                  >
+                    <Copy className="w-3 h-3 mr-1" />
+                    Copy Post
+                  </Button>
+                </CardContent>
+              </Card>
+            </div>
+          )}
+          <DialogFooter>
+            <Button onClick={() => setSocialMediaDialog(false)} className="bg-cyan-500 hover:bg-cyan-600">
+              Done
+            </Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
+
+      {/* Chapter Markers Dialog */}
+      <Dialog open={chaptersDialog} onOpenChange={setChaptersDialog}>
+        <DialogContent className="bg-[#1a1f3a] border-slate-700 max-w-4xl max-h-[90vh] overflow-y-auto">
+          <DialogHeader>
+            <DialogTitle className="text-white font-black text-xl flex items-center gap-2">
+              <Wand2 className="w-6 h-6 text-green-400" />
+              AI-Generated Chapter Markers
+            </DialogTitle>
+            <DialogDescription className="text-slate-400">
+              {selectedForChapters?.title}
+            </DialogDescription>
+          </DialogHeader>
+          {generatedChapters && (
+            <div className="space-y-4 py-4">
+              <div className="p-4 bg-green-900/20 border border-green-500/30 rounded-lg">
+                <h4 className="text-green-300 font-bold mb-2">SEO Optimized Description</h4>
+                <p className="text-green-100 text-sm">{generatedChapters.seo_description}</p>
+                <div className="flex flex-wrap gap-1 mt-3">
+                  {generatedChapters.seo_keywords?.map((kw, idx) => (
+                    <Badge key={idx} className="bg-green-500 text-xs">{kw}</Badge>
+                  ))}
+                </div>
+              </div>
+
+              <div className="space-y-3">
+                <h4 className="text-white font-bold">Chapter Markers ({generatedChapters.chapters?.length})</h4>
+                {generatedChapters.chapters?.map((chapter, idx) => (
+                  <Card key={idx} className="bg-slate-900/30 border-slate-700">
+                    <CardContent className="p-4">
+                      <div className="flex items-start gap-3">
+                        <div className="w-16 h-16 bg-gradient-to-br from-green-500 to-emerald-500 rounded-lg flex items-center justify-center flex-shrink-0">
+                          <span className="text-white font-black text-xl">{idx + 1}</span>
+                        </div>
+                        <div className="flex-1">
+                          <div className="flex items-center gap-2 mb-1">
+                            <Badge className="bg-green-500">{chapter.timestamp}</Badge>
+                            <h5 className="text-white font-bold">{chapter.title}</h5>
+                          </div>
+                          <p className="text-slate-300 text-sm mb-2">{chapter.description}</p>
+                          <div className="flex flex-wrap gap-1">
+                            {chapter.keywords?.map((kw, kidx) => (
+                              <Badge key={kidx} className="bg-emerald-500 text-xs">{kw}</Badge>
+                            ))}
+                          </div>
+                        </div>
+                      </div>
+                    </CardContent>
+                  </Card>
+                ))}
+              </div>
+
+              <div className="flex gap-2">
+                <Button
+                  onClick={() => {
+                    const chaptersText = generatedChapters.chapters?.map((ch, idx) =>
+                      `${ch.timestamp} - ${ch.title}\n${ch.description}\nKeywords: ${ch.keywords?.join(', ')}`
+                    ).join('\n\n');
+                    navigator.clipboard.writeText(chaptersText);
+                    alert('Chapters copied to clipboard!');
+                  }}
+                  className="flex-1 bg-green-500 hover:bg-green-600"
+                >
+                  <Copy className="w-4 h-4 mr-2" />
+                  Copy All Chapters
+                </Button>
+                <Button
+                  onClick={() => {
+                    const youtubeFormat = generatedChapters.chapters?.map(ch =>
+                      `${ch.timestamp} ${ch.title}`
+                    ).join('\n');
+                    navigator.clipboard.writeText(youtubeFormat);
+                    alert('YouTube-formatted chapters copied!');
+                  }}
+                  className="flex-1 bg-red-500 hover:bg-red-600"
+                >
+                  <Copy className="w-4 h-4 mr-2" />
+                  Copy for YouTube
+                </Button>
+              </div>
+            </div>
+          )}
+          <DialogFooter>
+            <Button onClick={() => setChaptersDialog(false)} className="bg-cyan-500 hover:bg-cyan-600">
+              Done
             </Button>
           </DialogFooter>
         </DialogContent>
