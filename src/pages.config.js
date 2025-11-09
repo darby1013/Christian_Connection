@@ -48,6 +48,8 @@ import Donate from './pages/Donate';
 import BlogDetail from './pages/BlogDetail';
 import AdminPodcasts from './pages/AdminPodcasts';
 import AdminUsers from './pages/AdminUsers';
+import AdminVideos from './pages/AdminVideos';
+import AdminOrders from './pages/AdminOrders';
 import Layout from './Layout.jsx';
 
 
@@ -102,6 +104,8 @@ export const PAGES = {
     "BlogDetail": BlogDetail,
     "AdminPodcasts": AdminPodcasts,
     "AdminUsers": AdminUsers,
+    "AdminVideos": AdminVideos,
+    "AdminOrders": AdminOrders,
 }
 
 export const pagesConfig = {
