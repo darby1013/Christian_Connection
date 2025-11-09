@@ -38,6 +38,8 @@ import Leaderboard from './pages/Leaderboard';
 import PodcastClipStudio from './pages/PodcastClipStudio';
 import GroupAnalytics from './pages/GroupAnalytics';
 import AdminGroupManagement from './pages/AdminGroupManagement';
+import Forum from './pages/Forum';
+import ForumDetail from './pages/ForumDetail';
 import Layout from './Layout.jsx';
 
 
@@ -82,6 +84,8 @@ export const PAGES = {
     "PodcastClipStudio": PodcastClipStudio,
     "GroupAnalytics": GroupAnalytics,
     "AdminGroupManagement": AdminGroupManagement,
+    "Forum": Forum,
+    "ForumDetail": ForumDetail,
 }
 
 export const pagesConfig = {
