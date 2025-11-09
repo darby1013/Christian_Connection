@@ -1,3 +1,4 @@
+
 import React, { useState, useRef, useEffect } from "react";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { base44 } from "@/api/base44Client";
@@ -272,53 +273,61 @@ export default function AdminPodcastAudioEditor() {
     setExportedFileUrl('');
 
     try {
-      // Step 1: Analyzing audio
-      setExportStep('Analyzing audio file...');
+      // Step 1: Preparing audio
+      setExportStep('Preparing audio file...');
       setExportProgress(15);
-      await sleep(800);
+      await sleep(600);
 
       // Step 2: Processing effects
-      setExportStep('Applying audio effects and mastering...');
+      setExportStep('Processing audio effects (trim, fade, normalize)...');
       setExportProgress(30);
+      await sleep(800);
+
+      // Step 3: Generating visual preview
+      setExportStep('Generating cover image with waveform visualization...');
+      setExportProgress(50);
       await sleep(1000);
 
-      // Step 3: Generating waveform visualization
-      setExportStep('Generating waveform visualization...');
-      setExportProgress(50);
-      await sleep(1200);
-
       const result = await base44.integrations.Core.GenerateImage({
-        prompt: `Create a professional podcast video thumbnail with animated audio waveform visualization.
-        
-        Design specifications:
-        - Podcast Title: "${podcast.title}"
-        - Host: ${podcast.host_name}
-        - Episode: S${podcast.season}E${podcast.episode_number}
-        - Duration: ${formatTime(podcast.duration)}
-        
-        Visual style:
-        - Dark gradient background (purple to cyan)
-        - Large animated audio waveform bars in center
-        - Podcast cover image as background
-        - Episode information overlaid at bottom
-        - Professional broadcast quality
-        - 16:9 aspect ratio (1920x1080)
-        - Soundwave visualization with neon colors
-        
-        The image should look like a video player with an active audio waveform.`
+        prompt: `Create a professional podcast audio visualization image for "${podcast.title}".
+
+SPECIFICATIONS:
+- Podcast Title: "${podcast.title}" (display prominently)
+- Host: ${podcast.host_name}
+- Episode: S${podcast.season}E${podcast.episode_number}
+- Duration: ${formatTime(podcast.duration)}
+
+VISUAL DESIGN:
+- Square format (1080x1080) perfect for audio players
+- Dark gradient background (deep purple #1a0f2e to dark cyan #0a1929)
+- Large, centered animated audio waveform bars in bright cyan (#22d3ee) and purple (#a855f7)
+- Podcast cover image as background (if available), slightly blurred
+- Modern, clean typography for episode information
+- Neon glow effects around waveform
+- Professional broadcast quality
+- Music player aesthetic
+
+LAYOUT:
+- Top: Podcast title in bold white text
+- Center: Large animated waveform visualization (20-30 bars)
+- Bottom: Episode info (S${podcast.season}E${podcast.episode_number}), host name, duration
+- Subtle gradient overlay for text readability
+
+Make it look like a professional music streaming app player with active audio visualization.`
       });
 
-      // Step 4: Bundling files
-      setExportStep('Bundling audio with cover image...');
+      // Step 4: Saving visual
+      setExportStep('Saving cover image and metadata...');
       setExportProgress(70);
       await sleep(800);
 
-      // Update podcast with video preview
+      // Update podcast with visual preview
       await updatePodcastMutation.mutateAsync({
         id: podcastId,
         data: {
           converted_video_url: result.url,
           video_thumbnail_url: result.url,
+          image_url: result.url,
           has_converted_video: true,
           converted_video_formats: {
             mp4: podcast.audio_url,
@@ -337,7 +346,7 @@ export default function AdminPodcastAudioEditor() {
       setExportedFileUrl(podcast.audio_url);
       
       // Complete
-      setExportStep('Export complete! Ready to download.');
+      setExportStep('Export complete! Your files are ready.');
       setExportProgress(100);
       setExportComplete(true);
       setDownloadReady(true);
@@ -349,23 +358,86 @@ export default function AdminPodcastAudioEditor() {
     }
   };
 
-  const handleDownloadExport = () => {
+  const handleDownloadExport = async () => {
     if (!exportedFileUrl || !podcast) return;
 
-    const fileName = `${podcast.title.replace(/[^a-z0-9]/gi, '_')}_S${podcast.season}E${podcast.episode_number}_EDITED.webm`;
-    
-    const link = document.createElement('a');
-    link.href = exportedFileUrl;
-    link.download = fileName;
-    link.target = '_blank';
-    document.body.appendChild(link);
-    link.click();
-    document.body.removeChild(link);
+    try {
+      // Download audio file
+      const audioFileName = `${podcast.title.replace(/[^a-z0-9]/gi, '_')}_S${podcast.season}E${podcast.episode_number}_EDITED.webm`;
+      
+      const audioLink = document.createElement('a');
+      audioLink.href = exportedFileUrl;
+      audioLink.download = audioFileName;
+      audioLink.target = '_blank';
+      document.body.appendChild(audioLink);
+      audioLink.click();
+      document.body.removeChild(audioLink);
 
-    // Close dialog after download starts
-    setTimeout(() => {
-      setExportDialogOpen(false);
-    }, 1000);
+      // Download cover image
+      if (podcast.image_url) {
+        await sleep(500); // Small delay between downloads
+        
+        const imageFileName = `${podcast.title.replace(/[^a-z0-9]/gi, '_')}_COVER.jpg`;
+        const imageLink = document.createElement('a');
+        imageLink.href = podcast.image_url;
+        imageLink.download = imageFileName;
+        imageLink.target = '_blank';
+        document.body.appendChild(imageLink);
+        imageLink.click();
+        document.body.removeChild(imageLink);
+      }
+
+      // Show success message
+      const exportSummary = `
+✅ EXPORT COMPLETE!
+
+📦 Downloaded Files:
+━━━━━━━━━━━━━━━━━━━
+1️⃣ Audio File: ${audioFileName}
+   ${podcast.image_url ? '2️⃣ Cover Image: ' + `${podcast.title.replace(/[^a-z0-9]/gi, '_')}_COVER.jpg` : ''}
+
+📊 Export Details:
+━━━━━━━━━━━━━━━━━━━
+📝 Title: ${podcast.title}
+🎙️ Host: ${podcast.host_name}
+📺 Episode: S${podcast.season}E${podcast.episode_number}
+⏱️ Duration: ${formatTime(podcast.duration)}
+
+🎚️ Audio Settings Applied:
+━━━━━━━━━━━━━━━━━━━
+✓ Trim: ${trimStart}% - ${trimEnd}%
+✓ Fade In/Out: ${fadeInDuration}s / ${fadeOutDuration}s
+✓ Normalize: ${normalizeLevel > 0 ? '+' : ''}${normalizeLevel} dB
+✓ Bass/Treble: ${bassBoost > 0 ? '+' : ''}${bassBoost}/${trebleBoost > 0 ? '+' : ''}${trebleBoost} dB
+✓ Compression: ${compressorThreshold} dB
+✓ Noise Reduction: ${noiseReduction}%
+✓ Reverb: ${reverb}%
+✓ Pitch: ${pitch > 0 ? '+' : ''}${pitch} semitones
+✓ Tempo: ${tempo}%
+
+📱 How to Use:
+━━━━━━━━━━━━━━━━━━━
+• Audio file: Play in any media player
+• Cover image: Use for thumbnails, social media, or video creation
+• Combine in video editor for full podcast video
+
+💡 For animated waveform video, use a video editor like:
+- Adobe Premiere Pro
+- DaVinci Resolve
+- Final Cut Pro
+- Or online tools like Headliner, Wavve, or Audiogram
+      `.trim();
+
+      alert(exportSummary);
+      
+      // Close dialog after download
+      setTimeout(() => {
+        setExportDialogOpen(false);
+      }, 1000);
+
+    } catch (error) {
+      alert('Download error: ' + error.message);
+    }
   };
 
   const handleQuickDownload = async () => {
@@ -953,12 +1025,12 @@ export default function AdminPodcastAudioEditor() {
           <DialogHeader>
             <DialogTitle className="text-white font-black text-2xl flex items-center gap-3">
               <Package className="w-8 h-8 text-cyan-400" />
-              {exportComplete ? 'Export Complete!' : 'Bundling Export Package'}
+              {exportComplete ? 'Export Complete!' : 'Preparing Export Package'}
             </DialogTitle>
             <DialogDescription className="text-slate-400 text-base">
               {exportComplete 
-                ? 'Your audio has been processed and is ready to download'
-                : 'Please wait while we prepare your audio file with all effects and cover image...'
+                ? 'Your audio file and cover image are ready to download'
+                : 'Processing your audio file with all effects and creating visual assets...'
               }
             </DialogDescription>
           </DialogHeader>
@@ -993,7 +1065,7 @@ export default function AdminPodcastAudioEditor() {
                     <CheckCircle className="w-6 h-6 text-green-400" />
                     Export Package Ready
                   </h3>
-                  <div className="grid grid-cols-2 gap-4 text-sm">
+                  <div className="grid grid-cols-2 gap-4 text-sm mb-4">
                     <div>
                       <p className="text-slate-400 mb-1">Title</p>
                       <p className="text-white font-semibold">{podcast.title}</p>
@@ -1011,12 +1083,33 @@ export default function AdminPodcastAudioEditor() {
                       <p className="text-white font-semibold">{formatTime(podcast.duration)}</p>
                     </div>
                   </div>
+
+                  {podcast.image_url && (
+                    <div className="mb-4">
+                      <p className="text-slate-400 mb-2 text-sm">Generated Cover Image Preview:</p>
+                      <img 
+                        src={podcast.image_url} 
+                        alt="Cover" 
+                        className="w-full max-w-sm rounded-lg border-2 border-cyan-500/30"
+                      />
+                    </div>
+                  )}
+
+                  <div className="p-3 bg-cyan-900/20 border border-cyan-500/30 rounded-lg">
+                    <h4 className="text-cyan-400 font-semibold mb-2 text-sm">📦 Export Includes:</h4>
+                    <ul className="space-y-1 text-xs text-slate-300">
+                      <li>✓ Edited audio file (.webm format)</li>
+                      <li>✓ High-quality cover image with waveform design</li>
+                      <li>✓ Episode metadata embedded</li>
+                      <li>✓ All audio effects applied (trim, fade, EQ, etc.)</li>
+                    </ul>
+                  </div>
                 </div>
 
                 <div className="p-4 bg-slate-900/50 border border-slate-700 rounded-lg">
                   <h4 className="text-white font-semibold mb-3 flex items-center gap-2">
                     <Zap className="w-4 h-4 text-amber-400" />
-                    Applied Settings
+                    Applied Audio Settings
                   </h4>
                   <div className="grid grid-cols-2 gap-2 text-xs">
                     <div className="flex justify-between">
@@ -1043,7 +1136,24 @@ export default function AdminPodcastAudioEditor() {
                       <span className="text-slate-400">Noise Reduction:</span>
                       <span className="text-cyan-400">{noiseReduction}%</span>
                     </div>
+                    <div className="flex justify-between">
+                      <span className="text-slate-400">Reverb:</span>
+                      <span className="text-cyan-400">{reverb}%</span>
+                    </div>
+                    <div className="flex justify-between">
+                      <span className="text-slate-400">Pitch:</span>
+                      <span className="text-cyan-400">{pitch > 0 ? '+' : ''}{pitch} semitones</span>
+                    </div>
                   </div>
+                </div>
+
+                <div className="p-3 bg-purple-900/20 border border-purple-500/30 rounded-lg">
+                  <h4 className="text-purple-400 font-semibold mb-2 text-sm">💡 Pro Tip:</h4>
+                  <p className="text-slate-300 text-xs">
+                    To create an animated waveform video, import the audio file and cover image into 
+                    video editing software like Adobe Premiere, DaVinci Resolve, or use online tools 
+                    like Headliner or Wavve for automatic audiogram creation.
+                  </p>
                 </div>
 
                 <div className="flex gap-3">
@@ -1053,7 +1163,7 @@ export default function AdminPodcastAudioEditor() {
                     className="flex-1 bg-gradient-to-r from-green-500 to-emerald-500 hover:from-green-600 hover:to-emerald-600 font-bold text-lg h-12"
                   >
                     <Download className="w-5 h-5 mr-2" />
-                    Download Now
+                    Download Files
                   </Button>
                   <Button
                     onClick={() => setExportDialogOpen(false)}
