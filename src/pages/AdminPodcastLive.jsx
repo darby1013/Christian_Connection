@@ -1,3 +1,4 @@
+
 import React, { useState, useEffect, useRef } from "react";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { base44 } from "@/api/base44Client";
@@ -11,7 +12,7 @@ import { Tabs, TabsList, TabsTrigger, TabsContent } from "@/components/ui/tabs";
 import { Slider } from "@/components/ui/slider";
 import {
   Video, VideoOff, Mic, MicOff, Radio, Users, Activity,
-  CheckCircle, AlertCircle, FileText, Settings as SettingsIcon, 
+  CheckCircle, AlertCircle, FileText, Settings as SettingsIcon,
   Plus, Eye, EyeOff, Play, Pause, Volume2, Zap, Layers,
   MessageSquare, Timer, MonitorPlay, RefreshCw, Download, Save, Mic2,
   Music
@@ -150,12 +151,12 @@ export default function AdminPodcastLive() {
 
   const startCamera = async () => {
     try {
-      const stream = await navigator.mediaDevices.getUserMedia({ 
-        video: { 
+      const stream = await navigator.mediaDevices.getUserMedia({
+        video: {
           width: { ideal: 1920 },
           height: { ideal: 1080 },
           frameRate: { ideal: 30 }
-        }, 
+        },
         audio: true
       });
       if (videoRef.current) {
@@ -174,17 +175,20 @@ export default function AdminPodcastLive() {
 
   const startAudioOnly = async () => {
     try {
-      const stream = await navigator.mediaDevices.getUserMedia({ 
+      const stream = await navigator.mediaDevices.getUserMedia({
         audio: {
           echoCancellation: true,
           noiseSuppression: true,
-          sampleRate: 44100
+          autoGainControl: true,
+          sampleRate: 48000,
+          channelCount: 2
         }
       });
       streamRef.current = stream;
       setMicOn(true);
       setConnectionStatus('connected');
-      setBroadcastMode('audio');
+
+      console.log('Audio-only stream started (no video)');
     } catch (error) {
       alert('Error accessing microphone: ' + error.message);
       setConnectionStatus('error');
@@ -227,7 +231,7 @@ export default function AdminPodcastLive() {
 
     try {
       if (broadcastMode === 'video') {
-        // Video recording
+        // Video recording (video + audio)
         recordedChunksRef.current = [];
         const options = {
           mimeType: 'video/webm;codecs=vp8,opus',
@@ -239,7 +243,7 @@ export default function AdminPodcastLive() {
         }
 
         const mediaRecorder = new MediaRecorder(streamRef.current, options);
-        
+
         mediaRecorder.ondataavailable = (event) => {
           if (event.data && event.data.size > 0) {
             recordedChunksRef.current.push(event.data);
@@ -248,12 +252,13 @@ export default function AdminPodcastLive() {
 
         mediaRecorder.start(1000);
         mediaRecorderRef.current = mediaRecorder;
+        console.log('Video recording started (video + audio)');
       } else {
-        // Audio-only recording
+        // Audio-only recording (NO VIDEO)
         audioChunksRef.current = [];
         const options = {
           mimeType: 'audio/webm;codecs=opus',
-          audioBitsPerSecond: 128000
+          audioBitsPerSecond: 192000 // High quality audio
         };
 
         if (!MediaRecorder.isTypeSupported(options.mimeType)) {
@@ -261,7 +266,7 @@ export default function AdminPodcastLive() {
         }
 
         const audioRecorder = new MediaRecorder(streamRef.current, options);
-        
+
         audioRecorder.ondataavailable = (event) => {
           if (event.data && event.data.size > 0) {
             audioChunksRef.current.push(event.data);
@@ -270,10 +275,10 @@ export default function AdminPodcastLive() {
 
         audioRecorder.start(1000);
         audioRecorderRef.current = audioRecorder;
+        console.log('Audio-only recording started (no video track)');
       }
-      
+
       setIsRecording(true);
-      console.log(`${broadcastMode} recording started`);
     } catch (error) {
       console.error('Error starting recording:', error);
       alert('Error starting recording: ' + error.message);
@@ -314,7 +319,7 @@ export default function AdminPodcastLive() {
       canvas.height = 720;
       const ctx = canvas.getContext('2d');
       ctx.drawImage(videoRef.current, 0, 0, canvas.width, canvas.height);
-      
+
       canvas.toBlob((blob) => {
         resolve(blob);
       }, 'image/jpeg', 0.9);
@@ -330,9 +335,9 @@ export default function AdminPodcastLive() {
     try {
       const blob = new Blob(recordedChunksRef.current, { type: 'video/webm' });
       const file = new File([blob], `podcast_video_${currentPodcastId}_${Date.now()}.webm`, { type: 'video/webm' });
-      
+
       console.log('Uploading video file, size:', (blob.size / 1024 / 1024).toFixed(2), 'MB');
-      
+
       const { file_url } = await base44.integrations.Core.UploadFile({ file });
       console.log('Video uploaded successfully:', file_url);
       return file_url;
@@ -351,9 +356,9 @@ export default function AdminPodcastLive() {
     try {
       const blob = new Blob(audioChunksRef.current, { type: 'audio/webm' });
       const file = new File([blob], `podcast_audio_${currentPodcastId}_${Date.now()}.webm`, { type: 'audio/webm' });
-      
-      console.log('Uploading audio file, size:', (blob.size / 1024 / 1024).toFixed(2), 'MB');
-      
+
+      console.log('Uploading AUDIO-ONLY file, size:', (blob.size / 1024 / 1024).toFixed(2), 'MB');
+
       const { file_url } = await base44.integrations.Core.UploadFile({ file });
       console.log('Audio uploaded successfully:', file_url);
       return file_url;
@@ -380,12 +385,13 @@ export default function AdminPodcastLive() {
   const generateAudioThumbnail = async () => {
     try {
       const result = await base44.integrations.Core.GenerateImage({
-        prompt: `Professional podcast cover art with audio waveform visualization. 
-        Dark gradient background with purple and cyan colors. 
-        Microphone icon, sound waves, music visualization elements.
-        Title: "${podcastInfo.title}"
+        prompt: `Professional podcast cover art for audio podcast.
+        Beautiful gradient background with warm sunset colors (orange, amber, golden).
+        Elegant typography displaying: "${podcastInfo.title}"
+        Microphone icon, sound waves, audio waveform elements.
         Host: ${podcastInfo.host_name}
-        Modern, sleek design with neon accents. Square format for podcast cover.`
+        Modern, artistic design. Square format 1:1 ratio for podcast cover.
+        Professional, clean, high-quality podcast artwork.`
       });
       return result.url;
     } catch (error) {
@@ -401,12 +407,12 @@ export default function AdminPodcastLive() {
     }
 
     if (!micOn) {
-      alert('Please turn on your microphone first');
+      alert(`Please turn on your ${broadcastMode === 'video' ? 'camera' : 'microphone'} first`);
       return;
     }
 
     let thumbnailUrl = 'https://images.unsplash.com/photo-1478737270239-2f02b77fc618?w=800';
-    
+
     if (broadcastMode === 'video' && cameraOn) {
       // Capture video thumbnail
       const thumbnailBlob = await captureVideoThumbnail();
@@ -417,7 +423,7 @@ export default function AdminPodcastLive() {
         }
       }
     } else {
-      // Generate audio thumbnail
+      // Generate AI audio cover art
       thumbnailUrl = await generateAudioThumbnail();
     }
 
@@ -437,10 +443,10 @@ export default function AdminPodcastLive() {
     setCurrentPodcastId(createdPodcast.id);
     setIsLive(true);
     setStreamStartTime(Date.now());
-    
+
     // Start recording
     startRecording();
-    
+
     const listenerInterval = setInterval(() => {
       const randomChange = Math.floor(Math.random() * 8) - 2;
       setListenerCount(prev => {
@@ -471,12 +477,14 @@ export default function AdminPodcastLive() {
 
     try {
       if (broadcastMode === 'video') {
+        console.log('Uploading VIDEO podcast recording...');
         mediaUrl = await uploadRecordedVideo();
         const thumbnailBlob = await captureVideoThumbnail();
         if (thumbnailBlob) {
           thumbnailUrl = await uploadThumbnail(thumbnailBlob);
         }
       } else {
+        console.log('Uploading AUDIO-ONLY podcast recording...');
         mediaUrl = await uploadRecordedAudio();
         thumbnailUrl = await generateAudioThumbnail();
       }
@@ -494,12 +502,15 @@ export default function AdminPodcastLive() {
 
       if (broadcastMode === 'video' && mediaUrl) {
         updateData.video_url = mediaUrl;
+        updateData.content_type = 'video';
         if (thumbnailUrl) {
           updateData.video_thumbnail_url = thumbnailUrl;
           updateData.image_url = thumbnailUrl;
         }
       } else if (broadcastMode === 'audio' && mediaUrl) {
         updateData.audio_url = mediaUrl;
+        updateData.content_type = 'audio';
+        updateData.video_url = null; // Ensure no video URL for audio podcasts
         if (thumbnailUrl) {
           updateData.image_url = thumbnailUrl;
         }
@@ -523,7 +534,7 @@ export default function AdminPodcastLive() {
     setIsSavingMedia(false);
     recordedChunksRef.current = [];
     audioChunksRef.current = [];
-    
+
     setPodcastInfo({
       title: '',
       description: '',
@@ -533,7 +544,8 @@ export default function AdminPodcastLive() {
       host_name: user?.full_name || ''
     });
 
-    alert(`Live podcast ended and ${broadcastMode === 'video' ? 'video' : 'audio'} saved successfully!`);
+    const fileType = broadcastMode === 'video' ? 'video' : 'audio-only';
+    alert(`✅ Live podcast ended and ${fileType} saved successfully!\n\n${broadcastMode === 'audio' ? '🎵 This is a pure AUDIO file with cover art.\n📥 Download it from the Podcasts page.' : ''}`);
   };
 
   const formatDuration = (seconds) => {
@@ -584,34 +596,49 @@ export default function AdminPodcastLive() {
               <CardContent className="p-4">
                 <div className="grid grid-cols-2 gap-4">
                   <button
-                    onClick={() => setBroadcastMode('video')}
+                    onClick={() => {
+                      setBroadcastMode('video');
+                      if (micOn || cameraOn) stopMedia();
+                    }}
+                    disabled={cameraOn || micOn}
                     className={`p-6 rounded-lg border-2 transition-all ${
                       broadcastMode === 'video'
                         ? 'border-purple-500 bg-purple-500/10'
                         : 'border-slate-700 hover:border-slate-600'
-                    }`}
+                    } ${(cameraOn || micOn) ? 'opacity-50 cursor-not-allowed' : ''}`}
                   >
                     <Video className={`w-12 h-12 mx-auto mb-3 ${broadcastMode === 'video' ? 'text-purple-400' : 'text-slate-400'}`} />
                     <h3 className={`font-bold mb-1 ${broadcastMode === 'video' ? 'text-white' : 'text-slate-400'}`}>
                       Video Podcast
                     </h3>
                     <p className="text-xs text-slate-500">Camera + Microphone</p>
+                    <p className="text-xs text-purple-400 mt-2">Saves as: Video file (.webm)</p>
                   </button>
                   <button
-                    onClick={() => setBroadcastMode('audio')}
+                    onClick={() => {
+                      setBroadcastMode('audio');
+                      if (cameraOn || micOn) stopMedia();
+                    }}
+                    disabled={cameraOn || micOn}
                     className={`p-6 rounded-lg border-2 transition-all ${
                       broadcastMode === 'audio'
                         ? 'border-cyan-500 bg-cyan-500/10'
                         : 'border-slate-700 hover:border-slate-600'
-                    }`}
+                    } ${(cameraOn || micOn) ? 'opacity-50 cursor-not-allowed' : ''}`}
                   >
                     <Mic2 className={`w-12 h-12 mx-auto mb-3 ${broadcastMode === 'audio' ? 'text-cyan-400' : 'text-slate-400'}`} />
                     <h3 className={`font-bold mb-1 ${broadcastMode === 'audio' ? 'text-white' : 'text-slate-400'}`}>
                       Audio Podcast
                     </h3>
                     <p className="text-xs text-slate-500">Microphone Only</p>
+                    <p className="text-xs text-cyan-400 mt-2">Saves as: Audio file (.webm) + Cover Art</p>
                   </button>
                 </div>
+                {(cameraOn || micOn) && (
+                  <div className="mt-3 p-2 bg-amber-900/20 border border-amber-500/30 rounded text-center">
+                    <p className="text-amber-300 text-xs">Stop current stream to change mode</p>
+                  </div>
+                )}
               </CardContent>
             </Card>
           )}
@@ -662,7 +689,7 @@ export default function AdminPodcastLive() {
                   </div>
                 </div>
               )}
-              
+
               {isLive && (
                 <>
                   <Badge variant="destructive" className="absolute top-4 left-4 animate-pulse shadow-xl text-sm">
@@ -820,7 +847,7 @@ export default function AdminPodcastLive() {
                   </div>
                 </div>
               </CardHeader>
-              <div 
+              <div
                 ref={teleprompterRef}
                 className="h-64 overflow-y-auto p-6 bg-black"
                 style={{
