@@ -12,7 +12,7 @@ import { Tabs, TabsList, TabsTrigger, TabsContent } from "@/components/ui/tabs";
 import { Slider } from "@/components/ui/slider";
 import {
   Video, VideoOff, Mic, MicOff, Radio, Users, Activity,
-  CheckCircle, AlertCircle, FileText, Settings as SettingsIcon,
+  CheckCircle, AlertCircle, FileText, Settings as SettingsIcon, 
   Plus, Eye, EyeOff, Play, Pause, Volume2, Zap, Layers,
   MessageSquare, Timer, MonitorPlay, RefreshCw, Download
 } from "lucide-react";
@@ -37,7 +37,6 @@ export default function AdminBroadcastStudio() {
   const [teleprompterPlaying, setTeleprompterPlaying] = useState(false);
   const [teleprompterSpeed, setTeleprompterSpeed] = useState(1);
   const [currentStreamId, setCurrentStreamId] = useState(null);
-  const heartbeatIntervalRef = useRef(null);
 
   const videoRef = useRef(null);
   const streamRef = useRef(null);
@@ -70,38 +69,6 @@ export default function AdminBroadcastStudio() {
     initialData: [],
   });
 
-  // HEARTBEAT: Keep stream "alive" by updating every 4 seconds while broadcasting
-  useEffect(() => {
-    if (isLive && currentStreamId) {
-      // Update immediately when going live
-      updateStreamMutation.mutate({
-        id: currentStreamId,
-        data: {
-          viewer_count: viewerCount,
-          status: 'live'
-        }
-      });
-
-      // Then update every 4 seconds to keep it "active"
-      heartbeatIntervalRef.current = setInterval(async () => {
-        updateStreamMutation.mutate({
-          id: currentStreamId,
-          data: {
-            viewer_count: viewerCount,
-            status: 'live'
-          }
-        });
-      }, 4000); // Update every 4 seconds
-    }
-
-    return () => {
-      if (heartbeatIntervalRef.current) {
-        clearInterval(heartbeatIntervalRef.current);
-        heartbeatIntervalRef.current = null;
-      }
-    };
-  }, [isLive, currentStreamId, viewerCount]);
-
   useEffect(() => {
     let interval;
     if (isLive && streamStartTime) {
@@ -128,7 +95,6 @@ export default function AdminBroadcastStudio() {
     mutationFn: (streamData) => base44.entities.LiveStream.create(streamData),
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['liveStreams'] });
-      queryClient.invalidateQueries({ queryKey: ['activeLiveStreams'] });
     },
   });
 
@@ -136,19 +102,18 @@ export default function AdminBroadcastStudio() {
     mutationFn: ({ id, data }) => base44.entities.LiveStream.update(id, data),
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['liveStreams'] });
-      queryClient.invalidateQueries({ queryKey: ['activeLiveStreams'] });
     },
   });
 
   const startCamera = async () => {
     try {
-      const stream = await navigator.mediaDevices.getUserMedia({
-        video: {
+      const stream = await navigator.mediaDevices.getUserMedia({ 
+        video: { 
           width: { ideal: 1920 },
           height: { ideal: 1080 },
           frameRate: { ideal: 30 }
-        },
-        audio: false
+        }, 
+        audio: false 
       });
       if (videoRef.current) {
         videoRef.current.srcObject = stream;
@@ -224,7 +189,7 @@ export default function AdminBroadcastStudio() {
     setCurrentStreamId(createdStream.id);
     setIsLive(true);
     setStreamStartTime(Date.now());
-
+    
     const viewerInterval = setInterval(() => {
       const randomChange = Math.floor(Math.random() * 10) - 3;
       setViewerCount(prev => {
@@ -238,22 +203,17 @@ export default function AdminBroadcastStudio() {
   };
 
   const endStream = async () => {
-    // Stop heartbeat immediately
-    if (heartbeatIntervalRef.current) {
-      clearInterval(heartbeatIntervalRef.current);
-      heartbeatIntervalRef.current = null;
-    }
-
     if (currentStreamId) {
-      // Update stream to ended status
+      // Update stream to ended status and save recording info
       await updateStreamMutation.mutateAsync({
         id: currentStreamId,
         data: {
           status: 'ended',
           ended_at: new Date().toISOString(),
           viewer_count: peakViewers,
+          // In production, this would be the actual recording URL from your video service
           stream_url: `https://example.com/recordings/${currentStreamId}.mp4`,
-          duration: Math.floor(streamDuration / 60)
+          duration: Math.floor(streamDuration / 60) // duration in minutes
         }
       });
     }
@@ -266,7 +226,8 @@ export default function AdminBroadcastStudio() {
     setPeakViewers(0);
     setTeleprompterPlaying(false);
     setCurrentStreamId(null);
-
+    
+    // Reset form for next stream
     setStreamInfo({
       title: '',
       description: '',
@@ -326,7 +287,7 @@ export default function AdminBroadcastStudio() {
                   </div>
                 </div>
               )}
-
+              
               {isLive && (
                 <>
                   <Badge variant="destructive" className="absolute top-4 left-4 animate-pulse shadow-xl text-sm">
@@ -453,7 +414,7 @@ export default function AdminBroadcastStudio() {
                   </div>
                 </div>
               </CardHeader>
-              <div
+              <div 
                 ref={teleprompterRef}
                 className="h-64 overflow-y-auto p-6 bg-black"
                 style={{
