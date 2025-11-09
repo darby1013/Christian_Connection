@@ -1,3 +1,4 @@
+
 import React, { useState, useRef, useEffect } from "react";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { base44 } from "@/api/base44Client";
@@ -198,6 +199,42 @@ export default function AdminPodcastAudioEditor() {
       document.body.appendChild(link);
       link.click();
       document.body.removeChild(link);
+    } catch (error) {
+      alert('Download error: ' + error.message);
+    }
+  };
+
+  const handleDownloadAudioWithArt = async () => {
+    if (!podcast?.audio_url) return;
+
+    try {
+      // Download the audio file
+      const audioFileName = `${podcast.title.replace(/[^a-z0-9]/gi, '_')}_S${podcast.season}E${podcast.episode_number}.webm`;
+      
+      const audioLink = document.createElement('a');
+      audioLink.href = podcast.audio_url;
+      audioLink.download = audioFileName;
+      audioLink.target = '_blank';
+      document.body.appendChild(audioLink);
+      audioLink.click();
+      document.body.removeChild(audioLink);
+
+      // Also download the cover art separately
+      if (podcast.image_url) {
+        setTimeout(() => {
+          const imgLink = document.createElement('a');
+          imgLink.href = podcast.image_url;
+          imgLink.download = `${podcast.title.replace(/[^a-z0-9]/gi, '_')}_Cover.jpg`;
+          imgLink.target = '_blank';
+          document.body.appendChild(imgLink);
+          imgLink.click();
+          document.body.removeChild(imgLink);
+          
+          alert('✅ Audio and cover image downloaded!\n\nTo use:\n1. Import audio into your audio editor\n2. Add the cover image as album art/metadata\n3. Most players will display the image when playing');
+        }, 1000); // Small delay to prevent blocking the first download
+      } else {
+        alert('✅ Audio downloaded! No cover image available for download.');
+      }
     } catch (error) {
       alert('Download error: ' + error.message);
     }
@@ -476,6 +513,19 @@ PAID:
                     {uploadingImage && (
                       <Badge className="bg-amber-500">Uploading...</Badge>
                     )}
+                    <div className="mt-4 space-y-2">
+                      <Button
+                        onClick={handleDownloadAudioWithArt}
+                        disabled={!podcast?.audio_url}
+                        className="w-full bg-gradient-to-r from-green-500 to-emerald-500 hover:from-green-600 hover:to-emerald-600 font-bold"
+                      >
+                        <Download className="w-4 h-4 mr-2" />
+                        Download Audio + Cover Art
+                      </Button>
+                      <p className="text-xs text-slate-400 text-center">
+                        Downloads audio file and cover image separately
+                      </p>
+                    </div>
                   </div>
                   <div>
                     {audioImage ? (
@@ -644,6 +694,15 @@ PAID:
               </CardHeader>
               <CardContent className="p-4 space-y-2">
                 <Button
+                  onClick={handleDownloadAudioWithArt}
+                  disabled={!podcast?.audio_url}
+                  className="w-full bg-gradient-to-r from-green-500 to-emerald-500 hover:from-green-600 hover:to-emerald-600 justify-start font-semibold"
+                >
+                  <Download className="w-4 h-4 mr-2" />
+                  Download Audio + Art
+                </Button>
+
+                <Button
                   onClick={copySettingsToClipboard}
                   className="w-full bg-gradient-to-r from-purple-600 to-cyan-500 hover:from-purple-700 hover:to-cyan-600 justify-start font-semibold"
                 >
@@ -656,10 +715,10 @@ PAID:
                 
                 <Button 
                   onClick={handleQuickDownload}
-                  className="w-full bg-green-500 hover:bg-green-600 justify-start font-semibold"
+                  className="w-full bg-cyan-500 hover:bg-cyan-600 justify-start font-semibold"
                 >
                   <Download className="w-4 h-4 mr-2" />
-                  Download Original Audio
+                  Download Audio Only
                 </Button>
               </CardContent>
             </Card>
@@ -678,8 +737,8 @@ PAID:
                 </div>
                 
                 <div>
-                  <h4 className="text-white font-semibold mb-2 text-sm">Step 2: Download Audio</h4>
-                  <p className="text-slate-300 text-xs">Download the original audio file</p>
+                  <h4 className="text-white font-semibold mb-2 text-sm">Step 2: Download Audio & Art</h4>
+                  <p className="text-slate-300 text-xs">Download the original audio file and its cover image</p>
                 </div>
 
                 <div>

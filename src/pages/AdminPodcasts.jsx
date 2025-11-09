@@ -372,6 +372,48 @@ export default function AdminPodcasts() {
     return acc;
   }, {});
 
+  const copySettingsToClipboard = () => {
+    // ... keep existing code ...
+  };
+
+  const formatTime = (seconds) => {
+    // ... keep existing code ...
+  };
+
+  const handleDownloadAudioWithCover = async (podcast) => {
+    if (!podcast?.audio_url) return;
+
+    try {
+      // Download the audio file
+      const audioFileName = `${podcast.title.replace(/[^a-z0-9]/gi, '_')}_S${podcast.season}E${podcast.episode_number}.webm`;
+      
+      const audioLink = document.createElement('a');
+      audioLink.href = podcast.audio_url;
+      audioLink.download = audioFileName;
+      audioLink.target = '_blank';
+      document.body.appendChild(audioLink);
+      audioLink.click();
+      document.body.removeChild(audioLink);
+
+      // Also download the cover art if available
+      if (podcast.image_url) {
+        setTimeout(() => {
+          const imgLink = document.createElement('a');
+          imgLink.href = podcast.image_url;
+          imgLink.download = `${podcast.title.replace(/[^a-z0-9]/gi, '_')}_Cover.jpg`;
+          imgLink.target = '_blank';
+          document.body.appendChild(imgLink);
+          imgLink.click();
+          document.body.removeChild(imgLink);
+        }, 500);
+      }
+
+      alert('✅ Downloads started!\n\nAudio file and cover image are being downloaded.\n\nTo add cover art to audio:\n1. Use iTunes, Windows Media Player, or VLC\n2. Right-click audio → Properties/Get Info\n3. Add the cover image as album art');
+    } catch (error) {
+      alert('Download error: ' + error.message);
+    }
+  };
+
   return (
     <div className="space-y-6">
       <div className="flex items-center justify-between">
@@ -1093,17 +1135,26 @@ export default function AdminPodcasts() {
               </div>
             </div>
           )}
-          <DialogFooter>
+          <DialogFooter className="gap-2">
             <Button variant="outline" onClick={() => setPreviewDialogOpen(false)} className="border-slate-700">
               Close
             </Button>
             {previewAudio && (
-              <Link to={createPageUrl("AdminPodcastAudioEditor") + `?id=${previewAudio.id}`}>
-                <Button className="bg-purple-500 hover:bg-purple-600">
-                  <Sliders className="w-4 h-4 mr-2" />
-                  Edit Audio
+              <>
+                <Button 
+                  onClick={() => handleDownloadAudioWithCover(previewAudio)}
+                  className="bg-green-500 hover:bg-green-600"
+                >
+                  <Download className="w-4 h-4 mr-2" />
+                  Download Audio + Cover
                 </Button>
-              </Link>
+                <Link to={createPageUrl("AdminPodcastAudioEditor") + `?id=${previewAudio.id}`}>
+                  <Button className="bg-purple-500 hover:bg-purple-600">
+                    <Sliders className="w-4 h-4 mr-2" />
+                    Edit Audio
+                  </Button>
+                </Link>
+              </>
             )}
           </DialogFooter>
         </DialogContent>
