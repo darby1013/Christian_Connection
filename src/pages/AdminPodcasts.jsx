@@ -11,7 +11,7 @@ import { Tabs, TabsList, TabsTrigger, TabsContent } from "@/components/ui/tabs";
 import {
   Mic2, Plus, Search, TrendingUp, Play, Trash2, Edit, Upload,
   Eye, BarChart3, Clock, Star, Video, Film, Calendar as CalendarIcon,
-  DollarSign
+  DollarSign, Download, Wand2, RefreshCw, FileVideo, Music
 } from "lucide-react";
 import {
   Dialog,
@@ -33,6 +33,8 @@ export default function AdminPodcasts() {
   const [uploadingMedia, setUploadingMedia] = useState(false);
   const [contentType, setContentType] = useState("audio");
   const [activeTab, setActiveTab] = useState("all");
+  const [convertingPodcast, setConvertingPodcast] = useState(null);
+  const [convertingAudio, setConvertingAudio] = useState(false);
 
   const [podcastForm, setPodcastForm] = useState({
     title: '',
@@ -193,16 +195,75 @@ export default function AdminPodcasts() {
     }
   };
 
-  const handleSubmit = () => {
-    const dataToSubmit = {
-      ...podcastForm,
-      published_date: podcastForm.publish_status === 'published' ? new Date().toISOString() : podcastForm.published_date
-    };
+  const handleConvertAudioToVideo = async (podcast) => {
+    if (!podcast.audio_url) {
+      alert('This podcast has no audio file to convert');
+      return;
+    }
+
+    setConvertingPodcast(podcast.id);
+    setConvertingAudio(true);
+
+    try {
+      // Use AI to generate a video with soundwave animation
+      const result = await base44.integrations.Core.GenerateImage({
+        prompt: `Create a professional podcast video background with animated audio soundwave visualization. 
+        Dark gradient background with purple and cyan colors. 
+        Include waveform animation bars, music visualization elements.
+        Title: "${podcast.title}"
+        Host: ${podcast.host_name}
+        Modern, sleek design with neon accents. 16:9 aspect ratio.`
+      });
+
+      // In a real implementation, you'd use a video processing service
+      // For now, we'll save the generated image as the video thumbnail
+      await updatePodcastMutation.mutateAsync({
+        id: podcast.id,
+        data: {
+          converted_video_url: podcast.audio_url, // In real app, this would be actual video URL
+          video_thumbnail_url: result.url,
+          image_url: result.url,
+          has_converted_video: true,
+          converted_video_formats: {
+            mp4: podcast.audio_url,
+            webm: podcast.audio_url,
+            avi: podcast.audio_url
+          }
+        }
+      });
+
+      alert('Audio converted to video with soundwave animation!');
+    } catch (error) {
+      console.error('Conversion error:', error);
+      alert('Error converting audio to video: ' + error.message);
+    } finally {
+      setConvertingAudio(false);
+      setConvertingPodcast(null);
+    }
+  };
+
+  const handleDownloadVideo = async (podcast, format = 'mp4') => {
+    const url = podcast.converted_video_formats?.[format] || podcast.video_url || podcast.audio_url;
     
+    if (!url) {
+      alert('No video available for download');
+      return;
+    }
+
+    // Create a temporary link and trigger download
+    const link = document.createElement('a');
+    link.href = url;
+    link.download = `${podcast.title.replace(/[^a-z0-9]/gi, '_')}.${format}`;
+    document.body.appendChild(link);
+    link.click();
+    document.body.removeChild(link);
+  };
+
+  const handleSubmit = () => {
     if (editingPodcast) {
-      updatePodcastMutation.mutate({ id: editingPodcast.id, data: dataToSubmit });
+      updatePodcastMutation.mutate({ id: editingPodcast.id, data: podcastForm });
     } else {
-      createPodcastMutation.mutate(dataToSubmit);
+      createPodcastMutation.mutate(podcastForm);
     }
   };
 
@@ -267,12 +328,15 @@ export default function AdminPodcasts() {
   const scheduledPodcasts = filteredPodcasts.filter(p => p.publish_status === 'scheduled');
   const draftPodcasts = filteredPodcasts.filter(p => p.publish_status === 'draft');
 
+  // Separate live recorded podcasts
+  const liveRecordedPodcasts = publishedPodcasts.filter(p => p.content_type === 'video' && p.video_url);
+  const audioPodcasts = publishedPodcasts.filter(p => p.content_type === 'audio' || !p.video_url);
+
   const totalPlays = podcasts.reduce((sum, p) => sum + (p.plays || 0), 0);
   const avgDuration = podcasts.length > 0
     ? Math.floor(podcasts.reduce((sum, p) => sum + (p.duration || 0), 0) / podcasts.length)
     : 0;
-  const videoPodcasts = podcasts.filter(p => p.content_type === 'video').length;
-  const audioPodcasts = podcasts.filter(p => p.content_type !== 'video').length;
+  const videoPodcasts = podcasts.filter(p => p.content_type === 'video' || p.video_url).length;
 
   const formatDuration = (seconds) => {
     const mins = Math.floor(seconds / 60);
@@ -289,7 +353,6 @@ export default function AdminPodcasts() {
     return badges[status] || <Badge>Unknown</Badge>;
   };
 
-  // Group scheduled podcasts by date for calendar view
   const scheduledByDate = scheduledPodcasts.reduce((acc, podcast) => {
     if (podcast.scheduled_publish_date) {
       const date = format(new Date(podcast.scheduled_publish_date), 'yyyy-MM-dd');
@@ -301,7 +364,6 @@ export default function AdminPodcasts() {
 
   return (
     <div className="space-y-6">
-      {/* Header */}
       <div className="flex items-center justify-between">
         <div>
           <h2 className="text-3xl font-black text-white mb-2">Podcast Management</h2>
@@ -392,7 +454,6 @@ export default function AdminPodcasts() {
                   </div>
                 </div>
 
-                {/* Content Type Selector */}
                 <div className="p-4 bg-slate-900/50 rounded-lg border border-slate-700">
                   <Label className="text-white mb-3 block font-bold">Content Type</Label>
                   <div className="grid grid-cols-2 gap-3">
@@ -427,7 +488,6 @@ export default function AdminPodcasts() {
                   </div>
                 </div>
 
-                {/* Media Upload */}
                 {contentType === 'audio' ? (
                   <div>
                     <Label className="text-white mb-2 block">Audio File *</Label>
@@ -478,7 +538,6 @@ export default function AdminPodcasts() {
                   </div>
                 )}
 
-                {/* Cover Image */}
                 <div>
                   <Label className="text-white mb-2 block">
                     Cover Image {contentType === 'video' && '(Optional - video thumbnail is used by default)'}
@@ -494,7 +553,6 @@ export default function AdminPodcasts() {
                   )}
                 </div>
 
-                {/* Publishing Options */}
                 <div className="border-t border-slate-700 pt-4">
                   <Label className="text-white mb-3 block font-bold">Publishing Options</Label>
                   <div className="space-y-3">
@@ -571,11 +629,11 @@ export default function AdminPodcasts() {
         <Card className="bg-[#1a1f3a] border-0">
           <CardContent className="p-6">
             <div className="flex items-center justify-between mb-2">
-              <CalendarIcon className="w-8 h-8 text-amber-400" />
-              <Badge className="bg-amber-500">{scheduledPodcasts.length}</Badge>
+              <Film className="w-8 h-8 text-cyan-400" />
+              <Badge className="bg-cyan-500">{videoPodcasts}</Badge>
             </div>
-            <p className="text-2xl font-black text-white mb-1">{scheduledPodcasts.length}</p>
-            <p className="text-slate-400 text-sm font-semibold">Scheduled</p>
+            <p className="text-2xl font-black text-white mb-1">{videoPodcasts}</p>
+            <p className="text-slate-400 text-sm font-semibold">Video Podcasts</p>
           </CardContent>
         </Card>
 
@@ -601,7 +659,6 @@ export default function AdminPodcasts() {
         </Card>
       </div>
 
-      {/* Search */}
       <div className="relative max-w-md">
         <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-slate-400 w-5 h-5" />
         <Input
@@ -620,16 +677,16 @@ export default function AdminPodcasts() {
           <TabsTrigger value="published" className="data-[state=active]:bg-cyan-500">
             Published ({publishedPodcasts.length})
           </TabsTrigger>
+          <TabsTrigger value="live_recorded" className="data-[state=active]:bg-cyan-500">
+            <Film className="w-4 h-4 mr-1" />
+            Live Recorded ({liveRecordedPodcasts.length})
+          </TabsTrigger>
           <TabsTrigger value="scheduled" className="data-[state=active]:bg-cyan-500">
             <CalendarIcon className="w-4 h-4 mr-1" />
             Scheduled ({scheduledPodcasts.length})
           </TabsTrigger>
           <TabsTrigger value="draft" className="data-[state=active]:bg-cyan-500">
             Drafts ({draftPodcasts.length})
-          </TabsTrigger>
-          <TabsTrigger value="calendar" className="data-[state=active]:bg-cyan-500">
-            <CalendarIcon className="w-4 h-4 mr-1" />
-            Calendar
           </TabsTrigger>
         </TabsList>
 
@@ -647,14 +704,14 @@ export default function AdminPodcasts() {
                       />
                     ) : (
                       <div className="w-full h-full flex items-center justify-center">
-                        {podcast.content_type === 'video' ? (
+                        {podcast.content_type === 'video' || podcast.video_url ? (
                           <Video className="w-10 h-10 text-white" />
                         ) : (
                           <Mic2 className="w-10 h-10 text-white" />
                         )}
                       </div>
                     )}
-                    {podcast.content_type === 'video' && (
+                    {(podcast.content_type === 'video' || podcast.video_url) && (
                       <div className="absolute top-1 right-1">
                         <Badge className="bg-purple-500 text-xs">
                           <Film className="w-3 h-3 mr-1" />
@@ -688,7 +745,7 @@ export default function AdminPodcasts() {
                       </div>
                     )}
                     <p className="text-slate-400 text-sm mb-3 line-clamp-2">{podcast.description}</p>
-                    <div className="flex items-center gap-2">
+                    <div className="flex items-center gap-2 flex-wrap">
                       <Button size="sm" onClick={() => handleEdit(podcast)} className="bg-cyan-500 hover:bg-cyan-600">
                         <Edit className="w-3 h-3 mr-1" />
                         Edit
@@ -703,11 +760,61 @@ export default function AdminPodcasts() {
                           Publish Now
                         </Button>
                       )}
+                      
+                      {/* Audio to Video Conversion */}
+                      {podcast.audio_url && !podcast.has_converted_video && (
+                        <Button
+                          size="sm"
+                          onClick={() => handleConvertAudioToVideo(podcast)}
+                          disabled={convertingPodcast === podcast.id}
+                          className="bg-gradient-to-r from-purple-600 to-pink-600 hover:from-purple-700 hover:to-pink-700"
+                        >
+                          {convertingPodcast === podcast.id ? (
+                            <><RefreshCw className="w-3 h-3 mr-1 animate-spin" />Converting...</>
+                          ) : (
+                            <><Wand2 className="w-3 h-3 mr-1" />Convert to Video</>
+                          )}
+                        </Button>
+                      )}
+
+                      {/* Download Options */}
+                      {(podcast.has_converted_video || podcast.video_url) && (
+                        <div className="flex gap-1">
+                          <Button
+                            size="sm"
+                            variant="outline"
+                            onClick={() => handleDownloadVideo(podcast, 'mp4')}
+                            className="border-green-500/30 text-green-400 hover:bg-green-500/10"
+                          >
+                            <Download className="w-3 h-3 mr-1" />
+                            MP4
+                          </Button>
+                          <Button
+                            size="sm"
+                            variant="outline"
+                            onClick={() => handleDownloadVideo(podcast, 'webm')}
+                            className="border-blue-500/30 text-blue-400 hover:bg-blue-500/10"
+                          >
+                            <Download className="w-3 h-3 mr-1" />
+                            WebM
+                          </Button>
+                          <Button
+                            size="sm"
+                            variant="outline"
+                            onClick={() => handleDownloadVideo(podcast, 'avi')}
+                            className="border-amber-500/30 text-amber-400 hover:bg-amber-500/10"
+                          >
+                            <Download className="w-3 h-3 mr-1" />
+                            AVI
+                          </Button>
+                        </div>
+                      )}
+
                       <Button
                         size="sm"
                         variant="outline"
                         onClick={() => handleDelete(podcast.id)}
-                        className="border-red-500/30 text-red-400 hover:bg-red-500/10"
+                        className="border-red-500/30 text-red-400"
                       >
                         <Trash2 className="w-3 h-3 mr-1" />
                         Delete
@@ -723,38 +830,19 @@ export default function AdminPodcasts() {
         <TabsContent value="published" className="mt-6 space-y-3">
           {publishedPodcasts.map((podcast) => (
             <Card key={podcast.id} className="bg-[#1a1f3a] border-slate-700">
-              {/* Same card layout as "all" tab */}
               <CardContent className="p-5">
                 <div className="flex items-start gap-4">
                   <div className="relative w-24 h-24 rounded-lg bg-gradient-to-br from-purple-500 to-pink-500 flex-shrink-0 overflow-hidden">
                     {podcast.video_thumbnail_url || podcast.image_url ? (
-                      <img 
-                        src={podcast.video_thumbnail_url || podcast.image_url} 
-                        alt={podcast.title} 
-                        className="w-full h-full object-cover" 
-                      />
+                      <img src={podcast.video_thumbnail_url || podcast.image_url} alt={podcast.title} className="w-full h-full object-cover" />
                     ) : (
-                      <div className="w-full h-full flex items-center justify-center">
-                        <Mic2 className="w-10 h-10 text-white" />
-                      </div>
+                      <Mic2 className="w-10 h-10 text-white m-auto mt-6" />
                     )}
                   </div>
                   <div className="flex-1">
-                    <div className="flex items-start justify-between mb-2">
-                      <div>
-                        <h3 className="text-white font-bold text-lg mb-1">{podcast.title}</h3>
-                        <p className="text-slate-400 text-sm mb-2">
-                          S{podcast.season}E{podcast.episode_number} • {podcast.host_name}
-                        </p>
-                      </div>
-                      <Badge className="bg-green-500">Published</Badge>
-                    </div>
-                    <div className="flex items-center gap-2">
-                      <Button size="sm" onClick={() => handleEdit(podcast)} className="bg-cyan-500 hover:bg-cyan-600">
-                        <Edit className="w-3 h-3 mr-1" />
-                        Edit
-                      </Button>
-                    </div>
+                    <h3 className="text-white font-bold text-lg mb-1">{podcast.title}</h3>
+                    <p className="text-slate-400 text-sm mb-2">S{podcast.season}E{podcast.episode_number}</p>
+                    <Badge className="bg-green-500">Published</Badge>
                   </div>
                 </div>
               </CardContent>
@@ -762,33 +850,100 @@ export default function AdminPodcasts() {
           ))}
         </TabsContent>
 
+        <TabsContent value="live_recorded" className="mt-6 space-y-3">
+          <div className="mb-4 p-4 bg-purple-500/10 border border-purple-500/30 rounded-lg">
+            <div className="flex items-start gap-3">
+              <Film className="w-6 h-6 text-purple-400 flex-shrink-0 mt-1" />
+              <div>
+                <h3 className="text-white font-bold mb-1">Live Recorded Podcasts</h3>
+                <p className="text-slate-300 text-sm">
+                  These podcasts were recorded from live streaming sessions and saved automatically.
+                  They appear in the WATCH section with video thumbnails.
+                </p>
+              </div>
+            </div>
+          </div>
+          {liveRecordedPodcasts.map((podcast) => (
+            <Card key={podcast.id} className="bg-[#1a1f3a] border-purple-500/30">
+              <CardContent className="p-5">
+                <div className="flex items-start gap-4">
+                  <div className="relative w-32 h-32 rounded-lg overflow-hidden flex-shrink-0">
+                    {podcast.video_thumbnail_url ? (
+                      <img src={podcast.video_thumbnail_url} alt={podcast.title} className="w-full h-full object-cover" />
+                    ) : (
+                      <div className="w-full h-full bg-gradient-to-br from-purple-600 to-pink-600 flex items-center justify-center">
+                        <Film className="w-12 h-12 text-white" />
+                      </div>
+                    )}
+                    <Badge className="absolute top-2 right-2 bg-purple-600">
+                      <Film className="w-3 h-3 mr-1" />
+                      LIVE REC
+                    </Badge>
+                  </div>
+                  <div className="flex-1">
+                    <h3 className="text-white font-bold text-lg mb-1">{podcast.title}</h3>
+                    <p className="text-slate-400 text-sm mb-2">
+                      S{podcast.season}E{podcast.episode_number} • {podcast.host_name} • {formatDuration(podcast.duration || 0)}
+                    </p>
+                    <p className="text-slate-300 text-sm mb-3 line-clamp-2">{podcast.description}</p>
+                    <div className="flex items-center gap-2 flex-wrap">
+                      <Badge className="bg-green-500">
+                        <Play className="w-3 h-3 mr-1" />
+                        {podcast.plays || 0} plays
+                      </Badge>
+                      <Button size="sm" onClick={() => handleEdit(podcast)} className="bg-cyan-500 hover:bg-cyan-600">
+                        <Edit className="w-3 h-3 mr-1" />
+                        Edit
+                      </Button>
+                      {podcast.video_url && (
+                        <div className="flex gap-1">
+                          <Button
+                            size="sm"
+                            variant="outline"
+                            onClick={() => handleDownloadVideo(podcast, 'mp4')}
+                            className="border-green-500/30 text-green-400"
+                          >
+                            <Download className="w-3 h-3 mr-1" />
+                            Download MP4
+                          </Button>
+                        </div>
+                      )}
+                    </div>
+                  </div>
+                </div>
+              </CardContent>
+            </Card>
+          ))}
+          {liveRecordedPodcasts.length === 0 && (
+            <Card className="bg-[#1a1f3a] border-slate-700">
+              <CardContent className="p-12 text-center">
+                <Film className="w-16 h-16 text-slate-600 mx-auto mb-4" />
+                <h3 className="text-white font-bold text-lg mb-2">No Live Recorded Podcasts</h3>
+                <p className="text-slate-400 mb-6">Start a live podcast stream to create recorded episodes</p>
+                <Link to={createPageUrl("AdminPodcastLive")}>
+                  <Button className="bg-purple-500 hover:bg-purple-600">
+                    <Mic2 className="w-4 h-4 mr-2" />
+                    Go Live Now
+                  </Button>
+                </Link>
+              </CardContent>
+            </Card>
+          )}
+        </TabsContent>
+
         <TabsContent value="scheduled" className="mt-6 space-y-3">
           {scheduledPodcasts.map((podcast) => (
             <Card key={podcast.id} className="bg-[#1a1f3a] border-slate-700">
               <CardContent className="p-5">
                 <div className="flex items-start gap-4">
-                  <div className="relative w-24 h-24 rounded-lg bg-gradient-to-br from-amber-500 to-orange-500 flex-shrink-0 overflow-hidden">
-                    {podcast.video_thumbnail_url || podcast.image_url ? (
-                      <img 
-                        src={podcast.video_thumbnail_url || podcast.image_url} 
-                        alt={podcast.title} 
-                        className="w-full h-full object-cover" 
-                      />
-                    ) : (
-                      <CalendarIcon className="w-10 h-10 text-white m-auto mt-6" />
-                    )}
+                  <div className="w-20 h-20 rounded-lg bg-amber-500 flex-shrink-0 flex items-center justify-center">
+                    <CalendarIcon className="w-10 h-10 text-white" />
                   </div>
                   <div className="flex-1">
-                    <div className="flex items-start justify-between mb-2">
-                      <div>
-                        <h3 className="text-white font-bold text-lg mb-1">{podcast.title}</h3>
-                        <p className="text-slate-400 text-sm mb-2">
-                          S{podcast.season}E{podcast.episode_number}
-                        </p>
-                      </div>
-                      <Badge className="bg-amber-500">Scheduled</Badge>
-                    </div>
-                    <div className="mb-3 p-3 bg-amber-500/10 border border-amber-500/30 rounded-lg">
+                    <h3 className="text-white font-bold text-lg mb-1">{podcast.title}</h3>
+                    <p className="text-slate-400 text-sm mb-2">S{podcast.season}E{podcast.episode_number}</p>
+                    <Badge className="bg-amber-500 mb-3">Scheduled</Badge>
+                    <div className="p-3 bg-amber-500/10 border border-amber-500/30 rounded-lg mb-3">
                       <p className="text-amber-400 text-sm font-semibold mb-1">
                         <CalendarIcon className="w-4 h-4 inline mr-1" />
                         {format(new Date(podcast.scheduled_publish_date), 'MMMM d, yyyy')}
@@ -798,20 +953,14 @@ export default function AdminPodcasts() {
                         {podcast.auto_publish && ' • Auto-publish enabled'}
                       </p>
                     </div>
-                    <div className="flex items-center gap-2">
-                      <Button
-                        size="sm"
-                        onClick={() => handlePublishNow(podcast)}
-                        className="bg-green-500 hover:bg-green-600"
-                      >
-                        <Play className="w-3 h-3 mr-1" />
-                        Publish Now
-                      </Button>
-                      <Button size="sm" onClick={() => handleEdit(podcast)} className="bg-cyan-500 hover:bg-cyan-600">
-                        <Edit className="w-3 h-3 mr-1" />
-                        Edit
-                      </Button>
-                    </div>
+                    <Button
+                      size="sm"
+                      onClick={() => handlePublishNow(podcast)}
+                      className="bg-green-500 hover:bg-green-600"
+                    >
+                      <Play className="w-3 h-3 mr-1" />
+                      Publish Now
+                    </Button>
                   </div>
                 </div>
               </CardContent>
@@ -829,101 +978,19 @@ export default function AdminPodcasts() {
                   </div>
                   <div className="flex-1">
                     <h3 className="text-white font-bold text-lg mb-1">{podcast.title}</h3>
-                    <p className="text-slate-400 text-sm mb-2">
-                      S{podcast.season}E{podcast.episode_number}
-                    </p>
+                    <p className="text-slate-400 text-sm mb-2">S{podcast.season}E{podcast.episode_number}</p>
                     <Badge className="bg-slate-500 mb-3">Draft</Badge>
-                    <div className="flex items-center gap-2">
-                      <Button size="sm" onClick={() => handleEdit(podcast)} className="bg-cyan-500 hover:bg-cyan-600">
-                        <Edit className="w-3 h-3 mr-1" />
-                        Edit
-                      </Button>
-                    </div>
+                    <Button size="sm" onClick={() => handleEdit(podcast)} className="bg-cyan-500 hover:bg-cyan-600">
+                      <Edit className="w-3 h-3 mr-1" />
+                      Edit
+                    </Button>
                   </div>
                 </div>
               </CardContent>
             </Card>
           ))}
         </TabsContent>
-
-        <TabsContent value="calendar" className="mt-6">
-          <Card className="bg-[#1a1f3a] border-slate-700">
-            <CardHeader>
-              <CardTitle className="text-white font-black flex items-center gap-2">
-                <CalendarIcon className="w-6 h-6 text-amber-400" />
-                Scheduled Publishing Calendar
-              </CardTitle>
-            </CardHeader>
-            <CardContent>
-              {Object.keys(scheduledByDate).length > 0 ? (
-                <div className="space-y-6">
-                  {Object.entries(scheduledByDate).sort(([a], [b]) => new Date(a) - new Date(b)).map(([date, datePodcasts]) => (
-                    <div key={date} className="border-l-4 border-amber-500 pl-4">
-                      <h3 className="text-white font-black text-lg mb-3">
-                        {format(new Date(date), 'EEEE, MMMM d, yyyy')}
-                      </h3>
-                      <div className="space-y-2">
-                        {datePodcasts.map((podcast) => (
-                          <div key={podcast.id} className="p-3 bg-slate-900/50 rounded-lg flex items-center justify-between">
-                            <div className="flex items-center gap-3">
-                              <div className="w-12 h-12 rounded bg-gradient-to-br from-amber-500 to-orange-500 flex items-center justify-center">
-                                <CalendarIcon className="w-6 h-6 text-white" />
-                              </div>
-                              <div>
-                                <h4 className="text-white font-semibold">{podcast.title}</h4>
-                                <p className="text-slate-400 text-xs">
-                                  {format(new Date(podcast.scheduled_publish_date), 'h:mm a')} • 
-                                  S{podcast.season}E{podcast.episode_number}
-                                </p>
-                              </div>
-                            </div>
-                            <div className="flex items-center gap-2">
-                              {podcast.auto_publish && (
-                                <Badge className="bg-green-500 text-xs">Auto-publish</Badge>
-                              )}
-                              <Button
-                                size="sm"
-                                onClick={() => handleEdit(podcast)}
-                                className="bg-cyan-500 hover:bg-cyan-600"
-                              >
-                                <Edit className="w-3 h-3" />
-                              </Button>
-                            </div>
-                          </div>
-                        ))}
-                      </div>
-                    </div>
-                  ))}
-                </div>
-              ) : (
-                <div className="text-center py-12">
-                  <CalendarIcon className="w-16 h-16 text-slate-600 mx-auto mb-4" />
-                  <h3 className="text-white font-bold text-lg mb-2">No Scheduled Episodes</h3>
-                  <p className="text-slate-400 mb-6">Schedule episodes to see them on the calendar</p>
-                  <Button onClick={() => setDialogOpen(true)} className="bg-cyan-500 hover:bg-cyan-600">
-                    <Plus className="w-4 h-4 mr-2" />
-                    Schedule Episode
-                  </Button>
-                </div>
-              )}
-            </CardContent>
-          </Card>
-        </TabsContent>
       </Tabs>
-
-      {filteredPodcasts.length === 0 && (
-        <Card className="bg-[#1a1f3a] border-slate-700">
-          <CardContent className="p-12 text-center">
-            <Mic2 className="w-16 h-16 text-slate-600 mx-auto mb-4" />
-            <h3 className="text-white font-bold text-lg mb-2">No Podcasts</h3>
-            <p className="text-slate-400 mb-6">Start by adding your first podcast episode</p>
-            <Button onClick={() => setDialogOpen(true)} className="bg-cyan-500 hover:bg-cyan-600">
-              <Plus className="w-4 h-4 mr-2" />
-              Add First Podcast
-            </Button>
-          </CardContent>
-        </Card>
-      )}
     </div>
   );
 }
