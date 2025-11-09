@@ -21,6 +21,8 @@ import AdminBroadcastStudio from './pages/AdminBroadcastStudio';
 import UserSubscriptionManagement from './pages/UserSubscriptionManagement';
 import AdminLivePodcast from './pages/AdminLivePodcast';
 import AdminAudioUpload from './pages/AdminAudioUpload';
+import Community from './pages/Community';
+import Groups from './pages/Groups';
 import Layout from './Layout.jsx';
 
 
@@ -48,6 +50,8 @@ export const PAGES = {
     "UserSubscriptionManagement": UserSubscriptionManagement,
     "AdminLivePodcast": AdminLivePodcast,
     "AdminAudioUpload": AdminAudioUpload,
+    "Community": Community,
+    "Groups": Groups,
 }
 
 export const pagesConfig = {
