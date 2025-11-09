@@ -1021,8 +1021,8 @@ Make it look like a professional music streaming app player with active audio vi
 
       {/* Export Progress Dialog */}
       <Dialog open={exportDialogOpen} onOpenChange={setExportDialogOpen}>
-        <DialogContent className="bg-[#1a1f3a] border-slate-700 max-w-2xl">
-          <DialogHeader>
+        <DialogContent className="bg-[#1a1f3a] border-slate-700 max-w-2xl max-h-[90vh] overflow-hidden flex flex-col">
+          <DialogHeader className="flex-shrink-0">
             <DialogTitle className="text-white font-black text-2xl flex items-center gap-3">
               <Package className="w-8 h-8 text-cyan-400" />
               {exportComplete ? 'Export Complete!' : 'Preparing Export Package'}
@@ -1035,158 +1035,164 @@ Make it look like a professional music streaming app player with active audio vi
             </DialogDescription>
           </DialogHeader>
 
-          <div className="py-8 space-y-6">
-            {/* Progress Bar */}
-            <div className="space-y-3">
-              <div className="flex items-center justify-between">
-                <span className="text-white font-semibold text-lg">
-                  {exportComplete ? (
-                    <span className="flex items-center gap-2 text-green-400">
-                      <CheckCircle className="w-5 h-5" />
-                      Ready to Download
-                    </span>
-                  ) : (
-                    <span className="flex items-center gap-2">
-                      <Loader2 className="w-5 h-5 animate-spin text-cyan-400" />
-                      {exportStep}
-                    </span>
-                  )}
-                </span>
-                <span className="text-cyan-400 font-bold text-lg">{exportProgress}%</span>
+          <div className="flex-1 overflow-y-auto py-4 px-1">
+            <div className="space-y-6">
+              {/* Progress Bar */}
+              <div className="space-y-3">
+                <div className="flex items-center justify-between">
+                  <span className="text-white font-semibold text-lg">
+                    {exportComplete ? (
+                      <span className="flex items-center gap-2 text-green-400">
+                        <CheckCircle className="w-5 h-5" />
+                        Ready to Download
+                      </span>
+                    ) : (
+                      <span className="flex items-center gap-2">
+                        <Loader2 className="w-5 h-5 animate-spin text-cyan-400" />
+                        {exportStep}
+                      </span>
+                    )}
+                  </span>
+                  <span className="text-cyan-400 font-bold text-lg">{exportProgress}%</span>
+                </div>
+                <Progress value={exportProgress} className="h-3 bg-slate-800" />
               </div>
-              <Progress value={exportProgress} className="h-3 bg-slate-800" />
+
+              {/* Export Details */}
+              {exportComplete && (
+                <div className="space-y-4">
+                  <div className="p-6 bg-gradient-to-br from-green-900/20 to-cyan-900/20 border border-green-500/30 rounded-lg">
+                    <h3 className="text-white font-bold text-lg mb-4 flex items-center gap-2">
+                      <CheckCircle className="w-6 h-6 text-green-400" />
+                      Export Package Ready
+                    </h3>
+                    <div className="grid grid-cols-2 gap-4 text-sm mb-4">
+                      <div>
+                        <p className="text-slate-400 mb-1">Title</p>
+                        <p className="text-white font-semibold">{podcast.title}</p>
+                      </div>
+                      <div>
+                        <p className="text-slate-400 mb-1">Host</p>
+                        <p className="text-white font-semibold">{podcast.host_name}</p>
+                      </div>
+                      <div>
+                        <p className="text-slate-400 mb-1">Episode</p>
+                        <p className="text-white font-semibold">S{podcast.season}E{podcast.episode_number}</p>
+                      </div>
+                      <div>
+                        <p className="text-slate-400 mb-1">Duration</p>
+                        <p className="text-white font-semibold">{formatTime(podcast.duration)}</p>
+                      </div>
+                    </div>
+
+                    {podcast.image_url && (
+                      <div className="mb-4">
+                        <p className="text-slate-400 mb-2 text-sm">Generated Cover Image Preview:</p>
+                        <img 
+                          src={podcast.image_url} 
+                          alt="Cover" 
+                          className="w-full max-w-sm rounded-lg border-2 border-cyan-500/30"
+                        />
+                      </div>
+                    )}
+
+                    <div className="p-3 bg-cyan-900/20 border border-cyan-500/30 rounded-lg">
+                      <h4 className="text-cyan-400 font-semibold mb-2 text-sm">📦 Export Includes:</h4>
+                      <ul className="space-y-1 text-xs text-slate-300">
+                        <li>✓ Edited audio file (.webm format)</li>
+                        <li>✓ High-quality cover image with waveform design</li>
+                        <li>✓ Episode metadata embedded</li>
+                        <li>✓ All audio effects applied (trim, fade, EQ, etc.)</li>
+                      </ul>
+                    </div>
+                  </div>
+
+                  <div className="p-4 bg-slate-900/50 border border-slate-700 rounded-lg">
+                    <h4 className="text-white font-semibold mb-3 flex items-center gap-2">
+                      <Zap className="w-4 h-4 text-amber-400" />
+                      Applied Audio Settings
+                    </h4>
+                    <div className="grid grid-cols-2 gap-2 text-xs">
+                      <div className="flex justify-between">
+                        <span className="text-slate-400">Trim:</span>
+                        <span className="text-cyan-400">{trimStart}% - {trimEnd}%</span>
+                      </div>
+                      <div className="flex justify-between">
+                        <span className="text-slate-400">Fade In/Out:</span>
+                        <span className="text-cyan-400">{fadeInDuration}s / {fadeOutDuration}s</span>
+                      </div>
+                      <div className="flex justify-between">
+                        <span className="text-slate-400">Normalize:</span>
+                        <span className="text-cyan-400">{normalizeLevel > 0 ? '+' : ''}{normalizeLevel} dB</span>
+                      </div>
+                      <div className="flex justify-between">
+                        <span className="text-slate-400">Bass/Treble:</span>
+                        <span className="text-cyan-400">{bassBoost > 0 ? '+' : ''}{bassBoost} / {trebleBoost > 0 ? '+' : ''}{trebleBoost} dB</span>
+                      </div>
+                      <div className="flex justify-between">
+                        <span className="text-slate-400">Compression:</span>
+                        <span className="text-cyan-400">{compressorThreshold} dB</span>
+                      </div>
+                      <div className="flex justify-between">
+                        <span className="text-slate-400">Noise Reduction:</span>
+                        <span className="text-cyan-400">{noiseReduction}%</span>
+                      </div>
+                      <div className="flex justify-between">
+                        <span className="text-slate-400">Reverb:</span>
+                        <span className="text-cyan-400">{reverb}%</span>
+                      </div>
+                      <div className="flex justify-between">
+                        <span className="text-slate-400">Pitch:</span>
+                        <span className="text-cyan-400">{pitch > 0 ? '+' : ''}{pitch} semitones</span>
+                      </div>
+                    </div>
+                  </div>
+
+                  <div className="p-3 bg-purple-900/20 border border-purple-500/30 rounded-lg">
+                    <h4 className="text-purple-400 font-semibold mb-2 text-sm">💡 Pro Tip:</h4>
+                    <p className="text-slate-300 text-xs">
+                      To create an animated waveform video, import the audio file and cover image into 
+                      video editing software like Adobe Premiere, DaVinci Resolve, or use online tools 
+                      like Headliner or Wavve for automatic audiogram creation.
+                    </p>
+                  </div>
+                </div>
+              )}
+
+              {/* Processing Animation */}
+              {!exportComplete && (
+                <div className="flex items-center justify-center py-8">
+                  <div className="relative">
+                    <div className="w-24 h-24 border-4 border-cyan-500/20 rounded-full"></div>
+                    <div className="w-24 h-24 border-4 border-cyan-500 border-t-transparent rounded-full animate-spin absolute top-0 left-0"></div>
+                    <Package className="w-12 h-12 text-cyan-400 absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2" />
+                  </div>
+                </div>
+              )}
             </div>
-
-            {/* Export Details */}
-            {exportComplete && (
-              <div className="space-y-4">
-                <div className="p-6 bg-gradient-to-br from-green-900/20 to-cyan-900/20 border border-green-500/30 rounded-lg">
-                  <h3 className="text-white font-bold text-lg mb-4 flex items-center gap-2">
-                    <CheckCircle className="w-6 h-6 text-green-400" />
-                    Export Package Ready
-                  </h3>
-                  <div className="grid grid-cols-2 gap-4 text-sm mb-4">
-                    <div>
-                      <p className="text-slate-400 mb-1">Title</p>
-                      <p className="text-white font-semibold">{podcast.title}</p>
-                    </div>
-                    <div>
-                      <p className="text-slate-400 mb-1">Host</p>
-                      <p className="text-white font-semibold">{podcast.host_name}</p>
-                    </div>
-                    <div>
-                      <p className="text-slate-400 mb-1">Episode</p>
-                      <p className="text-white font-semibold">S{podcast.season}E{podcast.episode_number}</p>
-                    </div>
-                    <div>
-                      <p className="text-slate-400 mb-1">Duration</p>
-                      <p className="text-white font-semibold">{formatTime(podcast.duration)}</p>
-                    </div>
-                  </div>
-
-                  {podcast.image_url && (
-                    <div className="mb-4">
-                      <p className="text-slate-400 mb-2 text-sm">Generated Cover Image Preview:</p>
-                      <img 
-                        src={podcast.image_url} 
-                        alt="Cover" 
-                        className="w-full max-w-sm rounded-lg border-2 border-cyan-500/30"
-                      />
-                    </div>
-                  )}
-
-                  <div className="p-3 bg-cyan-900/20 border border-cyan-500/30 rounded-lg">
-                    <h4 className="text-cyan-400 font-semibold mb-2 text-sm">📦 Export Includes:</h4>
-                    <ul className="space-y-1 text-xs text-slate-300">
-                      <li>✓ Edited audio file (.webm format)</li>
-                      <li>✓ High-quality cover image with waveform design</li>
-                      <li>✓ Episode metadata embedded</li>
-                      <li>✓ All audio effects applied (trim, fade, EQ, etc.)</li>
-                    </ul>
-                  </div>
-                </div>
-
-                <div className="p-4 bg-slate-900/50 border border-slate-700 rounded-lg">
-                  <h4 className="text-white font-semibold mb-3 flex items-center gap-2">
-                    <Zap className="w-4 h-4 text-amber-400" />
-                    Applied Audio Settings
-                  </h4>
-                  <div className="grid grid-cols-2 gap-2 text-xs">
-                    <div className="flex justify-between">
-                      <span className="text-slate-400">Trim:</span>
-                      <span className="text-cyan-400">{trimStart}% - {trimEnd}%</span>
-                    </div>
-                    <div className="flex justify-between">
-                      <span className="text-slate-400">Fade In/Out:</span>
-                      <span className="text-cyan-400">{fadeInDuration}s / {fadeOutDuration}s</span>
-                    </div>
-                    <div className="flex justify-between">
-                      <span className="text-slate-400">Normalize:</span>
-                      <span className="text-cyan-400">{normalizeLevel > 0 ? '+' : ''}{normalizeLevel} dB</span>
-                    </div>
-                    <div className="flex justify-between">
-                      <span className="text-slate-400">Bass/Treble:</span>
-                      <span className="text-cyan-400">{bassBoost > 0 ? '+' : ''}{bassBoost} / {trebleBoost > 0 ? '+' : ''}{trebleBoost} dB</span>
-                    </div>
-                    <div className="flex justify-between">
-                      <span className="text-slate-400">Compression:</span>
-                      <span className="text-cyan-400">{compressorThreshold} dB</span>
-                    </div>
-                    <div className="flex justify-between">
-                      <span className="text-slate-400">Noise Reduction:</span>
-                      <span className="text-cyan-400">{noiseReduction}%</span>
-                    </div>
-                    <div className="flex justify-between">
-                      <span className="text-slate-400">Reverb:</span>
-                      <span className="text-cyan-400">{reverb}%</span>
-                    </div>
-                    <div className="flex justify-between">
-                      <span className="text-slate-400">Pitch:</span>
-                      <span className="text-cyan-400">{pitch > 0 ? '+' : ''}{pitch} semitones</span>
-                    </div>
-                  </div>
-                </div>
-
-                <div className="p-3 bg-purple-900/20 border border-purple-500/30 rounded-lg">
-                  <h4 className="text-purple-400 font-semibold mb-2 text-sm">💡 Pro Tip:</h4>
-                  <p className="text-slate-300 text-xs">
-                    To create an animated waveform video, import the audio file and cover image into 
-                    video editing software like Adobe Premiere, DaVinci Resolve, or use online tools 
-                    like Headliner or Wavve for automatic audiogram creation.
-                  </p>
-                </div>
-
-                <div className="flex gap-3">
-                  <Button
-                    onClick={handleDownloadExport}
-                    disabled={!downloadReady}
-                    className="flex-1 bg-gradient-to-r from-green-500 to-emerald-500 hover:from-green-600 hover:to-emerald-600 font-bold text-lg h-12"
-                  >
-                    <Download className="w-5 h-5 mr-2" />
-                    Download Files
-                  </Button>
-                  <Button
-                    onClick={() => setExportDialogOpen(false)}
-                    variant="outline"
-                    className="border-slate-700 text-slate-300 hover:bg-slate-800"
-                  >
-                    Close
-                  </Button>
-                </div>
-              </div>
-            )}
-
-            {/* Processing Animation */}
-            {!exportComplete && (
-              <div className="flex items-center justify-center py-8">
-                <div className="relative">
-                  <div className="w-24 h-24 border-4 border-cyan-500/20 rounded-full"></div>
-                  <div className="w-24 h-24 border-4 border-cyan-500 border-t-transparent rounded-full animate-spin absolute top-0 left-0"></div>
-                  <Package className="w-12 h-12 text-cyan-400 absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2" />
-                </div>
-              </div>
-            )}
           </div>
+
+          {exportComplete && (
+            <div className="flex-shrink-0 border-t border-slate-700 pt-4 px-6 pb-4 bg-[#1a1f3a]">
+              <div className="flex gap-3">
+                <Button
+                  onClick={handleDownloadExport}
+                  disabled={!downloadReady}
+                  className="flex-1 bg-gradient-to-r from-green-500 to-emerald-500 hover:from-green-600 hover:to-emerald-600 font-bold text-lg h-12"
+                >
+                  <Download className="w-5 h-5 mr-2" />
+                  Download Files
+                </Button>
+                <Button
+                  onClick={() => setExportDialogOpen(false)}
+                  variant="outline"
+                  className="border-slate-700 text-slate-300 hover:bg-slate-800"
+                >
+                  Close
+                </Button>
+              </div>
+            </div>
+          )}
         </DialogContent>
       </Dialog>
     </div>

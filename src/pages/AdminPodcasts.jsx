@@ -27,6 +27,10 @@ import { format } from "date-fns";
 import { Link } from "react-router-dom";
 import { createPageUrl } from "@/utils";
 
+import AITrailerGenerator from "../components/podcast/AITrailerGenerator";
+import AISocialMediaGenerator from "../components/podcast/AISocialMediaGenerator";
+import AIChapterGenerator from "../components/podcast/AIChapterGenerator";
+
 export default function AdminPodcasts() {
   const [searchQuery, setSearchQuery] = useState("");
   const [dialogOpen, setDialogOpen] = useState(false);
@@ -38,6 +42,9 @@ export default function AdminPodcasts() {
   const [convertingAudio, setConvertingAudio] = useState(false);
   const [previewAudio, setPreviewAudio] = useState(null);
   const [previewDialogOpen, setPreviewDialogOpen] = useState(false);
+
+  const [showAITools, setShowAITools] = useState(false);
+  const [selectedPodcastForAI, setSelectedPodcastForAI] = useState(null);
 
   const [podcastForm, setPodcastForm] = useState({
     title: '',
@@ -787,6 +794,19 @@ export default function AdminPodcasts() {
                         </Link>
                       )}
 
+                      {/* NEW: AI Marketing Tools */}
+                      <Button
+                        size="sm"
+                        onClick={() => {
+                          setSelectedPodcastForAI(podcast);
+                          setShowAITools(true);
+                        }}
+                        className="bg-gradient-to-r from-purple-600 to-pink-600 hover:from-purple-700 hover:to-pink-700"
+                      >
+                        <Wand2 className="w-3 h-3 mr-1" />
+                        AI Tools
+                      </Button>
+
                       {podcast.publish_status === 'scheduled' && (
                         <Button
                           size="sm"
@@ -1086,6 +1106,44 @@ export default function AdminPodcasts() {
               </Link>
             )}
           </DialogFooter>
+        </DialogContent>
+      </Dialog>
+
+      {/* AI Marketing Tools Dialog */}
+      <Dialog open={showAITools} onOpenChange={setShowAITools}>
+        <DialogContent className="bg-[#1a1f3a] border-slate-700 max-w-4xl max-h-[90vh] overflow-hidden flex flex-col">
+          <DialogHeader className="flex-shrink-0">
+            <DialogTitle className="text-white font-black text-2xl flex items-center gap-3">
+              <Wand2 className="w-8 h-8 text-purple-400" />
+              AI Marketing & Content Tools
+            </DialogTitle>
+            <DialogDescription className="text-slate-400">
+              {selectedPodcastForAI?.title}
+            </DialogDescription>
+          </DialogHeader>
+
+          <div className="flex-1 overflow-y-auto py-4">
+            {selectedPodcastForAI && (
+              <div className="space-y-6">
+                <AITrailerGenerator podcast={selectedPodcastForAI} />
+                <AISocialMediaGenerator podcast={selectedPodcastForAI} />
+                <AIChapterGenerator podcast={selectedPodcastForAI} />
+              </div>
+            )}
+          </div>
+
+          <div className="flex-shrink-0 border-t border-slate-700 pt-4">
+            <Button
+              onClick={() => {
+                setShowAITools(false);
+                setSelectedPodcastForAI(null);
+              }}
+              variant="outline"
+              className="w-full border-slate-700"
+            >
+              Close
+            </Button>
+          </div>
         </DialogContent>
       </Dialog>
     </div>
