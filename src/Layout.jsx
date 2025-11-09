@@ -1,3 +1,4 @@
+
 import React, { useState, useEffect } from "react";
 import { Link, useLocation } from "react-router-dom";
 import { createPageUrl } from "@/utils";
@@ -58,15 +59,27 @@ export default function Layout({ children, currentPageName }) {
     fetchUser();
   }, []);
 
-  // Check for active live streams (real-time only)
+  // Check for ACTIVELY BROADCASTING live streams
+  // Only show LIVE button if stream is 'live' AND was updated in the last 2 minutes
   const { data: liveStreams = [] } = useQuery({
     queryKey: ['activeLiveStreams'],
     queryFn: async () => {
       const streams = await base44.entities.LiveStream.filter({ status: 'live' });
-      return streams;
+      
+      // Filter to only streams that are ACTIVELY broadcasting
+      // Check if updated within last 2 minutes (120 seconds)
+      const now = new Date();
+      const twoMinutesAgo = new Date(now.getTime() - 2 * 60 * 1000);
+      
+      const activeStreams = streams.filter(stream => {
+        const updatedDate = new Date(stream.updated_date || stream.started_at || stream.created_date);
+        return updatedDate > twoMinutesAgo;
+      });
+      
+      return activeStreams;
     },
     initialData: [],
-    refetchInterval: 10000, // Check every 10 seconds
+    refetchInterval: 5000, // Check every 5 seconds for more responsiveness
   });
 
   const hasActiveLiveStream = liveStreams.length > 0;
@@ -408,7 +421,7 @@ export default function Layout({ children, currentPageName }) {
                   <Search className="w-5 h-5" />
                 </Button>
                 
-                {/* Live Button - Grayed out when no live stream, clickable when live */}
+                {/* Live Button - ONLY red/clickable when ACTIVELY broadcasting (updated within 2 minutes) */}
                 {hasActiveLiveStream ? (
                   <Link to={createPageUrl("LiveStreamPlayer")}>
                     <Button className="bg-red-600 hover:bg-red-700 text-white font-bold relative overflow-hidden">
