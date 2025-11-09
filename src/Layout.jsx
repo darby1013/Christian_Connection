@@ -58,7 +58,7 @@ export default function Layout({ children, currentPageName }) {
     fetchUser();
   }, []);
 
-  // Check for active live streams
+  // Check for active live streams (real-time only, not pre-recorded)
   const { data: liveStreams = [] } = useQuery({
     queryKey: ['activeLiveStreams'],
     queryFn: async () => {
@@ -66,14 +66,14 @@ export default function Layout({ children, currentPageName }) {
       return streams;
     },
     initialData: [],
-    refetchInterval: 30000, // Check every 30 seconds
+    refetchInterval: 10000, // Check every 10 seconds
   });
 
   const hasActiveLiveStream = liveStreams.length > 0;
 
   const publicNavItems = [
     { title: "Home", url: createPageUrl("Home"), icon: Home },
-    { title: "Watch", url: createPageUrl("LiveStreams"), icon: Video },
+    { title: "Watch Videos", url: createPageUrl("WatchVideos"), icon: Video },
     { title: "Blog", url: createPageUrl("Blog"), icon: BookOpen },
     { title: "Events", url: createPageUrl("Events"), icon: Calendar },
     { title: "Store", url: createPageUrl("Store"), icon: ShoppingBag },
@@ -102,7 +102,7 @@ export default function Layout({ children, currentPageName }) {
     { title: "Dashboard", url: createPageUrl("AdminDashboard"), icon: LayoutDashboard, section: "OVERVIEW" },
     { title: "Analytics", url: createPageUrl("AdminAnalytics"), icon: BarChart3, section: "OVERVIEW" },
     { title: "Site Settings", url: createPageUrl("AdminSiteSettings"), icon: SettingsIcon, section: "OVERVIEW" },
-    { title: "Broadcast Studio", url: createPageUrl("AdminBroadcastStudio"), icon: Radio, section: "CONTENT" },
+    { title: "Go Live Studio", url: createPageUrl("AdminBroadcastStudio"), icon: Radio, section: "CONTENT" },
     { title: "Live Streams", url: createPageUrl("AdminLiveStreams"), icon: Video, section: "CONTENT" },
     { title: "AI Script Generator", url: createPageUrl("AdminAIScriptGenerator"), icon: Sparkles, section: "CONTENT" },
     { title: "Podcasts", url: createPageUrl("AdminPodcasts"), icon: Mic2, section: "CONTENT" },
@@ -396,15 +396,6 @@ export default function Layout({ children, currentPageName }) {
                     ))}
                   </DropdownMenuContent>
                 </DropdownMenu>
-                
-                {user && (
-                  <Link to={createPageUrl("BroadcastStream")}>
-                    <Button className="ml-2 bg-cyan-500 hover:bg-cyan-600 text-white font-bold">
-                      <Radio className="w-4 h-4 mr-2" />
-                      Go Live
-                    </Button>
-                  </Link>
-                )}
               </div>
 
               <div className="flex items-center gap-3">
@@ -417,16 +408,16 @@ export default function Layout({ children, currentPageName }) {
                   <Search className="w-5 h-5" />
                 </Button>
                 
-                {/* Live Button - Only active when stream is live */}
-                {hasActiveLiveStream ? (
-                  <Link to={createPageUrl("LiveStreams")}>
+                {/* Live Button - Only when actual live stream is happening */}
+                {hasActiveLiveStream && (
+                  <Link to={createPageUrl("LiveStreamPlayer")}>
                     <Button className="bg-red-600 hover:bg-red-700 text-white font-bold relative overflow-hidden">
                       <span className="absolute inset-0 bg-red-500 live-pulse"></span>
                       <Radio className="w-4 h-4 mr-2 relative z-10" />
-                      <span className="relative z-10">WATCH LIVE</span>
+                      <span className="relative z-10">LIVE NOW</span>
                     </Button>
                   </Link>
-                ) : null}
+                )}
                 
                 {user ? (
                   <div className="flex items-center gap-3">

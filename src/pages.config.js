@@ -40,6 +40,8 @@ import GroupAnalytics from './pages/GroupAnalytics';
 import AdminGroupManagement from './pages/AdminGroupManagement';
 import Forum from './pages/Forum';
 import ForumDetail from './pages/ForumDetail';
+import LiveStreamPlayer from './pages/LiveStreamPlayer';
+import WatchVideos from './pages/WatchVideos';
 import Layout from './Layout.jsx';
 
 
@@ -86,6 +88,8 @@ export const PAGES = {
     "AdminGroupManagement": AdminGroupManagement,
     "Forum": Forum,
     "ForumDetail": ForumDetail,
+    "LiveStreamPlayer": LiveStreamPlayer,
+    "WatchVideos": WatchVideos,
 }
 
 export const pagesConfig = {
