@@ -8,12 +8,14 @@ import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
 import { Badge } from "@/components/ui/badge";
 import { Tabs, TabsList, TabsTrigger, TabsContent } from "@/components/ui/tabs";
+import { Slider } from "@/components/ui/slider";
 import {
   Video, VideoOff, Mic, MicOff, Radio, Users, Activity,
-  CheckCircle, AlertCircle, FileText, Settings as SettingsIcon
+  CheckCircle, AlertCircle, FileText, Settings as SettingsIcon, Plus, Eye
 } from "lucide-react";
 import Teleprompter from "../components/broadcast/Teleprompter";
 import StreamTools from "../components/broadcast/StreamTools";
+import ScriptEditor from "../components/broadcast/ScriptEditor";
 
 export default function AdminBroadcastStudio() {
   const [user, setUser] = useState(null);
@@ -27,6 +29,8 @@ export default function AdminBroadcastStudio() {
   const [connectionStatus, setConnectionStatus] = useState('disconnected');
   const [showTeleprompter, setShowTeleprompter] = useState(false);
   const [selectedScript, setSelectedScript] = useState(null);
+  const [teleprompterFontSize, setTeleprompterFontSize] = useState(24);
+  const [showScriptEditor, setShowScriptEditor] = useState(false);
 
   const videoRef = useRef(null);
   const streamRef = useRef(null);
@@ -187,6 +191,12 @@ export default function AdminBroadcastStudio() {
     return `${hrs.toString().padStart(2, '0')}:${mins.toString().padStart(2, '0')}:${secs.toString().padStart(2, '0')}`;
   };
 
+  const handleScriptCreated = (script) => {
+    setSelectedScript(script);
+    setShowScriptEditor(false);
+    setShowTeleprompter(true);
+  };
+
   return (
     <div className="space-y-6">
       <div className="flex items-center justify-between">
@@ -205,113 +215,151 @@ export default function AdminBroadcastStudio() {
       </div>
 
       <div className="grid lg:grid-cols-3 gap-6">
-        {/* Main Video Feed */}
+        {/* Main Content Area */}
         <div className="lg:col-span-2 space-y-6">
-          <Card className="bg-[#1a1f3a] border-0 overflow-hidden">
-            <div className="relative aspect-video bg-black">
-              <video
-                ref={videoRef}
-                autoPlay
-                muted
-                playsInline
-                className="w-full h-full object-cover"
-              />
-              {!cameraOn && (
-                <div className="absolute inset-0 flex items-center justify-center bg-slate-900">
-                  <div className="text-center">
-                    <VideoOff className="w-16 h-16 text-slate-600 mx-auto mb-4" />
-                    <p className="text-slate-500 font-semibold">Camera is off</p>
+          <div className="grid grid-cols-2 gap-6">
+            {/* Video Feed */}
+            <Card className="bg-[#1a1f3a] border-0 overflow-hidden">
+              <div className="relative aspect-video bg-black">
+                <video
+                  ref={videoRef}
+                  autoPlay
+                  muted
+                  playsInline
+                  className="w-full h-full object-cover"
+                />
+                {!cameraOn && (
+                  <div className="absolute inset-0 flex items-center justify-center bg-slate-900">
+                    <div className="text-center">
+                      <VideoOff className="w-16 h-16 text-slate-600 mx-auto mb-4" />
+                      <p className="text-slate-500 font-semibold">Camera is off</p>
+                    </div>
+                  </div>
+                )}
+                
+                {isLive && (
+                  <>
+                    <Badge variant="destructive" className="absolute top-4 left-4 animate-pulse shadow-lg">
+                      <Radio className="w-3 h-3 mr-1" />
+                      LIVE
+                    </Badge>
+                    <Badge className="absolute top-4 right-4 bg-black/80 backdrop-blur-sm border-0 shadow-lg">
+                      <Users className="w-3 h-3 mr-1" />
+                      {viewerCount}
+                    </Badge>
+                  </>
+                )}
+              </div>
+
+              <CardContent className="p-4 bg-slate-900/50">
+                <div className="flex items-center justify-center gap-3 flex-wrap">
+                  <Button
+                    size="sm"
+                    onClick={cameraOn ? stopCamera : startCamera}
+                    disabled={isLive}
+                    className={cameraOn ? "bg-green-600" : "bg-slate-700"}
+                  >
+                    {cameraOn ? <Video className="w-4 h-4" /> : <VideoOff className="w-4 h-4" />}
+                  </Button>
+
+                  <Button
+                    size="sm"
+                    onClick={toggleMicrophone}
+                    disabled={!cameraOn || isLive}
+                    className={micOn ? "bg-green-600" : "bg-slate-700"}
+                  >
+                    {micOn ? <Mic className="w-4 h-4" /> : <MicOff className="w-4 h-4" />}
+                  </Button>
+
+                  {!isLive ? (
+                    <Button
+                      size="sm"
+                      onClick={goLive}
+                      disabled={!cameraOn}
+                      className="bg-gradient-to-r from-orange-600 to-red-600 font-bold"
+                    >
+                      <Radio className="w-4 h-4 mr-1" />
+                      GO LIVE
+                    </Button>
+                  ) : (
+                    <Button
+                      size="sm"
+                      onClick={endStream}
+                      variant="destructive"
+                      className="font-bold"
+                    >
+                      END STREAM
+                    </Button>
+                  )}
+
+                  <Button
+                    size="sm"
+                    onClick={() => setShowTeleprompter(!showTeleprompter)}
+                    className={showTeleprompter ? "bg-amber-500" : "bg-slate-700"}
+                  >
+                    <Eye className="w-4 h-4" />
+                  </Button>
+                </div>
+              </CardContent>
+            </Card>
+
+            {/* Teleprompter - Side by Side */}
+            {showTeleprompter && selectedScript && (
+              <Card className="bg-black border-2 border-amber-500/30 overflow-hidden">
+                <CardHeader className="border-b border-amber-500/20 py-2 px-3">
+                  <div className="flex items-center justify-between">
+                    <CardTitle className="text-amber-400 font-bold text-sm">Teleprompter</CardTitle>
+                    <div className="flex items-center gap-2">
+                      <span className="text-amber-400 text-xs">{teleprompterFontSize}px</span>
+                      <Slider
+                        value={[teleprompterFontSize]}
+                        onValueChange={([value]) => setTeleprompterFontSize(value)}
+                        min={16}
+                        max={32}
+                        step={2}
+                        className="w-20"
+                      />
+                    </div>
+                  </div>
+                </CardHeader>
+                <div 
+                  className="h-[calc(100%-60px)] overflow-y-auto p-4 bg-black"
+                  style={{
+                    fontSize: `${teleprompterFontSize}px`,
+                    lineHeight: '1.8'
+                  }}
+                >
+                  <div className="text-white font-mono">
+                    {selectedScript.content.split('\n').map((line, idx) => (
+                      <p key={idx} className="mb-4">{line}</p>
+                    ))}
                   </div>
                 </div>
-              )}
-              
-              {isLive && (
-                <>
-                  <Badge variant="destructive" className="absolute top-4 left-4 animate-pulse shadow-lg">
-                    <Radio className="w-3 h-3 mr-1" />
-                    LIVE
-                  </Badge>
-                  <Badge className="absolute top-4 right-4 bg-black/80 backdrop-blur-sm border-0 shadow-lg">
-                    <Users className="w-3 h-3 mr-1" />
-                    {viewerCount} watching
-                  </Badge>
-                </>
-              )}
-            </div>
+              </Card>
+            )}
+          </div>
 
-            {/* Stream Controls */}
-            <CardContent className="p-6 bg-slate-900/50">
-              <div className="flex items-center justify-center gap-4">
-                <Button
-                  size="lg"
-                  onClick={cameraOn ? stopCamera : startCamera}
-                  disabled={isLive}
-                  className={cameraOn 
-                    ? "bg-green-600 hover:bg-green-700" 
-                    : "bg-slate-700 hover:bg-slate-600"}
-                >
-                  {cameraOn ? <Video className="w-5 h-5 mr-2" /> : <VideoOff className="w-5 h-5 mr-2" />}
-                  {cameraOn ? 'Camera On' : 'Camera Off'}
-                </Button>
-
-                <Button
-                  size="lg"
-                  onClick={toggleMicrophone}
-                  disabled={!cameraOn || isLive}
-                  className={micOn 
-                    ? "bg-green-600 hover:bg-green-700" 
-                    : "bg-slate-700 hover:bg-slate-600"}
-                >
-                  {micOn ? <Mic className="w-5 h-5 mr-2" /> : <MicOff className="w-5 h-5 mr-2" />}
-                  {micOn ? 'Mic On' : 'Mic Off'}
-                </Button>
-
-                {!isLive ? (
-                  <Button
-                    size="lg"
-                    onClick={goLive}
-                    disabled={!cameraOn}
-                    className="bg-gradient-to-r from-orange-600 to-red-600 hover:from-orange-700 hover:to-red-700 font-bold px-8"
-                  >
-                    <Radio className="w-5 h-5 mr-2" />
-                    GO LIVE
-                  </Button>
-                ) : (
-                  <Button
-                    size="lg"
-                    onClick={endStream}
-                    variant="destructive"
-                    className="font-bold px-8"
-                  >
-                    END STREAM
-                  </Button>
-                )}
-
-                <Button
-                  size="lg"
-                  onClick={() => setShowTeleprompter(!showTeleprompter)}
-                  className={showTeleprompter 
-                    ? "bg-amber-500 hover:bg-amber-600" 
-                    : "bg-slate-700 hover:bg-slate-600"}
-                >
-                  <FileText className="w-5 h-5 mr-2" />
-                  Script
-                </Button>
-              </div>
-            </CardContent>
-          </Card>
-
-          {/* Teleprompter */}
+          {/* Script Management */}
           {showTeleprompter && (
-            <div>
-              <Teleprompter script={selectedScript} isVisible={true} />
-              
-              <Card className="bg-[#1a1f3a] border-slate-700 mt-4">
-                <CardHeader className="pb-3">
-                  <CardTitle className="text-white font-bold text-sm">Select Script</CardTitle>
-                </CardHeader>
-                <CardContent>
-                  <div className="space-y-2 max-h-48 overflow-y-auto">
+            <Card className="bg-[#1a1f3a] border-slate-700">
+              <CardHeader className="border-b border-slate-700 pb-3">
+                <div className="flex items-center justify-between">
+                  <CardTitle className="text-white font-bold text-sm">Scripts</CardTitle>
+                  <Button
+                    size="sm"
+                    onClick={() => setShowScriptEditor(!showScriptEditor)}
+                    className="bg-purple-500 hover:bg-purple-600"
+                  >
+                    <Plus className="w-3 h-3 mr-1" />
+                    New Script
+                  </Button>
+                </div>
+              </CardHeader>
+              <CardContent className="p-4">
+                {showScriptEditor ? (
+                  <ScriptEditor user={user} onScriptCreated={handleScriptCreated} />
+                ) : (
+                  <div className="space-y-2 max-h-64 overflow-y-auto">
                     {scripts.map((script) => (
                       <button
                         key={script.id}
@@ -325,26 +373,27 @@ export default function AdminBroadcastStudio() {
                         <div className="flex items-center justify-between">
                           <div>
                             <h4 className="text-white font-semibold text-sm">{script.title}</h4>
-                            <p className="text-xs text-slate-400">{script.topic} • {script.duration} min</p>
+                            <p className="text-xs text-slate-400">{script.duration} min • {script.is_ai_generated ? 'AI Generated' : 'Manual'}</p>
                           </div>
-                          <Badge className="bg-purple-500">{script.script_type}</Badge>
+                          <Badge className="bg-purple-500 text-xs">{script.script_type}</Badge>
                         </div>
                       </button>
                     ))}
                     {scripts.length === 0 && (
                       <div className="text-center py-8">
                         <FileText className="w-12 h-12 text-slate-600 mx-auto mb-3" />
-                        <p className="text-slate-400 text-sm">No scripts available</p>
+                        <p className="text-slate-400 text-sm">No scripts yet</p>
+                        <p className="text-slate-500 text-xs">Create one to get started</p>
                       </div>
                     )}
                   </div>
-                </CardContent>
-              </Card>
-            </div>
+                )}
+              </CardContent>
+            </Card>
           )}
 
           {/* Stream Info Form */}
-          {!isLive && !showTeleprompter && (
+          {!showTeleprompter && (
             <Card className="bg-[#1a1f3a] border-0">
               <CardHeader>
                 <CardTitle className="text-white font-black">Stream Information</CardTitle>
@@ -397,18 +446,17 @@ export default function AdminBroadcastStudio() {
             </TabsList>
 
             <TabsContent value="stats" className="mt-4 space-y-4">
-              {/* Live Stats */}
               <Card className="bg-slate-800/50 border-slate-700">
                 <CardHeader className="border-b border-slate-700">
                   <CardTitle className="text-white font-black text-lg">Live Stats</CardTitle>
                 </CardHeader>
                 <CardContent className="p-6 space-y-4">
                   <div className="flex justify-between items-center">
-                    <span className="text-slate-400 font-semibold">Current Viewers</span>
+                    <span className="text-slate-400 font-semibold">Viewers</span>
                     <span className="text-2xl font-black text-white">{viewerCount}</span>
                   </div>
                   <div className="flex justify-between items-center">
-                    <span className="text-slate-400 font-semibold">Peak Viewers</span>
+                    <span className="text-slate-400 font-semibold">Peak</span>
                     <span className="text-2xl font-black text-white">{peakViewers}</span>
                   </div>
                   <div className="flex justify-between items-center">
@@ -420,30 +468,28 @@ export default function AdminBroadcastStudio() {
                 </CardContent>
               </Card>
 
-              {/* System Status */}
               <Card className="bg-slate-800/50 border-slate-700">
                 <CardHeader className="border-b border-slate-700">
-                  <CardTitle className="text-white font-black text-lg">System Status</CardTitle>
+                  <CardTitle className="text-white font-black text-lg">System</CardTitle>
                 </CardHeader>
                 <CardContent className="p-6 space-y-3">
                   <div className="flex justify-between items-center">
                     <span className="text-slate-400 font-semibold">Camera</span>
                     <Badge className={cameraOn ? "bg-green-600" : "bg-slate-600"}>
                       {cameraOn ? <CheckCircle className="w-3 h-3 mr-1" /> : <AlertCircle className="w-3 h-3 mr-1" />}
-                      {cameraOn ? 'Connected' : 'Off'}
+                      {cameraOn ? 'On' : 'Off'}
                     </Badge>
                   </div>
                   <div className="flex justify-between items-center">
-                    <span className="text-slate-400 font-semibold">Microphone</span>
+                    <span className="text-slate-400 font-semibold">Mic</span>
                     <Badge className={micOn ? "bg-green-600" : "bg-slate-600"}>
                       {micOn ? <CheckCircle className="w-3 h-3 mr-1" /> : <AlertCircle className="w-3 h-3 mr-1" />}
-                      {micOn ? 'Active' : 'Off'}
+                      {micOn ? 'On' : 'Off'}
                     </Badge>
                   </div>
                   <div className="flex justify-between items-center">
                     <span className="text-slate-400 font-semibold">Connection</span>
                     <Badge className={connectionStatus === 'connected' ? "bg-green-600" : "bg-slate-600"}>
-                      {connectionStatus === 'connected' ? <CheckCircle className="w-3 h-3 mr-1" /> : <AlertCircle className="w-3 h-3 mr-1" />}
                       {connectionStatus === 'connected' ? 'Stable' : 'Offline'}
                     </Badge>
                   </div>
