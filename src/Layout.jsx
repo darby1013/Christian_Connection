@@ -133,6 +133,10 @@ export default function Layout({ children, currentPageName }) {
   const hasActiveLivePodcast = podcastStatus.active.length > 0;
   const podcastJustEnded = podcastStatus.justEnded.length > 0;
 
+  // Only show buttons when active or recently ended
+  const showLiveStreamButton = hasActiveLiveStream || streamJustEnded;
+  const showLivePodcastButton = hasActiveLivePodcast || podcastJustEnded;
+
   const publicNavItems = [
     { title: "Home", url: createPageUrl("Home"), icon: Home },
     { title: "Watch Videos", url: createPageUrl("WatchVideos"), icon: Video },
@@ -492,58 +496,50 @@ export default function Layout({ children, currentPageName }) {
                   <Search className="w-5 h-5" />
                 </Button>
                 
-                {/* LIVE Stream Button */}
-                {hasActiveLiveStream ? (
-                  <Link to={createPageUrl("LiveStreamPlayer")}>
-                    <Button className="bg-red-600 hover:bg-red-700 text-white font-bold relative overflow-hidden">
-                      <span className="absolute inset-0 bg-red-500 live-pulse"></span>
-                      <Radio className="w-4 h-4 mr-2 relative z-10" />
-                      <span className="relative z-10">LIVE NOW</span>
-                    </Button>
-                  </Link>
-                ) : streamJustEnded ? (
-                  <Button 
-                    disabled
-                    className="bg-amber-600/50 text-amber-200 font-bold cursor-not-allowed relative overflow-hidden fade-out"
-                  >
-                    <Radio className="w-4 h-4 mr-2" />
-                    LIVE Ended
-                  </Button>
-                ) : (
-                  <Button 
-                    disabled
-                    className="bg-slate-700 text-slate-400 font-bold cursor-not-allowed opacity-50"
-                  >
-                    <Radio className="w-4 h-4 mr-2" />
-                    LIVE NOW
-                  </Button>
+                {/* LIVE Stream Button - Only show when active or just ended */}
+                {showLiveStreamButton && (
+                  <>
+                    {hasActiveLiveStream ? (
+                      <Link to={createPageUrl("LiveStreamPlayer")}>
+                        <Button className="bg-red-600 hover:bg-red-700 text-white font-bold relative overflow-hidden">
+                          <span className="absolute inset-0 bg-red-500 live-pulse"></span>
+                          <Radio className="w-4 h-4 mr-2 relative z-10" />
+                          <span className="relative z-10">LIVE NOW</span>
+                        </Button>
+                      </Link>
+                    ) : (
+                      <Button 
+                        disabled
+                        className="bg-amber-600/50 text-amber-200 font-bold cursor-not-allowed relative overflow-hidden fade-out"
+                      >
+                        <Radio className="w-4 h-4 mr-2" />
+                        LIVE Ended
+                      </Button>
+                    )}
+                  </>
                 )}
 
-                {/* LIVE Podcast Button */}
-                {hasActiveLivePodcast ? (
-                  <Link to={createPageUrl("LivePodcastPlayer")}>
-                    <Button className="bg-purple-600 hover:bg-purple-700 text-white font-bold relative overflow-hidden">
-                      <span className="absolute inset-0 bg-purple-500 live-pulse"></span>
-                      <Mic2 className="w-4 h-4 mr-2 relative z-10" />
-                      <span className="relative z-10">LIVE PODCAST</span>
-                    </Button>
-                  </Link>
-                ) : podcastJustEnded ? (
-                  <Button 
-                    disabled
-                    className="bg-pink-600/50 text-pink-200 font-bold cursor-not-allowed relative overflow-hidden fade-out"
-                  >
-                    <Mic2 className="w-4 h-4 mr-2" />
-                    PODCAST Ended
-                  </Button>
-                ) : (
-                  <Button 
-                    disabled
-                    className="bg-slate-700 text-slate-400 font-bold cursor-not-allowed opacity-50"
-                  >
-                    <Mic2 className="w-4 h-4 mr-2" />
-                    LIVE PODCAST
-                  </Button>
+                {/* LIVE Podcast Button - Only show when active or just ended */}
+                {showLivePodcastButton && (
+                  <>
+                    {hasActiveLivePodcast ? (
+                      <Link to={createPageUrl("LivePodcastPlayer")}>
+                        <Button className="bg-purple-600 hover:bg-purple-700 text-white font-bold relative overflow-hidden">
+                          <span className="absolute inset-0 bg-purple-500 live-pulse"></span>
+                          <Mic2 className="w-4 h-4 mr-2 relative z-10" />
+                          <span className="relative z-10">LIVE PODCAST</span>
+                        </Button>
+                      </Link>
+                    ) : (
+                      <Button 
+                        disabled
+                        className="bg-pink-600/50 text-pink-200 font-bold cursor-not-allowed relative overflow-hidden fade-out"
+                      >
+                        <Mic2 className="w-4 h-4 mr-2" />
+                        PODCAST Ended
+                      </Button>
+                    )}
+                  </>
                 )}
                 
                 {user ? (
