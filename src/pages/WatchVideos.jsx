@@ -7,7 +7,7 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Tabs, TabsList, TabsTrigger, TabsContent } from "@/components/ui/tabs";
 import {
-  Play, Eye, Heart, Clock, Search, X, Volume2, Video as VideoIcon, Mic2
+  Play, Eye, Heart, Clock, Search, X, Volume2, Video as VideoIcon, Mic2, Music
 } from "lucide-react";
 import { format } from "date-fns";
 import {
@@ -36,17 +36,35 @@ export default function WatchVideos() {
     initialData: [],
   });
 
-  // Fetch podcasts
-  const { data: podcasts = [] } = useQuery({
-    queryKey: ['podcasts'],
-    queryFn: () => base44.entities.Podcast.list('-published_date'),
+  // Fetch video podcasts (has video_url)
+  const { data: videoPodcasts = [] } = useQuery({
+    queryKey: ['videoPodcasts'],
+    queryFn: async () => {
+      const all = await base44.entities.Podcast.filter({ 
+        publish_status: 'published' 
+      }, '-published_date');
+      return all.filter(p => p.video_url);
+    },
+    initialData: [],
+  });
+
+  // Fetch audio podcasts (has audio_url but no video_url)
+  const { data: audioPodcasts = [] } = useQuery({
+    queryKey: ['audioPodcasts'],
+    queryFn: async () => {
+      const all = await base44.entities.Podcast.filter({ 
+        publish_status: 'published' 
+      }, '-published_date');
+      return all.filter(p => p.audio_url && !p.video_url);
+    },
     initialData: [],
   });
 
   const allContent = [
     ...liveVideos.map(v => ({ ...v, type: 'live_replay', category: v.category || 'Live Stream' })),
     ...videos.map(v => ({ ...v, type: 'video' })),
-    ...podcasts.map(p => ({ ...p, type: 'podcast' }))
+    ...videoPodcasts.map(p => ({ ...p, type: 'video_podcast' })),
+    ...audioPodcasts.map(p => ({ ...p, type: 'audio_podcast' }))
   ];
 
   const filteredContent = allContent.filter(item =>
@@ -67,21 +85,30 @@ export default function WatchVideos() {
   const getContentIcon = (type) => {
     if (type === 'live_replay') return Play;
     if (type === 'video') return VideoIcon;
-    return Mic2;
+    if (type === 'video_podcast') return Mic2;
+    return Music;
   };
 
   const getContentBadgeColor = (type) => {
     if (type === 'live_replay') return 'bg-purple-500';
     if (type === 'video') return 'bg-blue-500';
+    if (type === 'video_podcast') return 'bg-cyan-500';
     return 'bg-green-500';
+  };
+
+  const getContentLabel = (type) => {
+    if (type === 'live_replay') return 'Replay';
+    if (type === 'video') return 'Video';
+    if (type === 'video_podcast') return 'Video Podcast';
+    return 'Audio Podcast';
   };
 
   return (
     <div className="min-h-screen bg-[#0a0e27]">
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-12">
         <div className="mb-8">
-          <h1 className="text-4xl font-black text-white mb-2">Watch Videos</h1>
-          <p className="text-lg text-slate-400">Explore our library of sermons, teachings, and podcasts</p>
+          <h1 className="text-4xl font-black text-white mb-2">Watch & Listen</h1>
+          <p className="text-lg text-slate-400">Explore our library of sermons, teachings, podcasts, and videos</p>
         </div>
 
         {/* Search */}
@@ -100,19 +127,23 @@ export default function WatchVideos() {
         <Tabs defaultValue="all" className="w-full">
           <TabsList className="bg-[#1a1f3a] border border-slate-700">
             <TabsTrigger value="all" className="data-[state=active]:bg-cyan-500">
-              All Content
+              All Content ({allContent.length})
             </TabsTrigger>
             <TabsTrigger value="live_replays" className="data-[state=active]:bg-cyan-500">
               <Play className="w-4 h-4 mr-2" />
-              Live Replays
+              Live Replays ({liveVideos.length})
             </TabsTrigger>
             <TabsTrigger value="videos" className="data-[state=active]:bg-cyan-500">
               <VideoIcon className="w-4 h-4 mr-2" />
-              Videos
+              Videos ({videos.length})
             </TabsTrigger>
-            <TabsTrigger value="podcasts" className="data-[state=active]:bg-cyan-500">
+            <TabsTrigger value="video_podcasts" className="data-[state=active]:bg-cyan-500">
               <Mic2 className="w-4 h-4 mr-2" />
-              Podcasts
+              Video Podcasts ({videoPodcasts.length})
+            </TabsTrigger>
+            <TabsTrigger value="audio_podcasts" className="data-[state=active]:bg-cyan-500">
+              <Music className="w-4 h-4 mr-2" />
+              Audio Podcasts ({audioPodcasts.length})
             </TabsTrigger>
           </TabsList>
 
@@ -127,17 +158,27 @@ export default function WatchVideos() {
                     onClick={() => handleOpenVideo(item, item.type)}
                   >
                     <div className="relative aspect-video bg-slate-900">
-                      <img
-                        src={item.thumbnail_url || item.image_url || 'https://images.unsplash.com/photo-1516450360452-9312f5e86fc7?w=600'}
-                        alt={item.title}
-                        className="w-full h-full object-cover"
-                      />
+                      {item.type === 'audio_podcast' ? (
+                        <div className="w-full h-full bg-gradient-to-br from-green-500 to-emerald-500 flex items-center justify-center">
+                          {item.image_url ? (
+                            <img src={item.image_url} alt={item.title} className="w-full h-full object-cover" />
+                          ) : (
+                            <Music className="w-16 h-16 text-white opacity-50" />
+                          )}
+                        </div>
+                      ) : (
+                        <img
+                          src={item.thumbnail_url || item.video_thumbnail_url || item.image_url || 'https://images.unsplash.com/photo-1516450360452-9312f5e86fc7?w=600'}
+                          alt={item.title}
+                          className="w-full h-full object-cover"
+                        />
+                      )}
                       <div className="absolute inset-0 bg-black/40 opacity-0 group-hover:opacity-100 transition-opacity flex items-center justify-center">
                         <Play className="w-16 h-16 text-white" />
                       </div>
                       <Badge className={`absolute top-3 left-3 ${getContentBadgeColor(item.type)}`}>
                         <Icon className="w-3 h-3 mr-1" />
-                        {item.type === 'live_replay' ? 'Replay' : item.type === 'video' ? 'Video' : 'Podcast'}
+                        {getContentLabel(item.type)}
                       </Badge>
                       <Badge className="absolute bottom-3 right-3 bg-black/80 backdrop-blur-sm border-0">
                         {item.duration ? `${Math.floor(item.duration / 60)}:${(item.duration % 60).toString().padStart(2, '0')}` : '0:00'}
@@ -242,13 +283,50 @@ export default function WatchVideos() {
             </div>
           </TabsContent>
 
-          <TabsContent value="podcasts" className="mt-6">
+          <TabsContent value="video_podcasts" className="mt-6">
             <div className="grid sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6">
-              {podcasts.map((item) => (
+              {videoPodcasts.map((item) => (
+                <Card 
+                  key={item.id}
+                  className="bg-[#1a1f3a] border-slate-700 hover:border-cyan-500 transition-all cursor-pointer group"
+                  onClick={() => handleOpenVideo(item, 'video_podcast')}
+                >
+                  <div className="relative aspect-video bg-slate-900">
+                    <img
+                      src={item.video_thumbnail_url || item.image_url || 'https://images.unsplash.com/photo-1478737270239-2f02b77fc618?w=800'}
+                      alt={item.title}
+                      className="w-full h-full object-cover"
+                    />
+                    <div className="absolute inset-0 bg-black/40 opacity-0 group-hover:opacity-100 transition-opacity flex items-center justify-center">
+                      <Play className="w-16 h-16 text-white" />
+                    </div>
+                    <Badge className="absolute top-3 left-3 bg-cyan-500">
+                      <Mic2 className="w-3 h-3 mr-1" />
+                      Video Podcast
+                    </Badge>
+                  </div>
+                  <CardContent className="p-4">
+                    <h3 className="text-white font-bold text-sm mb-2 line-clamp-2">{item.title}</h3>
+                    <div className="flex items-center justify-between text-xs text-slate-400">
+                      <span>{item.host_name}</span>
+                      <span className="flex items-center gap-1">
+                        <Eye className="w-3 h-3" />
+                        {item.plays || 0}
+                      </span>
+                    </div>
+                  </CardContent>
+                </Card>
+              ))}
+            </div>
+          </TabsContent>
+
+          <TabsContent value="audio_podcasts" className="mt-6">
+            <div className="grid sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6">
+              {audioPodcasts.map((item) => (
                 <Card 
                   key={item.id}
                   className="bg-[#1a1f3a] border-slate-700 hover:border-green-500 transition-all cursor-pointer group"
-                  onClick={() => handleOpenVideo(item, 'podcast')}
+                  onClick={() => handleOpenVideo(item, 'audio_podcast')}
                 >
                   <div className="relative aspect-video bg-gradient-to-br from-green-500 to-emerald-500 flex items-center justify-center">
                     {item.image_url ? (
@@ -258,14 +336,14 @@ export default function WatchVideos() {
                         className="w-full h-full object-cover"
                       />
                     ) : (
-                      <Volume2 className="w-16 h-16 text-white opacity-50" />
+                      <Music className="w-16 h-16 text-white opacity-50" />
                     )}
                     <div className="absolute inset-0 bg-black/40 opacity-0 group-hover:opacity-100 transition-opacity flex items-center justify-center">
                       <Play className="w-16 h-16 text-white" />
                     </div>
                     <Badge className="absolute top-3 left-3 bg-green-500">
-                      <Mic2 className="w-3 h-3 mr-1" />
-                      Podcast
+                      <Music className="w-3 h-3 mr-1" />
+                      Audio
                     </Badge>
                   </div>
                   <CardContent className="p-4">
@@ -285,17 +363,27 @@ export default function WatchVideos() {
         </Tabs>
       </div>
 
-      {/* Video Modal */}
+      {/* Video/Audio Modal */}
       <Dialog open={!!selectedVideo} onOpenChange={handleCloseVideo}>
         <DialogContent className="bg-[#1a1f3a] border-slate-700 max-w-5xl p-0">
           {selectedVideo && (
             <>
               <div className="relative aspect-video bg-black">
-                {selectedType === 'podcast' ? (
+                {selectedType === 'audio_podcast' ? (
                   <div className="w-full h-full bg-gradient-to-br from-green-500 to-emerald-500 flex items-center justify-center p-8">
-                    <div className="text-center">
-                      <Volume2 className="w-24 h-24 text-white mx-auto mb-4" />
-                      <audio controls className="w-full mt-4">
+                    <div className="text-center w-full max-w-2xl">
+                      {selectedVideo.image_url ? (
+                        <img 
+                          src={selectedVideo.image_url} 
+                          alt={selectedVideo.title}
+                          className="w-48 h-48 mx-auto rounded-lg shadow-2xl mb-6 object-cover"
+                        />
+                      ) : (
+                        <Volume2 className="w-24 h-24 text-white mx-auto mb-6" />
+                      )}
+                      <h2 className="text-white text-2xl font-bold mb-4">{selectedVideo.title}</h2>
+                      <audio controls className="w-full">
+                        <source src={selectedVideo.audio_url} type="audio/webm" />
                         <source src={selectedVideo.audio_url} type="audio/mpeg" />
                       </audio>
                     </div>
@@ -306,7 +394,7 @@ export default function WatchVideos() {
                     controls
                     autoPlay
                     className="w-full h-full"
-                    poster={selectedVideo.thumbnail_url || selectedVideo.image_url}
+                    poster={selectedVideo.thumbnail_url || selectedVideo.video_thumbnail_url || selectedVideo.image_url}
                   />
                 )}
                 <Button
@@ -319,6 +407,14 @@ export default function WatchVideos() {
                 </Button>
               </div>
               <div className="p-6">
+                <div className="flex items-center gap-2 mb-3">
+                  <Badge className={getContentBadgeColor(selectedType)}>
+                    {getContentLabel(selectedType)}
+                  </Badge>
+                  {selectedVideo.category && (
+                    <Badge className="bg-slate-700">{selectedVideo.category}</Badge>
+                  )}
+                </div>
                 <h2 className="text-white font-bold text-2xl mb-2">{selectedVideo.title}</h2>
                 <p className="text-slate-400 mb-4">{selectedVideo.description}</p>
                 <div className="flex items-center gap-4 text-sm text-slate-400">
@@ -326,7 +422,7 @@ export default function WatchVideos() {
                   <span>•</span>
                   <span className="flex items-center gap-1">
                     <Eye className="w-4 h-4" />
-                    {selectedVideo.views || selectedVideo.viewer_count || selectedVideo.plays || 0} views
+                    {selectedVideo.views || selectedVideo.viewer_count || selectedVideo.plays || 0} {selectedType === 'audio_podcast' ? 'listens' : 'views'}
                   </span>
                   {selectedVideo.likes && (
                     <>

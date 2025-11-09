@@ -13,7 +13,8 @@ import {
   Video, VideoOff, Mic, MicOff, Radio, Users, Activity,
   CheckCircle, AlertCircle, FileText, Settings as SettingsIcon, 
   Plus, Eye, EyeOff, Play, Pause, Volume2, Zap, Layers,
-  MessageSquare, Timer, MonitorPlay, RefreshCw, Download, Save, Mic2
+  MessageSquare, Timer, MonitorPlay, RefreshCw, Download, Save, Mic2,
+  Music
 } from "lucide-react";
 import ScriptEditor from "../components/broadcast/ScriptEditor";
 import AdvancedStreamTools from "../components/broadcast/AdvancedStreamTools";
@@ -37,12 +38,15 @@ export default function AdminPodcastLive() {
   const [teleprompterSpeed, setTeleprompterSpeed] = useState(1);
   const [currentPodcastId, setCurrentPodcastId] = useState(null);
   const [recordedChunks, setRecordedChunks] = useState([]);
-  const [isSavingVideo, setIsSavingVideo] = useState(false);
+  const [isSavingMedia, setIsSavingMedia] = useState(false);
+  const [broadcastMode, setBroadcastMode] = useState('video'); // 'video' or 'audio'
 
   const videoRef = useRef(null);
   const streamRef = useRef(null);
   const mediaRecorderRef = useRef(null);
+  const audioRecorderRef = useRef(null);
   const recordedChunksRef = useRef([]);
+  const audioChunksRef = useRef([]);
   const teleprompterRef = useRef(null);
   const heartbeatIntervalRef = useRef(null);
   const queryClient = useQueryClient();
@@ -161,13 +165,33 @@ export default function AdminPodcastLive() {
       setCameraOn(true);
       setMicOn(true);
       setConnectionStatus('connected');
+      setBroadcastMode('video');
     } catch (error) {
       alert('Error accessing camera/microphone: ' + error.message);
       setConnectionStatus('error');
     }
   };
 
-  const stopCamera = () => {
+  const startAudioOnly = async () => {
+    try {
+      const stream = await navigator.mediaDevices.getUserMedia({ 
+        audio: {
+          echoCancellation: true,
+          noiseSuppression: true,
+          sampleRate: 44100
+        }
+      });
+      streamRef.current = stream;
+      setMicOn(true);
+      setConnectionStatus('connected');
+      setBroadcastMode('audio');
+    } catch (error) {
+      alert('Error accessing microphone: ' + error.message);
+      setConnectionStatus('error');
+    }
+  };
+
+  const stopMedia = () => {
     if (streamRef.current) {
       streamRef.current.getTracks().forEach(track => track.stop());
       if (videoRef.current) {
@@ -182,7 +206,7 @@ export default function AdminPodcastLive() {
 
   const toggleMicrophone = async () => {
     if (!streamRef.current) {
-      alert('Please start the camera first');
+      alert('Please start the camera or audio first');
       return;
     }
 
@@ -202,33 +226,54 @@ export default function AdminPodcastLive() {
     }
 
     try {
-      recordedChunksRef.current = [];
-      
-      const options = {
-        mimeType: 'video/webm;codecs=vp8,opus',
-        videoBitsPerSecond: 2500000
-      };
+      if (broadcastMode === 'video') {
+        // Video recording
+        recordedChunksRef.current = [];
+        const options = {
+          mimeType: 'video/webm;codecs=vp8,opus',
+          videoBitsPerSecond: 2500000
+        };
 
-      if (!MediaRecorder.isTypeSupported(options.mimeType)) {
-        options.mimeType = 'video/webm';
-      }
-
-      const mediaRecorder = new MediaRecorder(streamRef.current, options);
-      
-      mediaRecorder.ondataavailable = (event) => {
-        if (event.data && event.data.size > 0) {
-          recordedChunksRef.current.push(event.data);
+        if (!MediaRecorder.isTypeSupported(options.mimeType)) {
+          options.mimeType = 'video/webm';
         }
-      };
 
-      mediaRecorder.onstop = async () => {
-        console.log('Recording stopped, chunks:', recordedChunksRef.current.length);
-      };
+        const mediaRecorder = new MediaRecorder(streamRef.current, options);
+        
+        mediaRecorder.ondataavailable = (event) => {
+          if (event.data && event.data.size > 0) {
+            recordedChunksRef.current.push(event.data);
+          }
+        };
 
-      mediaRecorder.start(1000);
-      mediaRecorderRef.current = mediaRecorder;
+        mediaRecorder.start(1000);
+        mediaRecorderRef.current = mediaRecorder;
+      } else {
+        // Audio-only recording
+        audioChunksRef.current = [];
+        const options = {
+          mimeType: 'audio/webm;codecs=opus',
+          audioBitsPerSecond: 128000
+        };
+
+        if (!MediaRecorder.isTypeSupported(options.mimeType)) {
+          options.mimeType = 'audio/webm';
+        }
+
+        const audioRecorder = new MediaRecorder(streamRef.current, options);
+        
+        audioRecorder.ondataavailable = (event) => {
+          if (event.data && event.data.size > 0) {
+            audioChunksRef.current.push(event.data);
+          }
+        };
+
+        audioRecorder.start(1000);
+        audioRecorderRef.current = audioRecorder;
+      }
+      
       setIsRecording(true);
-      console.log('Recording started');
+      console.log(`${broadcastMode} recording started`);
     } catch (error) {
       console.error('Error starting recording:', error);
       alert('Error starting recording: ' + error.message);
@@ -237,13 +282,20 @@ export default function AdminPodcastLive() {
 
   const stopRecording = () => {
     return new Promise((resolve) => {
-      if (mediaRecorderRef.current && mediaRecorderRef.current.state !== 'inactive') {
+      if (broadcastMode === 'video' && mediaRecorderRef.current && mediaRecorderRef.current.state !== 'inactive') {
         mediaRecorderRef.current.onstop = () => {
-          console.log('Recording stopped, total chunks:', recordedChunksRef.current.length);
+          console.log('Video recording stopped, total chunks:', recordedChunksRef.current.length);
           setIsRecording(false);
           resolve();
         };
         mediaRecorderRef.current.stop();
+      } else if (broadcastMode === 'audio' && audioRecorderRef.current && audioRecorderRef.current.state !== 'inactive') {
+        audioRecorderRef.current.onstop = () => {
+          console.log('Audio recording stopped, total chunks:', audioChunksRef.current.length);
+          setIsRecording(false);
+          resolve();
+        };
+        audioRecorderRef.current.stop();
       } else {
         resolve();
       }
@@ -271,13 +323,13 @@ export default function AdminPodcastLive() {
 
   const uploadRecordedVideo = async () => {
     if (recordedChunksRef.current.length === 0) {
-      console.log('No recorded chunks to upload');
+      console.log('No recorded video chunks to upload');
       return null;
     }
 
     try {
       const blob = new Blob(recordedChunksRef.current, { type: 'video/webm' });
-      const file = new File([blob], `podcast_${currentPodcastId}_${Date.now()}.webm`, { type: 'video/webm' });
+      const file = new File([blob], `podcast_video_${currentPodcastId}_${Date.now()}.webm`, { type: 'video/webm' });
       
       console.log('Uploading video file, size:', (blob.size / 1024 / 1024).toFixed(2), 'MB');
       
@@ -286,6 +338,27 @@ export default function AdminPodcastLive() {
       return file_url;
     } catch (error) {
       console.error('Error uploading video:', error);
+      throw error;
+    }
+  };
+
+  const uploadRecordedAudio = async () => {
+    if (audioChunksRef.current.length === 0) {
+      console.log('No recorded audio chunks to upload');
+      return null;
+    }
+
+    try {
+      const blob = new Blob(audioChunksRef.current, { type: 'audio/webm' });
+      const file = new File([blob], `podcast_audio_${currentPodcastId}_${Date.now()}.webm`, { type: 'audio/webm' });
+      
+      console.log('Uploading audio file, size:', (blob.size / 1024 / 1024).toFixed(2), 'MB');
+      
+      const { file_url } = await base44.integrations.Core.UploadFile({ file });
+      console.log('Audio uploaded successfully:', file_url);
+      return file_url;
+    } catch (error) {
+      console.error('Error uploading audio:', error);
       throw error;
     }
   };
@@ -304,37 +377,60 @@ export default function AdminPodcastLive() {
     }
   };
 
+  const generateAudioThumbnail = async () => {
+    try {
+      const result = await base44.integrations.Core.GenerateImage({
+        prompt: `Professional podcast cover art with audio waveform visualization. 
+        Dark gradient background with purple and cyan colors. 
+        Microphone icon, sound waves, music visualization elements.
+        Title: "${podcastInfo.title}"
+        Host: ${podcastInfo.host_name}
+        Modern, sleek design with neon accents. Square format for podcast cover.`
+      });
+      return result.url;
+    } catch (error) {
+      console.error('Error generating audio thumbnail:', error);
+      return 'https://images.unsplash.com/photo-1478737270239-2f02b77fc618?w=800';
+    }
+  };
+
   const goLive = async () => {
     if (!podcastInfo.title.trim()) {
       alert('Please enter a podcast title in the Podcast Information section below');
       return;
     }
 
-    if (!cameraOn) {
-      alert('Please turn on your camera first');
+    if (!micOn) {
+      alert('Please turn on your microphone first');
       return;
     }
 
-    // Capture thumbnail before going live
-    const thumbnailBlob = await captureVideoThumbnail();
     let thumbnailUrl = 'https://images.unsplash.com/photo-1478737270239-2f02b77fc618?w=800';
     
-    if (thumbnailBlob) {
-      const uploadedThumbnail = await uploadThumbnail(thumbnailBlob);
-      if (uploadedThumbnail) {
-        thumbnailUrl = uploadedThumbnail;
+    if (broadcastMode === 'video' && cameraOn) {
+      // Capture video thumbnail
+      const thumbnailBlob = await captureVideoThumbnail();
+      if (thumbnailBlob) {
+        const uploadedThumbnail = await uploadThumbnail(thumbnailBlob);
+        if (uploadedThumbnail) {
+          thumbnailUrl = uploadedThumbnail;
+        }
       }
+    } else {
+      // Generate audio thumbnail
+      thumbnailUrl = await generateAudioThumbnail();
     }
 
     const podcastData = {
       ...podcastInfo,
-      content_type: 'video',
+      content_type: broadcastMode === 'video' ? 'video' : 'audio',
       is_live: true,
       published_date: new Date().toISOString(),
       plays: 0,
       image_url: thumbnailUrl,
-      video_thumbnail_url: thumbnailUrl,
-      duration: 0
+      video_thumbnail_url: broadcastMode === 'video' ? thumbnailUrl : null,
+      duration: 0,
+      publish_status: 'published'
     };
 
     const createdPodcast = await createPodcastMutation.mutateAsync(podcastData);
@@ -358,7 +454,7 @@ export default function AdminPodcastLive() {
   };
 
   const endPodcast = async () => {
-    setIsSavingVideo(true);
+    setIsSavingMedia(true);
 
     // Stop heartbeat immediately
     if (heartbeatIntervalRef.current) {
@@ -369,38 +465,44 @@ export default function AdminPodcastLive() {
     // Stop recording
     await stopRecording();
 
-    // Upload the recorded video
-    let videoUrl = null;
-    try {
-      videoUrl = await uploadRecordedVideo();
-    } catch (error) {
-      console.error('Failed to upload video:', error);
-      alert('Warning: Video upload failed. Podcast will be saved without video file.');
-    }
-
-    // Capture final thumbnail
-    const thumbnailBlob = await captureVideoThumbnail();
+    // Upload the recorded media
+    let mediaUrl = null;
     let thumbnailUrl = null;
-    if (thumbnailBlob) {
-      thumbnailUrl = await uploadThumbnail(thumbnailBlob);
+
+    try {
+      if (broadcastMode === 'video') {
+        mediaUrl = await uploadRecordedVideo();
+        const thumbnailBlob = await captureVideoThumbnail();
+        if (thumbnailBlob) {
+          thumbnailUrl = await uploadThumbnail(thumbnailBlob);
+        }
+      } else {
+        mediaUrl = await uploadRecordedAudio();
+        thumbnailUrl = await generateAudioThumbnail();
+      }
+    } catch (error) {
+      console.error('Failed to upload media:', error);
+      alert('Warning: Media upload failed. Podcast will be saved without media file.');
     }
 
     if (currentPodcastId) {
       const updateData = {
         is_live: false,
-        duration: Math.floor(streamDuration / 60) * 60,
+        duration: Math.floor(streamDuration),
         plays: peakListeners
       };
 
-      // Add video URL if upload was successful
-      if (videoUrl) {
-        updateData.video_url = videoUrl;
-      }
-
-      // Add thumbnail if captured
-      if (thumbnailUrl) {
-        updateData.video_thumbnail_url = thumbnailUrl;
-        updateData.image_url = thumbnailUrl;
+      if (broadcastMode === 'video' && mediaUrl) {
+        updateData.video_url = mediaUrl;
+        if (thumbnailUrl) {
+          updateData.video_thumbnail_url = thumbnailUrl;
+          updateData.image_url = thumbnailUrl;
+        }
+      } else if (broadcastMode === 'audio' && mediaUrl) {
+        updateData.audio_url = mediaUrl;
+        if (thumbnailUrl) {
+          updateData.image_url = thumbnailUrl;
+        }
       }
 
       await updatePodcastMutation.mutateAsync({
@@ -411,15 +513,16 @@ export default function AdminPodcastLive() {
 
     setIsLive(false);
     setIsRecording(false);
-    stopCamera();
+    stopMedia();
     setStreamStartTime(null);
     setStreamDuration(0);
     setListenerCount(0);
     setPeakListeners(0);
     setTeleprompterPlaying(false);
     setCurrentPodcastId(null);
-    setIsSavingVideo(false);
+    setIsSavingMedia(false);
     recordedChunksRef.current = [];
+    audioChunksRef.current = [];
     
     setPodcastInfo({
       title: '',
@@ -430,7 +533,7 @@ export default function AdminPodcastLive() {
       host_name: user?.full_name || ''
     });
 
-    alert('Live podcast ended and video saved successfully!');
+    alert(`Live podcast ended and ${broadcastMode === 'video' ? 'video' : 'audio'} saved successfully!`);
   };
 
   const formatDuration = (seconds) => {
@@ -460,33 +563,102 @@ export default function AdminPodcastLive() {
             {isRecording && (
               <Badge className="bg-red-600 animate-pulse">
                 <div className="w-2 h-2 rounded-full bg-white mr-2" />
-                Recording
+                Recording {broadcastMode === 'video' ? 'Video' : 'Audio'}
               </Badge>
             )}
             <h2 className="text-3xl font-black text-white">Live Podcast Studio</h2>
           </div>
-          <p className="text-slate-400 font-semibold">Professional live podcast streaming with video recording</p>
+          <p className="text-slate-400 font-semibold">Professional live podcast streaming with video or audio recording</p>
         </div>
       </div>
 
       <div className="grid lg:grid-cols-4 gap-6">
-        {/* Main Video + Teleprompter Area */}
+        {/* Main Video/Audio + Teleprompter Area */}
         <div className="lg:col-span-3 space-y-6">
-          {/* Video Preview */}
+          {/* Broadcast Mode Selector */}
+          {!isLive && (
+            <Card className="bg-[#1a1f3a] border-slate-700">
+              <CardHeader className="border-b border-slate-700 py-3 px-4">
+                <CardTitle className="text-white font-bold text-base">Select Broadcast Mode</CardTitle>
+              </CardHeader>
+              <CardContent className="p-4">
+                <div className="grid grid-cols-2 gap-4">
+                  <button
+                    onClick={() => setBroadcastMode('video')}
+                    className={`p-6 rounded-lg border-2 transition-all ${
+                      broadcastMode === 'video'
+                        ? 'border-purple-500 bg-purple-500/10'
+                        : 'border-slate-700 hover:border-slate-600'
+                    }`}
+                  >
+                    <Video className={`w-12 h-12 mx-auto mb-3 ${broadcastMode === 'video' ? 'text-purple-400' : 'text-slate-400'}`} />
+                    <h3 className={`font-bold mb-1 ${broadcastMode === 'video' ? 'text-white' : 'text-slate-400'}`}>
+                      Video Podcast
+                    </h3>
+                    <p className="text-xs text-slate-500">Camera + Microphone</p>
+                  </button>
+                  <button
+                    onClick={() => setBroadcastMode('audio')}
+                    className={`p-6 rounded-lg border-2 transition-all ${
+                      broadcastMode === 'audio'
+                        ? 'border-cyan-500 bg-cyan-500/10'
+                        : 'border-slate-700 hover:border-slate-600'
+                    }`}
+                  >
+                    <Mic2 className={`w-12 h-12 mx-auto mb-3 ${broadcastMode === 'audio' ? 'text-cyan-400' : 'text-slate-400'}`} />
+                    <h3 className={`font-bold mb-1 ${broadcastMode === 'audio' ? 'text-white' : 'text-slate-400'}`}>
+                      Audio Podcast
+                    </h3>
+                    <p className="text-xs text-slate-500">Microphone Only</p>
+                  </button>
+                </div>
+              </CardContent>
+            </Card>
+          )}
+
+          {/* Video/Audio Preview */}
           <Card className="bg-[#1a1f3a] border-0">
             <div className="relative aspect-video bg-black">
-              <video
-                ref={videoRef}
-                autoPlay
-                muted
-                playsInline
-                className="w-full h-full object-cover"
-              />
-              {!cameraOn && (
-                <div className="absolute inset-0 flex items-center justify-center bg-slate-900">
+              {broadcastMode === 'video' ? (
+                <>
+                  <video
+                    ref={videoRef}
+                    autoPlay
+                    muted
+                    playsInline
+                    className="w-full h-full object-cover"
+                  />
+                  {!cameraOn && (
+                    <div className="absolute inset-0 flex items-center justify-center bg-slate-900">
+                      <div className="text-center">
+                        <VideoOff className="w-16 h-16 text-slate-600 mx-auto mb-4" />
+                        <p className="text-slate-500 font-semibold">Camera Off</p>
+                      </div>
+                    </div>
+                  )}
+                </>
+              ) : (
+                <div className="absolute inset-0 flex items-center justify-center bg-gradient-to-br from-slate-900 to-slate-800">
                   <div className="text-center">
-                    <VideoOff className="w-16 h-16 text-slate-600 mx-auto mb-4" />
-                    <p className="text-slate-500 font-semibold">Camera Off</p>
+                    {micOn ? (
+                      <>
+                        <div className="relative">
+                          <Music className="w-24 h-24 text-cyan-400 mx-auto mb-4" />
+                          {isLive && (
+                            <div className="absolute inset-0 flex items-center justify-center">
+                              <div className="w-32 h-32 border-4 border-cyan-400 rounded-full animate-ping opacity-20"></div>
+                            </div>
+                          )}
+                        </div>
+                        <p className="text-white font-bold text-xl mb-2">Audio Podcast</p>
+                        <p className="text-slate-400">Microphone Active</p>
+                      </>
+                    ) : (
+                      <>
+                        <MicOff className="w-16 h-16 text-slate-600 mx-auto mb-4" />
+                        <p className="text-slate-500 font-semibold">Microphone Off</p>
+                      </>
+                    )}
                   </div>
                 </div>
               )}
@@ -509,7 +681,7 @@ export default function AdminPodcastLive() {
                     {isRecording && (
                       <Badge className="bg-red-600/80 backdrop-blur-sm border-0 shadow-xl animate-pulse">
                         <div className="w-2 h-2 rounded-full bg-white mr-2" />
-                        REC
+                        REC {broadcastMode === 'video' ? 'VIDEO' : 'AUDIO'}
                       </Badge>
                     )}
                   </div>
@@ -521,25 +693,39 @@ export default function AdminPodcastLive() {
             <CardContent className="p-4 bg-slate-900/50 border-t border-slate-800">
               <div className="flex items-center justify-between gap-3 flex-wrap">
                 <div className="flex items-center gap-2">
-                  <Button
-                    size="sm"
-                    onClick={cameraOn ? stopCamera : startCamera}
-                    disabled={isLive}
-                    className={cameraOn ? "bg-green-600 hover:bg-green-700" : "bg-slate-700 hover:bg-slate-600"}
-                  >
-                    {cameraOn ? <Video className="w-4 h-4 mr-1" /> : <VideoOff className="w-4 h-4 mr-1" />}
-                    Camera
-                  </Button>
+                  {broadcastMode === 'video' ? (
+                    <Button
+                      size="sm"
+                      onClick={cameraOn ? stopMedia : startCamera}
+                      disabled={isLive}
+                      className={cameraOn ? "bg-green-600 hover:bg-green-700" : "bg-slate-700 hover:bg-slate-600"}
+                    >
+                      {cameraOn ? <Video className="w-4 h-4 mr-1" /> : <VideoOff className="w-4 h-4 mr-1" />}
+                      Camera
+                    </Button>
+                  ) : (
+                    <Button
+                      size="sm"
+                      onClick={micOn ? stopMedia : startAudioOnly}
+                      disabled={isLive}
+                      className={micOn ? "bg-green-600 hover:bg-green-700" : "bg-slate-700 hover:bg-slate-600"}
+                    >
+                      {micOn ? <Mic className="w-4 h-4 mr-1" /> : <MicOff className="w-4 h-4 mr-1" />}
+                      Microphone
+                    </Button>
+                  )}
 
-                  <Button
-                    size="sm"
-                    onClick={toggleMicrophone}
-                    disabled={!cameraOn}
-                    className={micOn ? "bg-green-600 hover:bg-green-700" : "bg-slate-700 hover:bg-slate-600"}
-                  >
-                    {micOn ? <Mic className="w-4 h-4 mr-1" /> : <MicOff className="w-4 h-4 mr-1" />}
-                    Mic
-                  </Button>
+                  {broadcastMode === 'video' && (
+                    <Button
+                      size="sm"
+                      onClick={toggleMicrophone}
+                      disabled={!cameraOn}
+                      className={micOn ? "bg-green-600 hover:bg-green-700" : "bg-slate-700 hover:bg-slate-600"}
+                    >
+                      {micOn ? <Mic className="w-4 h-4 mr-1" /> : <MicOff className="w-4 h-4 mr-1" />}
+                      Mic
+                    </Button>
+                  )}
 
                   <Button
                     size="sm"
@@ -556,7 +742,7 @@ export default function AdminPodcastLive() {
                     <Button
                       size="lg"
                       onClick={goLive}
-                      disabled={!cameraOn || !podcastInfo.title.trim()}
+                      disabled={!micOn || !podcastInfo.title.trim()}
                       className="bg-gradient-to-r from-purple-600 to-pink-600 hover:from-purple-700 hover:to-pink-700 font-black text-base px-8"
                     >
                       <Mic2 className="w-5 h-5 mr-2" />
@@ -566,11 +752,11 @@ export default function AdminPodcastLive() {
                     <Button
                       size="lg"
                       onClick={endPodcast}
-                      disabled={isSavingVideo}
+                      disabled={isSavingMedia}
                       variant="destructive"
                       className="font-black text-base px-8"
                     >
-                      {isSavingVideo ? (
+                      {isSavingMedia ? (
                         <>
                           <RefreshCw className="w-5 h-5 mr-2 animate-spin" />
                           SAVING...
@@ -818,6 +1004,12 @@ export default function AdminPodcastLive() {
                     </span>
                   </div>
                   <div className="flex justify-between items-center">
+                    <span className="text-slate-400 text-xs font-semibold">Mode</span>
+                    <Badge className={broadcastMode === 'video' ? "bg-purple-600" : "bg-cyan-600"}>
+                      {broadcastMode === 'video' ? 'Video' : 'Audio'}
+                    </Badge>
+                  </div>
+                  <div className="flex justify-between items-center">
                     <span className="text-slate-400 text-xs font-semibold">Recording</span>
                     <Badge className={isRecording ? "bg-red-600" : "bg-slate-600"}>
                       {isRecording ? 'Active' : 'Stopped'}
@@ -832,12 +1024,14 @@ export default function AdminPodcastLive() {
                   <CardTitle className="text-white font-bold text-sm">System</CardTitle>
                 </CardHeader>
                 <CardContent className="p-3 space-y-2">
-                  <div className="flex justify-between items-center">
-                    <span className="text-slate-400 text-xs font-semibold">Camera</span>
-                    <Badge className={cameraOn ? "bg-green-600 text-xs" : "bg-slate-600 text-xs"}>
-                      {cameraOn ? 'On' : 'Off'}
-                    </Badge>
-                  </div>
+                  {broadcastMode === 'video' && (
+                    <div className="flex justify-between items-center">
+                      <span className="text-slate-400 text-xs font-semibold">Camera</span>
+                      <Badge className={cameraOn ? "bg-green-600 text-xs" : "bg-slate-600 text-xs"}>
+                        {cameraOn ? 'On' : 'Off'}
+                      </Badge>
+                    </div>
+                  )}
                   <div className="flex justify-between items-center">
                     <span className="text-slate-400 text-xs font-semibold">Mic</span>
                     <Badge className={micOn ? "bg-green-600 text-xs" : "bg-slate-600 text-xs"}>
