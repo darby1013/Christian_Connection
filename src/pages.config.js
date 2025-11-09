@@ -23,6 +23,8 @@ import AdminLivePodcast from './pages/AdminLivePodcast';
 import AdminAudioUpload from './pages/AdminAudioUpload';
 import Community from './pages/Community';
 import Groups from './pages/Groups';
+import Chatrooms from './pages/Chatrooms';
+import CommunityBoard from './pages/CommunityBoard';
 import Layout from './Layout.jsx';
 
 
@@ -52,6 +54,8 @@ export const PAGES = {
     "AdminAudioUpload": AdminAudioUpload,
     "Community": Community,
     "Groups": Groups,
+    "Chatrooms": Chatrooms,
+    "CommunityBoard": CommunityBoard,
 }
 
 export const pagesConfig = {
