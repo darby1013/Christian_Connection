@@ -54,10 +54,11 @@ export default function Layout({ children, currentPageName }) {
   const publicNavItems = [
     { title: "Home", url: createPageUrl("Home"), icon: Home },
     { title: "Watch", url: createPageUrl("LiveStreams"), icon: Video },
+    { title: "Blog", url: createPageUrl("Blog"), icon: BookOpen },
     { title: "Events", url: createPageUrl("Events"), icon: Calendar },
     { title: "Store", url: createPageUrl("Store"), icon: ShoppingBag },
     { title: "Give", url: createPageUrl("Donate"), icon: Heart },
-    { title: "Community", url: createPageUrl("Groups"), icon: Users },
+    { title: "Community", url: createPageUrl("Community"), icon: Users },
   ];
 
   const adminNavItems = [
@@ -396,6 +397,7 @@ export default function Layout({ children, currentPageName }) {
               <div>
                 <h4 className="font-bold mb-3 text-cyan-400">Connect</h4>
                 <div className="space-y-2">
+                  <Link to={createPageUrl("Community")} className="block text-slate-400 hover:text-white transition-colors">Community</Link>
                   <Link to={createPageUrl("Groups")} className="block text-slate-400 hover:text-white transition-colors">Groups</Link>
                   <Link to={createPageUrl("Forum")} className="block text-slate-400 hover:text-white transition-colors">Forum</Link>
                   <Link to={createPageUrl("Donate")} className="block text-slate-400 hover:text-white transition-colors">Give</Link>
