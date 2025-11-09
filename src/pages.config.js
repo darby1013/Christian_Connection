@@ -45,7 +45,7 @@ import WatchVideos from './pages/WatchVideos';
 import Events from './pages/Events';
 import EventDetail from './pages/EventDetail';
 import Donate from './pages/Donate';
-import BlogDetail from './pages/BlogDetail';
+import BlogPost from './pages/BlogPost';
 import Layout from './Layout.jsx';
 
 
@@ -97,7 +97,7 @@ export const PAGES = {
     "Events": Events,
     "EventDetail": EventDetail,
     "Donate": Donate,
-    "BlogDetail": BlogDetail,
+    "BlogPost": BlogPost,
 }
 
 export const pagesConfig = {
