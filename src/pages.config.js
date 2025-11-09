@@ -20,6 +20,7 @@ import AdminContentModeration from './pages/AdminContentModeration';
 import AdminBroadcastStudio from './pages/AdminBroadcastStudio';
 import UserSubscriptionManagement from './pages/UserSubscriptionManagement';
 import AdminLivePodcast from './pages/AdminLivePodcast';
+import AdminAudioUpload from './pages/AdminAudioUpload';
 import Layout from './Layout.jsx';
 
 
@@ -46,6 +47,7 @@ export const PAGES = {
     "AdminBroadcastStudio": AdminBroadcastStudio,
     "UserSubscriptionManagement": UserSubscriptionManagement,
     "AdminLivePodcast": AdminLivePodcast,
+    "AdminAudioUpload": AdminAudioUpload,
 }
 
 export const pagesConfig = {
