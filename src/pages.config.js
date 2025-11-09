@@ -31,6 +31,8 @@ import Resources from './pages/Resources';
 import GroupDetail from './pages/GroupDetail';
 import Testimonies from './pages/Testimonies';
 import MemberDirectory from './pages/MemberDirectory';
+import KnowledgeBase from './pages/KnowledgeBase';
+import RSSFeeds from './pages/RSSFeeds';
 import Layout from './Layout.jsx';
 
 
@@ -68,6 +70,8 @@ export const PAGES = {
     "GroupDetail": GroupDetail,
     "Testimonies": Testimonies,
     "MemberDirectory": MemberDirectory,
+    "KnowledgeBase": KnowledgeBase,
+    "RSSFeeds": RSSFeeds,
 }
 
 export const pagesConfig = {
