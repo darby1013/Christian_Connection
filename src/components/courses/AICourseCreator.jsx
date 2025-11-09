@@ -1,4 +1,5 @@
-import React, { useState } from "react";
+
+import React, { useState, useEffect } from "react";
 import { useMutation, useQueryClient } from "@tanstack/react-query";
 import { base44 } from "@/api/base44Client";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
@@ -14,6 +15,7 @@ import {
 } from "lucide-react";
 
 export default function AICourseCreator({ onCourseCreated }) {
+  const [user, setUser] = useState(null);
   const [generating, setGenerating] = useState(false);
   const [progress, setProgress] = useState(0);
   const [currentStep, setCurrentStep] = useState('');
@@ -32,6 +34,19 @@ export default function AICourseCreator({ onCourseCreated }) {
   });
 
   const queryClient = useQueryClient();
+
+  useEffect(() => {
+    const fetchUser = async () => {
+      try {
+        const currentUser = await base44.auth.me();
+        setUser(currentUser);
+      } catch (error) {
+        console.log('Not logged in', error); // Changed from 'Not logged in' to include error for better debugging
+        setUser(null); // Ensure user is null if not logged in
+      }
+    };
+    fetchUser();
+  }, []);
 
   const createCourseMutation = useMutation({
     mutationFn: (data) => base44.entities.Course.create(data),
@@ -219,19 +234,20 @@ Make this a transformative educational experience that will impact lives for Chr
   };
 
   const handleCreateCourse = async () => {
-    if (!generatedCourse) return;
+    if (!generatedCourse || !user) return;
 
     try {
       const courseData = {
         title: generatedCourse.title,
         description: generatedCourse.description,
+        instructor_id: user.id, // Added instructor_id
+        instructor_name: user.full_name, // Changed instructor_name to use user's full_name
         category: coursePrompt.focusAreas[0] || 'faith',
         difficulty_level: coursePrompt.difficulty,
         duration_hours: generatedCourse.estimated_hours || parseInt(coursePrompt.duration) * 2,
         learning_outcomes: generatedCourse.learning_outcomes,
         prerequisites: generatedCourse.prerequisites,
         tags: generatedCourse.tags,
-        instructor_name: 'AI Course Creator',
         is_published: false,
         total_modules: generatedCourse.modules?.length || 0,
         certificate_enabled: true
@@ -533,7 +549,7 @@ Make this a transformative educational experience that will impact lives for Chr
               <div className="flex gap-3">
                 <Button
                   onClick={handleCreateCourse}
-                  disabled={createCourseMutation.isPending}
+                  disabled={createCourseMutation.isPending || !user} // Disable if no user
                   className="flex-1 bg-gradient-to-r from-green-500 to-emerald-500 hover:from-green-600 hover:to-emerald-600 font-bold text-lg h-12"
                 >
                   {createCourseMutation.isPending ? (
@@ -550,6 +566,11 @@ Make this a transformative educational experience that will impact lives for Chr
                   Start Over
                 </Button>
               </div>
+              {!user && (
+                <p className="text-yellow-500 text-center text-sm">
+                  Please log in to create and save this course.
+                </p>
+              )}
             </div>
           ) : null}
         </CardContent>
