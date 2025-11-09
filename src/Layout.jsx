@@ -1,4 +1,3 @@
-
 import React, { useState, useEffect } from "react";
 import { Link, useLocation } from "react-router-dom";
 import { createPageUrl } from "@/utils";
@@ -59,9 +58,6 @@ export default function Layout({ children, currentPageName }) {
     fetchUser();
   }, []);
 
-  // REAL-TIME live stream detection - checks every 3 seconds
-  // Shows RED if stream updated in last 6 seconds (ultra responsive)
-  // Shows "LIVE Ended" message if stream ended in last 10 seconds
   const { data: streamStatus = { active: [], justEnded: [] } } = useQuery({
     queryKey: ['activeLiveStreams'],
     queryFn: async () => {
@@ -71,19 +67,16 @@ export default function Layout({ children, currentPageName }) {
       const sixSecondsAgo = new Date(now.getTime() - 6 * 1000);
       const tenSecondsAgo = new Date(now.getTime() - 10 * 1000);
       
-      // ACTIVE: Updated within last 6 seconds = LIVE RIGHT NOW
       const activeStreams = streams.filter(stream => {
         const updatedDate = new Date(stream.updated_date || stream.started_at || stream.created_date);
         return updatedDate > sixSecondsAgo;
       });
       
-      // JUST ENDED: Updated 6-10 seconds ago = Recently ended
       const justEndedStreams = streams.filter(stream => {
         const updatedDate = new Date(stream.updated_date || stream.started_at || stream.created_date);
         return updatedDate <= sixSecondsAgo && updatedDate > tenSecondsAgo;
       });
       
-      // Also check for streams with status 'ended' in last 10 seconds
       const endedStreams = await base44.entities.LiveStream.filter({ status: 'ended' });
       const recentlyEnded = endedStreams.filter(stream => {
         const endedDate = new Date(stream.ended_at || stream.updated_date || stream.created_date);
@@ -96,10 +89,9 @@ export default function Layout({ children, currentPageName }) {
       };
     },
     initialData: { active: [], justEnded: [] },
-    refetchInterval: 3000, // Check every 3 seconds for ULTRA responsiveness
+    refetchInterval: 3000,
   });
 
-  // REAL-TIME live podcast detection
   const { data: podcastStatus = { active: [], justEnded: [] } } = useQuery({
     queryKey: ['activeLivePodcasts'],
     queryFn: async () => {
@@ -133,7 +125,6 @@ export default function Layout({ children, currentPageName }) {
   const hasActiveLivePodcast = podcastStatus.active.length > 0;
   const podcastJustEnded = podcastStatus.justEnded.length > 0;
 
-  // Only show buttons when active or recently ended
   const showLiveStreamButton = hasActiveLiveStream || streamJustEnded;
   const showLivePodcastButton = hasActiveLivePodcast || podcastJustEnded;
 
@@ -146,7 +137,6 @@ export default function Layout({ children, currentPageName }) {
     { title: "Give", url: createPageUrl("Donate"), icon: Heart },
   ];
 
-  // Community sections with icons
   const communityItems = [
     { title: "Groups", url: createPageUrl("Groups"), icon: Users, description: "Join communities" },
     { title: "Forums", url: createPageUrl("Forum"), icon: MessagesSquare, description: "Engage in discussions" },
@@ -496,7 +486,6 @@ export default function Layout({ children, currentPageName }) {
                   <Search className="w-5 h-5" />
                 </Button>
                 
-                {/* LIVE Stream Button - Only show when active or just ended */}
                 {showLiveStreamButton && (
                   <>
                     {hasActiveLiveStream ? (
@@ -519,7 +508,6 @@ export default function Layout({ children, currentPageName }) {
                   </>
                 )}
 
-                {/* LIVE Podcast Button - Only show when active or just ended */}
                 {showLivePodcastButton && (
                   <>
                     {hasActiveLivePodcast ? (
