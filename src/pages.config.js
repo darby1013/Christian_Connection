@@ -33,6 +33,7 @@ import Testimonies from './pages/Testimonies';
 import MemberDirectory from './pages/MemberDirectory';
 import KnowledgeBase from './pages/KnowledgeBase';
 import RSSFeeds from './pages/RSSFeeds';
+import AdminPodcastDashboard from './pages/AdminPodcastDashboard';
 import Layout from './Layout.jsx';
 
 
@@ -72,6 +73,7 @@ export const PAGES = {
     "MemberDirectory": MemberDirectory,
     "KnowledgeBase": KnowledgeBase,
     "RSSFeeds": RSSFeeds,
+    "AdminPodcastDashboard": AdminPodcastDashboard,
 }
 
 export const pagesConfig = {
