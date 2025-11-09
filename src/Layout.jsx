@@ -166,7 +166,7 @@ export default function Layout({ children, currentPageName }) {
   };
 
   if (isBroadcastPage) {
-    return <div>{children}</div>;
+    return <div className="w-full">{children}</div>;
   }
 
   if (isAdminPage) {
@@ -201,15 +201,26 @@ export default function Layout({ children, currentPageName }) {
           .admin-layout {
             background: #0a0e27 !important;
             min-height: 100vh;
+            width: 100%;
           }
           
           .admin-main {
             background: #0a0e27 !important;
+            flex: 1;
+            width: 100%;
+            max-width: 100%;
           }
           
           .admin-header {
             background: #0f1629 !important;
             border-bottom: 1px solid rgba(255, 255, 255, 0.05) !important;
+            width: 100%;
+          }
+          
+          .admin-content {
+            width: 100%;
+            max-width: 100%;
+            padding: 1.5rem;
           }
           
           .admin-card {
@@ -244,7 +255,7 @@ export default function Layout({ children, currentPageName }) {
             color: inherit !important;
           }
         `}</style>
-        <div className="flex min-h-screen admin-layout">
+        <div className="flex min-h-screen w-full admin-layout">
           <Sidebar className="border-r border-white/5" style={{ backgroundColor: '#0f1629' }}>
             <SidebarHeader className="border-b border-white/5 p-4" style={{ backgroundColor: '#0f1629' }}>
               <div className="flex items-center gap-2">
@@ -321,9 +332,9 @@ export default function Layout({ children, currentPageName }) {
             </SidebarFooter>
           </Sidebar>
 
-          <main className="flex-1 flex flex-col overflow-hidden admin-main">
-            <header className="admin-header px-6 py-4">
-              <div className="flex items-center justify-between">
+          <main className="flex-1 flex flex-col overflow-hidden admin-main w-full">
+            <header className="admin-header px-6 py-4 w-full">
+              <div className="flex items-center justify-between w-full">
                 <div className="flex items-center gap-4">
                   <SidebarTrigger className="lg:hidden text-white hover:bg-white/10 p-2 rounded-lg" />
                   <h1 className="text-xl font-bold text-white">{currentPageName?.replace('Admin', '')}</h1>
@@ -337,8 +348,10 @@ export default function Layout({ children, currentPageName }) {
               </div>
             </header>
 
-            <div className="flex-1 overflow-auto p-6">
-              {children}
+            <div className="flex-1 overflow-auto admin-content w-full">
+              <div className="w-full max-w-full">
+                {children}
+              </div>
             </div>
           </main>
         </div>
