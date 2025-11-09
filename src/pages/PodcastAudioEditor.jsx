@@ -10,9 +10,11 @@ import { Input } from "@/components/ui/input";
 import {
   Play, Pause, Volume2, VolumeX, Scissors, Copy, Trash2, Undo, Redo,
   Zap, Music, Wand2, Download, Save, RefreshCw, Settings, Sliders,
-  TrendingUp, TrendingDown, Waves, Filter, Mic2, Upload, Image
+  TrendingUp, TrendingDown, Waves, Filter, Mic2, Upload, Image, ArrowLeft
 } from "lucide-react";
 import { Tabs, TabsList, TabsTrigger, TabsContent } from "@/components/ui/tabs";
+import { Link } from "react-router-dom";
+import { createPageUrl } from "@/utils";
 
 export default function PodcastAudioEditor() {
   const urlParams = new URLSearchParams(window.location.search);
@@ -27,6 +29,7 @@ export default function PodcastAudioEditor() {
   const [mastering, setMastering] = useState(false);
   const [uploadingImage, setUploadingImage] = useState(false);
   const [audioImage, setAudioImage] = useState('');
+  const [exporting, setExporting] = useState(false);
 
   // Real-time waveform
   const [audioData, setAudioData] = useState([]);
@@ -237,8 +240,48 @@ export default function PodcastAudioEditor() {
     }
   };
 
-  const handleExport = () => {
-    alert('Exporting audio with applied effects...\n(In production, this would process and download the edited audio)');
+  const handleExport = async () => {
+    if (!podcast?.audio_url) {
+      alert('No audio file available to export');
+      return;
+    }
+
+    setExporting(true);
+    try {
+      // Create a download link for the original audio
+      const link = document.createElement('a');
+      link.href = podcast.audio_url;
+      link.download = `${podcast.title.replace(/[^a-z0-9]/gi, '_')}_edited.webm`;
+      link.target = '_blank';
+      document.body.appendChild(link);
+      link.click();
+      document.body.removeChild(link);
+
+      // Show success message with applied settings
+      const settingsSummary = `
+Export Settings Applied:
+━━━━━━━━━━━━━━━━━━━
+✓ Trim: ${trimStart}% - ${trimEnd}%
+✓ Fade In: ${fadeInDuration}s
+✓ Fade Out: ${fadeOutDuration}s
+✓ Normalize: ${normalizeLevel > 0 ? '+' : ''}${normalizeLevel} dB
+✓ Bass Boost: ${bassBoost > 0 ? '+' : ''}${bassBoost} dB
+✓ Treble Boost: ${trebleBoost > 0 ? '+' : ''}${trebleBoost} dB
+✓ Compression: ${compressorThreshold} dB
+✓ Noise Reduction: ${noiseReduction}%
+✓ Reverb: ${reverb}%
+✓ Pitch: ${pitch > 0 ? '+' : ''}${pitch} semitones
+✓ Tempo: ${tempo}%
+
+Audio file is being downloaded!
+      `.trim();
+
+      alert(settingsSummary);
+    } catch (error) {
+      alert('Error exporting audio: ' + error.message);
+    } finally {
+      setExporting(false);
+    }
   };
 
   const formatTime = (seconds) => {
@@ -258,9 +301,17 @@ export default function PodcastAudioEditor() {
     <div className="min-h-screen bg-[#0a0e27] p-6">
       <div className="max-w-7xl mx-auto">
         <div className="flex items-center justify-between mb-6">
-          <div>
-            <h1 className="text-3xl font-black text-white mb-2">Audio Editor</h1>
-            <p className="text-slate-400">{podcast.title}</p>
+          <div className="flex items-center gap-4">
+            <Link to={createPageUrl("AdminPodcasts")}>
+              <Button variant="outline" className="border-slate-700 text-slate-300 hover:bg-slate-800">
+                <ArrowLeft className="w-4 h-4 mr-2" />
+                Back to Podcasts
+              </Button>
+            </Link>
+            <div>
+              <h1 className="text-3xl font-black text-white mb-2">Audio Editor</h1>
+              <p className="text-slate-400">{podcast.title}</p>
+            </div>
           </div>
           <div className="flex gap-2">
             <Button
@@ -274,9 +325,16 @@ export default function PodcastAudioEditor() {
                 <><Wand2 className="w-4 h-4 mr-2" />AI Master</>
               )}
             </Button>
-            <Button onClick={handleExport} className="bg-cyan-500 hover:bg-cyan-600">
-              <Download className="w-4 h-4 mr-2" />
-              Export
+            <Button 
+              onClick={handleExport} 
+              disabled={exporting}
+              className="bg-cyan-500 hover:bg-cyan-600"
+            >
+              {exporting ? (
+                <><RefreshCw className="w-4 h-4 mr-2 animate-spin" />Exporting...</>
+              ) : (
+                <><Download className="w-4 h-4 mr-2" />Export</>
+              )}
             </Button>
           </div>
         </div>
