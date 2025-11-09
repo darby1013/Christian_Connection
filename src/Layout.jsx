@@ -59,27 +59,27 @@ export default function Layout({ children, currentPageName }) {
     fetchUser();
   }, []);
 
-  // Check for ACTIVELY BROADCASTING live streams
-  // Only show LIVE button if stream is 'live' AND was updated in the last 2 minutes
+  // REAL-TIME LIVE STREAM DETECTION
+  // Check every 3 seconds for maximum responsiveness
+  // Only show LIVE button if stream was updated in the last 6 seconds
   const { data: liveStreams = [] } = useQuery({
     queryKey: ['activeLiveStreams'],
     queryFn: async () => {
       const streams = await base44.entities.LiveStream.filter({ status: 'live' });
       
-      // Filter to only streams that are ACTIVELY broadcasting
-      // Check if updated within last 2 minutes (120 seconds)
+      // Filter to ACTIVELY broadcasting streams (updated within last 6 seconds)
       const now = new Date();
-      const twoMinutesAgo = new Date(now.getTime() - 2 * 60 * 1000);
+      const sixSecondsAgo = new Date(now.getTime() - 6 * 1000);
       
       const activeStreams = streams.filter(stream => {
         const updatedDate = new Date(stream.updated_date || stream.started_at || stream.created_date);
-        return updatedDate > twoMinutesAgo;
+        return updatedDate > sixSecondsAgo;
       });
       
       return activeStreams;
     },
     initialData: [],
-    refetchInterval: 5000, // Check every 5 seconds for more responsiveness
+    refetchInterval: 3000, // Check every 3 seconds for real-time detection
   });
 
   const hasActiveLiveStream = liveStreams.length > 0;
@@ -421,7 +421,7 @@ export default function Layout({ children, currentPageName }) {
                   <Search className="w-5 h-5" />
                 </Button>
                 
-                {/* Live Button - ONLY red/clickable when ACTIVELY broadcasting (updated within 2 minutes) */}
+                {/* REAL-TIME LIVE BUTTON - Checks every 3s, shows RED only if updated in last 6s */}
                 {hasActiveLiveStream ? (
                   <Link to={createPageUrl("LiveStreamPlayer")}>
                     <Button className="bg-red-600 hover:bg-red-700 text-white font-bold relative overflow-hidden">
