@@ -1,3 +1,4 @@
+
 import React, { useState } from "react";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { base44 } from "@/api/base44Client";
@@ -32,21 +33,22 @@ export default function AdminPodcastMarketing() {
   const [generating, setGenerating] = useState(false);
   const [activeTab, setActiveTab] = useState('twitter');
   const [copiedContent, setCopiedContent] = useState(null);
-  
+
   // Ad Campaign State
   const [adPlatform, setAdPlatform] = useState('google_ads');
   const [showAdDialog, setShowAdDialog] = useState(false);
   const [generatingAd, setGeneratingAd] = useState(false);
-  
+
   // Email Campaign State
   const [emailSegment, setEmailSegment] = useState('all_subscribers');
   const [showEmailDialog, setShowEmailDialog] = useState(false);
   const [generatingEmail, setGeneratingEmail] = useState(false);
-  
+
   // Competitor Analysis State
   const [competitorUrl, setCompetitorUrl] = useState('');
   const [showCompetitorDialog, setShowCompetitorDialog] = useState(false);
   const [analyzingCompetitor, setAnalyzingCompetitor] = useState(false);
+  const [expandedAnalysis, setExpandedAnalysis] = useState(null);
 
   const queryClient = useQueryClient();
 
@@ -134,7 +136,7 @@ export default function AdminPodcastMarketing() {
     const tomorrow = new Date();
     tomorrow.setDate(tomorrow.getDate() + 1);
     tomorrow.setHours(parseInt(peakHour), 0, 0, 0);
-    
+
     return tomorrow.toISOString();
   };
 
@@ -236,10 +238,10 @@ Include subject (under 50 chars), preheader (85 chars), body with hook, highligh
       };
 
       await createMarketingMutation.mutateAsync(marketingData);
-      
+
       // Refetch to show new content
       await queryClient.invalidateQueries({ queryKey: ['podcastMarketing'] });
-      
+
       alert('✅ Content generated successfully!');
     } catch (error) {
       alert('Error generating content: ' + error.message);
@@ -443,58 +445,183 @@ Personalize heavily for ${emailSegment} segment!`,
     setAnalyzingCompetitor(true);
     try {
       const result = await base44.integrations.Core.InvokeLLM({
-        prompt: `Analyze this competitor podcast and provide strategic marketing insights:
+        prompt: `Perform a COMPREHENSIVE competitive marketing analysis of this competitor podcast:
 
 YOUR PODCAST:
 - Title: ${selectedPodcast.title}
 - Description: ${selectedPodcast.description}
 - Host: ${selectedPodcast.host_name}
 - Category: ${selectedPodcast.category || 'General'}
+- Current Plays: ${selectedPodcast.plays || 0}
 
-COMPETITOR URL: ${competitorUrl}
+COMPETITOR: ${competitorUrl}
 
-Provide comprehensive competitive analysis:
+Analyze using web data and provide detailed insights across these dimensions:
 
-1. COMPETITOR STRENGTHS (5-7 points)
-   - What they're doing well
-   - Their competitive advantages
-   - Successful strategies
+═══════════════════════════════════════════
+1. EXECUTIVE SUMMARY
+═══════════════════════════════════════════
+Provide a 3-paragraph strategic overview of the competitor and your position relative to them.
 
-2. COMPETITOR WEAKNESSES (5-7 points)
-   - Gaps in their strategy
-   - Missed opportunities
-   - Areas where they underperform
+═══════════════════════════════════════════
+2. CONTENT FORMATS & PERFORMANCE
+═══════════════════════════════════════════
+Analyze their content strategy:
+- 5-7 successful content formats they use (interview, solo, panel, storytelling, educational, etc.)
+- Top 3-5 performing content types (by engagement)
+- Ideal content length (short-form, medium, long-form analysis)
+- Episode structure patterns
+- Production quality observations
+- 5-7 format recommendations for you to test
 
-3. OPPORTUNITIES FOR YOU (7-10 actionable items)
-   - How to differentiate
-   - Gaps you can fill
-   - Audience segments they're missing
-   - Content angles they haven't covered
+═══════════════════════════════════════════
+3. POSTING FREQUENCY & TIMING
+═══════════════════════════════════════════
+Analyze their publishing patterns:
+- How often they post (daily, 2x/week, weekly, etc.)
+- Best performing days of the week (Monday, Wednesday, etc.)
+- Optimal posting times (morning, afternoon, evening with specific hours)
+- Consistency score (1-10 scale)
+- Recommended posting schedule for you (be specific: "Post every Tuesday and Thursday at 9 AM")
+- Gap analysis: Times/days they don't cover that you could own
 
-4. SPECIFIC RECOMMENDATIONS (10-12 actionable tactics)
-   - Social media strategies
-   - Content format ideas
-   - Collaboration opportunities
-   - SEO improvements
-   - Audience growth tactics
-   - Monetization strategies
+═══════════════════════════════════════════
+4. SOCIAL MEDIA ENGAGEMENT
+═══════════════════════════════════════════
+Deep dive into their social presence:
+- Platforms they use (list all: Twitter, Instagram, YouTube, etc.)
+- Strongest platform (where they get most engagement)
+- Average engagement rate estimate (%)
+- Top 5-7 engagement triggers (what gets their audience to interact)
+- Audience interaction style (formal, casual, conversational, etc.)
+- Response rate to comments/messages (high, medium, low + explanation)
+- 5-7 community building tactics they use
+- 5-7 platform-specific strategies observed
+- Hashtag strategy analysis
+- Visual content quality assessment
 
-5. COMPETITIVE SCORE (0-100)
-   - Your current position vs competitor
-   - Explanation of score
+═══════════════════════════════════════════
+5. AUDIENCE INSIGHTS
+═══════════════════════════════════════════
+Understand their audience:
+- Target demographics (age, gender, interests)
+- Engagement patterns (lurkers vs. active participants)
+- Community size estimate
+- 5-7 audience pain points they address
+- 5-7 unmet needs in their audience (opportunities for you)
+- Audience loyalty indicators
 
-Be specific, actionable, and strategic!`,
+═══════════════════════════════════════════
+6. STRENGTHS (7-10 items)
+═══════════════════════════════════════════
+What they excel at - be specific and tactical
+
+═══════════════════════════════════════════
+7. WEAKNESSES (7-10 items)
+═══════════════════════════════════════════
+Where they fall short - opportunities for you
+
+═══════════════════════════════════════════
+8. OPPORTUNITIES FOR YOU (10-15 items)
+═══════════════════════════════════════════
+Specific gaps and opportunities to capitalize on
+
+═══════════════════════════════════════════
+9. REPLICATION STRATEGIES (8-12 items)
+═══════════════════════════════════════════
+Proven tactics from competitor you should adopt:
+- What to copy (ethically)
+- How to implement
+- Expected results
+
+═══════════════════════════════════════════
+10. DIFFERENTIATION STRATEGIES (8-12 items)
+═══════════════════════════════════════════
+How to stand out and be unique:
+- Your unique angles
+- Different approaches
+- Blue ocean opportunities
+
+═══════════════════════════════════════════
+11. QUICK WINS (30-Day Action Plan)
+═══════════════════════════════════════════
+10-15 immediate actions to implement this month
+
+═══════════════════════════════════════════
+12. LONG-TERM STRATEGY (90+ Day Plan)
+═══════════════════════════════════════════
+8-10 strategic initiatives for sustained growth
+
+═══════════════════════════════════════════
+13. COMPETITIVE SCORE & EXPLANATION
+═══════════════════════════════════════════
+Rate your current position vs competitor (0-100) with detailed explanation
+
+Be thorough, specific, and actionable. Use web data for accuracy.`,
         add_context_from_internet: true,
         response_json_schema: {
           type: "object",
           properties: {
             competitor_name: { type: "string" },
+            analysis_summary: { type: "string" },
+            content_formats: {
+              type: "object",
+              properties: {
+                successful_formats: { type: "array", items: { type: "string" } },
+                top_performing_types: { type: "array", items: { type: "string" } },
+                content_length_sweet_spot: { type: "string" },
+                format_recommendations: { type: "array", items: { type: "string" } }
+              }
+            },
+            posting_patterns: {
+              type: "object",
+              properties: {
+                frequency: { type: "string" },
+                best_days: { type: "array", items: { type: "string" } },
+                best_times: { type: "array", items: { type: "string" } },
+                consistency_score: { type: "number" },
+                recommended_schedule: { type: "string" }
+              }
+            },
+            engagement_metrics: {
+              type: "object",
+              properties: {
+                avg_engagement_rate: { type: "number" },
+                top_engagement_triggers: { type: "array", items: { type: "string" } },
+                audience_interaction_style: { type: "string" },
+                response_rate: { type: "string" },
+                community_building_tactics: { type: "array", items: { type: "string" } }
+              }
+            },
+            social_media_presence: {
+              type: "object",
+              properties: {
+                platforms_used: { type: "array", items: { type: "string" } },
+                strongest_platform: { type: "string" },
+                platform_specific_strategies: { type: "array", items: { type: "string" } },
+                hashtag_strategy: { type: "string" },
+                visual_content_quality: { type: "string" }
+              }
+            },
+            audience_insights: {
+              type: "object",
+              properties: {
+                target_demographics: { type: "string" },
+                engagement_patterns: { type: "string" },
+                community_size_estimate: { type: "string" },
+                audience_pain_points: { type: "array", items: { type: "string" } },
+                unmet_needs: { type: "array", items: { type: "string" } }
+              }
+            },
             strengths: { type: "array", items: { type: "string" } },
             weaknesses: { type: "array", items: { type: "string" } },
             opportunities: { type: "array", items: { type: "string" } },
             recommendations: { type: "array", items: { type: "string" } },
-            competitive_score: { type: "number" },
-            analysis_summary: { type: "string" }
+            replication_strategies: { type: "array", items: { type: "string" } },
+            differentiation_strategies: { type: "array", items: { type: "string" } },
+            quick_wins: { type: "array", items: { type: "string" } },
+            long_term_strategy: { type: "array", items: { type: "string" } },
+            competitive_score: { type: "number" }
           }
         }
       });
@@ -503,16 +630,25 @@ Be specific, actionable, and strategic!`,
         podcast_id: selectedPodcast.id,
         competitor_name: result.competitor_name,
         competitor_url: competitorUrl,
-        analysis_type: 'content_strategy',
+        analysis_type: 'full_analysis',
         analysis_summary: result.analysis_summary,
         strengths: result.strengths,
         weaknesses: result.weaknesses,
         opportunities: result.opportunities,
         recommendations: result.recommendations,
-        competitive_score: result.competitive_score
+        competitive_score: result.competitive_score,
+        content_formats: result.content_formats,
+        posting_patterns: result.posting_patterns,
+        engagement_metrics: result.engagement_metrics,
+        social_media_presence: result.social_media_presence,
+        audience_insights: result.audience_insights,
+        replication_strategies: result.replication_strategies,
+        differentiation_strategies: result.differentiation_strategies,
+        quick_wins: result.quick_wins,
+        long_term_strategy: result.long_term_strategy
       });
 
-      alert('✅ Competitor analysis complete! View in Competitor Analysis tab.');
+      alert('✅ Comprehensive competitor analysis complete!');
       setCompetitorUrl('');
     } catch (error) {
       alert('Error: ' + error.message);
@@ -726,7 +862,7 @@ Be specific, actionable, and strategic!`,
                         {allPlatforms.map((platform) => {
                           const Icon = platform.icon;
                           const existingContent = getPlatformContent(platform.id);
-                          
+
                           return (
                             <Card
                               key={platform.id}
@@ -770,9 +906,9 @@ Be specific, actionable, and strategic!`,
                               const Icon = platform.icon;
                               const content = getPlatformContent(platform.id);
                               return (
-                                <TabsTrigger 
+                                <TabsTrigger
                                   key={platform.id}
-                                  value={platform.id} 
+                                  value={platform.id}
                                   className="data-[state=active]:bg-cyan-500 relative flex-1 min-w-[80px]"
                                 >
                                   <Icon className="w-4 h-4 mr-1" />
@@ -1198,14 +1334,17 @@ Be specific, actionable, and strategic!`,
                 <CardHeader>
                   <CardTitle className="text-white font-black text-xl flex items-center gap-3">
                     <Target className="w-8 h-8 text-red-400" />
-                    Competitor Analysis Tool
-                    <Badge className="bg-red-500">AI Powered</Badge>
+                    AI Competitor Intelligence Platform
+                    <Badge className="bg-red-500">Deep Analysis</Badge>
                   </CardTitle>
+                  <p className="text-slate-300 text-sm mt-2">
+                    Comprehensive competitive analysis using AI + web data for actionable marketing insights
+                  </p>
                 </CardHeader>
                 <CardContent className="space-y-4">
                   <div className="grid md:grid-cols-3 gap-4">
                     <div className="col-span-2">
-                      <Label className="text-white font-bold mb-2 block">Competitor Podcast URL</Label>
+                      <Label className="text-white font-bold mb-2 block">Competitor Podcast URL or Name</Label>
                       <Input
                         placeholder="https://competitor-podcast.com or podcast name"
                         value={competitorUrl}
@@ -1221,17 +1360,46 @@ Be specific, actionable, and strategic!`,
                       {analyzingCompetitor ? (
                         <><RefreshCw className="w-4 h-4 mr-2 animate-spin" />Analyzing...</>
                       ) : (
-                        <><Search className="w-4 h-4 mr-2" />Analyze Competitor</>
+                        <><Search className="w-4 h-4 mr-2" />Deep Analyze</>
                       )}
                     </Button>
                   </div>
 
-                  <Alert className="bg-amber-900/20 border-amber-500/30">
-                    <Info className="w-4 h-4 text-amber-400" />
-                    <AlertDescription className="text-amber-200 text-sm">
-                      AI will analyze competitor's marketing strategy using web data and provide actionable recommendations
-                    </AlertDescription>
-                  </Alert>
+                  {analyzingCompetitor && (
+                    <div className="p-4 bg-amber-900/20 border border-amber-500/30 rounded-lg">
+                      <div className="flex items-center gap-3 mb-3">
+                        <RefreshCw className="w-5 h-5 text-amber-400 animate-spin" />
+                        <h5 className="text-white font-bold">AI Analysis in Progress...</h5>
+                      </div>
+                      <div className="space-y-2 text-sm text-amber-200">
+                        <p>✓ Fetching competitor web data</p>
+                        <p>✓ Analyzing content formats</p>
+                        <p>✓ Evaluating posting patterns</p>
+                        <p>✓ Studying engagement metrics</p>
+                        <p>✓ Examining social media presence</p>
+                        <p>✓ Generating strategic recommendations</p>
+                      </div>
+                    </div>
+                  )}
+
+                  <div className="grid md:grid-cols-4 gap-3">
+                    <div className="p-3 bg-blue-500/10 border border-blue-500/30 rounded-lg text-center">
+                      <FileText className="w-6 h-6 text-blue-400 mx-auto mb-1" />
+                      <p className="text-white text-xs font-bold">Content Formats</p>
+                    </div>
+                    <div className="p-3 bg-purple-500/10 border border-purple-500/30 rounded-lg text-center">
+                      <Calendar className="w-6 h-6 text-purple-400 mx-auto mb-1" />
+                      <p className="text-white text-xs font-bold">Posting Patterns</p>
+                    </div>
+                    <div className="p-3 bg-green-500/10 border border-green-500/30 rounded-lg text-center">
+                      <TrendingUp className="w-6 h-6 text-green-400 mx-auto mb-1" />
+                      <p className="text-white text-xs font-bold">Engagement</p>
+                    </div>
+                    <div className="p-3 bg-cyan-500/10 border border-cyan-500/30 rounded-lg text-center">
+                      <Users className="w-6 h-6 text-cyan-400 mx-auto mb-1" />
+                      <p className="text-white text-xs font-bold">Audience Insights</p>
+                    </div>
+                  </div>
                 </CardContent>
               </Card>
 
@@ -1241,81 +1409,477 @@ Be specific, actionable, and strategic!`,
                     <Card key={analysis.id} className="bg-[#1a1f3a] border-slate-700">
                       <CardHeader className="border-b border-slate-700">
                         <div className="flex items-start justify-between">
-                          <div>
-                            <CardTitle className="text-white font-black mb-2">{analysis.competitor_name}</CardTitle>
-                            <p className="text-slate-400 text-sm">{analysis.analysis_summary}</p>
+                          <div className="flex-1">
+                            <div className="flex items-center gap-3 mb-2">
+                              <CardTitle className="text-white font-black text-xl">{analysis.competitor_name}</CardTitle>
+                              <Badge className={analysis.competitive_score >= 70 ? 'bg-green-500' : analysis.competitive_score >= 40 ? 'bg-amber-500' : 'bg-red-500'}>
+                                Score: {analysis.competitive_score}/100
+                              </Badge>
+                            </div>
+                            <p className="text-slate-300 text-sm mb-2">{analysis.analysis_summary}</p>
+                            <div className="flex items-center gap-2 text-xs text-slate-400">
+                              <Clock className="w-3 h-3" />
+                              Analyzed {format(new Date(analysis.created_date), 'MMM d, yyyy \'at\' h:mm a')}
+                            </div>
                           </div>
-                          <div className="text-right">
-                            <Badge className={analysis.competitive_score >= 70 ? 'bg-green-500' : analysis.competitive_score >= 40 ? 'bg-amber-500' : 'bg-red-500'}>
-                              {analysis.competitive_score}/100
-                            </Badge>
-                            <p className="text-xs text-slate-400 mt-1">Your Score</p>
-                          </div>
+                          <Button
+                            size="sm"
+                            variant="outline"
+                            onClick={() => setExpandedAnalysis(expandedAnalysis === analysis.id ? null : analysis.id)}
+                            className="border-slate-700"
+                          >
+                            {expandedAnalysis === analysis.id ? 'Collapse' : 'Expand'}
+                          </Button>
                         </div>
                       </CardHeader>
-                      <CardContent className="p-5 space-y-4">
-                        <div className="grid md:grid-cols-2 gap-4">
-                          <div className="p-4 bg-green-500/10 border border-green-500/30 rounded-lg">
-                            <h5 className="text-green-400 font-bold mb-2 flex items-center gap-2">
-                              <TrendingUp className="w-4 h-4" />
-                              Their Strengths
+
+                      {expandedAnalysis === analysis.id && (
+                        <CardContent className="p-5 space-y-6">
+                          {/* Content Formats Analysis */}
+                          {analysis.content_formats && (
+                            <div className="p-5 bg-gradient-to-br from-blue-900/20 to-cyan-900/20 border border-blue-500/30 rounded-xl">
+                              <h5 className="text-cyan-400 font-black text-lg mb-4 flex items-center gap-2">
+                                <FileText className="w-5 h-5" />
+                                Content Format Analysis
+                              </h5>
+                              <div className="grid md:grid-cols-2 gap-4">
+                                <div>
+                                  <Label className="text-cyan-300 font-bold text-sm mb-2 block">Successful Formats</Label>
+                                  <ul className="space-y-1">
+                                    {analysis.content_formats.successful_formats?.map((format, idx) => (
+                                      <li key={idx} className="text-cyan-100 text-sm flex items-start gap-2">
+                                        <CheckCircle className="w-3 h-3 mt-1 flex-shrink-0" />
+                                        {format}
+                                      </li>
+                                    ))}
+                                  </ul>
+                                </div>
+                                <div>
+                                  <Label className="text-cyan-300 font-bold text-sm mb-2 block">Top Performing Types</Label>
+                                  <ul className="space-y-1">
+                                    {analysis.content_formats.top_performing_types?.map((type, idx) => (
+                                      <li key={idx} className="text-cyan-100 text-sm flex items-start gap-2">
+                                        <Award className="w-3 h-3 mt-1 flex-shrink-0 text-amber-400" />
+                                        {type}
+                                      </li>
+                                    ))}
+                                  </ul>
+                                </div>
+                              </div>
+                              <div className="mt-4 p-3 bg-slate-900/50 rounded-lg">
+                                <Label className="text-cyan-300 font-bold text-sm">Content Length Sweet Spot</Label>
+                                <p className="text-white font-semibold mt-1">{analysis.content_formats.content_length_sweet_spot}</p>
+                              </div>
+                              <div className="mt-3">
+                                <Label className="text-cyan-300 font-bold text-sm mb-2 block">Format Recommendations for You</Label>
+                                <div className="flex flex-wrap gap-2">
+                                  {analysis.content_formats.format_recommendations?.map((rec, idx) => (
+                                    <Badge key={idx} className="bg-cyan-500">{rec}</Badge>
+                                  ))}
+                                </div>
+                              </div>
+                            </div>
+                          )}
+
+                          {/* Posting Patterns */}
+                          {analysis.posting_patterns && (
+                            <div className="p-5 bg-gradient-to-br from-purple-900/20 to-pink-900/20 border border-purple-500/30 rounded-xl">
+                              <h5 className="text-purple-400 font-black text-lg mb-4 flex items-center gap-2">
+                                <Calendar className="w-5 h-5" />
+                                Posting Frequency & Timing
+                              </h5>
+                              <div className="grid md:grid-cols-3 gap-4 mb-4">
+                                <div className="p-3 bg-slate-900/50 rounded-lg">
+                                  <Label className="text-purple-300 text-xs">Frequency</Label>
+                                  <p className="text-white font-bold">{analysis.posting_patterns.frequency}</p>
+                                </div>
+                                <div className="p-3 bg-slate-900/50 rounded-lg">
+                                  <Label className="text-purple-300 text-xs">Consistency</Label>
+                                  <p className="text-white font-bold">{analysis.posting_patterns.consistency_score}/10</p>
+                                </div>
+                                <div className="p-3 bg-slate-900/50 rounded-lg">
+                                  <Label className="text-purple-300 text-xs">Best Days</Label>
+                                  <p className="text-white font-semibold text-sm">
+                                    {analysis.posting_patterns.best_days?.join(', ')}
+                                  </p>
+                                </div>
+                              </div>
+                              <div className="space-y-2">
+                                <div>
+                                  <Label className="text-purple-300 font-bold text-sm">Best Posting Times</Label>
+                                  <div className="flex flex-wrap gap-2 mt-2">
+                                    {analysis.posting_patterns.best_times?.map((time, idx) => (
+                                      <Badge key={idx} className="bg-purple-500">{time}</Badge>
+                                    ))}
+                                  </div>
+                                </div>
+                                <div className="p-3 bg-purple-500/10 border border-purple-500/30 rounded-lg mt-3">
+                                  <Label className="text-purple-300 font-bold text-sm">Recommended Schedule for You</Label>
+                                  <p className="text-white font-semibold mt-1">{analysis.posting_patterns.recommended_schedule}</p>
+                                </div>
+                              </div>
+                            </div>
+                          )}
+
+                          {/* Engagement Metrics */}
+                          {analysis.engagement_metrics && (
+                            <div className="p-5 bg-gradient-to-br from-green-900/20 to-emerald-900/20 border border-green-500/30 rounded-xl">
+                              <h5 className="text-green-400 font-black text-lg mb-4 flex items-center gap-2">
+                                <TrendingUp className="w-5 h-5" />
+                                Engagement Analysis
+                              </h5>
+                              <div className="grid md:grid-cols-2 gap-4 mb-4">
+                                <div className="p-3 bg-slate-900/50 rounded-lg">
+                                  <Label className="text-green-300 text-xs">Avg Engagement Rate</Label>
+                                  <p className="text-white font-black text-2xl">{analysis.engagement_metrics.avg_engagement_rate}%</p>
+                                </div>
+                                <div className="p-3 bg-slate-900/50 rounded-lg">
+                                  <Label className="text-green-300 text-xs">Response Rate</Label>
+                                  <p className="text-white font-bold">{analysis.engagement_metrics.response_rate}</p>
+                                </div>
+                              </div>
+                              <div className="space-y-3">
+                                <div>
+                                  <Label className="text-green-300 font-bold text-sm mb-2 block">Top Engagement Triggers</Label>
+                                  <ul className="space-y-1">
+                                    {analysis.engagement_metrics.top_engagement_triggers?.map((trigger, idx) => (
+                                      <li key={idx} className="text-green-100 text-sm flex items-start gap-2">
+                                        <Zap className="w-3 h-3 mt-1 flex-shrink-0 text-amber-400" />
+                                        {trigger}
+                                      </li>
+                                    ))}
+                                  </ul>
+                                </div>
+                                <div className="p-3 bg-slate-900/50 rounded-lg">
+                                  <Label className="text-green-300 font-bold text-sm">Interaction Style</Label>
+                                  <p className="text-white mt-1">{analysis.engagement_metrics.audience_interaction_style}</p>
+                                </div>
+                                <div>
+                                  <Label className="text-green-300 font-bold text-sm mb-2 block">Community Building Tactics</Label>
+                                  <div className="flex flex-wrap gap-2">
+                                    {analysis.engagement_metrics.community_building_tactics?.map((tactic, idx) => (
+                                      <Badge key={idx} className="bg-green-500">{tactic}</Badge>
+                                    ))}
+                                  </div>
+                                </div>
+                              </div>
+                            </div>
+                          )}
+
+                          {/* Social Media Presence */}
+                          {analysis.social_media_presence && (
+                            <div className="p-5 bg-gradient-to-br from-indigo-900/20 to-blue-900/20 border border-indigo-500/30 rounded-xl">
+                              <h5 className="text-indigo-400 font-black text-lg mb-4 flex items-center gap-2">
+                                <Share2 className="w-5 h-5" />
+                                Social Media Presence
+                              </h5>
+                              <div className="grid md:grid-cols-2 gap-4 mb-4">
+                                <div>
+                                  <Label className="text-indigo-300 font-bold text-sm mb-2 block">Platforms Used</Label>
+                                  <div className="flex flex-wrap gap-2">
+                                    {analysis.social_media_presence.platforms_used?.map((platform, idx) => (
+                                      <Badge key={idx} className="bg-indigo-500">{platform}</Badge>
+                                    ))}
+                                  </div>
+                                </div>
+                                <div className="p-3 bg-slate-900/50 rounded-lg">
+                                  <Label className="text-indigo-300 text-xs">Strongest Platform</Label>
+                                  <p className="text-white font-bold">{analysis.social_media_presence.strongest_platform}</p>
+                                </div>
+                              </div>
+                              <div className="space-y-3">
+                                <div>
+                                  <Label className="text-indigo-300 font-bold text-sm mb-2 block">Platform-Specific Strategies</Label>
+                                  <ul className="space-y-1">
+                                    {analysis.social_media_presence.platform_specific_strategies?.map((strategy, idx) => (
+                                      <li key={idx} className="text-indigo-100 text-sm flex items-start gap-2">
+                                        <CheckCircle className="w-3 h-3 mt-1 flex-shrink-0" />
+                                        {strategy}
+                                      </li>
+                                    ))}
+                                  </ul>
+                                </div>
+                                <div className="grid md:grid-cols-2 gap-3">
+                                  <div className="p-3 bg-slate-900/50 rounded-lg">
+                                    <Label className="text-indigo-300 text-xs">Hashtag Strategy</Label>
+                                    <p className="text-white text-sm mt-1">{analysis.social_media_presence.hashtag_strategy}</p>
+                                  </div>
+                                  <div className="p-3 bg-slate-900/50 rounded-lg">
+                                    <Label className="text-indigo-300 text-xs">Visual Quality</Label>
+                                    <p className="text-white text-sm mt-1">{analysis.social_media_presence.visual_content_quality}</p>
+                                  </div>
+                                </div>
+                              </div>
+                            </div>
+                          )}
+
+                          {/* Audience Insights */}
+                          {analysis.audience_insights && (
+                            <div className="p-5 bg-gradient-to-br from-amber-900/20 to-orange-900/20 border border-amber-500/30 rounded-xl">
+                              <h5 className="text-amber-400 font-black text-lg mb-4 flex items-center gap-2">
+                                <Users className="w-5 h-5" />
+                                Audience Intelligence
+                              </h5>
+                              <div className="grid md:grid-cols-2 gap-4 mb-4">
+                                <div className="p-3 bg-slate-900/50 rounded-lg">
+                                  <Label className="text-amber-300 text-xs">Demographics</Label>
+                                  <p className="text-white text-sm mt-1">{analysis.audience_insights.target_demographics}</p>
+                                </div>
+                                <div className="p-3 bg-slate-900/50 rounded-lg">
+                                  <Label className="text-amber-300 text-xs">Community Size</Label>
+                                  <p className="text-white font-bold">{analysis.audience_insights.community_size_estimate}</p>
+                                </div>
+                              </div>
+                              <div className="grid md:grid-cols-2 gap-4">
+                                <div>
+                                  <Label className="text-amber-300 font-bold text-sm mb-2 block">Audience Pain Points</Label>
+                                  <ul className="space-y-1">
+                                    {analysis.audience_insights.audience_pain_points?.map((pain, idx) => (
+                                      <li key={idx} className="text-amber-100 text-sm flex items-start gap-2">
+                                        <AlertCircle className="w-3 h-3 mt-1 flex-shrink-0" />
+                                        {pain}
+                                      </li>
+                                    ))}
+                                  </ul>
+                                </div>
+                                <div>
+                                  <Label className="text-amber-300 font-bold text-sm mb-2 block">Unmet Needs (Your Opportunity)</Label>
+                                  <ul className="space-y-1">
+                                    {analysis.audience_insights.unmet_needs?.map((need, idx) => (
+                                      <li key={idx} className="text-amber-100 text-sm flex items-start gap-2">
+                                        <Sparkles className="w-3 h-3 mt-1 flex-shrink-0 text-cyan-400" />
+                                        {need}
+                                      </li>
+                                    ))}
+                                  </ul>
+                                </div>
+                              </div>
+                            </div>
+                          )}
+
+                          {/* Strategy Sections */}
+                          <div className="grid md:grid-cols-2 gap-4">
+                            {/* Strengths */}
+                            <div className="p-4 bg-green-500/10 border border-green-500/30 rounded-lg">
+                              <h5 className="text-green-400 font-bold mb-3 flex items-center gap-2">
+                                <TrendingUp className="w-4 h-4" />
+                                Their Strengths ({analysis.strengths?.length})
+                              </h5>
+                              <ul className="space-y-1">
+                                {analysis.strengths?.map((strength, idx) => (
+                                  <li key={idx} className="text-green-200 text-sm flex items-start gap-2">
+                                    <CheckCircle className="w-3 h-3 mt-1 flex-shrink-0" />
+                                    {strength}
+                                  </li>
+                                ))}
+                              </ul>
+                            </div>
+
+                            {/* Weaknesses */}
+                            <div className="p-4 bg-red-500/10 border border-red-500/30 rounded-lg">
+                              <h5 className="text-red-400 font-bold mb-3 flex items-center gap-2">
+                                <TrendingDown className="w-4 h-4" />
+                                Their Weaknesses ({analysis.weaknesses?.length})
+                              </h5>
+                              <ul className="space-y-1">
+                                {analysis.weaknesses?.map((weakness, idx) => (
+                                  <li key={idx} className="text-red-200 text-sm flex items-start gap-2">
+                                    <AlertCircle className="w-3 h-3 mt-1 flex-shrink-0" />
+                                    {weakness}
+                                  </li>
+                                ))}
+                              </ul>
+                            </div>
+                          </div>
+
+                          {/* Opportunities */}
+                          <div className="p-4 bg-cyan-500/10 border border-cyan-500/30 rounded-lg">
+                            <h5 className="text-cyan-400 font-bold mb-3 flex items-center gap-2">
+                              <Sparkles className="w-5 h-5" />
+                              Opportunities for You ({analysis.opportunities?.length})
                             </h5>
-                            <ul className="space-y-1">
-                              {analysis.strengths.map((strength, idx) => (
-                                <li key={idx} className="text-green-200 text-sm flex items-start gap-2">
-                                  <CheckCircle className="w-3 h-3 mt-1 flex-shrink-0" />
-                                  <span>{strength}</span>
+                            <ul className="grid md:grid-cols-2 gap-x-4 gap-y-1">
+                              {analysis.opportunities?.map((opp, idx) => (
+                                <li key={idx} className="text-cyan-200 text-sm flex items-start gap-2">
+                                  <Zap className="w-3 h-3 mt-1 flex-shrink-0" />
+                                  {opp}
                                 </li>
                               ))}
                             </ul>
                           </div>
 
-                          <div className="p-4 bg-red-500/10 border border-red-500/30 rounded-lg">
-                            <h5 className="text-red-400 font-bold mb-2 flex items-center gap-2">
-                              <TrendingDown className="w-4 h-4" />
-                              Their Weaknesses
+                          {/* Replication vs Differentiation */}
+                          <div className="grid md:grid-cols-2 gap-4">
+                            <div className="p-4 bg-blue-500/10 border border-blue-500/30 rounded-lg">
+                              <h5 className="text-blue-400 font-bold mb-3 flex items-center gap-2">
+                                <Copy className="w-4 h-4" />
+                                Replication Strategies ({analysis.replication_strategies?.length})
+                              </h5>
+                              <p className="text-blue-200 text-xs mb-2">What to adopt from them</p>
+                              <ul className="space-y-1">
+                                {analysis.replication_strategies?.map((strategy, idx) => (
+                                  <li key={idx} className="text-blue-100 text-sm flex items-start gap-2">
+                                    <CheckCircle className="w-3 h-3 mt-1 flex-shrink-0" />
+                                    {strategy}
+                                  </li>
+                                ))}
+                              </ul>
+                            </div>
+
+                            <div className="p-4 bg-purple-500/10 border border-purple-500/30 rounded-lg">
+                              <h5 className="text-purple-400 font-bold mb-3 flex items-center gap-2">
+                                <Sparkles className="w-4 h-4" />
+                                Differentiation Strategies ({analysis.differentiation_strategies?.length})
+                              </h5>
+                              <p className="text-purple-200 text-xs mb-2">How to stand out</p>
+                              <ul className="space-y-1">
+                                {analysis.differentiation_strategies?.map((strategy, idx) => (
+                                  <li key={idx} className="text-purple-100 text-sm flex items-start gap-2">
+                                    <Award className="w-3 h-3 mt-1 flex-shrink-0" />
+                                    {strategy}
+                                  </li>
+                                ))}
+                              </ul>
+                            </div>
+                          </div>
+
+                          {/* Action Plans */}
+                          <div className="grid md:grid-cols-2 gap-4">
+                            <div className="p-4 bg-gradient-to-br from-green-500/10 to-emerald-500/10 border border-green-500/30 rounded-lg">
+                              <h5 className="text-green-400 font-black mb-3 flex items-center gap-2">
+                                <Zap className="w-5 h-5" />
+                                Quick Wins (30 Days)
+                              </h5>
+                              <p className="text-green-200 text-xs mb-3">Implement these immediately</p>
+                              <ul className="space-y-2">
+                                {analysis.quick_wins?.map((win, idx) => (
+                                  <li key={idx} className="text-green-100 text-sm flex items-start gap-2 p-2 bg-slate-900/30 rounded">
+                                    <div className="w-5 h-5 rounded-full bg-green-500 text-white flex items-center justify-center flex-shrink-0 text-xs font-bold">
+                                      {idx + 1}
+                                    </div>
+                                    {win}
+                                  </li>
+                                ))}
+                              </ul>
+                            </div>
+
+                            <div className="p-4 bg-gradient-to-br from-purple-500/10 to-pink-500/10 border border-purple-500/30 rounded-lg">
+                              <h5 className="text-purple-400 font-black mb-3 flex items-center gap-2">
+                                <Target className="w-5 h-5" />
+                                Long-Term Strategy (90+ Days)
+                              </h5>
+                              <p className="text-purple-200 text-xs mb-3">Strategic initiatives for sustained growth</p>
+                              <ul className="space-y-2">
+                                {analysis.long_term_strategy?.map((strategy, idx) => (
+                                  <li key={idx} className="text-purple-100 text-sm flex items-start gap-2 p-2 bg-slate-900/30 rounded">
+                                    <div className="w-5 h-5 rounded-full bg-purple-500 text-white flex items-center justify-center flex-shrink-0 text-xs font-bold">
+                                      {idx + 1}
+                                    </div>
+                                    {strategy}
+                                  </li>
+                                ))}
+                              </ul>
+                            </div>
+                          </div>
+
+                          {/* Recommendations */}
+                          <div className="p-4 bg-gradient-to-br from-cyan-500/10 to-blue-500/10 border border-cyan-500/30 rounded-lg">
+                            <h5 className="text-cyan-400 font-black mb-3 flex items-center gap-2">
+                              <Award className="w-5 h-5" />
+                              AI Strategic Recommendations ({analysis.recommendations?.length})
                             </h5>
-                            <ul className="space-y-1">
-                              {analysis.weaknesses.map((weakness, idx) => (
-                                <li key={idx} className="text-red-200 text-sm flex items-start gap-2">
-                                  <AlertCircle className="w-3 h-3 mt-1 flex-shrink-0" />
-                                  <span>{weakness}</span>
+                            <ul className="grid md:grid-cols-2 gap-x-4 gap-y-2">
+                              {analysis.recommendations?.map((rec, idx) => (
+                                <li key={idx} className="text-cyan-100 text-sm flex items-start gap-2 p-2 bg-slate-900/30 rounded">
+                                  <CheckCircle className="w-3 h-3 mt-1 flex-shrink-0 text-cyan-400" />
+                                  {rec}
                                 </li>
                               ))}
                             </ul>
                           </div>
-                        </div>
 
-                        <div className="p-4 bg-cyan-500/10 border border-cyan-500/30 rounded-lg">
-                          <h5 className="text-cyan-400 font-bold mb-2 flex items-center gap-2">
-                            <Sparkles className="w-4 h-4" />
-                            Opportunities for You
-                          </h5>
-                          <ul className="space-y-1">
-                            {analysis.opportunities.map((opp, idx) => (
-                              <li key={idx} className="text-cyan-200 text-sm flex items-start gap-2">
-                                <Zap className="w-3 h-3 mt-1 flex-shrink-0" />
-                                <span>{opp}</span>
-                              </li>
-                            ))}
-                          </ul>
-                        </div>
+                          {/* Copy Analysis Button */}
+                          <div className="border-t border-slate-700 pt-4">
+                            <Button
+                              onClick={() => {
+                                const fullAnalysis = `
+COMPETITOR ANALYSIS: ${analysis.competitor_name}
+Competitive Score: ${analysis.competitive_score}/100
 
-                        <div className="p-4 bg-purple-500/10 border border-purple-500/30 rounded-lg">
-                          <h5 className="text-purple-400 font-bold mb-2 flex items-center gap-2">
-                            <Award className="w-4 h-4" />
-                            AI Recommendations
-                          </h5>
-                          <ul className="space-y-1">
-                            {analysis.recommendations.map((rec, idx) => (
-                              <li key={idx} className="text-purple-200 text-sm flex items-start gap-2">
-                                <CheckCircle className="w-3 h-3 mt-1 flex-shrink-0" />
-                                <span>{rec}</span>
-                              </li>
-                            ))}
-                          </ul>
-                        </div>
-                      </CardContent>
+EXECUTIVE SUMMARY:
+${analysis.analysis_summary}
+
+--- CONTENT FORMATS & PERFORMANCE ---
+Successful Formats: ${analysis.content_formats?.successful_formats?.join(', ')}
+Top Performing Types: ${analysis.content_formats?.top_performing_types?.join(', ')}
+Content Length Sweet Spot: ${analysis.content_formats?.content_length_sweet_spot}
+Format Recommendations for You: ${analysis.content_formats?.format_recommendations?.join(', ')}
+
+--- POSTING FREQUENCY & TIMING ---
+Frequency: ${analysis.posting_patterns?.frequency}
+Consistency Score: ${analysis.posting_patterns?.consistency_score}/10
+Best Days: ${analysis.posting_patterns?.best_days?.join(', ')}
+Best Times: ${analysis.posting_patterns?.best_times?.join(', ')}
+Recommended Schedule for You: ${analysis.posting_patterns?.recommended_schedule}
+
+--- SOCIAL MEDIA ENGAGEMENT ---
+Avg Engagement Rate: ${analysis.engagement_metrics?.avg_engagement_rate}%
+Top Engagement Triggers: ${analysis.engagement_metrics?.top_engagement_triggers?.join(', ')}
+Audience Interaction Style: ${analysis.engagement_metrics?.audience_interaction_style}
+Response Rate: ${analysis.engagement_metrics?.response_rate}
+Community Building Tactics: ${analysis.engagement_metrics?.community_building_tactics?.join(', ')}
+
+--- SOCIAL MEDIA PRESENCE ---
+Platforms Used: ${analysis.social_media_presence?.platforms_used?.join(', ')}
+Strongest Platform: ${analysis.social_media_presence?.strongest_platform}
+Platform-Specific Strategies: ${analysis.social_media_presence?.platform_specific_strategies?.join(', ')}
+Hashtag Strategy: ${analysis.social_media_presence?.hashtag_strategy}
+Visual Content Quality: ${analysis.social_media_presence?.visual_content_quality}
+
+--- AUDIENCE INSIGHTS ---
+Target Demographics: ${analysis.audience_insights?.target_demographics}
+Engagement Patterns: ${analysis.audience_insights?.engagement_patterns}
+Community Size Estimate: ${analysis.audience_insights?.community_size_estimate}
+Audience Pain Points: ${analysis.audience_insights?.audience_pain_points?.join(', ')}
+Unmet Needs (Your Opportunity): ${analysis.audience_insights?.unmet_needs?.join(', ')}
+
+--- THEIR STRENGTHS ---
+${analysis.strengths?.map(s => `- ${s}`).join('\n')}
+
+--- THEIR WEAKNESSES ---
+${analysis.weaknesses?.map(w => `- ${w}`).join('\n')}
+
+--- OPPORTUNITIES FOR YOU ---
+${analysis.opportunities?.map(o => `- ${o}`).join('\n')}
+
+--- REPLICATION STRATEGIES ---
+${analysis.replication_strategies?.map(r => `- ${r}`).join('\n')}
+
+--- DIFFERENTIATION STRATEGIES ---
+${analysis.differentiation_strategies?.map(d => `- ${d}`).join('\n')}
+
+--- QUICK WINS (30-Day Action Plan) ---
+${analysis.quick_wins?.map((w, i) => `${i + 1}. ${w}`).join('\n')}
+
+--- LONG-TERM STRATEGY (90+ Day Plan) ---
+${analysis.long_term_strategy?.map((s, i) => `${i + 1}. ${s}`).join('\n')}
+
+--- AI STRATEGIC RECOMMENDATIONS ---
+${analysis.recommendations?.map(rec => `- ${rec}`).join('\n')}
+                                `.trim();
+                                handleCopyContent(fullAnalysis, 'analysis');
+                              }}
+                              className="w-full bg-gradient-to-r from-cyan-500 to-blue-500 hover:from-cyan-600 hover:to-blue-600 font-bold"
+                            >
+                              {copiedContent === 'analysis' ? (
+                                <><CheckCircle className="w-4 h-4 mr-2" />Analysis Copied!</>
+                              ) : (
+                                <><Copy className="w-4 h-4 mr-2" />Copy Full Analysis Report</>
+                              )}
+                            </Button>
+                          </div>
+                        </CardContent>
+                      )}
                     </Card>
                   ))}
                 </div>
