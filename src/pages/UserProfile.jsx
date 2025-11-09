@@ -1,3 +1,4 @@
+
 import React, { useState, useEffect } from "react";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { base44 } from "@/api/base44Client";
@@ -13,9 +14,12 @@ import { Progress } from "@/components/ui/progress";
 import {
   User, Settings, ShoppingBag, Crown, Video, MessageSquare,
   Upload, Camera, Calendar, Heart, Package, FileText, Edit2, Check,
-  Award, TrendingUp, Star, Trophy, Zap, Target
+  Award, TrendingUp, Star, Trophy, Zap, Target, GraduationCap // Added GraduationCap
 } from "lucide-react";
 import { motion } from "framer-motion";
+
+import LearningPath from "../components/profile/LearningPath";
+import BadgeShowcase from "../components/profile/BadgeShowcase";
 
 export default function UserProfile() {
   const [user, setUser] = useState(null);
@@ -151,15 +155,15 @@ export default function UserProfile() {
   };
 
   const handleToggleBadgeShowcase = (badgeId, currentStatus) => {
-    const showcasedBadges = userBadges.filter(ub => ub.is_showcased);
-    if (!currentStatus && showcasedBadges.length >= 5) {
+    const showcasedBadgesCount = userBadges.filter(ub => ub.is_showcased).length;
+    if (!currentStatus && showcasedBadgesCount >= 5) {
       alert('You can only showcase up to 5 badges');
       return;
     }
     updateBadgeShowcaseMutation.mutate({
       badgeId,
       isShowcased: !currentStatus,
-      order: currentStatus ? null : showcasedBadges.length + 1
+      order: currentStatus ? null : showcasedBadgesCount + 1
     });
   };
 
@@ -176,13 +180,19 @@ export default function UserProfile() {
     userPoints && userPoints.total_points >= l.required_points
   ) || levels[0];
 
-  const nextLevel = levels.find(l => 
-    userPoints && userPoints.total_points < l.required_points
+  const nextLevel = levels.find(l =>
+    userPoints && l.level_number > (currentLevel?.level_number || 0)
   );
 
-  const progressToNextLevel = nextLevel 
-    ? ((userPoints?.total_points || 0) / nextLevel.required_points) * 100
+  const levelDifference = (nextLevel?.required_points || 0) - (currentLevel?.required_points || 0);
+  const pointsIntoCurrentLevel = (userPoints?.total_points || 0) - (currentLevel?.required_points || 0);
+
+  const progressToNextLevel = (levelDifference > 0)
+    ? (pointsIntoCurrentLevel / levelDifference) * 100
     : 100;
+
+  const safeProgressToNextLevel = Math.max(0, Math.min(100, isNaN(progressToNextLevel) ? 0 : progressToNextLevel));
+
 
   const getBadgeColor = (color) => {
     const colors = {
@@ -208,7 +218,7 @@ export default function UserProfile() {
   }
 
   return (
-    <div className="min-h-screen bg-[#0a0e27]">
+    <div className="min-h-screen bg-gradient-to-br from-[#0a0e27] to-[#1a1f3a] py-12">
       {/* Banner */}
       <div className="relative h-64 bg-gradient-to-r from-purple-900 via-blue-900 to-cyan-900 overflow-hidden">
         {profileForm.banner_image && (
@@ -232,7 +242,7 @@ export default function UserProfile() {
         )}
       </div>
 
-      <div className="max-w-6xl mx-auto px-4 sm:px-6 lg:px-8 -mt-20">
+      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 -mt-20">
         {/* Profile Header */}
         <Card className="bg-[#1a1f3a] border-slate-700 mb-6">
           <CardContent className="p-6">
@@ -355,142 +365,159 @@ export default function UserProfile() {
           </CardContent>
         </Card>
 
-        {/* Level & Progress Card */}
-        {userPoints && nextLevel && (
-          <Card className="bg-gradient-to-br from-amber-500/10 to-orange-500/10 border-2 border-amber-500/30 mb-6">
-            <CardContent className="p-6">
-              <div className="grid md:grid-cols-2 gap-6">
-                <div>
-                  <h3 className="text-white font-bold text-lg mb-4 flex items-center gap-2">
-                    <Trophy className="w-5 h-5 text-amber-400" />
-                    Level Progress
-                  </h3>
-                  <div className="space-y-4">
-                    <div className="flex items-center justify-between mb-2">
-                      <span className="text-slate-300">Current Level</span>
-                      <span className="text-white font-bold text-lg">{currentLevel?.name}</span>
-                    </div>
-                    <div>
-                      <div className="flex items-center justify-between mb-2">
-                        <span className="text-slate-400 text-sm">Progress to {nextLevel.name}</span>
-                        <span className="text-cyan-400 font-bold">{progressToNextLevel.toFixed(0)}%</span>
-                      </div>
-                      <Progress value={progressToNextLevel} className="h-3 mb-2" />
-                      <div className="flex items-center justify-between text-sm">
-                        <span className="text-slate-400">{userPoints.total_points} points</span>
-                        <span className="text-slate-400">{nextLevel.required_points} points needed</span>
-                      </div>
-                    </div>
-                  </div>
-                </div>
-                
-                <div>
-                  <h3 className="text-white font-bold text-lg mb-4 flex items-center gap-2">
-                    <Target className="w-5 h-5 text-cyan-400" />
-                    Next Badge
-                  </h3>
-                  <div className="space-y-3">
-                    {allBadges
-                      .filter(b => !userBadges.find(ub => ub.badge_id === b.id))
-                      .slice(0, 2)
-                      .map(badge => {
-                        const progress = ((userPoints.total_points || 0) / badge.requirement_count) * 100;
-                        return (
-                          <div key={badge.id} className="bg-slate-900/50 rounded-lg p-3">
-                            <div className="flex items-center gap-2 mb-2">
-                              <span className="text-2xl">{badge.icon}</span>
-                              <div className="flex-1">
-                                <p className="text-white font-bold text-sm">{badge.name}</p>
-                                <p className="text-slate-400 text-xs">{badge.description}</p>
-                              </div>
-                            </div>
-                            <Progress value={Math.min(progress, 100)} className="h-2" />
-                          </div>
-                        );
-                      })}
-                  </div>
-                </div>
-              </div>
-            </CardContent>
-          </Card>
-        )}
-
-        {/* Badge Showcase */}
-        {showcasedBadges.length > 0 && (
-          <Card className="bg-[#1a1f3a] border-slate-700 mb-6">
-            <CardContent className="p-6">
-              <h3 className="text-white font-bold text-xl mb-4 flex items-center gap-2">
-                <Award className="w-6 h-6 text-amber-400" />
-                Badge Showcase
-              </h3>
-              <div className="grid grid-cols-3 md:grid-cols-5 gap-4">
-                {showcasedBadges.map((badge, index) => (
-                  <motion.div
-                    key={badge.id}
-                    initial={{ opacity: 0, scale: 0.8 }}
-                    animate={{ opacity: 1, scale: 1 }}
-                    transition={{ delay: index * 0.1 }}
-                  >
-                    <div className={`relative group cursor-pointer bg-gradient-to-br ${getBadgeColor(badge.color)} p-4 rounded-xl aspect-square flex flex-col items-center justify-center`}>
-                      <span className="text-4xl mb-2">{badge.icon}</span>
-                      <p className="text-white font-bold text-xs text-center">{badge.name}</p>
-                      <Badge className="absolute top-2 right-2 bg-amber-500">#{index + 1}</Badge>
-                    </div>
-                  </motion.div>
-                ))}
-              </div>
-            </CardContent>
-          </Card>
-        )}
-
-        {/* Stats */}
-        <div className="grid grid-cols-2 md:grid-cols-4 gap-4 mb-6">
-          <Card className="bg-[#1a1f3a] border-slate-700">
-            <CardContent className="p-4 text-center">
-              <Video className="w-6 h-6 text-cyan-400 mx-auto mb-2" />
-              <p className="text-2xl font-black text-white">{streams.length}</p>
-              <p className="text-xs text-slate-400">Streams</p>
-            </CardContent>
-          </Card>
-          <Card className="bg-[#1a1f3a] border-slate-700">
-            <CardContent className="p-4 text-center">
-              <FileText className="w-6 h-6 text-purple-400 mx-auto mb-2" />
-              <p className="text-2xl font-black text-white">{blogPosts.length}</p>
-              <p className="text-xs text-slate-400">Posts</p>
-            </CardContent>
-          </Card>
-          <Card className="bg-[#1a1f3a] border-slate-700">
-            <CardContent className="p-4 text-center">
-              <Award className="w-6 h-6 text-amber-400 mx-auto mb-2" />
-              <p className="text-2xl font-black text-white">{userBadges.length}</p>
-              <p className="text-xs text-slate-400">Badges</p>
-            </CardContent>
-          </Card>
-          <Card className="bg-[#1a1f3a] border-slate-700">
-            <CardContent className="p-4 text-center">
-              <Zap className="w-6 h-6 text-yellow-400 mx-auto mb-2" />
-              <p className="text-2xl font-black text-white">{userPoints?.total_points || 0}</p>
-              <p className="text-xs text-slate-400">Points</p>
-            </CardContent>
-          </Card>
-        </div>
-
         {/* Tabs */}
-        <Tabs defaultValue="activity" className="w-full mb-12">
+        <Tabs defaultValue="overview" className="mt-8">
           <TabsList className="bg-[#1a1f3a] border border-slate-700">
+            <TabsTrigger value="overview" className="data-[state=active]:bg-cyan-500 data-[state=active]:text-white">
+              Overview
+            </TabsTrigger>
+            <TabsTrigger value="learning" className="data-[state=active]:bg-cyan-500 data-[state=active]:text-white">
+              <GraduationCap className="w-4 h-4 mr-2" />
+              My Learning Path
+            </TabsTrigger>
+            <TabsTrigger value="badges" className="data-[state=active]:bg-cyan-500 data-[state=active]:text-white">
+              <Trophy className="w-4 h-4 mr-2" />
+              Badges
+            </TabsTrigger>
             <TabsTrigger value="activity" className="data-[state=active]:bg-cyan-500 data-[state=active]:text-white">
               Activity
             </TabsTrigger>
-            <TabsTrigger value="badges" className="data-[state=active]:bg-cyan-500 data-[state=active]:text-white">
-              All Badges
-            </TabsTrigger>
-            <TabsTrigger value="subscription" className="data-[state=active]:bg-cyan-500 data-[state=active]:text-white">
-              Subscription
-            </TabsTrigger>
-            <TabsTrigger value="orders" className="data-[state=active]:bg-cyan-500 data-[state=active]:text-white">
-              Orders
-            </TabsTrigger>
           </TabsList>
+
+          {/* Overview Tab Content */}
+          <TabsContent value="overview" className="mt-6 space-y-6">
+            {/* Level & Progress Card */}
+            {userPoints && nextLevel && (
+              <Card className="bg-gradient-to-br from-amber-500/10 to-orange-500/10 border-2 border-amber-500/30">
+                <CardContent className="p-6">
+                  <div className="grid md:grid-cols-2 gap-6">
+                    <div>
+                      <h3 className="text-white font-bold text-lg mb-4 flex items-center gap-2">
+                        <Trophy className="w-5 h-5 text-amber-400" />
+                        Level Progress
+                      </h3>
+                      <div className="space-y-4">
+                        <div className="flex items-center justify-between mb-2">
+                          <span className="text-slate-300">Current Level</span>
+                          <span className="text-white font-bold text-lg">{currentLevel?.name}</span>
+                        </div>
+                        <div>
+                          <div className="flex items-center justify-between mb-2">
+                            <span className="text-slate-400 text-sm">Progress to {nextLevel.name}</span>
+                            <span className="text-cyan-400 font-bold">{safeProgressToNextLevel.toFixed(0)}%</span>
+                          </div>
+                          <Progress value={safeProgressToNextLevel} className="h-3 mb-2" />
+                          <div className="flex items-center justify-between text-sm">
+                            <span className="text-slate-400">{userPoints.total_points} points</span>
+                            <span className="text-slate-400">{nextLevel.required_points} points needed</span>
+                          </div>
+                        </div>
+                      </div>
+                    </div>
+
+                    <div>
+                      <h3 className="text-white font-bold text-lg mb-4 flex items-center gap-2">
+                        <Target className="w-5 h-5 text-cyan-400" />
+                        Next Badge
+                      </h3>
+                      <div className="space-y-3">
+                        {allBadges
+                          .filter(b => !userBadges.some(ub => ub.badge_id === b.id))
+                          .slice(0, 2)
+                          .map(badge => {
+                            const progress = badge.requirement_count > 0
+                              ? ((userPoints.total_points || 0) / badge.requirement_count) * 100
+                              : 0;
+                            return (
+                              <div key={badge.id} className="bg-slate-900/50 rounded-lg p-3">
+                                <div className="flex items-center gap-2 mb-2">
+                                  <span className="text-2xl">{badge.icon}</span>
+                                  <div className="flex-1">
+                                    <p className="text-white font-bold text-sm">{badge.name}</p>
+                                    <p className="text-slate-400 text-xs">{badge.description}</p>
+                                  </div>
+                                </div>
+                                <Progress value={Math.min(progress, 100)} className="h-2" />
+                              </div>
+                            );
+                          })}
+                      </div>
+                    </div>
+                  </div>
+                </CardContent>
+              </Card>
+            )}
+
+            {/* Badge Showcase */}
+            {showcasedBadges.length > 0 && (
+              <Card className="bg-[#1a1f3a] border-slate-700">
+                <CardContent className="p-6">
+                  <h3 className="text-white font-bold text-xl mb-4 flex items-center gap-2">
+                    <Award className="w-6 h-6 text-amber-400" />
+                    Badge Showcase
+                  </h3>
+                  <div className="grid grid-cols-3 md:grid-cols-5 gap-4">
+                    {showcasedBadges.map((badge, index) => (
+                      <motion.div
+                        key={badge.id}
+                        initial={{ opacity: 0, scale: 0.8 }}
+                        animate={{ opacity: 1, scale: 1 }}
+                        transition={{ delay: index * 0.1 }}
+                      >
+                        <div className={`relative group cursor-pointer bg-gradient-to-br ${getBadgeColor(badge.color)} p-4 rounded-xl aspect-square flex flex-col items-center justify-center`}>
+                          <span className="text-4xl mb-2">{badge.icon}</span>
+                          <p className="text-white font-bold text-xs text-center">{badge.name}</p>
+                          <Badge className="absolute top-2 right-2 bg-amber-500">#{index + 1}</Badge>
+                        </div>
+                      </motion.div>
+                    ))}
+                  </div>
+                </CardContent>
+              </Card>
+            )}
+
+            {/* Stats */}
+            <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
+              <Card className="bg-[#1a1f3a] border-slate-700">
+                <CardContent className="p-4 text-center">
+                  <Video className="w-6 h-6 text-cyan-400 mx-auto mb-2" />
+                  <p className="text-2xl font-black text-white">{streams.length}</p>
+                  <p className="text-xs text-slate-400">Streams</p>
+                </CardContent>
+              </Card>
+              <Card className="bg-[#1a1f3a] border-slate-700">
+                <CardContent className="p-4 text-center">
+                  <FileText className="w-6 h-6 text-purple-400 mx-auto mb-2" />
+                  <p className="text-2xl font-black text-white">{blogPosts.length}</p>
+                  <p className="text-xs text-slate-400">Posts</p>
+                </CardContent>
+              </Card>
+              <Card className="bg-[#1a1f3a] border-slate-700">
+                <CardContent className="p-4 text-center">
+                  <Award className="w-6 h-6 text-amber-400 mx-auto mb-2" />
+                  <p className="text-2xl font-black text-white">{userBadges.length}</p>
+                  <p className="text-xs text-slate-400">Badges</p>
+                </CardContent>
+              </Card>
+              <Card className="bg-[#1a1f3a] border-slate-700">
+                <CardContent className="p-4 text-center">
+                  <Zap className="w-6 h-6 text-yellow-400 mx-auto mb-2" />
+                  <p className="text-2xl font-black text-white">{userPoints?.total_points || 0}</p>
+                  <p className="text-xs text-slate-400">Points</p>
+                </CardContent>
+              </Card>
+            </div>
+          </TabsContent>
+
+          {/* Learning Path Tab */}
+          <TabsContent value="learning" className="mt-6">
+            <LearningPath userId={user?.id} />
+          </TabsContent>
+
+          {/* All Badges Tab */}
+          <TabsContent value="badges" className="mt-6">
+            <BadgeShowcase userId={user?.id} isOwnProfile={true} />
+          </TabsContent>
 
           {/* Activity Tab */}
           <TabsContent value="activity" className="space-y-6 mt-6">
@@ -529,159 +556,7 @@ export default function UserProfile() {
               </CardContent>
             </Card>
           </TabsContent>
-
-          {/* All Badges Tab */}
-          <TabsContent value="badges" className="space-y-6 mt-6">
-            <Card className="bg-[#1a1f3a] border-slate-700">
-              <CardHeader>
-                <CardTitle className="text-white font-black flex items-center justify-between">
-                  <span>Your Badges ({userBadges.length}/{allBadges.length})</span>
-                  <span className="text-sm text-slate-400 font-normal">Showcase up to 5 badges</span>
-                </CardTitle>
-              </CardHeader>
-              <CardContent>
-                <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-4">
-                  {allBadges.map(badge => {
-                    const userBadge = userBadges.find(ub => ub.badge_id === badge.id);
-                    const isEarned = !!userBadge;
-                    const isShowcased = userBadge?.is_showcased;
-                    
-                    return (
-                      <div
-                        key={badge.id}
-                        className={`relative p-4 rounded-xl transition-all ${
-                          isEarned 
-                            ? `bg-gradient-to-br ${getBadgeColor(badge.color)} cursor-pointer hover:scale-105`
-                            : 'bg-slate-900/50 opacity-50 cursor-not-allowed'
-                        }`}
-                        onClick={() => isEarned && handleToggleBadgeShowcase(userBadge.id, isShowcased)}
-                      >
-                        {isShowcased && (
-                          <Badge className="absolute top-2 right-2 bg-amber-500">
-                            <Star className="w-3 h-3 mr-1 fill-white" />
-                            Shown
-                          </Badge>
-                        )}
-                        <div className="text-center">
-                          <span className="text-4xl mb-2 block">{badge.icon}</span>
-                          <p className="text-white font-bold text-sm mb-1">{badge.name}</p>
-                          <p className="text-white/70 text-xs mb-2">{badge.description}</p>
-                          {isEarned ? (
-                            <Badge className="bg-green-500 text-xs">
-                              <CheckCircle className="w-3 h-3 mr-1" />
-                              Earned
-                            </Badge>
-                          ) : (
-                            <Badge className="bg-slate-700 text-xs">
-                              {badge.requirement_count} {badge.requirement_type} needed
-                            </Badge>
-                          )}
-                        </div>
-                      </div>
-                    );
-                  })}
-                </div>
-              </CardContent>
-            </Card>
-          </TabsContent>
-
-          {/* Subscription Tab */}
-          <TabsContent value="subscription" className="space-y-6 mt-6">
-            {activeSubscription ? (
-              <Card className="bg-gradient-to-br from-purple-900/30 to-cyan-900/30 border-purple-500/30">
-                <CardHeader>
-                  <CardTitle className="text-white font-black flex items-center gap-2">
-                    <Crown className="w-6 h-6 text-amber-400" />
-                    Active Subscription
-                  </CardTitle>
-                </CardHeader>
-                <CardContent>
-                  <div className="grid md:grid-cols-2 gap-6">
-                    <div>
-                      <h3 className="text-2xl font-black text-white mb-4">{activeSubscription.plan_name}</h3>
-                      <div className="space-y-2 text-slate-300">
-                        <p><strong>Price:</strong> ${activeSubscription.price}/month</p>
-                        <p><strong>Status:</strong> <Badge className="bg-green-500">{activeSubscription.status}</Badge></p>
-                        <p><strong>Started:</strong> {new Date(activeSubscription.start_date).toLocaleDateString()}</p>
-                        <p><strong>Renews:</strong> {new Date(activeSubscription.end_date).toLocaleDateString()}</p>
-                        <p><strong>Auto-Renew:</strong> {activeSubscription.auto_renew ? 'Yes' : 'No'}</p>
-                      </div>
-                    </div>
-                    <div>
-                      <h4 className="text-white font-bold mb-3">Benefits</h4>
-                      <ul className="space-y-2">
-                        {activeSubscription.benefits?.map((benefit, idx) => (
-                          <li key={idx} className="flex items-center gap-2 text-slate-300">
-                            <Check className="w-4 h-4 text-green-400" />
-                            {benefit}
-                          </li>
-                        ))}
-                      </ul>
-                    </div>
-                  </div>
-                </CardContent>
-              </Card>
-            ) : (
-              <Card className="bg-[#1a1f3a] border-slate-700">
-                <CardContent className="p-12 text-center">
-                  <Crown className="w-16 h-16 text-slate-600 mx-auto mb-4" />
-                  <h3 className="text-xl font-bold text-white mb-2">No Active Subscription</h3>
-                  <p className="text-slate-400 mb-6">Subscribe to unlock exclusive content and features</p>
-                  <Button className="bg-purple-500 hover:bg-purple-600 text-white">
-                    <Crown className="w-4 h-4 mr-2" />
-                    View Plans
-                  </Button>
-                </CardContent>
-              </Card>
-            )}
-          </TabsContent>
-
-          {/* Orders Tab */}
-          <TabsContent value="orders" className="space-y-6 mt-6">
-            <Card className="bg-[#1a1f3a] border-slate-700">
-              <CardHeader className="flex flex-row items-center justify-between">
-                <CardTitle className="text-white font-black">Purchase History</CardTitle>
-                <div className="text-right">
-                  <p className="text-sm text-slate-400">Total Spent</p>
-                  <p className="text-2xl font-black text-cyan-400">${totalSpent.toFixed(2)}</p>
-                </div>
-              </CardHeader>
-              <CardContent>
-                <div className="space-y-4">
-                  {orders.map((order) => (
-                    <div key={order.id} className="flex items-center justify-between p-4 bg-slate-900/50 rounded-lg">
-                      <div className="flex items-center gap-4">
-                        <div className="w-12 h-12 bg-cyan-500/20 rounded-lg flex items-center justify-center">
-                          <Package className="w-6 h-6 text-cyan-400" />
-                        </div>
-                        <div>
-                          <h4 className="text-white font-semibold">Order #{order.order_number || order.id.slice(0, 8)}</h4>
-                          <p className="text-xs text-slate-400">{new Date(order.created_date).toLocaleDateString()}</p>
-                        </div>
-                      </div>
-                      <div className="text-right">
-                        <p className="text-lg font-black text-white">${order.total_amount?.toFixed(2)}</p>
-                        <Badge className={
-                          order.status === 'delivered' ? 'bg-green-500' :
-                          order.status === 'shipped' ? 'bg-blue-500' :
-                          order.status === 'processing' ? 'bg-yellow-500' :
-                          'bg-gray-500'
-                        }>
-                          {order.status}
-                        </Badge>
-                      </div>
-                    </div>
-                  ))}
-                  {orders.length === 0 && (
-                    <div className="text-center py-12">
-                      <ShoppingBag className="w-16 h-16 text-slate-600 mx-auto mb-4" />
-                      <p className="text-slate-400">No orders yet</p>
-                    </div>
-                  )}
-                </div>
-              </CardContent>
-            </Card>
-          </TabsContent>
+          {/* Removed Subscription and Orders TabsContent */}
         </Tabs>
       </div>
     </div>

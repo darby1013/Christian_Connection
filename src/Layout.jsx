@@ -165,6 +165,8 @@ export default function Layout({ children, currentPageName }) {
     { title: "Podcast Analytics", url: createPageUrl("AdminPodcastAnalytics"), icon: BarChart3, section: "CONTENT" },
     { title: "Videos", url: createPageUrl("AdminVideos"), icon: PlayCircle, section: "CONTENT" },
     { title: "Blog Posts", url: createPageUrl("AdminBlog"), icon: FileText, section: "CONTENT" },
+    { title: "Courses", url: createPageUrl("AdminCourses"), icon: Book, section: "LEARNING" },
+    { title: "Course Reviews", url: createPageUrl("AdminCourseReviews"), icon: Star, section: "LEARNING" },
     { title: "Groups", url: createPageUrl("AdminGroups"), icon: UsersRound, section: "COMMUNITY" },
     { title: "Forum", url: createPageUrl("AdminForum"), icon: MessagesSquare, section: "COMMUNITY" },
     { title: "Events", url: createPageUrl("AdminEvents"), icon: CalendarDays, section: "COMMUNITY" },

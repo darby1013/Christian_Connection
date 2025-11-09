@@ -1,3 +1,4 @@
+
 import React, { useState } from "react";
 import { useQuery } from "@tanstack/react-query";
 import { base44 } from "@/api/base44Client";
@@ -37,6 +38,12 @@ export default function Courses() {
     initialData: [],
   });
 
+  const { data: reviews = [] } = useQuery({
+    queryKey: ['allCourseReviews'],
+    queryFn: () => base44.entities.CourseReview.filter({ is_approved: true }),
+    initialData: [],
+  });
+
   const filteredCourses = courses.filter(course => {
     const matchesSearch = course.title?.toLowerCase().includes(searchQuery.toLowerCase()) ||
                          course.description?.toLowerCase().includes(searchQuery.toLowerCase());
@@ -50,7 +57,7 @@ export default function Courses() {
       case 'popular':
         return (b.enrollment_count || 0) - (a.enrollment_count || 0);
       case 'rating':
-        return (b.rating || 0) - (a.rating || 0);
+        return (b.rating || 0) - (a.rating || 0); // Assuming course.rating is available from API for sorting
       case 'newest':
         return new Date(b.created_date) - new Date(a.created_date);
       case 'price_low':
@@ -64,6 +71,14 @@ export default function Courses() {
 
   const getModuleCount = (courseId) => {
     return modules.filter(m => m.course_id === courseId).length;
+  };
+
+  const getCourseRating = (courseId) => {
+    const courseReviews = reviews.filter(r => r.course_id === courseId);
+    if (courseReviews.length === 0) return { avg: 0, count: 0 };
+    
+    const avg = courseReviews.reduce((sum, r) => sum + r.rating, 0) / courseReviews.length;
+    return { avg, count: courseReviews.length };
   };
 
   const getDifficultyColor = (level) => {
@@ -129,6 +144,10 @@ export default function Courses() {
                   <SelectItem value="ministry" className="text-white">Ministry</SelectItem>
                   <SelectItem value="bible_study" className="text-white">Bible Study</SelectItem>
                   <SelectItem value="personal_growth" className="text-white">Personal Growth</SelectItem>
+                  <SelectItem value="worship" className="text-white">Worship</SelectItem>
+                  <SelectItem value="counseling" className="text-white">Counseling</SelectItem>
+                  <SelectItem value="theology" className="text-white">Theology</SelectItem>
+                  <SelectItem value="practical_skills" className="text-white">Practical Skills</SelectItem>
                 </SelectContent>
               </Select>
 
@@ -178,80 +197,85 @@ export default function Courses() {
 
         {/* Course Grid */}
         <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-6">
-          {sortedCourses.map((course) => (
-            <Card key={course.id} className="bg-[#1a1f3a] border-slate-700 hover:border-cyan-500 transition-all group">
-              <div className="relative aspect-video bg-slate-800 overflow-hidden">
-                {course.thumbnail_url ? (
-                  <img 
-                    src={course.thumbnail_url} 
-                    alt={course.title} 
-                    className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-300"
-                  />
-                ) : (
-                  <div className="w-full h-full flex items-center justify-center">
-                    <GraduationCap className="w-16 h-16 text-slate-600" />
-                  </div>
-                )}
-                <div className="absolute top-3 left-3 flex gap-2">
-                  <Badge className={getDifficultyColor(course.difficulty_level)}>
-                    {course.difficulty_level}
-                  </Badge>
-                  {course.price === 0 ? (
-                    <Badge className="bg-green-500">Free</Badge>
+          {sortedCourses.map((course) => {
+            const { avg: courseRating, count: reviewCount } = getCourseRating(course.id);
+            
+            return (
+              <Card key={course.id} className="bg-[#1a1f3a] border-slate-700 hover:border-cyan-500 transition-all group">
+                <div className="relative aspect-video bg-slate-800 overflow-hidden">
+                  {course.thumbnail_url ? (
+                    <img 
+                      src={course.thumbnail_url} 
+                      alt={course.title} 
+                      className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-300"
+                    />
                   ) : (
-                    <Badge className="bg-purple-500">
-                      <DollarSign className="w-3 h-3 mr-1" />
-                      ${course.price}
-                    </Badge>
+                    <div className="w-full h-full flex items-center justify-center">
+                      <GraduationCap className="w-16 h-16 text-slate-600" />
+                    </div>
                   )}
-                </div>
-              </div>
-              <CardContent className="p-5">
-                <Badge className="bg-purple-500/20 text-purple-300 mb-3">
-                  {getCategoryLabel(course.category)}
-                </Badge>
-                <h3 className="text-white font-bold text-lg mb-2 line-clamp-2 group-hover:text-cyan-400 transition-colors">
-                  {course.title}
-                </h3>
-                <p className="text-slate-400 text-sm mb-4 line-clamp-2">{course.description}</p>
-
-                <div className="flex items-center gap-4 mb-4 text-sm">
-                  <div className="flex items-center gap-1">
-                    <Star className="w-4 h-4 text-amber-400 fill-amber-400" />
-                    <span className="text-white font-bold">{course.rating?.toFixed(1) || '0.0'}</span>
-                  </div>
-                  <div className="flex items-center gap-1 text-slate-400">
-                    <Users className="w-4 h-4" />
-                    <span>{course.enrollment_count || 0}</span>
-                  </div>
-                  <div className="flex items-center gap-1 text-slate-400">
-                    <BookOpen className="w-4 h-4" />
-                    <span>{getModuleCount(course.id)} modules</span>
-                  </div>
-                </div>
-
-                <div className="flex items-center justify-between mb-4">
-                  <div className="flex items-center gap-1 text-slate-400 text-sm">
-                    <Clock className="w-4 h-4" />
-                    <span>{course.duration_hours}h</span>
-                  </div>
-                  {course.certificate_enabled && (
-                    <Badge className="bg-amber-500/20 text-amber-300 text-xs">
-                      <Award className="w-3 h-3 mr-1" />
-                      Certificate
+                  <div className="absolute top-3 left-3 flex gap-2">
+                    <Badge className={getDifficultyColor(course.difficulty_level)}>
+                      {course.difficulty_level}
                     </Badge>
-                  )}
+                    {course.price === 0 ? (
+                      <Badge className="bg-green-500">Free</Badge>
+                    ) : (
+                      <Badge className="bg-purple-500">
+                        <DollarSign className="w-3 h-3 mr-1" />
+                        ${course.price}
+                      </Badge>
+                    )}
+                  </div>
                 </div>
+                <CardContent className="p-5">
+                  <Badge className="bg-purple-500/20 text-purple-300 mb-3">
+                    {getCategoryLabel(course.category)}
+                  </Badge>
+                  <h3 className="text-white font-bold text-lg mb-2 line-clamp-2 group-hover:text-cyan-400 transition-colors">
+                    {course.title}
+                  </h3>
+                  <p className="text-slate-400 text-sm mb-4 line-clamp-2">{course.description}</p>
 
-                <Link to={createPageUrl("CourseDetail") + `?id=${course.id}`}>
-                  <Button className="w-full bg-gradient-to-r from-purple-600 to-cyan-500 hover:from-purple-700 hover:to-cyan-600">
-                    <Play className="w-4 h-4 mr-2" />
-                    View Course
-                  </Button>
-                </Link>
-              </CardContent>
-            </Card>
-          ))}
+                  <div className="flex items-center gap-4 mb-4 text-sm">
+                    <div className="flex items-center gap-1">
+                      <Star className="w-4 h-4 text-amber-400 fill-amber-400" />
+                      <span className="text-white font-bold">{courseRating.toFixed(1)}</span>
+                      <span className="text-slate-400 text-xs">({reviewCount})</span>
+                    </div>
+                    <div className="flex items-center gap-1 text-slate-400">
+                      <Users className="w-4 h-4" />
+                      <span>{course.enrollment_count || 0}</span>
+                    </div>
+                    <div className="flex items-center gap-1 text-slate-400">
+                      <BookOpen className="w-4 h-4" />
+                      <span>{getModuleCount(course.id)} modules</span>
+                    </div>
+                  </div>
+
+                  <div className="flex items-center justify-between mb-4">
+                    <div className="flex items-center gap-1 text-slate-400 text-sm">
+                      <Clock className="w-4 h-4" />
+                      <span>{course.duration_hours}h</span>
+                    </div>
+                    {course.certificate_enabled && (
+                      <Badge className="bg-amber-500/20 text-amber-300 text-xs">
+                        <Award className="w-3 h-3 mr-1" />
+                        Certificate
+                      </Badge>
+                    )}
+                  </div>
+
+                  <Link to={createPageUrl("CourseDetail") + `?id=${course.id}`}>
+                    <Button className="w-full bg-gradient-to-r from-purple-600 to-cyan-500 hover:from-purple-700 hover:to-cyan-600">
+                      <Play className="w-4 h-4 mr-2" />
+                      View Course
+                    </Button>
+                  </Link>
+                </CardContent>
+              </Card>
+            );
+          })}
         </div>
 
         {sortedCourses.length === 0 && (

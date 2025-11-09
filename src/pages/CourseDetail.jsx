@@ -1,3 +1,4 @@
+
 import React, { useState, useEffect } from "react";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { base44 } from "@/api/base44Client";
@@ -17,6 +18,7 @@ import {
   AccordionItem,
   AccordionTrigger,
 } from "@/components/ui/accordion";
+import CourseReviews from "../components/courses/CourseReviews";
 
 export default function CourseDetail() {
   const urlParams = new URLSearchParams(window.location.search);
@@ -333,6 +335,11 @@ export default function CourseDetail() {
               </Card>
             )}
           </div>
+        </div>
+
+        {/* Reviews Section */}
+        <div className="mt-12">
+          <CourseReviews courseId={courseId} user={user} />
         </div>
       </div>
     </div>

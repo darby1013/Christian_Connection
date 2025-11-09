@@ -1,3 +1,4 @@
+
 import React, { useState } from "react";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { base44 } from "@/api/base44Client";
@@ -750,6 +751,26 @@ export default function AdminPodcasts() {
                         <Edit className="w-3 h-3 mr-1" />
                         Edit
                       </Button>
+                      
+                      {/* Edit Buttons */}
+                      {podcast.audio_url && (
+                        <Link to={createPageUrl("PodcastAudioEditor") + `?id=${podcast.id}`}>
+                          <Button size="sm" className="bg-purple-500 hover:bg-purple-600">
+                            <Music className="w-3 h-3 mr-1" />
+                            Edit Audio
+                          </Button>
+                        </Link>
+                      )}
+                      
+                      {podcast.video_url && (
+                        <Link to={createPageUrl("PodcastVideoEditor") + `?id=${podcast.id}`}>
+                          <Button size="sm" className="bg-pink-500 hover:bg-pink-600">
+                            <Film className="w-3 h-3 mr-1" />
+                            Edit Video
+                          </Button>
+                        </Link>
+                      )}
+
                       {podcast.publish_status === 'scheduled' && (
                         <Button
                           size="sm"
