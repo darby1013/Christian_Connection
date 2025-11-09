@@ -25,6 +25,7 @@ import Community from './pages/Community';
 import Groups from './pages/Groups';
 import Chatrooms from './pages/Chatrooms';
 import CommunityBoard from './pages/CommunityBoard';
+import PrayerWall from './pages/PrayerWall';
 import Layout from './Layout.jsx';
 
 
@@ -56,6 +57,7 @@ export const PAGES = {
     "Groups": Groups,
     "Chatrooms": Chatrooms,
     "CommunityBoard": CommunityBoard,
+    "PrayerWall": PrayerWall,
 }
 
 export const pagesConfig = {
