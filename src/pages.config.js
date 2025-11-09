@@ -34,6 +34,7 @@ import MemberDirectory from './pages/MemberDirectory';
 import KnowledgeBase from './pages/KnowledgeBase';
 import RSSFeeds from './pages/RSSFeeds';
 import AdminPodcastDashboard from './pages/AdminPodcastDashboard';
+import Leaderboard from './pages/Leaderboard';
 import Layout from './Layout.jsx';
 
 
@@ -74,6 +75,7 @@ export const PAGES = {
     "KnowledgeBase": KnowledgeBase,
     "RSSFeeds": RSSFeeds,
     "AdminPodcastDashboard": AdminPodcastDashboard,
+    "Leaderboard": Leaderboard,
 }
 
 export const pagesConfig = {
