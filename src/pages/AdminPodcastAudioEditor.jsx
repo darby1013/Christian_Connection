@@ -16,6 +16,7 @@ import {
 import { Tabs, TabsList, TabsTrigger, TabsContent } from "@/components/ui/tabs";
 import { Link } from "react-router-dom";
 import { createPageUrl } from "@/utils";
+import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter } from "@/components/ui/dialog"; // Added Dialog imports
 
 export default function AdminPodcastAudioEditor() {
   const urlParams = new URLSearchParams(window.location.search);
@@ -29,6 +30,7 @@ export default function AdminPodcastAudioEditor() {
   const [uploadingImage, setUploadingImage] = useState(false);
   const [audioImage, setAudioImage] = useState('');
   const [copiedSettings, setCopiedSettings] = useState(false);
+  const [showConversionGuide, setShowConversionGuide] = useState(false); // New state for conversion guide
   
   // Real-time waveform
   const [audioData, setAudioData] = useState([]);
@@ -208,16 +210,18 @@ export default function AdminPodcastAudioEditor() {
     if (!podcast?.audio_url) return;
 
     try {
-      // Download the audio file
-      const audioFileName = `${podcast.title.replace(/[^a-z0-9]/gi, '_')}_S${podcast.season}E${podcast.episode_number}.webm`;
+      const isAudioOnly = podcast.content_type === 'audio' && !podcast.video_url;
       
-      const audioLink = document.createElement('a');
-      audioLink.href = podcast.audio_url;
-      audioLink.download = audioFileName;
-      audioLink.target = '_blank';
-      document.body.appendChild(audioLink);
-      audioLink.click();
-      document.body.removeChild(audioLink);
+      // Download the audio file
+      const fileName = `${podcast.title.replace(/[^a-z0-9]/gi, '_')}_S${podcast.season}E${podcast.episode_number}${isAudioOnly ? '_AUDIO' : ''}.webm`;
+      
+      const link = document.createElement('a');
+      link.href = podcast.audio_url;
+      link.download = fileName;
+      link.target = '_blank';
+      document.body.appendChild(link);
+      link.click();
+      document.body.removeChild(link);
 
       // Also download the cover art separately
       if (podcast.image_url) {
@@ -230,10 +234,10 @@ export default function AdminPodcastAudioEditor() {
           imgLink.click();
           document.body.removeChild(imgLink);
           
-          alert('✅ Audio and cover image downloaded!\n\nTo use:\n1. Import audio into your audio editor\n2. Add the cover image as album art/metadata\n3. Most players will display the image when playing');
+          setShowConversionGuide(true);
         }, 1000); // Small delay to prevent blocking the first download
       } else {
-        alert('✅ Audio downloaded! No cover image available for download.');
+        setShowConversionGuide(true);
       }
     } catch (error) {
       alert('Download error: ' + error.message);
@@ -699,7 +703,7 @@ PAID:
                   className="w-full bg-gradient-to-r from-green-500 to-emerald-500 hover:from-green-600 hover:to-emerald-600 justify-start font-semibold"
                 >
                   <Download className="w-4 h-4 mr-2" />
-                  Download Audio + Art
+                  Download + Show Guide
                 </Button>
 
                 <Button
@@ -809,6 +813,81 @@ PAID:
             </Card>
           </div>
         </div>
+
+        {/* WebM to MP3 Conversion Guide Dialog */}
+        <Dialog open={showConversionGuide} onOpenChange={setShowConversionGuide}>
+          <DialogContent className="bg-[#1a1f3a] border-slate-700 max-w-3xl max-h-[90vh] overflow-y-auto">
+            <DialogHeader>
+              <DialogTitle className="text-white font-black text-xl">
+                📥 Files Downloaded! Next Steps:
+              </DialogTitle>
+            </DialogHeader>
+            
+            <div className="space-y-4 py-4">
+              <Alert className="bg-green-900/20 border-green-500/30">
+                <CheckCircle className="w-5 h-5 text-green-400" />
+                <AlertDescription className="text-green-200">
+                  <strong>Downloaded:</strong> Audio WebM file + Cover image JPG
+                </AlertDescription>
+              </Alert>
+
+              <div className="p-4 bg-blue-900/20 border border-blue-500/30 rounded-lg">
+                <h3 className="text-blue-300 font-bold mb-2">Option 1: Online Converter (Easiest)</h3>
+                <div className="space-y-2 text-sm text-blue-100">
+                  <p><strong>CloudConvert</strong> - Free, no signup:</p>
+                  <ol className="list-decimal list-inside space-y-1 ml-3">
+                    <li>Visit <a href="https://cloudconvert.com/webm-to-mp3" target="_blank" className="text-cyan-400 underline">cloudconvert.com/webm-to-mp3</a></li>
+                    <li>Upload your WebM file</li>
+                    <li>Click "Convert to MP3"</li>
+                    <li>Download the MP3</li>
+                  </ol>
+                </div>
+              </div>
+
+              <div className="p-4 bg-purple-900/20 border border-purple-500/30 rounded-lg">
+                <h3 className="text-purple-300 font-bold mb-2">Option 2: Audacity (Free App)</h3>
+                <div className="space-y-2 text-sm text-purple-100">
+                  <ol className="list-decimal list-inside space-y-1 ml-3">
+                    <li>Download from <a href="https://www.audacityteam.org/" target="_blank" className="text-cyan-400 underline">audacityteam.org</a></li>
+                    <li>File → Open → Your WebM file</li>
+                    <li>File → Export → Export as MP3</li>
+                    <li>Save</li>
+                  </ol>
+                </div>
+              </div>
+
+              <div className="p-4 bg-amber-900/20 border border-amber-500/30 rounded-lg">
+                <h3 className="text-amber-300 font-bold mb-2">Add Cover Art to MP3:</h3>
+                <div className="grid md:grid-cols-2 gap-3 text-sm text-amber-100">
+                  <div>
+                    <p className="font-bold mb-1">iTunes/Music:</p>
+                    <p className="text-xs">Right-click MP3 → Get Info → Artwork tab → Add your cover JPG</p>
+                  </div>
+                  <div>
+                    <p className="font-bold mb-1">Windows Media Player:</p>
+                    <p className="text-xs">Right-click MP3 → Properties → Pictures → Add cover JPG</p>
+                  </div>
+                </div>
+              </div>
+
+              <div className="p-4 bg-green-900/20 border border-green-500/30 rounded-lg">
+                <h3 className="text-green-300 font-bold mb-2">✨ Final Result:</h3>
+                <div className="space-y-1 text-sm text-green-100">
+                  <p>✅ MP3 audio file (universally compatible)</p>
+                  <p>✅ Cover art displays when playing</p>
+                  <p>✅ Works in ALL music players</p>
+                  <p>✅ Ready for Spotify, Apple Podcasts, etc.</p>
+                </div>
+              </div>
+            </div>
+            
+            <DialogFooter>
+              <Button onClick={() => setShowConversionGuide(false)} className="bg-cyan-500 hover:bg-cyan-600 w-full">
+                Got It!
+              </Button>
+            </DialogFooter>
+          </DialogContent>
+        </Dialog>
       </div>
     </div>
   );

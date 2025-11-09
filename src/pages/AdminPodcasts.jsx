@@ -12,7 +12,8 @@ import { Tabs, TabsList, TabsTrigger, TabsContent } from "@/components/ui/tabs";
 import {
   Mic2, Plus, Search, TrendingUp, Play, Trash2, Edit, Upload,
   Eye, BarChart3, Clock, Star, Video, Film, Calendar as CalendarIcon,
-  DollarSign, Download, Wand2, RefreshCw, FileVideo, Music, Sliders
+  DollarSign, Download, Wand2, RefreshCw, FileVideo, Music, Sliders,
+  AlertCircle, AlertTriangle // Added for Conversion Guide
 } from "lucide-react";
 import {
   Dialog,
@@ -43,6 +44,7 @@ export default function AdminPodcasts() {
   const [previewAudio, setPreviewAudio] = useState(null);
   const [previewDialogOpen, setPreviewDialogOpen] = useState(false);
   const [extractingAudio, setExtractingAudio] = useState(false);
+  const [showConversionGuide, setShowConversionGuide] = useState(false); // NEW STATE
 
   const [showAITools, setShowAITools] = useState(false);
   const [selectedPodcastForAI, setSelectedPodcastForAI] = useState(null);
@@ -108,7 +110,7 @@ export default function AdminPodcasts() {
       canvas.height = 720;
       const ctx = canvas.getContext('2d');
       ctx.drawImage(videoElement, 0, 0, canvas.width, canvas.height);
-      
+
       canvas.toBlob((blob) => {
         resolve(blob);
       }, 'image/jpeg', 0.9);
@@ -122,21 +124,21 @@ export default function AdminPodcasts() {
     setUploadingMedia(true);
     try {
       const { file_url } = await base44.integrations.Core.UploadFile({ file });
-      
+
       const video = document.createElement('video');
       video.preload = 'metadata';
       video.src = URL.createObjectURL(file);
-      
+
       video.onloadedmetadata = async () => {
         const duration = Math.floor(video.duration);
         video.currentTime = 2;
-        
+
         video.onseeked = async () => {
           try {
             const thumbnailBlob = await captureVideoThumbnail(video);
             const thumbnailFile = new File([thumbnailBlob], `thumbnail_${Date.now()}.jpg`, { type: 'image/jpeg' });
             const { file_url: thumbnailUrl } = await base44.integrations.Core.UploadFile({ file: thumbnailFile });
-            
+
             setPodcastForm(prev => ({
               ...prev,
               video_url: file_url,
@@ -159,7 +161,7 @@ export default function AdminPodcasts() {
           }
         };
       };
-      
+
       video.onerror = () => {
         alert('Error loading video');
         setUploadingMedia(false);
@@ -177,7 +179,7 @@ export default function AdminPodcasts() {
     setUploadingMedia(true);
     try {
       const { file_url } = await base44.integrations.Core.UploadFile({ file });
-      
+
       const audio = new Audio(file_url);
       audio.onloadedmetadata = () => {
         setPodcastForm(prev => ({
@@ -218,8 +220,8 @@ export default function AdminPodcasts() {
     try {
       // Use AI to generate a video with soundwave animation
       const result = await base44.integrations.Core.GenerateImage({
-        prompt: `Create a professional podcast video background with animated audio soundwave visualization. 
-        Dark gradient background with purple and cyan colors. 
+        prompt: `Create a professional podcast video background with animated audio soundwave visualization.
+        Dark gradient background with purple and cyan colors.
         Include waveform animation bars, music visualization elements.
         Title: "${podcast.title}"
         Host: ${podcast.host_name}
@@ -255,7 +257,7 @@ export default function AdminPodcasts() {
 
   const handleDownloadVideo = async (podcast, format = 'mp4') => {
     const url = podcast.converted_video_formats?.[format] || podcast.video_url || podcast.audio_url;
-    
+
     if (!url) {
       alert('No video available for download');
       return;
@@ -398,7 +400,7 @@ export default function AdminPodcasts() {
       const mediaUrl = podcast.video_url || podcast.audio_url; // Prioritize video if available
       const response = await fetch(mediaUrl);
       const blob = await response.blob();
-      
+
       // Create video element to extract audio
       const video = document.createElement('video');
       const videoUrl = URL.createObjectURL(blob);
@@ -423,7 +425,7 @@ export default function AdminPodcasts() {
       const dest = audioContext.createMediaStreamDestination();
       source.connect(dest);
       // We don't connect to audioContext.destination because we only want to record, not play
-      
+
       // Record audio only
       const mediaRecorder = new MediaRecorder(dest.stream, {
         mimeType: 'audio/webm;codecs=opus' // Use WebM for broader browser support
@@ -439,7 +441,7 @@ export default function AdminPodcasts() {
       return new Promise((resolve, reject) => {
         mediaRecorder.onstop = () => {
           const audioBlob = new Blob(chunks, { type: 'audio/webm' });
-          
+
           // Download audio file
           const audioFileName = `${podcast.title.replace(/[^a-z0-9]/gi, '_')}_S${podcast.season}E${podcast.episode_number}_AUDIO.webm`;
           const audioDownloadUrl = URL.createObjectURL(audioBlob);
@@ -473,9 +475,9 @@ export default function AdminPodcasts() {
           setExtractingAudio(false);
           reject(error);
         };
-        
+
         mediaRecorder.start();
-        
+
         // Record for full duration
         setTimeout(() => {
           mediaRecorder.stop();
@@ -495,69 +497,54 @@ export default function AdminPodcasts() {
   const handleDownloadAudioWithCover = async (podcast) => {
     if (!podcast?.audio_url && !podcast?.video_url) return;
 
-    const mediaUrl = podcast.video_url || podcast.audio_url; // Prioritize video if it exists
-    const isVideoPodcast = (podcast.content_type === 'video' || !!podcast.video_url);
+    try {
+      // Check if it's truly audio-only or video
+      const isAudioOnly = podcast.content_type === 'audio' && podcast.audio_url && !podcast.video_url;
 
-    if (isVideoPodcast) {
-      // Show dialog explaining the situation
-      if (confirm(`This podcast was recorded as a video. Download options:\n\nPress OK to EXTRACT AUDIO ONLY (browser-based, may take a moment)\n\nPress CANCEL to DOWNLOAD THE FULL VIDEO FILE + Cover (then use a desktop tool to extract audio)`)) {
-        await extractAudioFromVideo(podcast);
-        alert('✅ Audio extracted and downloaded!\n\nTo add cover art:\n1. Use iTunes: Right-click → Get Info → Artwork\n2. Or Windows Media Player: Properties → Pictures\n3. Or VLC: Tools → Media Information → Artwork');
+      // Determine media URL and file name
+      const mediaUrl = podcast.audio_url || podcast.video_url;
+      let fileExtension = 'webm'; // Default to webm as browsers often record in it
+
+      if (mediaUrl.includes('.mp3')) {
+        fileExtension = 'mp3';
+      } else if (mediaUrl.includes('.mp4')) {
+        fileExtension = 'mp4';
+      }
+
+      const fileName = `${podcast.title.replace(/[^a-z0-9]/gi, '_')}_S${podcast.season}E${podcast.episode_number}${isAudioOnly ? '_AUDIO' : ''}.${fileExtension}`;
+
+      // Download the media file
+      const mediaLink = document.createElement('a');
+      mediaLink.href = mediaUrl;
+      mediaLink.download = fileName;
+      mediaLink.target = '_blank';
+      document.body.appendChild(mediaLink);
+      mediaLink.click();
+      document.body.removeChild(mediaLink);
+
+      // Download cover art
+      if (podcast.image_url) {
+        setTimeout(() => {
+          const imgLink = document.createElement('a');
+          imgLink.href = podcast.image_url;
+          imgLink.download = `${podcast.title.replace(/[^a-z0-9]/gi, '_')}_Cover.jpg`;
+          imgLink.target = '_blank';
+          document.body.appendChild(imgLink);
+          imgLink.click();
+          document.body.removeChild(imgLink);
+        }, 500);
+      }
+
+      // Show appropriate message and the conversion guide
+      if (isAudioOnly) {
+        alert('📥 Audio file downloaded (likely WebM/MP3).\n\nSee the Conversion Guide for converting to MP3 + adding cover art if needed.');
+        setShowConversionGuide(true);
       } else {
-        // Download as-is with instructions
-        try {
-          const link = document.createElement('a');
-          link.href = mediaUrl;
-          link.download = `${podcast.title.replace(/[^a-z0-9]/gi, '_')}_S${podcast.season}E${podcast.episode_number}.${mediaUrl.includes('.mp4') ? 'mp4' : 'webm'}`; // Determine extension
-          link.target = '_blank';
-          document.body.appendChild(link);
-          link.click();
-          document.body.removeChild(link);
-
-          if (podcast.image_url) {
-            setTimeout(() => {
-              const imgLink = document.createElement('a');
-              imgLink.href = podcast.image_url;
-              imgLink.download = `${podcast.title.replace(/[^a-z0-9]/gi, '_')}_Cover.jpg`;
-              imgLink.target = '_blank';
-              document.body.appendChild(imgLink);
-              imgLink.click();
-              document.body.removeChild(imgLink);
-            }, 500);
-          }
-
-          alert('✅ Video file downloaded!\n\nTo convert to audio with cover art:\n\n📱 FREE TOOLS:\n\n1. AUDACITY (easiest):\n   - Open video file\n   - File → Export → Export as MP3\n   - Add cover art after\n\n2. VLC MEDIA PLAYER:\n   - Media → Convert/Save\n   - Add video → Convert\n   - Choose Audio - MP3\n   - Convert & save\n\n3. FFMPEG (command line):\n   ffmpeg -i input.webm -vn output.mp3\n\n4. Online: cloudconvert.com\n\nThen add cover art in iTunes/Media Player!');
-        } catch (error) {
-          alert('Download error: ' + error.message);
-        }
+        alert('📥 Video file downloaded!\n\nThis contains video. See the Conversion Guide for extracting audio + adding cover art.');
+        setShowConversionGuide(true);
       }
-    } else {
-      // Pure audio file - download directly
-      try {
-        const audioLink = document.createElement('a');
-        audioLink.href = mediaUrl;
-        audioLink.download = `${podcast.title.replace(/[^a-z0-9]/gi, '_')}_S${podcast.season}E${podcast.episode_number}.${mediaUrl.includes('.mp3') ? 'mp3' : 'webm'}`; // Determine extension
-        audioLink.target = '_blank';
-        document.body.appendChild(audioLink);
-        audioLink.click();
-        document.body.removeChild(audioLink);
-
-        if (podcast.image_url) {
-          setTimeout(() => {
-            const imgLink = document.createElement('a');
-            imgLink.href = podcast.image_url;
-            imgLink.download = `${podcast.title.replace(/[^a-z0-9]/gi, '_')}_Cover.jpg`;
-            imgLink.target = '_blank';
-            document.body.appendChild(imgLink);
-            imgLink.click();
-            document.body.removeChild(imgLink);
-          }, 500);
-        }
-
-        alert('✅ Audio downloaded!\n\nTo add cover art:\n1. iTunes: Right-click → Get Info → Artwork tab\n2. Windows Media Player: Properties → Pictures tab\n3. VLC: Tools → Media Information → Artwork');
-      } catch (error) {
-        alert('Download error: ' + error.message);
-      }
+    } catch (error) {
+      alert('Download error: ' + error.message);
     }
   };
 
@@ -775,7 +762,7 @@ export default function AdminPodcasts() {
                           type="datetime-local"
                           value={podcastForm.scheduled_publish_date ? format(new Date(podcastForm.scheduled_publish_date), "yyyy-MM-dd'T'HH:mm") : ''}
                           onChange={(e) => setPodcastForm({
-                            ...podcastForm, 
+                            ...podcastForm,
                             scheduled_publish_date: new Date(e.target.value).toISOString(),
                             is_scheduled: true
                           })}
@@ -896,10 +883,10 @@ export default function AdminPodcasts() {
                 <div className="flex items-start gap-4">
                   <div className="relative w-24 h-24 rounded-lg bg-gradient-to-br from-purple-500 to-pink-500 flex-shrink-0 overflow-hidden">
                     {podcast.video_thumbnail_url || podcast.image_url ? (
-                      <img 
-                        src={podcast.video_thumbnail_url || podcast.image_url} 
-                        alt={podcast.title} 
-                        className="w-full h-full object-cover" 
+                      <img
+                        src={podcast.video_thumbnail_url || podcast.image_url}
+                        alt={podcast.title}
+                        className="w-full h-full object-cover"
                       />
                     ) : (
                       <div className="w-full h-full flex items-center justify-center">
@@ -949,12 +936,12 @@ export default function AdminPodcasts() {
                         <Edit className="w-3 h-3 mr-1" />
                         Edit
                       </Button>
-                      
+
                       {/* Audio Preview & Edit Buttons */}
                       {podcast.audio_url && (
                         <>
-                          <Button 
-                            size="sm" 
+                          <Button
+                            size="sm"
                             onClick={() => {
                               setPreviewAudio(podcast);
                               setPreviewDialogOpen(true);
@@ -972,7 +959,7 @@ export default function AdminPodcasts() {
                           </Link>
                         </>
                       )}
-                      
+
                       {/* Video Edit Button */}
                       {podcast.video_url && (
                         <Link to={createPageUrl("AdminPodcastVideoEditor") + `?id=${podcast.id}`}>
@@ -1006,7 +993,7 @@ export default function AdminPodcasts() {
                           Publish Now
                         </Button>
                       )}
-                      
+
                       {/* Audio to Video Conversion */}
                       {podcast.audio_url && !podcast.has_converted_video && (
                         <Button
@@ -1259,28 +1246,27 @@ export default function AdminPodcasts() {
                   <Music className="w-24 h-24 text-white opacity-30" />
                 )}
               </div>
-              
+
               {/* Show appropriate player based on content type */}
-              {(previewAudio.content_type === 'video' || previewAudio.video_url) ? (
+              {previewAudio.content_type === 'audio' && !previewAudio.video_url ? (
                 <div className="mb-4">
-                  <Badge className="bg-purple-500 mb-2">Video Recording (audio+video)</Badge>
-                  <video controls className="w-full rounded">
-                    <source src={previewAudio.video_url} type="video/webm" />
-                    <source src={previewAudio.video_url} type="video/mp4" />
-                    Your browser does not support the video tag.
-                  </video>
-                </div>
-              ) : (
-                <div className="mb-4">
-                  <Badge className="bg-green-500 mb-2">Audio Only</Badge>
+                  <Badge className="bg-green-500 mb-2">✓ Pure Audio Recording (No Video)</Badge>
                   <audio controls className="w-full">
                     <source src={previewAudio.audio_url} type="audio/webm" />
                     <source src={previewAudio.audio_url} type="audio/mpeg" />
                     Your browser does not support the audio tag.
                   </audio>
                 </div>
+              ) : (
+                <div className="mb-4">
+                  <Badge className="bg-purple-500 mb-2">Video Recording (contains video)</Badge>
+                  <video controls className="w-full rounded">
+                    <source src={previewAudio.video_url || previewAudio.audio_url} type="video/webm" />
+                    Your browser does not support the video tag.
+                  </video>
+                </div>
               )}
-              
+
               <div className="space-y-2 text-sm">
                 <div className="flex justify-between">
                   <span className="text-slate-400">Duration</span>
@@ -1299,7 +1285,10 @@ export default function AdminPodcasts() {
                 <div className="flex justify-between">
                   <span className="text-slate-400">Format</span>
                   <span className="text-white font-semibold">
-                    {(previewAudio.content_type === 'video' || !!previewAudio.video_url) ? 'Video (WebM/MP4)' : 'Audio (WebM/MP3)'}
+                    {previewAudio.content_type === 'audio' && !previewAudio.video_url ?
+                      '🎵 Audio WebM (no video)' :
+                      '📹 Video WebM'
+                    }
                   </span>
                 </div>
               </div>
@@ -1311,25 +1300,187 @@ export default function AdminPodcasts() {
             </Button>
             {previewAudio && (
               <>
-                <Button 
+                <Button
                   onClick={() => handleDownloadAudioWithCover(previewAudio)}
                   disabled={extractingAudio}
                   className="bg-green-500 hover:bg-green-600 w-full sm:w-auto"
                 >
                   {extractingAudio ? (
-                    <><RefreshCw className="w-4 h-4 mr-2 animate-spin" />Extracting Audio...</>
+                    <><RefreshCw className="w-4 h-4 mr-2 animate-spin" />Processing...</>
                   ) : (
-                    <><Download className="w-4 h-4 mr-2" />Download Audio + Cover</>
+                    <><Download className="w-4 h-4 mr-2" />Download + Cover</>
                   )}
                 </Button>
                 <Link to={createPageUrl("AdminPodcastAudioEditor") + `?id=${previewAudio.id}`}>
                   <Button className="bg-purple-500 hover:bg-purple-600 w-full sm:w-auto">
                     <Sliders className="w-4 h-4 mr-2" />
-                    Edit Audio
+                    Edit
                   </Button>
                 </Link>
               </>
             )}
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
+
+      {/* WebM to MP3 Conversion Guide */}
+      <Dialog open={showConversionGuide} onOpenChange={setShowConversionGuide}>
+        <DialogContent className="bg-[#1a1f3a] border-slate-700 max-w-3xl max-h-[90vh] overflow-y-auto">
+          <DialogHeader>
+            <DialogTitle className="text-white font-black text-xl flex items-center gap-2">
+              <Music className="w-6 h-6 text-cyan-400" />
+              Convert WebM to MP3 + Add Cover Art
+            </DialogTitle>
+            <DialogDescription className="text-slate-400">
+              Quick guide to convert your audio file and add the cover image
+            </DialogDescription>
+          </DialogHeader>
+
+          <div className="space-y-6 py-4">
+            <div className="p-4 bg-blue-900/20 border border-blue-500/30 rounded-lg">
+              <h3 className="text-blue-300 font-bold mb-2 flex items-center gap-2">
+                <AlertCircle className="w-5 h-5" />
+                Why WebM?
+              </h3>
+              <p className="text-blue-200 text-sm">
+                Browsers can only record in WebM format. You downloaded a pure AUDIO WebM (no video inside).
+                To get MP3 with cover art that displays in music players, follow these steps:
+              </p>
+            </div>
+
+            <div className="space-y-4">
+              <div className="p-4 bg-green-900/20 border border-green-500/30 rounded-lg">
+                <div className="flex items-start gap-3 mb-3">
+                  <div className="w-8 h-8 bg-green-500 rounded-full flex items-center justify-center flex-shrink-0 text-white font-bold">
+                    1
+                  </div>
+                  <div className="flex-1">
+                    <h4 className="text-green-300 font-bold mb-2">FREE ONLINE CONVERTER (Easiest - No Install)</h4>
+                    <div className="space-y-2 text-sm text-green-100">
+                      <p><strong>CloudConvert.com</strong> (Free, no account needed):</p>
+                      <ol className="list-decimal list-inside space-y-1 ml-2">
+                        <li>Go to <a href="https://cloudconvert.com/webm-to-mp3" target="_blank" className="text-cyan-400 underline" rel="noopener noreferrer">cloudconvert.com/webm-to-mp3</a></li>
+                        <li>Upload your WebM file</li>
+                        <li>Click "Convert"</li>
+                        <li>Download MP3</li>
+                        <li>Add cover art in iTunes/Windows Media Player (see Step 4)</li>
+                      </ol>
+                    </div>
+                  </div>
+                </div>
+              </div>
+
+              <div className="p-4 bg-purple-900/20 border border-purple-500/30 rounded-lg">
+                <div className="flex items-start gap-3 mb-3">
+                  <div className="w-8 h-8 bg-purple-500 rounded-full flex items-center justify-center flex-shrink-0 text-white font-bold">
+                    2
+                  </div>
+                  <div className="flex-1">
+                    <h4 className="text-purple-300 font-bold mb-2">AUDACITY (Free Desktop App)</h4>
+                    <div className="space-y-2 text-sm text-purple-100">
+                      <p>Download: <a href="https://www.audacityteam.org/" target="_blank" className="text-cyan-400 underline" rel="noopener noreferrer">audacityteam.org</a></p>
+                      <ol className="list-decimal list-inside space-y-1 ml-2">
+                        <li>Open Audacity</li>
+                        <li>File → Open → Select your WebM file</li>
+                        <li>File → Export → Export as MP3</li>
+                        <li>In export dialog, click "Edit Metadata"</li>
+                        <li>Add title, artist, album info</li>
+                        <li>Save MP3</li>
+                        <li>Right-click MP3 → Properties/Get Info → Add cover image</li>
+                      </ol>
+                    </div>
+                  </div>
+                </div>
+              </div>
+
+              <div className="p-4 bg-cyan-900/20 border border-cyan-500/30 rounded-lg">
+                <div className="flex items-start gap-3 mb-3">
+                  <div className="w-8 h-8 bg-cyan-500 rounded-full flex items-center justify-center flex-shrink-0 text-white font-bold">
+                    3
+                  </div>
+                  <div className="flex-1">
+                    <h4 className="text-cyan-300 font-bold mb-2">VLC MEDIA PLAYER (Free)</h4>
+                    <div className="space-y-2 text-sm text-cyan-100">
+                      <p>Download: <a href="https://www.videolan.org/vlc/" target="_blank" className="text-cyan-400 underline" rel="noopener noreferrer">videolan.org/vlc</a></p>
+                      <ol className="list-decimal list-inside space-y-1 ml-2">
+                        <li>Open VLC</li>
+                        <li>Media → Convert/Save</li>
+                        <li>Add your WebM file</li>
+                        <li>Click "Convert/Save"</li>
+                        <li>Profile: Audio - MP3</li>
+                        <li>Choose destination filename</li>
+                        <li>Click "Start"</li>
+                        <li>Add cover art in iTunes/Media Player (see Step 4)</li>
+                      </ol>
+                    </div>
+                  </div>
+                </div>
+              </div>
+
+              <div className="p-4 bg-amber-900/20 border border-amber-500/30 rounded-lg">
+                <div className="flex items-start gap-3 mb-3">
+                  <div className="w-8 h-8 bg-amber-500 rounded-full flex items-center justify-center flex-shrink-0 text-white font-bold">
+                    4
+                  </div>
+                  <div className="flex-1">
+                    <h4 className="text-amber-300 font-bold mb-2">ADD COVER ART TO MP3</h4>
+                    <div className="grid md:grid-cols-2 gap-4 text-sm text-amber-100">
+                      <div>
+                        <p className="font-bold mb-2">🍎 iTunes / Music (Mac/Windows):</p>
+                        <ol className="list-decimal list-inside space-y-1 ml-2">
+                          <li>Right-click MP3 file</li>
+                          <li>Get Info (or Properties)</li>
+                          <li>Go to "Artwork" tab</li>
+                          <li>Click "Add Artwork"</li>
+                          <li>Select downloaded cover image</li>
+                          <li>Click OK</li>
+                        </ol>
+                      </div>
+                      <div>
+                        <p className="font-bold mb-2">🪟 Windows Media Player:</p>
+                        <ol className="list-decimal list-inside space-y-1 ml-2">
+                          <li>Right-click MP3 file</li>
+                          <li>Properties</li>
+                          <li>Go to "Pictures" tab</li>
+                          <li>Click "Add"</li>
+                          <li>Select cover image</li>
+                          <li>Apply → OK</li>
+                        </ol>
+                      </div>
+                    </div>
+                  </div>
+                </div>
+              </div>
+
+              <div className="p-4 bg-slate-800 border border-slate-600 rounded-lg">
+                <h4 className="text-white font-bold mb-3">🎯 RESULT:</h4>
+                <div className="space-y-2 text-sm text-slate-300">
+                  <p>✅ MP3 file with embedded cover art</p>
+                  <p>✅ Works in iTunes, Spotify, Apple Music, etc.</p>
+                  <p>✅ Shows beautiful cover image when playing</p>
+                  <p>✅ Ready to upload to podcast platforms</p>
+                  <p>✅ Professional podcast file with metadata</p>
+                </div>
+              </div>
+
+              <div className="p-4 bg-red-900/20 border border-red-500/30 rounded-lg">
+                <h4 className="text-red-300 font-bold mb-2 flex items-center gap-2">
+                  <AlertTriangle className="w-5 h-5" />
+                  Why Can't Browsers Do This Automatically?
+                </h4>
+                <p className="text-red-200 text-sm">
+                  Web browsers can only record in WebM/Ogg formats for security and compatibility reasons.
+                  Converting to MP3 and embedding cover art requires desktop software or online tools.
+                  This is a limitation of all browser-based recording platforms, not just Glory Wave.
+                </p>
+              </div>
+            </div>
+          </div>
+
+          <DialogFooter>
+            <Button onClick={() => setShowConversionGuide(false)} className="bg-cyan-500 hover:bg-cyan-600">
+              Got It!
+            </Button>
           </DialogFooter>
         </DialogContent>
       </Dialog>
