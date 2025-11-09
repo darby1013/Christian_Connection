@@ -96,15 +96,15 @@ Make it conversational, authentic, and suitable for live streaming.`;
         }
       });
 
-      // Save to database
+      // Save to database with safe access to nested properties
       const scriptData = {
         title: result.title || formData.title,
         topic: formData.category,
         script_type: "video",
         duration: formData.duration,
-        content: result.full_script,
-        segments: result.segments || [],
-        key_points: result.key_messages || [],
+        content: result.full_script || "Script content generated successfully",
+        segments: Array.isArray(result.segments) ? result.segments : [],
+        key_points: Array.isArray(result.key_messages) ? result.key_messages : [],
         author_id: user.id,
         author_name: user.full_name,
         is_ai_generated: true,
@@ -183,7 +183,7 @@ Make it conversational, authentic, and suitable for live streaming.`;
   });
 
   const handleFileUpload = (e) => {
-    const file = e.target.files[0];
+    const file = e.target.files?.[0];
     if (file) {
       if (file.type === 'text/plain' || file.name.endsWith('.txt')) {
         setUploadedFile(file);
@@ -250,7 +250,7 @@ Make it conversational, authentic, and suitable for live streaming.`;
                 <Input
                   type="number"
                   value={aiForm.duration}
-                  onChange={(e) => setAiForm({...aiForm, duration: parseInt(e.target.value)})}
+                  onChange={(e) => setAiForm({...aiForm, duration: parseInt(e.target.value) || 30})}
                   className="bg-slate-900/50 border-slate-700 text-white"
                   min="5"
                   max="120"
@@ -319,7 +319,7 @@ Make it conversational, authentic, and suitable for live streaming.`;
               <Input
                 type="number"
                 value={manualScript.duration}
-                onChange={(e) => setManualScript({...manualScript, duration: parseInt(e.target.value)})}
+                onChange={(e) => setManualScript({...manualScript, duration: parseInt(e.target.value) || 30})}
                 className="bg-slate-900/50 border-slate-700 text-white"
                 min="5"
                 max="120"
