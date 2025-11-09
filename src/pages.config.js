@@ -58,6 +58,7 @@ import AdminProducts from './pages/AdminProducts';
 import AdminBlog from './pages/AdminBlog';
 import AdminPodcastLive from './pages/AdminPodcastLive';
 import LivePodcastPlayer from './pages/LivePodcastPlayer';
+import AdminPodcastMonetization from './pages/AdminPodcastMonetization';
 import Layout from './Layout.jsx';
 
 
@@ -122,6 +123,7 @@ export const PAGES = {
     "AdminBlog": AdminBlog,
     "AdminPodcastLive": AdminPodcastLive,
     "LivePodcastPlayer": LivePodcastPlayer,
+    "AdminPodcastMonetization": AdminPodcastMonetization,
 }
 
 export const pagesConfig = {
