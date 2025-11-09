@@ -53,9 +53,13 @@ export default function AdminPodcastAudioEditor() {
   const animationFrameRef = useRef(null);
   const queryClient = useQueryClient();
 
-  const { data: podcast } = useQuery({
+  const { data: podcast, isLoading, error } = useQuery({
     queryKey: ['podcast', podcastId],
-    queryFn: () => base44.entities.Podcast.filter({ id: podcastId }).then(res => res[0]),
+    queryFn: async () => {
+      if (!podcastId) return null;
+      const results = await base44.entities.Podcast.filter({ id: podcastId });
+      return results[0] || null;
+    },
     enabled: !!podcastId,
   });
 
@@ -269,10 +273,58 @@ PAID:
     return `${mins}:${secs.toString().padStart(2, '0')}`;
   };
 
-  if (!podcast) {
-    return <div className="min-h-screen bg-[#0a0e27] flex items-center justify-center">
-      <p className="text-white">Loading...</p>
-    </div>;
+  // Handle errors and loading
+  if (!podcastId) {
+    return (
+      <div className="min-h-screen bg-[#0a0e27] flex items-center justify-center p-6">
+        <Card className="bg-[#1a1f3a] border-red-500/30 max-w-md">
+          <CardContent className="p-8 text-center">
+            <AlertTriangle className="w-16 h-16 text-red-400 mx-auto mb-4" />
+            <h2 className="text-white font-bold text-xl mb-2">No Podcast Selected</h2>
+            <p className="text-slate-400 mb-6">Please select a podcast from the list to edit.</p>
+            <Link to={createPageUrl("AdminPodcasts")}>
+              <Button className="bg-cyan-500 hover:bg-cyan-600">
+                <ArrowLeft className="w-4 h-4 mr-2" />
+                Go to Podcasts
+              </Button>
+            </Link>
+          </CardContent>
+        </Card>
+      </div>
+    );
+  }
+
+  if (isLoading) {
+    return (
+      <div className="min-h-screen bg-[#0a0e27] flex items-center justify-center">
+        <div className="text-center">
+          <div className="animate-spin rounded-full h-16 w-16 border-4 border-cyan-500 border-t-transparent mx-auto mb-4"></div>
+          <p className="text-white font-semibold">Loading podcast...</p>
+        </div>
+      </div>
+    );
+  }
+
+  if (error || !podcast) {
+    return (
+      <div className="min-h-screen bg-[#0a0e27] flex items-center justify-center p-6">
+        <Card className="bg-[#1a1f3a] border-red-500/30 max-w-md">
+          <CardContent className="p-8 text-center">
+            <AlertTriangle className="w-16 h-16 text-red-400 mx-auto mb-4" />
+            <h2 className="text-white font-bold text-xl mb-2">Podcast Not Found</h2>
+            <p className="text-slate-400 mb-6">
+              {error ? error.message : 'Could not load podcast with this ID.'}
+            </p>
+            <Link to={createPageUrl("AdminPodcasts")}>
+              <Button className="bg-cyan-500 hover:bg-cyan-600">
+                <ArrowLeft className="w-4 h-4 mr-2" />
+                Go to Podcasts
+              </Button>
+            </Link>
+          </CardContent>
+        </Card>
+      </div>
+    );
   }
 
   return (
@@ -470,7 +522,6 @@ PAID:
                     </div>
                   </CardHeader>
                   <CardContent className="p-6 space-y-6">
-                    {/* Trim Tool */}
                     <div>
                       <Label className="text-white font-bold mb-3 block">Trim Audio</Label>
                       <div className="space-y-3">
@@ -495,7 +546,6 @@ PAID:
                       </div>
                     </div>
 
-                    {/* Fade In/Out */}
                     <div className="grid grid-cols-2 gap-4">
                       <div>
                         <Label className="text-white font-bold mb-3 block">Fade In (seconds)</Label>
@@ -519,7 +569,6 @@ PAID:
                       </div>
                     </div>
 
-                    {/* Normalize */}
                     <div>
                       <Label className="text-white font-bold mb-3 block">Normalize Volume (dB)</Label>
                       <Slider
@@ -537,7 +586,6 @@ PAID:
               <TabsContent value="effects" className="mt-4">
                 <Card className="bg-[#1a1f3a] border-slate-700">
                   <CardContent className="p-6 space-y-6">
-                    {/* EQ */}
                     <div className="grid grid-cols-2 gap-4">
                       <div>
                         <Label className="text-white font-bold mb-3 block">Bass Boost (dB)</Label>
@@ -561,7 +609,6 @@ PAID:
                       </div>
                     </div>
 
-                    {/* Compression & Noise */}
                     <div className="grid grid-cols-2 gap-4">
                       <div>
                         <Label className="text-white font-bold mb-3 block">Compressor Threshold (dB)</Label>
