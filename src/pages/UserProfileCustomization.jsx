@@ -11,8 +11,7 @@ import { Tabs, TabsList, TabsTrigger, TabsContent } from "@/components/ui/tabs";
 import { Slider } from "@/components/ui/slider";
 import {
   Palette, Eye, Save, RotateCcw, Code, Sparkles,
-  Sun, Moon, Type, Square, Upload, Image as ImageIcon,
-  Droplet, Layers
+  Sun, Moon, Type, Square, Upload, Image as ImageIcon
 } from "lucide-react";
 import { useTheme } from "../components/theme/ThemeProvider";
 
