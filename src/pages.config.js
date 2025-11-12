@@ -80,6 +80,11 @@ import AdminOrderFulfillment from './pages/AdminOrderFulfillment';
 import StoreAdvanced from './pages/StoreAdvanced';
 import ProductDetail from './pages/ProductDetail';
 import Cart from './pages/Cart';
+import Checkout from './pages/Checkout';
+import AdminStoreAnalytics from './pages/AdminStoreAnalytics';
+import Wishlist from './pages/Wishlist';
+import OrderConfirmation from './pages/OrderConfirmation';
+import CustomerDashboard from './pages/CustomerDashboard';
 import Layout from './Layout.jsx';
 
 
@@ -166,6 +171,11 @@ export const PAGES = {
     "StoreAdvanced": StoreAdvanced,
     "ProductDetail": ProductDetail,
     "Cart": Cart,
+    "Checkout": Checkout,
+    "AdminStoreAnalytics": AdminStoreAnalytics,
+    "Wishlist": Wishlist,
+    "OrderConfirmation": OrderConfirmation,
+    "CustomerDashboard": CustomerDashboard,
 }
 
 export const pagesConfig = {
