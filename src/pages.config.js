@@ -94,6 +94,14 @@ import ProductComparison from './pages/ProductComparison';
 import LoyaltyDashboard from './pages/LoyaltyDashboard';
 import AdminAIContentSuite from './pages/AdminAIContentSuite';
 import BuildYourBundle from './pages/BuildYourBundle';
+import AdminDatabaseDashboard from './pages/AdminDatabaseDashboard';
+import AdminSQLEditor from './pages/AdminSQLEditor';
+import AdminSchemaViewer from './pages/AdminSchemaViewer';
+import AdminAISEOOptimizer from './pages/AdminAISEOOptimizer';
+import AdminDataImportExport from './pages/AdminDataImportExport';
+import AdminBackupManager from './pages/AdminBackupManager';
+import AdminQueryBuilder from './pages/AdminQueryBuilder';
+import AdminRelationshipMapper from './pages/AdminRelationshipMapper';
 import Layout from './Layout.jsx';
 
 
@@ -194,6 +202,14 @@ export const PAGES = {
     "LoyaltyDashboard": LoyaltyDashboard,
     "AdminAIContentSuite": AdminAIContentSuite,
     "BuildYourBundle": BuildYourBundle,
+    "AdminDatabaseDashboard": AdminDatabaseDashboard,
+    "AdminSQLEditor": AdminSQLEditor,
+    "AdminSchemaViewer": AdminSchemaViewer,
+    "AdminAISEOOptimizer": AdminAISEOOptimizer,
+    "AdminDataImportExport": AdminDataImportExport,
+    "AdminBackupManager": AdminBackupManager,
+    "AdminQueryBuilder": AdminQueryBuilder,
+    "AdminRelationshipMapper": AdminRelationshipMapper,
 }
 
 export const pagesConfig = {

@@ -11,7 +11,8 @@ import {
   CalendarDays, Store, DollarSign, User as UserIcon, Shield, Settings as SettingsIcon,
   Image, Film, Palette, Crown, Package, Download, CreditCard, BarChart3, Sparkles,
   AlertOctagon, TrendingUp, Globe, Star, Book, Rss, UserPlus, Truck, Tag, Warehouse,
-  Gift, Percent, Layers, Clock, Award
+  Gift, Percent, Layers, Clock, Award,
+  Database, Code, GitBranch, Upload, Archive, Link2 // Added new icons
 } from "lucide-react";
 import {
   Sidebar,
@@ -158,6 +159,13 @@ export default function Layout({ children, currentPageName }) {
     { title: "Dashboard", url: createPageUrl("AdminDashboard"), icon: LayoutDashboard, section: "OVERVIEW" },
     { title: "Analytics", url: createPageUrl("AdminAnalytics"), icon: BarChart3, section: "OVERVIEW" },
     { title: "Site Settings", url: createPageUrl("AdminSiteSettings"), icon: SettingsIcon, section: "OVERVIEW" },
+    { title: "Database System", url: createPageUrl("AdminDatabaseDashboard"), icon: Database, section: "DATABASE" },
+    { title: "SQL Editor", url: createPageUrl("AdminSQLEditor"), icon: Code, section: "DATABASE" },
+    { title: "Schema Viewer", url: createPageUrl("AdminSchemaViewer"), icon: GitBranch, section: "DATABASE" },
+    { title: "Query Builder", url: createPageUrl("AdminQueryBuilder"), icon: Search, section: "DATABASE" },
+    { title: "Import/Export", url: createPageUrl("AdminDataImportExport"), icon: Upload, section: "DATABASE" },
+    { title: "Backup Manager", url: createPageUrl("AdminBackupManager"), icon: Archive, section: "DATABASE" },
+    { title: "Relationship Mapper", url: createPageUrl("AdminRelationshipMapper"), icon: Link2, section: "DATABASE" },
     { title: "Go Live Studio", url: createPageUrl("AdminBroadcastStudio"), icon: Radio, section: "CONTENT" },
     { title: "Live Streams", url: createPageUrl("AdminLiveStreams"), icon: Video, section: "CONTENT" },
     { title: "Live Podcast Studio", url: createPageUrl("AdminPodcastLive"), icon: Mic2, section: "CONTENT" },
@@ -190,6 +198,8 @@ export default function Layout({ children, currentPageName }) {
     { title: "Subscriptions", url: createPageUrl("AdminSubscriptions"), icon: Crown, section: "COMMERCE" },
     { title: "Donations", url: createPageUrl("AdminDonations"), icon: DollarSign, section: "COMMERCE" },
     { title: "Payment Gateways", url: createPageUrl("AdminPaymentGateways"), icon: CreditCard, section: "COMMERCE" },
+    { title: "AI Content Suite", url: createPageUrl("AdminAIContentSuite"), icon: Sparkles, section: "AI TOOLS" },
+    { title: "AI SEO Optimizer", url: createPageUrl("AdminAISEOOptimizer"), icon: TrendingUp, section: "AI TOOLS" },
     { title: "AI Pricing Strategy", url: createPageUrl("AdminAIPricing"), icon: TrendingUp, section: "AI TOOLS" },
     { title: "Content Moderation", url: createPageUrl("AdminContentModeration"), icon: AlertOctagon, section: "AI TOOLS" },
     { title: "Users", url: createPageUrl("AdminUsers"), icon: UserIcon, section: "MANAGEMENT" },
