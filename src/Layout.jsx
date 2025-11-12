@@ -12,8 +12,8 @@ import {
   Image, Film, Palette, Crown, Package, Download, CreditCard, BarChart3, Sparkles,
   AlertOctagon, TrendingUp, Globe, Star, Book, Rss, UserPlus, Truck, Tag, Warehouse,
   Gift, Percent, Layers, Clock, Award,
-  Database, Code, GitBranch, Upload, Archive, Link2, // Existing icons
-  Activity, Zap, RefreshCw, Server // Added new icons
+  Database, Code, GitBranch, Upload, Archive, Link2,
+  Activity, Zap, RefreshCw, Server, Sun, Moon // Added new icons: Sun, Moon
 } from "lucide-react";
 import {
   Sidebar,
@@ -40,14 +40,16 @@ import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { Badge } from "@/components/ui/badge";
 import NotificationBell from "./components/notifications/NotificationBell";
 import GlobalSearch from "./components/search/GlobalSearch";
+import { ThemeProvider, useTheme } from "./components/theme/ThemeProvider"; // Imported ThemeProvider and useTheme
 
-export default function Layout({ children, currentPageName }) {
+function LayoutContent({ children, currentPageName }) {
   const location = useLocation();
   const [user, setUser] = useState(null);
   const [isAdmin, setIsAdmin] = useState(false);
   const [searchOpen, setSearchOpen] = useState(false);
   const isAdminPage = currentPageName?.startsWith('Admin');
   const isBroadcastPage = currentPageName === 'BroadcastStream';
+  const { theme, toggleMode } = useTheme(); // Use the theme context
 
   useEffect(() => {
     const fetchUser = async () => {
@@ -160,59 +162,26 @@ export default function Layout({ children, currentPageName }) {
     { title: "Dashboard", url: createPageUrl("AdminDashboard"), icon: LayoutDashboard, section: "OVERVIEW" },
     { title: "Analytics", url: createPageUrl("AdminAnalytics"), icon: BarChart3, section: "OVERVIEW" },
     { title: "Site Settings", url: createPageUrl("AdminSiteSettings"), icon: SettingsIcon, section: "OVERVIEW" },
+    { title: "Activity Feed", url: createPageUrl("AdminActivityFeed"), icon: Activity, section: "OVERVIEW" },
     
-    // DATABASE TOOLS (Enhanced with 10 new tools)
-    { title: "Database Dashboard", url: createPageUrl("AdminDatabaseDashboard"), icon: Database, section: "DATABASE" },
+    { title: "Database Center", url: createPageUrl("AdminDatabaseCenter"), icon: Database, section: "DATABASE" },
+    { title: "SQL Script Generator", url: createPageUrl("AdminSQLScriptGenerator"), icon: Sparkles, section: "DATABASE" },
+    { title: "Query Builder", url: createPageUrl("AdminAdvancedQueryBuilder"), icon: Search, section: "DATABASE" },
+    { title: "Schema Generator", url: createPageUrl("AdminSchemaGenerator"), icon: GitBranch, section: "DATABASE" },
     { title: "SQL Editor", url: createPageUrl("AdminSQLEditor"), icon: Code, section: "DATABASE" },
     { title: "Schema Viewer", url: createPageUrl("AdminSchemaViewer"), icon: GitBranch, section: "DATABASE" },
-    { title: "Query Builder", url: createPageUrl("AdminQueryBuilder"), icon: Search, section: "DATABASE" },
     { title: "Import/Export", url: createPageUrl("AdminDataImportExport"), icon: Upload, section: "DATABASE" },
     { title: "Backup Manager", url: createPageUrl("AdminBackupManager"), icon: Archive, section: "DATABASE" },
-    { title: "Relationship Mapper", url: createPageUrl("AdminRelationshipMapper"), icon: Link2, section: "DATABASE" },
-    
-    // NEW DATABASE TOOLS
-    { title: "Database Export", url: createPageUrl("AdminDatabaseExport"), icon: Download, section: "DATABASE" },
-    { title: "Migration Studio", url: createPageUrl("AdminMigrationStudio"), icon: GitBranch, section: "DATABASE" },
-    { title: "Performance Monitor", url: createPageUrl("AdminPerformanceMonitor"), icon: Activity, section: "DATABASE" },
-    { title: "Data Integrity", url: createPageUrl("AdminDataIntegrity"), icon: Shield, section: "DATABASE" },
-    { title: "Connection Pool", url: createPageUrl("AdminConnectionPoolMonitor"), icon: Server, section: "DATABASE" },
     
     { title: "Go Live Studio", url: createPageUrl("AdminBroadcastStudio"), icon: Radio, section: "CONTENT" },
     { title: "Live Streams", url: createPageUrl("AdminLiveStreams"), icon: Video, section: "CONTENT" },
-    { title: "Live Podcast Studio", url: createPageUrl("AdminPodcastLive"), icon: Mic2, section: "CONTENT" },
-    { title: "AI Script Generator", url: createPageUrl("AdminAIScriptGenerator"), icon: Sparkles, section: "CONTENT" },
     { title: "Podcasts", url: createPageUrl("AdminPodcasts"), icon: Mic2, section: "CONTENT" },
-    { title: "Podcast Marketing", url: createPageUrl("AdminPodcastMarketing"), icon: TrendingUp, section: "CONTENT" },
-    { title: "Podcast Analytics", url: createPageUrl("AdminPodcastAnalytics"), icon: BarChart3, section: "CONTENT" },
     { title: "Videos", url: createPageUrl("AdminVideos"), icon: PlayCircle, section: "CONTENT" },
     { title: "Blog Posts", url: createPageUrl("AdminBlog"), icon: FileText, section: "CONTENT" },
-    { title: "Courses", url: createPageUrl("AdminCourses"), icon: Book, section: "LEARNING" },
-    { title: "Course Reviews", url: createPageUrl("AdminCourseReviews"), icon: Star, section: "LEARNING" },
-    { title: "Groups", url: createPageUrl("AdminGroups"), icon: UsersRound, section: "COMMUNITY" },
-    { title: "Forum", url: createPageUrl("AdminForum"), icon: MessagesSquare, section: "COMMUNITY" },
-    { title: "Events", url: createPageUrl("AdminEvents"), icon: CalendarDays, section: "COMMUNITY" },
+    
     { title: "Products", url: createPageUrl("AdminProducts"), icon: Store, section: "COMMERCE" },
-    { title: "Digital Products", url: createPageUrl("AdminDigitalProducts"), icon: Download, section: "COMMERCE" },
-    { title: "Product Variants", url: createPageUrl("AdminProductVariants"), icon: Package, section: "COMMERCE" },
-    { title: "Product Bundles", url: createPageUrl("AdminProductBundles"), icon: Gift, section: "COMMERCE" },
-    { title: "Bulk Pricing", url: createPageUrl("AdminBulkPricing"), icon: Percent, section: "COMMERCE" },
-    { title: "Pre-Orders", url: createPageUrl("AdminPreOrders"), icon: Clock, section: "COMMERCE" },
-    { title: "Gift Cards", url: createPageUrl("AdminGiftCards"), icon: Gift, section: "COMMERCE" },
-    { title: "Loyalty Program", url: createPageUrl("AdminLoyaltyProgram"), icon: Award, section: "COMMERCE" },
     { title: "Orders", url: createPageUrl("AdminOrders"), icon: ShoppingBag, section: "COMMERCE" },
-    { title: "Order Fulfillment", url: createPageUrl("AdminOrderFulfillment"), icon: Truck, section: "COMMERCE" },
-    { title: "Inventory Management", url: createPageUrl("AdminInventoryManagement"), icon: Warehouse, section: "COMMERCE" },
-    { title: "Shipping Methods", url: createPageUrl("AdminShippingMethods"), icon: Truck, section: "COMMERCE" },
-    { title: "Tax Configuration", url: createPageUrl("AdminTaxConfiguration"), icon: DollarSign, section: "COMMERCE" },
-    { title: "Coupon Manager", url: createPageUrl("AdminCouponManager"), icon: Tag, section: "COMMERCE" },
-    { title: "Store Analytics", url: createPageUrl("AdminStoreAnalytics"), icon: BarChart3, section: "COMMERCE" },
-    { title: "Subscriptions", url: createPageUrl("AdminSubscriptions"), icon: Crown, section: "COMMERCE" },
-    { title: "Donations", url: createPageUrl("AdminDonations"), icon: DollarSign, section: "COMMERCE" },
-    { title: "Payment Gateways", url: createPageUrl("AdminPaymentGateways"), icon: CreditCard, section: "COMMERCE" },
-    { title: "AI Content Suite", url: createPageUrl("AdminAIContentSuite"), icon: Sparkles, section: "AI TOOLS" },
-    { title: "AI SEO Optimizer", url: createPageUrl("AdminAISEOOptimizer"), icon: TrendingUp, section: "AI TOOLS" },
-    { title: "AI Pricing Strategy", url: createPageUrl("AdminAIPricing"), icon: TrendingUp, section: "AI TOOLS" },
-    { title: "Content Moderation", url: createPageUrl("AdminContentModeration"), icon: AlertOctagon, section: "AI TOOLS" },
+    
     { title: "Users", url: createPageUrl("AdminUsers"), icon: UserIcon, section: "MANAGEMENT" },
     { title: "Roles & Permissions", url: createPageUrl("AdminRoles"), icon: Shield, section: "MANAGEMENT" },
   ];
@@ -425,7 +394,7 @@ export default function Layout({ children, currentPageName }) {
     <>
       <style>{`
         .glory-gradient {
-          background: #0a0e27;
+          background: var(--background-color, #0a0e27); /* Changed to use CSS variable */
         }
         
         @keyframes pulse-red {
@@ -511,7 +480,6 @@ export default function Layout({ children, currentPageName }) {
                   </DropdownMenuContent>
                 </DropdownMenu>
 
-                {/* LIVE Stream Button - Now has permanent spot in navigation */}
                 {hasActiveLiveStream ? (
                   <Link to={createPageUrl("LiveStreamPlayer")}>
                     <button className="px-4 py-2 rounded-lg flex items-center gap-2 font-semibold text-sm transition-all bg-red-600 hover:bg-red-700 text-white relative overflow-hidden">
@@ -538,7 +506,6 @@ export default function Layout({ children, currentPageName }) {
                   </button>
                 )}
 
-                {/* LIVE Podcast Button - Now has permanent spot in navigation */}
                 {hasActiveLivePodcast ? (
                   <Link to={createPageUrl("LivePodcastPlayer")}>
                     <button className="px-4 py-2 rounded-lg flex items-center gap-2 font-semibold text-sm transition-all bg-purple-600 hover:bg-purple-700 text-white relative overflow-hidden">
@@ -570,6 +537,15 @@ export default function Layout({ children, currentPageName }) {
                 <Button
                   variant="ghost"
                   size="icon"
+                  onClick={toggleMode} // Theme toggle button
+                  className="text-slate-400 hover:text-white hover:bg-white/10 rounded-lg"
+                >
+                  {theme.mode === 'dark' ? <Sun className="w-5 h-5" /> : <Moon className="w-5 h-5" />}
+                </Button>
+                
+                <Button
+                  variant="ghost"
+                  size="icon"
                   onClick={() => setSearchOpen(true)}
                   className="text-slate-400 hover:text-white hover:bg-white/10 rounded-lg"
                 >
@@ -587,14 +563,34 @@ export default function Layout({ children, currentPageName }) {
                         </Button>
                       </Link>
                     )}
-                    <Link to={createPageUrl("UserProfile")}>
-                      <Avatar className="cursor-pointer border-2 border-cyan-500/40 hover:border-cyan-500 transition-colors">
-                        <AvatarImage src={user.profile_image} />
-                        <AvatarFallback className="bg-gradient-to-br from-purple-600 to-cyan-500 text-white font-bold">
-                          {user.full_name?.[0] || 'U'}
-                        </AvatarFallback>
-                      </Avatar>
-                    </Link>
+                    <DropdownMenu>
+                      <DropdownMenuTrigger asChild>
+                        <Avatar className="cursor-pointer border-2 border-cyan-500/40 hover:border-cyan-500 transition-colors">
+                          <AvatarImage src={user.profile_image} />
+                          <AvatarFallback className="bg-gradient-to-br from-purple-600 to-cyan-500 text-white font-bold">
+                            {user.full_name?.[0] || 'U'}
+                          </AvatarFallback>
+                        </Avatar>
+                      </DropdownMenuTrigger>
+                      <DropdownMenuContent className="bg-[#1a1f3a] border-slate-700">
+                        <DropdownMenuItem asChild>
+                          <Link to={createPageUrl("UserProfile")} className="flex items-center cursor-pointer p-2 hover:bg-slate-800/50 rounded-md">
+                            <UserIcon className="w-4 h-4 mr-2" />
+                            Profile
+                          </Link>
+                        </DropdownMenuItem>
+                        <DropdownMenuItem asChild>
+                          <Link to={createPageUrl("UserProfileCustomization")} className="flex items-center cursor-pointer p-2 hover:bg-slate-800/50 rounded-md">
+                            <Palette className="w-4 h-4 mr-2" />
+                            Customize
+                          </Link>
+                        </DropdownMenuItem>
+                        <DropdownMenuItem onClick={handleLogout} className="flex items-center cursor-pointer p-2 hover:bg-slate-800/50 rounded-md">
+                          <LogOut className="w-4 h-4 mr-2" />
+                          Logout
+                        </DropdownMenuItem>
+                      </DropdownMenuContent>
+                    </DropdownMenu>
                   </div>
                 ) : (
                   <Button
@@ -655,5 +651,13 @@ export default function Layout({ children, currentPageName }) {
         </footer>
       </div>
     </>
+  );
+}
+
+export default function Layout({ children, currentPageName }) {
+  return (
+    <ThemeProvider>
+      <LayoutContent children={children} currentPageName={currentPageName} />
+    </ThemeProvider>
   );
 }
