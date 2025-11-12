@@ -1,4 +1,3 @@
-
 import React, { useState, useEffect } from "react";
 import { Link, useLocation } from "react-router-dom";
 import { createPageUrl } from "@/utils";
@@ -11,9 +10,9 @@ import {
   CalendarDays, Store, DollarSign, User as UserIcon, Shield, Settings as SettingsIcon,
   Image, Film, Palette, Crown, Package, Download, CreditCard, BarChart3, Sparkles,
   AlertOctagon, TrendingUp, Globe, Star, Book, Rss, UserPlus, Truck, Tag, Warehouse,
-  Gift, Percent, Layers, Clock, Award,
+  Gift, Percent, Clock, Award,
   Database, Code, GitBranch, Upload, Archive, Link2,
-  Activity, Zap, RefreshCw, Server, Sun, Moon // Added new icons: Sun, Moon
+  Activity, Zap, RefreshCw, Server, Sun, Moon
 } from "lucide-react";
 import {
   Sidebar,
@@ -40,7 +39,7 @@ import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { Badge } from "@/components/ui/badge";
 import NotificationBell from "./components/notifications/NotificationBell";
 import GlobalSearch from "./components/search/GlobalSearch";
-import { ThemeProvider, useTheme } from "./components/theme/ThemeProvider"; // Imported ThemeProvider and useTheme
+import { ThemeProvider, useTheme } from "./components/theme/ThemeProvider";
 
 function LayoutContent({ children, currentPageName }) {
   const location = useLocation();
@@ -49,7 +48,7 @@ function LayoutContent({ children, currentPageName }) {
   const [searchOpen, setSearchOpen] = useState(false);
   const isAdminPage = currentPageName?.startsWith('Admin');
   const isBroadcastPage = currentPageName === 'BroadcastStream';
-  const { theme, toggleMode } = useTheme(); // Use the theme context
+  const { theme, toggleMode } = useTheme();
 
   useEffect(() => {
     const fetchUser = async () => {
@@ -130,7 +129,6 @@ function LayoutContent({ children, currentPageName }) {
   const streamJustEnded = streamStatus.justEnded.length > 0;
   const hasActiveLivePodcast = podcastStatus.active.length > 0;
   const podcastJustEnded = podcastStatus.justEnded.length > 0;
-
 
   const publicNavItems = [
     { title: "Home", url: createPageUrl("Home"), icon: Home },
@@ -394,7 +392,7 @@ function LayoutContent({ children, currentPageName }) {
     <>
       <style>{`
         .glory-gradient {
-          background: var(--background-color, #0a0e27); /* Changed to use CSS variable */
+          background: var(--background-color, #0a0e27);
         }
         
         @keyframes pulse-red {
@@ -537,7 +535,7 @@ function LayoutContent({ children, currentPageName }) {
                 <Button
                   variant="ghost"
                   size="icon"
-                  onClick={toggleMode} // Theme toggle button
+                  onClick={toggleMode}
                   className="text-slate-400 hover:text-white hover:bg-white/10 rounded-lg"
                 >
                   {theme.mode === 'dark' ? <Sun className="w-5 h-5" /> : <Moon className="w-5 h-5" />}
