@@ -1,3 +1,4 @@
+
 import React, { useState, useEffect } from "react";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { base44 } from "@/api/base44Client";
@@ -10,10 +11,12 @@ import { Textarea } from "@/components/ui/textarea";
 import {
   ShoppingCart, Heart, Star, Truck, Shield, RefreshCw,
   Check, Share2, Plus, Minus, ChevronLeft, ChevronRight,
-  Package, TrendingUp, MessageSquare, ThumbsUp, Award
+  Package, TrendingUp, MessageSquare, ThumbsUp, Award, Crown
 } from "lucide-react";
 import { Link } from "react-router-dom";
 import { createPageUrl } from "@/utils";
+import DynamicProductBlocks from "../components/personalization/DynamicProductBlocks";
+import AIRecommendations from "../components/personalization/AIRecommendations";
 
 export default function ProductDetail() {
   const urlParams = new URLSearchParams(window.location.search);
@@ -72,6 +75,64 @@ export default function ProductDetail() {
     enabled: !!product?.category,
     initialData: [],
   });
+
+  const { data: loyalty } = useQuery({
+    queryKey: ['myLoyalty', user?.id],
+    queryFn: async () => {
+      if (!user) return null;
+      const records = await base44.entities.CustomerLoyalty.filter({ user_id: user.id });
+      return records[0] || null;
+    },
+    enabled: !!user,
+  });
+
+  const { data: userSegment } = useQuery({
+    queryKey: ['userSegment', user?.id],
+    queryFn: async () => {
+      if (!user) return null;
+      const segments = await base44.entities.UserSegment.filter({ user_id: user.id });
+      return segments[0] || null;
+    },
+    enabled: !!user,
+  });
+
+  const { data: recentlyViewed = [] } = useQuery({
+    queryKey: ['recentlyViewed', user?.id],
+    queryFn: () => base44.entities.RecentlyViewed.filter({ user_id: user?.id }, '-viewed_at', 10),
+    enabled: !!user,
+    initialData: [],
+  });
+
+  const { data: pastOrders = [] } = useQuery({
+    queryKey: ['myOrders', user?.id],
+    queryFn: () => base44.entities.Order.filter({ customer_id: user?.id }, '-created_date'),
+    enabled: !!user,
+    initialData: [],
+  });
+
+  // Track product view
+  useEffect(() => {
+    if (user && product) {
+      trackProductView();
+    }
+  }, [user, product]);
+
+  const trackProductView = async () => {
+    try {
+      await base44.entities.RecentlyViewed.create({
+        user_id: user.id,
+        product_id: product.id,
+        product_name: product.name,
+        product_image: product.images?.[0],
+        product_price: product.price,
+        product_category: product.category,
+        viewed_at: new Date().toISOString(),
+        device_type: /mobile/i.test(navigator.userAgent) ? 'mobile' : 'desktop'
+      });
+    } catch (error) {
+      console.log('Error tracking view', error);
+    }
+  };
 
   const createReviewMutation = useMutation({
     mutationFn: (data) => base44.entities.ProductReview.create(data),
@@ -207,6 +268,14 @@ export default function ProductDetail() {
           </Button>
         </Link>
 
+        {/* Dynamic Personalized Blocks - Above Product */}
+        <DynamicProductBlocks
+          product={product}
+          user={user}
+          loyalty={loyalty}
+          userSegment={userSegment?.segment_type}
+        />
+
         <div className="grid lg:grid-cols-2 gap-12 mb-12">
           {/* Product Images */}
           <div className="space-y-4">
@@ -231,6 +300,12 @@ export default function ProductDetail() {
                 <Badge className="absolute top-4 left-4 bg-purple-500 px-4 py-2">
                   <TrendingUp className="w-4 h-4 mr-1" />
                   Best Seller
+                </Badge>
+              )}
+              {loyalty && (
+                <Badge className="absolute bottom-4 left-4 bg-gradient-to-r from-purple-600 to-pink-600 backdrop-blur-sm px-4 py-2">
+                  <Crown className="w-4 h-4 mr-2" />
+                  {loyalty.current_tier.toUpperCase()} Member
                 </Badge>
               )}
             </div>
@@ -283,6 +358,21 @@ export default function ProductDetail() {
                 </div>
               ) : (
                 <span className="text-5xl font-black text-white">${product.price.toFixed(2)}</span>
+              )}
+              
+              {/* Member Price Display */}
+              {loyalty && loyalty.current_tier !== 'bronze' && (
+                <div className="mt-3 p-3 bg-gradient-to-r from-purple-900/30 to-pink-900/30 border border-purple-500/30 rounded-lg">
+                  <div className="flex items-center justify-between">
+                    <div className="flex items-center gap-2">
+                      <Crown className="w-5 h-5 text-yellow-400" />
+                      <span className="text-purple-200 font-semibold">Your {loyalty.current_tier} Member Price:</span>
+                    </div>
+                    <span className="text-yellow-300 font-black text-2xl">
+                      ${(product.price * (1 - getTierDiscount(loyalty.current_tier) / 100)).toFixed(2)}
+                    </span>
+                  </div>
+                </div>
               )}
             </div>
 
@@ -404,6 +494,16 @@ export default function ProductDetail() {
             </div>
           </div>
         </div>
+
+        {/* AI-Powered Recommendations */}
+        {user && (
+          <AIRecommendations
+            user={user}
+            loyalty={loyalty}
+            recentlyViewed={recentlyViewed}
+            pastOrders={pastOrders}
+          />
+        )}
 
         {/* Reviews Section */}
         <Tabs defaultValue="reviews" className="mt-12">
@@ -549,4 +649,14 @@ export default function ProductDetail() {
 
 function Label({ children, className, ...props }) {
   return <label className={className} {...props}>{children}</label>;
+}
+
+function getTierDiscount(tier) {
+  switch(tier) {
+    case 'silver': return 5;
+    case 'gold': return 10;
+    case 'platinum': return 15;
+    case 'diamond': return 20;
+    default: return 0;
+  }
 }
