@@ -342,25 +342,4 @@ export default function AdminShippingMethods() {
       </Dialog>
     </div>
   );
-
-  function handleSubmit() {
-    if (editingMethod) {
-      updateMethodMutation.mutate({ id: editingMethod.id, data: methodForm });
-    } else {
-      createMethodMutation.mutate(methodForm);
-    }
-  }
-
-  function resetForm() {
-    setMethodForm({
-      name: '',
-      carrier: 'custom',
-      service_level: '',
-      base_cost: 0,
-      estimated_days_min: 3,
-      estimated_days_max: 7,
-      is_active: true
-    });
-    setEditingMethod(null);
-  }
 }
