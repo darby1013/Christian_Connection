@@ -85,6 +85,11 @@ import AdminStoreAnalytics from './pages/AdminStoreAnalytics';
 import Wishlist from './pages/Wishlist';
 import OrderConfirmation from './pages/OrderConfirmation';
 import CustomerDashboard from './pages/CustomerDashboard';
+import AdminLoyaltyProgram from './pages/AdminLoyaltyProgram';
+import AdminBulkPricing from './pages/AdminBulkPricing';
+import AdminProductBundles from './pages/AdminProductBundles';
+import AdminPreOrders from './pages/AdminPreOrders';
+import AdminGiftCards from './pages/AdminGiftCards';
 import Layout from './Layout.jsx';
 
 
@@ -176,6 +181,11 @@ export const PAGES = {
     "Wishlist": Wishlist,
     "OrderConfirmation": OrderConfirmation,
     "CustomerDashboard": CustomerDashboard,
+    "AdminLoyaltyProgram": AdminLoyaltyProgram,
+    "AdminBulkPricing": AdminBulkPricing,
+    "AdminProductBundles": AdminProductBundles,
+    "AdminPreOrders": AdminPreOrders,
+    "AdminGiftCards": AdminGiftCards,
 }
 
 export const pagesConfig = {
