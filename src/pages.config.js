@@ -110,6 +110,7 @@ import AdminConnectionPoolMonitor from './pages/AdminConnectionPoolMonitor';
 import AdminIndexOptimizer from './pages/AdminIndexOptimizer';
 import AdminReplicationManager from './pages/AdminReplicationManager';
 import AdminSecurityAudit from './pages/AdminSecurityAudit';
+import Notifications from './pages/Notifications';
 import Layout from './Layout.jsx';
 
 
@@ -226,6 +227,7 @@ export const PAGES = {
     "AdminIndexOptimizer": AdminIndexOptimizer,
     "AdminReplicationManager": AdminReplicationManager,
     "AdminSecurityAudit": AdminSecurityAudit,
+    "Notifications": Notifications,
 }
 
 export const pagesConfig = {
