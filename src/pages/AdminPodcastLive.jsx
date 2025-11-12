@@ -119,6 +119,23 @@ export default function AdminPodcastLive() {
     initialData: [],
   });
 
+  // MUTATIONS - Define these BEFORE useEffect hooks that use them
+  const createPodcastMutation = useMutation({
+    mutationFn: (podcastData) => base44.entities.Podcast.create(podcastData),
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ['podcasts'] });
+      queryClient.invalidateQueries({ queryKey: ['livePodcasts'] });
+    },
+  });
+
+  const updatePodcastMutation = useMutation({
+    mutationFn: ({ id, data }) => base44.entities.Podcast.update(id, data),
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ['podcasts'] });
+      queryClient.invalidateQueries({ queryKey: ['livePodcasts'] });
+    },
+  });
+
   // HEARTBEAT: Keep podcast "alive" by updating every 4 seconds while broadcasting
   useEffect(() => {
     if (isLive && currentPodcastId) {
@@ -292,22 +309,6 @@ export default function AdminPodcastLive() {
     }
   };
 
-  const createPodcastMutation = useMutation({
-    mutationFn: (podcastData) => base44.entities.Podcast.create(podcastData),
-    onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ['podcasts'] });
-      queryClient.invalidateQueries({ queryKey: ['livePodcasts'] });
-    },
-  });
-
-  const updatePodcastMutation = useMutation({
-    mutationFn: ({ id, data }) => base44.entities.Podcast.update(id, data),
-    onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ['podcasts'] });
-      queryClient.invalidateQueries({ queryKey: ['livePodcasts'] });
-    },
-  });
-
   const startCamera = async () => {
     try {
       const stream = await navigator.mediaDevices.getUserMedia({
@@ -367,7 +368,7 @@ export default function AdminPodcastLive() {
     setConnectionStatus('disconnected');
   };
 
-  const toggleMicrophone = async () => {
+  const toggleMicrophone = () => {
     if (!streamRef.current) {
       alert('Please start the camera or audio first');
       return;
