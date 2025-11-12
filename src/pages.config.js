@@ -111,6 +111,7 @@ import AdminIndexOptimizer from './pages/AdminIndexOptimizer';
 import AdminReplicationManager from './pages/AdminReplicationManager';
 import AdminSecurityAudit from './pages/AdminSecurityAudit';
 import Notifications from './pages/Notifications';
+import AdminActivityFeed from './pages/AdminActivityFeed';
 import Layout from './Layout.jsx';
 
 
@@ -228,6 +229,7 @@ export const PAGES = {
     "AdminReplicationManager": AdminReplicationManager,
     "AdminSecurityAudit": AdminSecurityAudit,
     "Notifications": Notifications,
+    "AdminActivityFeed": AdminActivityFeed,
 }
 
 export const pagesConfig = {

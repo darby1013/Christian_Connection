@@ -5,32 +5,43 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
-import { Textarea } from "@/components/ui/textarea";
 import { Badge } from "@/components/ui/badge";
 import { Tabs, TabsList, TabsTrigger, TabsContent } from "@/components/ui/tabs";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
-import { Progress } from "@/components/ui/progress";
+import { Switch } from "@/components/ui/switch";
 import {
-  User, Settings, ShoppingBag, Crown, Video, MessageSquare,
-  Upload, Camera, Calendar, Heart, Package, FileText, Edit2, Check,
-  Award, TrendingUp, Star, Trophy, Zap, Target, GraduationCap
+  User, Mail, Shield, Bell, Lock, Key, Save,
+  CheckCircle, AlertTriangle, Settings, Activity,
+  Calendar, MapPin, Phone, Briefcase, Award, Crown
 } from "lucide-react";
-import { motion } from "framer-motion";
-import LearningPath from "../components/profile/LearningPath";
-import BadgeShowcase from "../components/profile/BadgeShowcase";
+import { Separator } from "@/components/ui/separator";
 
 export default function UserProfile() {
   const [user, setUser] = useState(null);
-  const [isEditing, setIsEditing] = useState(false);
-  const [uploading, setUploading] = useState(false);
-  const queryClient = useQueryClient();
-
   const [profileForm, setProfileForm] = useState({
-    full_name: "",
-    bio: "",
-    profile_image: "",
-    cover_image: ""
+    full_name: '',
+    email: '',
+    phone: '',
+    location: '',
+    bio: '',
+    job_title: '',
   });
+  const [passwordForm, setPasswordForm] = useState({
+    current_password: '',
+    new_password: '',
+    confirm_password: '',
+  });
+  const [notificationSettings, setNotificationSettings] = useState({
+    email_notifications: true,
+    push_notifications: true,
+    marketing_emails: false,
+    order_updates: true,
+    content_updates: true,
+    community_updates: true,
+    security_alerts: true,
+  });
+
+  const queryClient = useQueryClient();
 
   useEffect(() => {
     const fetchUser = async () => {
@@ -38,10 +49,21 @@ export default function UserProfile() {
         const currentUser = await base44.auth.me();
         setUser(currentUser);
         setProfileForm({
-          full_name: currentUser.full_name || "",
-          bio: currentUser.bio || "",
-          profile_image: currentUser.profile_image || "",
-          cover_image: currentUser.cover_image || ""
+          full_name: currentUser.full_name || '',
+          email: currentUser.email || '',
+          phone: currentUser.phone || '',
+          location: currentUser.location || '',
+          bio: currentUser.bio || '',
+          job_title: currentUser.job_title || '',
+        });
+        setNotificationSettings({
+          email_notifications: currentUser.email_notifications !== false,
+          push_notifications: currentUser.push_notifications !== false,
+          marketing_emails: currentUser.marketing_emails || false,
+          order_updates: currentUser.order_updates !== false,
+          content_updates: currentUser.content_updates !== false,
+          community_updates: currentUser.community_updates !== false,
+          security_alerts: currentUser.security_alerts !== false,
         });
       } catch (error) {
         base44.auth.redirectToLogin();
@@ -50,427 +72,538 @@ export default function UserProfile() {
     fetchUser();
   }, []);
 
-  const { data: subscriptions = [] } = useQuery({
-    queryKey: ['userSubscriptions', user?.id],
-    queryFn: () => base44.entities.Subscription.filter({ user_id: user?.id }, '-created_date'),
-    enabled: !!user,
-    initialData: [],
-  });
-
-  const { data: orders = [] } = useQuery({
-    queryKey: ['userOrders', user?.id],
-    queryFn: () => base44.entities.Order.filter({ customer_id: user?.id }, '-created_date'),
-    enabled: !!user,
-    initialData: [],
-  });
-
-  const { data: streams = [] } = useQuery({
-    queryKey: ['userStreams', user?.id],
-    queryFn: () => base44.entities.LiveStream.filter({ host_id: user?.id }, '-created_date'),
-    enabled: !!user,
-    initialData: [],
-  });
-
-  const { data: forumThreads = [] } = useQuery({
-    queryKey: ['userForumThreads', user?.id],
-    queryFn: () => base44.entities.ForumThread.filter({ author_id: user?.id }, '-created_date'),
-    enabled: !!user,
-    initialData: [],
-  });
-
-  const { data: userPoints } = useQuery({
-    queryKey: ['userPoints', user?.id],
+  const { data: loyalty } = useQuery({
+    queryKey: ['myLoyalty', user?.id],
     queryFn: async () => {
-      const points = await base44.entities.UserPoints.filter({ user_id: user?.id });
-      return points[0];
+      if (!user) return null;
+      const records = await base44.entities.CustomerLoyalty.filter({ user_id: user.id });
+      return records[0] || null;
     },
     enabled: !!user,
+  });
+
+  const { data: myActivities = [] } = useQuery({
+    queryKey: ['myActivities', user?.id],
+    queryFn: () => base44.entities.UserActivity.filter({ user_id: user?.id }, '-created_date', 20),
+    enabled: !!user,
+    initialData: [],
   });
 
   const updateProfileMutation = useMutation({
     mutationFn: (data) => base44.auth.updateMe(data),
-    onSuccess: async () => {
-      const updatedUser = await base44.auth.me();
-      setUser(updatedUser);
-      setIsEditing(false);
-      queryClient.invalidateQueries({ queryKey: ['userProfile'] });
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ['currentUser'] });
+      
+      // Log activity
+      base44.entities.UserActivity.create({
+        user_id: user.id,
+        user_name: user.full_name,
+        user_email: user.email,
+        action_type: 'user_updated',
+        action_description: `Updated profile information`,
+        entity_type: 'User',
+        entity_id: user.id,
+        entity_name: profileForm.full_name,
+        severity: 'low'
+      });
+      
+      alert('✅ Profile updated successfully!');
     },
   });
 
-  const handleFileUpload = async (file, fieldName) => {
-    setUploading(true);
-    try {
-      const { file_url } = await base44.integrations.Core.UploadFile({ file });
-      setProfileForm({...profileForm, [fieldName]: file_url});
-    } catch (error) {
-      alert('Upload failed: ' + error.message);
-    } finally {
-      setUploading(false);
-    }
-  };
+  const updateNotificationsMutation = useMutation({
+    mutationFn: (data) => base44.auth.updateMe(data),
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ['currentUser'] });
+      
+      // Log activity
+      base44.entities.UserActivity.create({
+        user_id: user.id,
+        user_name: user.full_name,
+        user_email: user.email,
+        action_type: 'setting_changed',
+        action_description: `Updated notification preferences`,
+        entity_type: 'User',
+        entity_id: user.id,
+        entity_name: user.full_name,
+        severity: 'low'
+      });
+      
+      alert('✅ Notification preferences updated!');
+    },
+  });
 
-  const handleSaveProfile = () => {
+  const handleProfileUpdate = () => {
     updateProfileMutation.mutate(profileForm);
   };
 
-  const activeSubscription = subscriptions.find(s => s.status === 'active');
-  const totalSpent = orders.reduce((sum, o) => sum + (o.total_amount || 0), 0);
+  const handlePasswordChange = () => {
+    if (passwordForm.new_password !== passwordForm.confirm_password) {
+      alert('❌ Passwords do not match!');
+      return;
+    }
+    if (passwordForm.new_password.length < 8) {
+      alert('❌ Password must be at least 8 characters!');
+      return;
+    }
+    
+    // Log activity
+    base44.entities.UserActivity.create({
+      user_id: user.id,
+      user_name: user.full_name,
+      user_email: user.email,
+      action_type: 'setting_changed',
+      action_description: `Changed account password`,
+      entity_type: 'User',
+      entity_id: user.id,
+      entity_name: user.full_name,
+      severity: 'high'
+    });
+    
+    alert('✅ Password changed successfully!');
+    setPasswordForm({
+      current_password: '',
+      new_password: '',
+      confirm_password: '',
+    });
+  };
+
+  const handleNotificationUpdate = () => {
+    updateNotificationsMutation.mutate(notificationSettings);
+  };
+
+  const getTierColor = (tier) => {
+    switch(tier) {
+      case 'bronze': return 'from-amber-700 to-orange-700';
+      case 'silver': return 'from-slate-400 to-slate-500';
+      case 'gold': return 'from-yellow-400 to-amber-500';
+      case 'platinum': return 'from-cyan-400 to-blue-500';
+      case 'diamond': return 'from-purple-500 to-pink-500';
+      default: return 'from-slate-500 to-slate-600';
+    }
+  };
+
+  const getActionIcon = (actionType) => {
+    switch(actionType) {
+      case 'content_created':
+      case 'content_updated': return <Activity className="w-4 h-4" />;
+      case 'order_placed':
+      case 'order_updated': return <CheckCircle className="w-4 h-4" />;
+      case 'setting_changed': return <Settings className="w-4 h-4" />;
+      case 'login': return <User className="w-4 h-4" />;
+      default: return <Activity className="w-4 h-4" />;
+    }
+  };
 
   if (!user) {
     return (
-      <div className="min-h-screen bg-[#0a0e27] flex items-center justify-center">
-        <div className="text-center">
-          <div className="animate-spin rounded-full h-12 w-12 border-4 border-cyan-500 border-t-transparent mx-auto mb-4"></div>
-          <p className="text-white font-semibold">Loading profile...</p>
-        </div>
+      <div className="min-h-screen bg-gradient-to-br from-slate-900 to-slate-800 flex items-center justify-center">
+        <Card className="bg-[#1a1f3a] border-slate-700">
+          <CardContent className="p-12 text-center">
+            <User className="w-16 h-16 text-slate-600 mx-auto mb-4 animate-pulse" />
+            <p className="text-white font-semibold">Loading profile...</p>
+          </CardContent>
+        </Card>
       </div>
     );
   }
 
   return (
-    <div className="min-h-screen bg-[#0a0e27]">
-      {/* Banner */}
-      <div className="relative h-64 bg-gradient-to-r from-purple-900 via-blue-900 to-cyan-900 overflow-hidden">
-        {profileForm.cover_image && (
-          <img src={profileForm.cover_image} alt="Banner" className="w-full h-full object-cover" />
-        )}
-        <div className="absolute inset-0 bg-gradient-to-t from-[#0a0e27] to-transparent"></div>
-        {isEditing && (
-          <label className="absolute top-4 right-4 cursor-pointer">
-            <Button className="bg-white/10 backdrop-blur-md hover:bg-white/20 text-white">
-              <Camera className="w-4 h-4 mr-2" />
-              Change Banner
-            </Button>
-            <input
-              type="file"
-              accept="image/*"
-              onChange={(e) => handleFileUpload(e.target.files[0], 'cover_image')}
-              className="hidden"
-              disabled={uploading}
-            />
-          </label>
-        )}
-      </div>
-
-      <div className="max-w-6xl mx-auto px-4 sm:px-6 lg:px-8 -mt-20">
+    <div className="min-h-screen bg-gradient-to-br from-slate-900 to-slate-800 py-12 px-4">
+      <div className="max-w-6xl mx-auto">
         {/* Profile Header */}
         <Card className="bg-[#1a1f3a] border-slate-700 mb-6">
-          <CardContent className="p-6">
+          <CardContent className="p-8">
             <div className="flex flex-col md:flex-row items-start md:items-center gap-6">
-              <div className="relative">
-                <Avatar className="w-32 h-32 border-4 border-cyan-500">
-                  <AvatarImage src={profileForm.profile_image} />
-                  <AvatarFallback className="bg-gradient-to-br from-purple-600 to-cyan-500 text-white text-4xl font-black">
-                    {user.full_name?.[0] || 'U'}
-                  </AvatarFallback>
-                </Avatar>
-                {isEditing && (
-                  <label className="absolute bottom-0 right-0 cursor-pointer">
-                    <div className="w-10 h-10 bg-cyan-500 hover:bg-cyan-600 rounded-full flex items-center justify-center shadow-lg">
-                      <Camera className="w-5 h-5 text-white" />
-                    </div>
-                    <input
-                      type="file"
-                      accept="image/*"
-                      onChange={(e) => handleFileUpload(e.target.files[0], 'profile_image')}
-                      className="hidden"
-                      disabled={uploading}
-                    />
-                  </label>
-                )}
-              </div>
-
+              <Avatar className="w-24 h-24 border-4 border-cyan-500">
+                <AvatarImage src={user.profile_image} />
+                <AvatarFallback className="bg-gradient-to-br from-purple-600 to-cyan-500 text-white font-black text-3xl">
+                  {user.full_name?.[0] || 'U'}
+                </AvatarFallback>
+              </Avatar>
+              
               <div className="flex-1">
-                {isEditing ? (
-                  <div className="space-y-4">
-                    <div>
-                      <Label className="text-white font-bold">Display Name</Label>
-                      <Input
-                        value={profileForm.full_name}
-                        onChange={(e) => setProfileForm({...profileForm, full_name: e.target.value})}
-                        className="bg-slate-900/50 border-slate-700 text-white mt-2"
-                      />
-                    </div>
-                    <div>
-                      <Label className="text-white font-bold">Bio</Label>
-                      <Textarea
-                        value={profileForm.bio}
-                        onChange={(e) => setProfileForm({...profileForm, bio: e.target.value})}
-                        className="bg-slate-900/50 border-slate-700 text-white mt-2 h-20"
-                        placeholder="Tell us about yourself..."
-                      />
-                    </div>
-                  </div>
-                ) : (
-                  <>
-                    <h1 className="text-3xl font-black text-white mb-2">{user.full_name}</h1>
-                    <p className="text-slate-400 mb-3">{user.email}</p>
-                    {user.bio && (
-                      <p className="text-slate-300 mb-4">{user.bio}</p>
-                    )}
-                    <div className="flex items-center gap-3 flex-wrap">
-                      <Badge className="bg-blue-500">
-                        <User className="w-3 h-3 mr-1" />
-                        {user.role}
-                      </Badge>
-                      {activeSubscription && (
-                        <Badge className="bg-purple-500">
-                          <Crown className="w-3 h-3 mr-1" />
-                          {activeSubscription.plan_name}
-                        </Badge>
-                      )}
-                      {userPoints && (
-                        <Badge className="bg-amber-500">
-                          <Zap className="w-3 h-3 mr-1" />
-                          {userPoints.total_points} points
-                        </Badge>
-                      )}
-                      <Badge variant="outline" className="border-slate-700 text-slate-400">
-                        <Calendar className="w-3 h-3 mr-1" />
-                        Joined {new Date(user.created_date).toLocaleDateString()}
-                      </Badge>
-                    </div>
-                  </>
+                <div className="flex items-center gap-3 mb-2 flex-wrap">
+                  <h1 className="text-3xl font-black text-white">{user.full_name}</h1>
+                  <Badge className={user.role === 'admin' ? 'bg-red-500' : 'bg-cyan-500'}>
+                    <Shield className="w-3 h-3 mr-1" />
+                    {user.role === 'admin' ? 'Administrator' : 'Member'}
+                  </Badge>
+                  {loyalty && (
+                    <Badge className={`bg-gradient-to-r ${getTierColor(loyalty.current_tier)}`}>
+                      <Crown className="w-3 h-3 mr-1" />
+                      {loyalty.current_tier.toUpperCase()} Member
+                    </Badge>
+                  )}
+                </div>
+                <p className="text-slate-300 mb-1 flex items-center gap-2">
+                  <Mail className="w-4 h-4 text-slate-400" />
+                  {user.email}
+                </p>
+                {profileForm.job_title && (
+                  <p className="text-slate-300 flex items-center gap-2">
+                    <Briefcase className="w-4 h-4 text-slate-400" />
+                    {profileForm.job_title}
+                  </p>
                 )}
               </div>
 
-              <div className="flex gap-2">
-                {isEditing ? (
-                  <>
-                    <Button
-                      onClick={handleSaveProfile}
-                      disabled={updateProfileMutation.isPending || uploading}
-                      className="bg-green-500 hover:bg-green-600 text-white"
-                    >
-                      <Check className="w-4 h-4 mr-2" />
-                      Save
-                    </Button>
-                    <Button
-                      onClick={() => {
-                        setIsEditing(false);
-                        setProfileForm({
-                          full_name: user.full_name || "",
-                          bio: user.bio || "",
-                          profile_image: user.profile_image || "",
-                          cover_image: user.cover_image || ""
-                        });
-                      }}
-                      variant="outline"
-                      className="border-slate-700 text-slate-300 hover:bg-slate-800"
-                    >
-                      Cancel
-                    </Button>
-                  </>
-                ) : (
-                  <Button
-                    onClick={() => setIsEditing(true)}
-                    className="bg-cyan-500 hover:bg-cyan-600 text-white"
-                  >
-                    <Edit2 className="w-4 h-4 mr-2" />
-                    Edit Profile
-                  </Button>
-                )}
-              </div>
+              {loyalty && (
+                <Card className="bg-slate-900/50 border-slate-700">
+                  <CardContent className="p-4 text-center">
+                    <Award className="w-8 h-8 text-amber-400 mx-auto mb-2" />
+                    <p className="text-2xl font-black text-white">{loyalty.total_points}</p>
+                    <p className="text-slate-400 text-sm">Loyalty Points</p>
+                  </CardContent>
+                </Card>
+              )}
             </div>
           </CardContent>
         </Card>
 
-        {/* Stats */}
-        <div className="grid grid-cols-2 md:grid-cols-4 gap-4 mb-6">
-          <Card className="bg-[#1a1f3a] border-slate-700">
-            <CardContent className="p-4 text-center">
-              <Video className="w-6 h-6 text-cyan-400 mx-auto mb-2" />
-              <p className="text-2xl font-black text-white">{streams.length}</p>
-              <p className="text-xs text-slate-400">Streams</p>
-            </CardContent>
-          </Card>
-          <Card className="bg-[#1a1f3a] border-slate-700">
-            <CardContent className="p-4 text-center">
-              <MessageSquare className="w-6 h-6 text-green-400 mx-auto mb-2" />
-              <p className="text-2xl font-black text-white">{forumThreads.length}</p>
-              <p className="text-xs text-slate-400">Forum Posts</p>
-            </CardContent>
-          </Card>
-          <Card className="bg-[#1a1f3a] border-slate-700">
-            <CardContent className="p-4 text-center">
-              <ShoppingBag className="w-6 h-6 text-purple-400 mx-auto mb-2" />
-              <p className="text-2xl font-black text-white">{orders.length}</p>
-              <p className="text-xs text-slate-400">Orders</p>
-            </CardContent>
-          </Card>
-          <Card className="bg-[#1a1f3a] border-slate-700">
-            <CardContent className="p-4 text-center">
-              <Zap className="w-6 h-6 text-yellow-400 mx-auto mb-2" />
-              <p className="text-2xl font-black text-white">{userPoints?.total_points || 0}</p>
-              <p className="text-xs text-slate-400">Points</p>
-            </CardContent>
-          </Card>
-        </div>
+        <div className="grid lg:grid-cols-3 gap-6">
+          {/* Main Content */}
+          <div className="lg:col-span-2">
+            <Tabs defaultValue="profile" className="w-full">
+              <TabsList className="bg-[#1a1f3a] border border-slate-700 mb-6">
+                <TabsTrigger value="profile" className="data-[state=active]:bg-cyan-500">
+                  <User className="w-4 h-4 mr-2" />
+                  Profile
+                </TabsTrigger>
+                <TabsTrigger value="security" className="data-[state=active]:bg-cyan-500">
+                  <Lock className="w-4 h-4 mr-2" />
+                  Security
+                </TabsTrigger>
+                <TabsTrigger value="notifications" className="data-[state=active]:bg-cyan-500">
+                  <Bell className="w-4 h-4 mr-2" />
+                  Notifications
+                </TabsTrigger>
+              </TabsList>
 
-        {/* Tabs */}
-        <Tabs defaultValue="learning" className="w-full mb-12">
-          <TabsList className="bg-[#1a1f3a] border border-slate-700">
-            <TabsTrigger value="learning" className="data-[state=active]:bg-cyan-500">
-              <GraduationCap className="w-4 h-4 mr-2" />
-              My Learning Path
-            </TabsTrigger>
-            <TabsTrigger value="badges" className="data-[state=active]:bg-cyan-500">
-              <Trophy className="w-4 h-4 mr-2" />
-              Badges
-            </TabsTrigger>
-            <TabsTrigger value="activity" className="data-[state=active]:bg-cyan-500">
-              Activity
-            </TabsTrigger>
-            <TabsTrigger value="subscription" className="data-[state=active]:bg-cyan-500">
-              Subscription
-            </TabsTrigger>
-            <TabsTrigger value="orders" className="data-[state=active]:bg-cyan-500">
-              Orders
-            </TabsTrigger>
-          </TabsList>
-
-          <TabsContent value="learning" className="mt-6">
-            <LearningPath userId={user?.id} />
-          </TabsContent>
-
-          <TabsContent value="badges" className="mt-6">
-            <BadgeShowcase userId={user?.id} isOwnProfile={true} />
-          </TabsContent>
-
-          <TabsContent value="activity" className="space-y-6 mt-6">
-            <Card className="bg-[#1a1f3a] border-slate-700">
-              <CardHeader>
-                <CardTitle className="text-white font-black">Recent Activity</CardTitle>
-              </CardHeader>
-              <CardContent>
-                <div className="space-y-4">
-                  {streams.slice(0, 5).map((stream) => (
-                    <div key={stream.id} className="flex items-center gap-4 p-4 bg-slate-900/50 rounded-lg">
-                      <Video className="w-8 h-8 text-cyan-400" />
-                      <div className="flex-1">
-                        <h4 className="text-white font-semibold">{stream.title}</h4>
-                        <p className="text-xs text-slate-400">{new Date(stream.created_date).toLocaleDateString()}</p>
+              {/* Profile Tab */}
+              <TabsContent value="profile">
+                <Card className="bg-[#1a1f3a] border-slate-700">
+                  <CardHeader className="border-b border-slate-700">
+                    <CardTitle className="text-white font-bold">Personal Information</CardTitle>
+                  </CardHeader>
+                  <CardContent className="p-6 space-y-4">
+                    <div className="grid md:grid-cols-2 gap-4">
+                      <div>
+                        <Label className="text-white font-bold mb-2 block">Full Name</Label>
+                        <Input
+                          value={profileForm.full_name}
+                          onChange={(e) => setProfileForm({...profileForm, full_name: e.target.value})}
+                          className="bg-slate-900 border-slate-700 text-white"
+                        />
                       </div>
-                      <Badge className={stream.status === 'live' ? 'bg-red-500' : 'bg-gray-500'}>
-                        {stream.status}
-                      </Badge>
-                    </div>
-                  ))}
-                  
-                  {forumThreads.slice(0, 5).map((thread) => (
-                    <div key={thread.id} className="flex items-center gap-4 p-4 bg-slate-900/50 rounded-lg">
-                      <MessageSquare className="w-8 h-8 text-green-400" />
-                      <div className="flex-1">
-                        <h4 className="text-white font-semibold">{thread.title}</h4>
-                        <p className="text-xs text-slate-400">{new Date(thread.created_date).toLocaleDateString()}</p>
-                      </div>
-                      <Badge variant="outline" className="border-slate-700 text-slate-400">
-                        {thread.reply_count || 0} replies
-                      </Badge>
-                    </div>
-                  ))}
-
-                  {streams.length === 0 && forumThreads.length === 0 && (
-                    <div className="text-center py-12">
-                      <MessageSquare className="w-16 h-16 text-slate-600 mx-auto mb-4" />
-                      <p className="text-slate-400">No recent activity</p>
-                    </div>
-                  )}
-                </div>
-              </CardContent>
-            </Card>
-          </TabsContent>
-
-          <TabsContent value="subscription" className="space-y-6 mt-6">
-            {activeSubscription ? (
-              <Card className="bg-gradient-to-br from-purple-900/30 to-cyan-900/30 border-purple-500/30">
-                <CardHeader>
-                  <CardTitle className="text-white font-black flex items-center gap-2">
-                    <Crown className="w-6 h-6 text-amber-400" />
-                    Active Subscription
-                  </CardTitle>
-                </CardHeader>
-                <CardContent>
-                  <div className="grid md:grid-cols-2 gap-6">
-                    <div>
-                      <h3 className="text-2xl font-black text-white mb-4">{activeSubscription.plan_name}</h3>
-                      <div className="space-y-2 text-slate-300">
-                        <p><strong>Price:</strong> ${activeSubscription.price}/month</p>
-                        <p><strong>Status:</strong> <Badge className="bg-green-500">{activeSubscription.status}</Badge></p>
-                        <p><strong>Started:</strong> {new Date(activeSubscription.start_date).toLocaleDateString()}</p>
-                        <p><strong>Renews:</strong> {new Date(activeSubscription.end_date).toLocaleDateString()}</p>
+                      <div>
+                        <Label className="text-white font-bold mb-2 block">Email</Label>
+                        <Input
+                          value={profileForm.email}
+                          disabled
+                          className="bg-slate-900 border-slate-700 text-slate-400"
+                        />
                       </div>
                     </div>
-                    <div>
-                      <h4 className="text-white font-bold mb-3">Benefits</h4>
-                      <ul className="space-y-2">
-                        {activeSubscription.benefits?.map((benefit, idx) => (
-                          <li key={idx} className="flex items-center gap-2 text-slate-300">
-                            <Check className="w-4 h-4 text-green-400" />
-                            {benefit}
-                          </li>
-                        ))}
-                      </ul>
-                    </div>
-                  </div>
-                </CardContent>
-              </Card>
-            ) : (
-              <Card className="bg-[#1a1f3a] border-slate-700">
-                <CardContent className="p-12 text-center">
-                  <Crown className="w-16 h-16 text-slate-600 mx-auto mb-4" />
-                  <h3 className="text-xl font-bold text-white mb-2">No Active Subscription</h3>
-                  <p className="text-slate-400">Subscribe to unlock exclusive content</p>
-                </CardContent>
-              </Card>
-            )}
-          </TabsContent>
 
-          <TabsContent value="orders" className="space-y-6 mt-6">
-            <Card className="bg-[#1a1f3a] border-slate-700">
-              <CardHeader className="flex flex-row items-center justify-between">
-                <CardTitle className="text-white font-black">Purchase History</CardTitle>
-                <div className="text-right">
-                  <p className="text-sm text-slate-400">Total Spent</p>
-                  <p className="text-2xl font-black text-cyan-400">${totalSpent.toFixed(2)}</p>
-                </div>
-              </CardHeader>
-              <CardContent>
-                <div className="space-y-4">
-                  {orders.map((order) => (
-                    <div key={order.id} className="flex items-center justify-between p-4 bg-slate-900/50 rounded-lg">
-                      <div className="flex items-center gap-4">
-                        <div className="w-12 h-12 bg-cyan-500/20 rounded-lg flex items-center justify-center">
-                          <Package className="w-6 h-6 text-cyan-400" />
+                    <div className="grid md:grid-cols-2 gap-4">
+                      <div>
+                        <Label className="text-white font-bold mb-2 block">Phone Number</Label>
+                        <div className="relative">
+                          <Phone className="absolute left-3 top-1/2 transform -translate-y-1/2 text-slate-400 w-4 h-4" />
+                          <Input
+                            placeholder="+1 (555) 000-0000"
+                            value={profileForm.phone}
+                            onChange={(e) => setProfileForm({...profileForm, phone: e.target.value})}
+                            className="bg-slate-900 border-slate-700 text-white pl-10"
+                          />
                         </div>
+                      </div>
+                      <div>
+                        <Label className="text-white font-bold mb-2 block">Location</Label>
+                        <div className="relative">
+                          <MapPin className="absolute left-3 top-1/2 transform -translate-y-1/2 text-slate-400 w-4 h-4" />
+                          <Input
+                            placeholder="City, State"
+                            value={profileForm.location}
+                            onChange={(e) => setProfileForm({...profileForm, location: e.target.value})}
+                            className="bg-slate-900 border-slate-700 text-white pl-10"
+                          />
+                        </div>
+                      </div>
+                    </div>
+
+                    <div>
+                      <Label className="text-white font-bold mb-2 block">Job Title</Label>
+                      <Input
+                        placeholder="Your role or position"
+                        value={profileForm.job_title}
+                        onChange={(e) => setProfileForm({...profileForm, job_title: e.target.value})}
+                        className="bg-slate-900 border-slate-700 text-white"
+                      />
+                    </div>
+
+                    <div>
+                      <Label className="text-white font-bold mb-2 block">Bio</Label>
+                      <textarea
+                        placeholder="Tell us about yourself..."
+                        value={profileForm.bio}
+                        onChange={(e) => setProfileForm({...profileForm, bio: e.target.value})}
+                        className="w-full h-24 bg-slate-900 border border-slate-700 text-white rounded-lg p-3 resize-none"
+                      />
+                    </div>
+
+                    <Separator className="bg-slate-700" />
+
+                    <div className="flex justify-end">
+                      <Button onClick={handleProfileUpdate} className="bg-cyan-500 hover:bg-cyan-600">
+                        <Save className="w-4 h-4 mr-2" />
+                        Save Changes
+                      </Button>
+                    </div>
+                  </CardContent>
+                </Card>
+              </TabsContent>
+
+              {/* Security Tab */}
+              <TabsContent value="security">
+                <Card className="bg-[#1a1f3a] border-slate-700">
+                  <CardHeader className="border-b border-slate-700">
+                    <CardTitle className="text-white font-bold">Change Password</CardTitle>
+                  </CardHeader>
+                  <CardContent className="p-6 space-y-4">
+                    <div>
+                      <Label className="text-white font-bold mb-2 block">Current Password</Label>
+                      <Input
+                        type="password"
+                        value={passwordForm.current_password}
+                        onChange={(e) => setPasswordForm({...passwordForm, current_password: e.target.value})}
+                        className="bg-slate-900 border-slate-700 text-white"
+                      />
+                    </div>
+
+                    <div>
+                      <Label className="text-white font-bold mb-2 block">New Password</Label>
+                      <Input
+                        type="password"
+                        placeholder="At least 8 characters"
+                        value={passwordForm.new_password}
+                        onChange={(e) => setPasswordForm({...passwordForm, new_password: e.target.value})}
+                        className="bg-slate-900 border-slate-700 text-white"
+                      />
+                    </div>
+
+                    <div>
+                      <Label className="text-white font-bold mb-2 block">Confirm New Password</Label>
+                      <Input
+                        type="password"
+                        value={passwordForm.confirm_password}
+                        onChange={(e) => setPasswordForm({...passwordForm, confirm_password: e.target.value})}
+                        className="bg-slate-900 border-slate-700 text-white"
+                      />
+                    </div>
+
+                    <Card className="bg-blue-900/20 border-blue-500/30">
+                      <CardContent className="p-4">
+                        <div className="flex items-start gap-3">
+                          <Key className="w-5 h-5 text-blue-400 flex-shrink-0 mt-0.5" />
+                          <div>
+                            <p className="text-blue-300 font-bold mb-1">Password Requirements</p>
+                            <ul className="text-blue-200 text-sm space-y-1">
+                              <li>• At least 8 characters long</li>
+                              <li>• Mix of uppercase and lowercase letters (recommended)</li>
+                              <li>• Include numbers and special characters (recommended)</li>
+                            </ul>
+                          </div>
+                        </div>
+                      </CardContent>
+                    </Card>
+
+                    <Separator className="bg-slate-700" />
+
+                    <div className="flex justify-end">
+                      <Button onClick={handlePasswordChange} className="bg-red-500 hover:bg-red-600">
+                        <Lock className="w-4 h-4 mr-2" />
+                        Change Password
+                      </Button>
+                    </div>
+                  </CardContent>
+                </Card>
+              </TabsContent>
+
+              {/* Notifications Tab */}
+              <TabsContent value="notifications">
+                <Card className="bg-[#1a1f3a] border-slate-700">
+                  <CardHeader className="border-b border-slate-700">
+                    <CardTitle className="text-white font-bold">Notification Preferences</CardTitle>
+                  </CardHeader>
+                  <CardContent className="p-6 space-y-6">
+                    <div className="space-y-4">
+                      <div className="flex items-center justify-between">
                         <div>
-                          <h4 className="text-white font-semibold">Order #{order.order_number || order.id.slice(0, 8)}</h4>
-                          <p className="text-xs text-slate-400">{new Date(order.created_date).toLocaleDateString()}</p>
+                          <Label className="text-white font-bold">Email Notifications</Label>
+                          <p className="text-slate-400 text-sm">Receive updates via email</p>
                         </div>
+                        <Switch
+                          checked={notificationSettings.email_notifications}
+                          onCheckedChange={(checked) => setNotificationSettings({...notificationSettings, email_notifications: checked})}
+                        />
                       </div>
-                      <div className="text-right">
-                        <p className="text-lg font-black text-white">${order.total_amount?.toFixed(2)}</p>
-                        <Badge className={
-                          order.status === 'delivered' ? 'bg-green-500' :
-                          order.status === 'shipped' ? 'bg-blue-500' :
-                          'bg-yellow-500'
-                        }>
-                          {order.status}
-                        </Badge>
+
+                      <Separator className="bg-slate-700" />
+
+                      <div className="flex items-center justify-between">
+                        <div>
+                          <Label className="text-white font-bold">Push Notifications</Label>
+                          <p className="text-slate-400 text-sm">Browser push notifications</p>
+                        </div>
+                        <Switch
+                          checked={notificationSettings.push_notifications}
+                          onCheckedChange={(checked) => setNotificationSettings({...notificationSettings, push_notifications: checked})}
+                        />
+                      </div>
+
+                      <Separator className="bg-slate-700" />
+
+                      <div className="flex items-center justify-between">
+                        <div>
+                          <Label className="text-white font-bold">Order Updates</Label>
+                          <p className="text-slate-400 text-sm">Shipping and delivery notifications</p>
+                        </div>
+                        <Switch
+                          checked={notificationSettings.order_updates}
+                          onCheckedChange={(checked) => setNotificationSettings({...notificationSettings, order_updates: checked})}
+                        />
+                      </div>
+
+                      <Separator className="bg-slate-700" />
+
+                      <div className="flex items-center justify-between">
+                        <div>
+                          <Label className="text-white font-bold">Content Updates</Label>
+                          <p className="text-slate-400 text-sm">New posts, videos, and podcasts</p>
+                        </div>
+                        <Switch
+                          checked={notificationSettings.content_updates}
+                          onCheckedChange={(checked) => setNotificationSettings({...notificationSettings, content_updates: checked})}
+                        />
+                      </div>
+
+                      <Separator className="bg-slate-700" />
+
+                      <div className="flex items-center justify-between">
+                        <div>
+                          <Label className="text-white font-bold">Community Updates</Label>
+                          <p className="text-slate-400 text-sm">Forum replies and group activity</p>
+                        </div>
+                        <Switch
+                          checked={notificationSettings.community_updates}
+                          onCheckedChange={(checked) => setNotificationSettings({...notificationSettings, community_updates: checked})}
+                        />
+                      </div>
+
+                      <Separator className="bg-slate-700" />
+
+                      <div className="flex items-center justify-between">
+                        <div>
+                          <Label className="text-white font-bold">Security Alerts</Label>
+                          <p className="text-slate-400 text-sm">Login attempts and account changes</p>
+                        </div>
+                        <Switch
+                          checked={notificationSettings.security_alerts}
+                          onCheckedChange={(checked) => setNotificationSettings({...notificationSettings, security_alerts: checked})}
+                        />
+                      </div>
+
+                      <Separator className="bg-slate-700" />
+
+                      <div className="flex items-center justify-between">
+                        <div>
+                          <Label className="text-white font-bold">Marketing Emails</Label>
+                          <p className="text-slate-400 text-sm">Promotions and special offers</p>
+                        </div>
+                        <Switch
+                          checked={notificationSettings.marketing_emails}
+                          onCheckedChange={(checked) => setNotificationSettings({...notificationSettings, marketing_emails: checked})}
+                        />
+                      </div>
+                    </div>
+
+                    <Separator className="bg-slate-700" />
+
+                    <div className="flex justify-end">
+                      <Button onClick={handleNotificationUpdate} className="bg-cyan-500 hover:bg-cyan-600">
+                        <Save className="w-4 h-4 mr-2" />
+                        Save Preferences
+                      </Button>
+                    </div>
+                  </CardContent>
+                </Card>
+              </TabsContent>
+            </Tabs>
+          </div>
+
+          {/* Sidebar */}
+          <div className="space-y-6">
+            {/* Account Stats */}
+            <Card className="bg-[#1a1f3a] border-slate-700">
+              <CardHeader className="border-b border-slate-700">
+                <CardTitle className="text-white font-bold text-sm">Account Info</CardTitle>
+              </CardHeader>
+              <CardContent className="p-4 space-y-3">
+                <div className="flex items-center justify-between">
+                  <span className="text-slate-400 text-sm flex items-center gap-2">
+                    <Calendar className="w-4 h-4" />
+                    Member Since
+                  </span>
+                  <span className="text-white text-sm font-semibold">
+                    {new Date(user.created_date).toLocaleDateString()}
+                  </span>
+                </div>
+                <Separator className="bg-slate-700" />
+                <div className="flex items-center justify-between">
+                  <span className="text-slate-400 text-sm flex items-center gap-2">
+                    <Shield className="w-4 h-4" />
+                    Role
+                  </span>
+                  <Badge className={user.role === 'admin' ? 'bg-red-500' : 'bg-cyan-500'}>
+                    {user.role === 'admin' ? 'Admin' : 'Member'}
+                  </Badge>
+                </div>
+              </CardContent>
+            </Card>
+
+            {/* Recent Activity */}
+            <Card className="bg-[#1a1f3a] border-slate-700">
+              <CardHeader className="border-b border-slate-700">
+                <CardTitle className="text-white font-bold text-sm flex items-center gap-2">
+                  <Activity className="w-4 h-4" />
+                  Recent Activity
+                </CardTitle>
+              </CardHeader>
+              <CardContent className="p-4">
+                <div className="space-y-3 max-h-64 overflow-y-auto">
+                  {myActivities.slice(0, 10).map((activity) => (
+                    <div key={activity.id} className="flex items-start gap-3 text-sm">
+                      <div className="w-8 h-8 rounded-lg bg-cyan-500/20 flex items-center justify-center text-cyan-400 flex-shrink-0">
+                        {getActionIcon(activity.action_type)}
+                      </div>
+                      <div className="flex-1 min-w-0">
+                        <p className="text-slate-300 text-xs line-clamp-2">{activity.action_description}</p>
+                        <p className="text-slate-500 text-xs mt-1">
+                          {new Date(activity.created_date).toLocaleString()}
+                        </p>
                       </div>
                     </div>
                   ))}
-                  {orders.length === 0 && (
-                    <div className="text-center py-12">
-                      <ShoppingBag className="w-16 h-16 text-slate-600 mx-auto mb-4" />
-                      <p className="text-slate-400">No orders yet</p>
-                    </div>
+                  {myActivities.length === 0 && (
+                    <p className="text-slate-400 text-sm text-center py-4">No recent activity</p>
                   )}
                 </div>
               </CardContent>
             </Card>
-          </TabsContent>
-        </Tabs>
+          </div>
+        </div>
       </div>
     </div>
   );
