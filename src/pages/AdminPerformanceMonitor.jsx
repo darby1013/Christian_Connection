@@ -18,6 +18,7 @@ import {
   DialogHeader,
   DialogTitle,
 } from "@/components/ui/dialog";
+import { format } from "date-fns";
 
 export default function AdminPerformanceMonitor() {
   const [refreshing, setRefreshing] = useState(false);
@@ -338,7 +339,7 @@ export default function AdminPerformanceMonitor() {
           <CardTitle className="text-white font-bold flex items-center justify-between">
             <span className="flex items-center gap-2">
               <Clock className="w-5 h-5 text-amber-400" />
-              Slow Query Analysis (> 1 second)
+              Slow Query Analysis (&gt; 1 second)
             </span>
             <Button size="sm" variant="outline" className="border-slate-700">
               <Download className="w-3 h-3 mr-1" />
