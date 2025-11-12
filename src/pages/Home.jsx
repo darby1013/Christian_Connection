@@ -1,4 +1,3 @@
-
 import React, { useState, useEffect } from "react";
 import { base44 } from "@/api/base44Client";
 import { useQuery } from "@tanstack/react-query";
@@ -69,10 +68,10 @@ export default function Home() {
   const heroVideo = heroSettings.find(s => s.setting_key === 'hero_video_url')?.setting_value;
 
   return (
-    <div>
+    <div className="min-h-screen bg-[#0a0e27]">
       {/* Hero Section */}
-      <section className="relative h-[600px] overflow-hidden">
-        {heroVideo && (
+      <section className="relative h-[600px] overflow-hidden bg-[#0a0e27]">
+        {heroVideo ? (
           <video
             autoPlay
             muted
@@ -82,8 +81,15 @@ export default function Home() {
           >
             <source src={heroVideo} type="video/mp4" />
           </video>
+        ) : (
+          <div 
+            className="absolute inset-0 w-full h-full bg-cover bg-center"
+            style={{
+              backgroundImage: 'url(https://images.unsplash.com/photo-1516450360452-9312f5e86fc7?w=1920&q=80)',
+            }}
+          />
         )}
-        <div className="absolute inset-0 bg-gradient-to-r from-slate-900/90 to-slate-900/50"></div>
+        <div className="absolute inset-0 bg-gradient-to-r from-[#0a0e27]/90 to-[#0a0e27]/50"></div>
         <div className="relative z-10 h-full flex items-center justify-center text-center px-4">
           <div className="max-w-4xl">
             <h1 className="text-6xl md:text-7xl font-black text-white mb-6 leading-tight">
@@ -92,15 +98,15 @@ export default function Home() {
             <p className="text-xl text-slate-300 mb-8 font-semibold">
               Live worship, teachings, community, and more
             </p>
-            <div className="flex gap-4 justify-center">
+            <div className="flex gap-4 justify-center flex-wrap">
               <Link to={createPageUrl("LiveStreamPlayer")}>
-                <Button className="bg-gradient-to-r from-purple-600 to-cyan-500 hover:from-purple-700 hover:to-cyan-600 text-lg px-8 py-6 font-black">
+                <Button className="bg-gradient-to-r from-purple-600 to-cyan-500 hover:from-purple-700 hover:to-cyan-600 text-white text-lg px-8 py-6 font-black">
                   <Play className="w-6 h-6 mr-2" />
                   Watch Live
                 </Button>
               </Link>
               <Link to={createPageUrl("StoreAdvanced")}>
-                <Button variant="outline" className="border-white text-white hover:bg-white hover:text-slate-900 text-lg px-8 py-6 font-black">
+                <Button className="bg-white hover:bg-slate-100 text-slate-900 text-lg px-8 py-6 font-black border-2 border-white">
                   Explore Store
                   <ArrowRight className="w-6 h-6 ml-2" />
                 </Button>
@@ -145,7 +151,7 @@ export default function Home() {
             </p>
             <Button
               onClick={() => base44.auth.redirectToLogin()}
-              className="bg-gradient-to-r from-purple-600 to-cyan-500 hover:from-purple-700 hover:to-cyan-600 text-lg px-12 py-6 font-black"
+              className="bg-gradient-to-r from-purple-600 to-cyan-500 hover:from-purple-700 hover:to-cyan-600 text-white text-lg px-12 py-6 font-black"
             >
               Get Started Free
             </Button>
