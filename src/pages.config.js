@@ -102,6 +102,11 @@ import AdminDataImportExport from './pages/AdminDataImportExport';
 import AdminBackupManager from './pages/AdminBackupManager';
 import AdminQueryBuilder from './pages/AdminQueryBuilder';
 import AdminRelationshipMapper from './pages/AdminRelationshipMapper';
+import AdminDatabaseExport from './pages/AdminDatabaseExport';
+import AdminMigrationStudio from './pages/AdminMigrationStudio';
+import AdminPerformanceMonitor from './pages/AdminPerformanceMonitor';
+import AdminDataIntegrity from './pages/AdminDataIntegrity';
+import AdminConnectionPoolMonitor from './pages/AdminConnectionPoolMonitor';
 import Layout from './Layout.jsx';
 
 
@@ -210,6 +215,11 @@ export const PAGES = {
     "AdminBackupManager": AdminBackupManager,
     "AdminQueryBuilder": AdminQueryBuilder,
     "AdminRelationshipMapper": AdminRelationshipMapper,
+    "AdminDatabaseExport": AdminDatabaseExport,
+    "AdminMigrationStudio": AdminMigrationStudio,
+    "AdminPerformanceMonitor": AdminPerformanceMonitor,
+    "AdminDataIntegrity": AdminDataIntegrity,
+    "AdminConnectionPoolMonitor": AdminConnectionPoolMonitor,
 }
 
 export const pagesConfig = {

@@ -12,7 +12,8 @@ import {
   Image, Film, Palette, Crown, Package, Download, CreditCard, BarChart3, Sparkles,
   AlertOctagon, TrendingUp, Globe, Star, Book, Rss, UserPlus, Truck, Tag, Warehouse,
   Gift, Percent, Layers, Clock, Award,
-  Database, Code, GitBranch, Upload, Archive, Link2 // Added new icons
+  Database, Code, GitBranch, Upload, Archive, Link2, // Existing icons
+  Activity, Zap, RefreshCw, Server // Added new icons
 } from "lucide-react";
 import {
   Sidebar,
@@ -32,7 +33,7 @@ import {
   DropdownMenu,
   DropdownMenuContent,
   DropdownMenuItem,
-  DropdownMenuTrigger, // Added this import
+  DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
 import { Button } from "@/components/ui/button";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
@@ -159,13 +160,23 @@ export default function Layout({ children, currentPageName }) {
     { title: "Dashboard", url: createPageUrl("AdminDashboard"), icon: LayoutDashboard, section: "OVERVIEW" },
     { title: "Analytics", url: createPageUrl("AdminAnalytics"), icon: BarChart3, section: "OVERVIEW" },
     { title: "Site Settings", url: createPageUrl("AdminSiteSettings"), icon: SettingsIcon, section: "OVERVIEW" },
-    { title: "Database System", url: createPageUrl("AdminDatabaseDashboard"), icon: Database, section: "DATABASE" },
+    
+    // DATABASE TOOLS (Enhanced with 10 new tools)
+    { title: "Database Dashboard", url: createPageUrl("AdminDatabaseDashboard"), icon: Database, section: "DATABASE" },
     { title: "SQL Editor", url: createPageUrl("AdminSQLEditor"), icon: Code, section: "DATABASE" },
     { title: "Schema Viewer", url: createPageUrl("AdminSchemaViewer"), icon: GitBranch, section: "DATABASE" },
     { title: "Query Builder", url: createPageUrl("AdminQueryBuilder"), icon: Search, section: "DATABASE" },
     { title: "Import/Export", url: createPageUrl("AdminDataImportExport"), icon: Upload, section: "DATABASE" },
     { title: "Backup Manager", url: createPageUrl("AdminBackupManager"), icon: Archive, section: "DATABASE" },
     { title: "Relationship Mapper", url: createPageUrl("AdminRelationshipMapper"), icon: Link2, section: "DATABASE" },
+    
+    // NEW DATABASE TOOLS
+    { title: "Database Export", url: createPageUrl("AdminDatabaseExport"), icon: Download, section: "DATABASE" },
+    { title: "Migration Studio", url: createPageUrl("AdminMigrationStudio"), icon: GitBranch, section: "DATABASE" },
+    { title: "Performance Monitor", url: createPageUrl("AdminPerformanceMonitor"), icon: Activity, section: "DATABASE" },
+    { title: "Data Integrity", url: createPageUrl("AdminDataIntegrity"), icon: Shield, section: "DATABASE" },
+    { title: "Connection Pool", url: createPageUrl("AdminConnectionPoolMonitor"), icon: Server, section: "DATABASE" },
+    
     { title: "Go Live Studio", url: createPageUrl("AdminBroadcastStudio"), icon: Radio, section: "CONTENT" },
     { title: "Live Streams", url: createPageUrl("AdminLiveStreams"), icon: Video, section: "CONTENT" },
     { title: "Live Podcast Studio", url: createPageUrl("AdminPodcastLive"), icon: Mic2, section: "CONTENT" },
