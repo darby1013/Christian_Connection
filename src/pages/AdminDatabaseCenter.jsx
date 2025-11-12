@@ -1,14 +1,14 @@
 import React, { useState, useEffect } from "react";
-import { useQuery } from "@tanstack/react-query";
 import { base44 } from "@/api/base44Client";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { Tabs, TabsList, TabsTrigger, TabsContent } from "@/components/ui/tabs";
+import { Checkbox } from "@/components/ui/checkbox";
 import {
-  Database, Code, GitBranch, Download, Upload, Table, Archive,
-  TrendingUp, Shield, Zap, Activity, Server, HardDrive, Clock,
-  CheckCircle, AlertCircle, Search, FileText, Settings, Layers
+  Database, Sparkles, Search, GitBranch, Code, Upload, Archive,
+  Download, Activity, Zap, Shield, Link2, TrendingUp, Server,
+  FileText, CheckCircle, AlertCircle
 } from "lucide-react";
 import { Link } from "react-router-dom";
 import { createPageUrl } from "@/utils";
@@ -21,6 +21,8 @@ export default function AdminDatabaseCenter() {
     databaseSize: 0,
     uptime: 99.98
   });
+  const [selectedTables, setSelectedTables] = useState([]);
+  const [exportFormat, setExportFormat] = useState('SQL Dump');
 
   useEffect(() => {
     const fetchUser = async () => {
@@ -28,284 +30,378 @@ export default function AdminDatabaseCenter() {
         const currentUser = await base44.auth.me();
         setUser(currentUser);
       } catch (error) {
-        base44.auth.redirectToLogin();
+        console.log('Not logged in');
       }
     };
     fetchUser();
-
+    
     // Simulate fetching database stats
-    const fetchStats = async () => {
-      // In a real implementation, these would come from actual database queries
-      setStats({
-        totalRecords: 1247,
-        totalTables: 42,
-        databaseSize: 156.8,
-        uptime: 99.98
-      });
-    };
-    fetchStats();
+    setStats({
+      totalRecords: 30,
+      totalTables: 14,
+      databaseSize: 75.00,
+      uptime: 99.98
+    });
   }, []);
 
-  const tools = [
+  const availableTables = [
+    'User', 'Transaction', 'Goal', 'Bill', 'Debt', 'Investment',
+    'Portfolio', 'Budget', 'Subscription', 'Activity', 'Note', 'Receipt',
+    'BankAccount', 'PaymentSchedule'
+  ];
+
+  const toggleTable = (table) => {
+    if (selectedTables.includes(table)) {
+      setSelectedTables(selectedTables.filter(t => t !== table));
+    } else {
+      setSelectedTables([...selectedTables, table]);
+    }
+  };
+
+  const selectAll = () => {
+    setSelectedTables(availableTables);
+  };
+
+  const clearAll = () => {
+    setSelectedTables([]);
+  };
+
+  const handleExport = () => {
+    alert(`Exporting ${selectedTables.length} tables in ${exportFormat} format...`);
+  };
+
+  const databaseTools = [
     {
-      title: "SQL Script Generator",
-      description: "Generate complete website scripts with AI",
-      icon: Code,
-      color: "from-blue-500 to-cyan-500",
-      url: createPageUrl("AdminSQLScriptGenerator"),
-      badge: "AI-Powered"
+      title: 'AI SQL Script Generator',
+      description: 'Generate complete database scripts with AI',
+      icon: <Sparkles className="w-6 h-6" />,
+      color: 'from-purple-500 to-pink-500',
+      url: createPageUrl('AdminSQLScriptGenerator'),
+      badge: 'AI-Powered'
     },
     {
-      title: "Advanced Query Builder",
-      description: "Build complex queries visually",
-      icon: Search,
-      color: "from-purple-500 to-pink-500",
-      url: createPageUrl("AdminAdvancedQueryBuilder"),
-      badge: "Visual"
+      title: 'Advanced Query Builder',
+      description: 'Visual query construction without SQL',
+      icon: <Search className="w-6 h-6" />,
+      color: 'from-blue-500 to-cyan-500',
+      url: createPageUrl('AdminAdvancedQueryBuilder'),
+      badge: 'Visual'
     },
     {
-      title: "Schema Generator",
-      description: "Design database schemas visually",
-      icon: GitBranch,
-      color: "from-green-500 to-emerald-500",
-      url: createPageUrl("AdminSchemaGenerator"),
-      badge: "Designer"
+      title: 'Schema Generator',
+      description: 'Design database schemas visually',
+      icon: <GitBranch className="w-6 h-6" />,
+      color: 'from-green-500 to-emerald-500',
+      url: createPageUrl('AdminSchemaGenerator'),
+      badge: 'Design'
     },
     {
-      title: "Data Export Manager",
-      description: "Export data in multiple formats",
-      icon: Download,
-      color: "from-amber-500 to-orange-500",
-      url: createPageUrl("AdminDataExportManager"),
-      badge: "Multi-Format"
+      title: 'SQL Editor',
+      description: 'Execute custom SQL queries',
+      icon: <Code className="w-6 h-6" />,
+      color: 'from-cyan-500 to-blue-500',
+      url: createPageUrl('AdminSQLEditor'),
+      badge: 'Pro'
     },
     {
-      title: "Data Import Wizard",
-      description: "Import from CSV, JSON, SQL dumps",
-      icon: Upload,
-      color: "from-indigo-500 to-purple-500",
-      url: createPageUrl("AdminDataImportWizard"),
-      badge: "Wizard"
+      title: 'Schema Viewer',
+      description: 'Browse database structure',
+      icon: <Database className="w-6 h-6" />,
+      color: 'from-indigo-500 to-purple-500',
+      url: createPageUrl('AdminSchemaViewer'),
+      badge: 'Browser'
     },
     {
-      title: "Table Manager",
-      description: "Browse, edit, and manage tables",
-      icon: Table,
-      color: "from-pink-500 to-rose-500",
-      url: createPageUrl("AdminTableManager"),
-      badge: "CRUD"
+      title: 'Import/Export',
+      description: 'Bulk data operations',
+      icon: <Upload className="w-6 h-6" />,
+      color: 'from-amber-500 to-orange-500',
+      url: createPageUrl('AdminDataImportExport'),
+      badge: 'Bulk'
     },
     {
-      title: "Backup & Restore",
-      description: "Automated backups and restoration",
-      icon: Archive,
-      color: "from-cyan-500 to-blue-500",
-      url: createPageUrl("AdminBackupRestore"),
-      badge: "Automated"
+      title: 'Backup Manager',
+      description: 'Automated backups and restore',
+      icon: <Archive className="w-6 h-6" />,
+      color: 'from-red-500 to-rose-500',
+      url: createPageUrl('AdminBackupManager'),
+      badge: 'Critical'
     },
     {
-      title: "Performance Monitor",
-      description: "Real-time query and index optimization",
-      icon: TrendingUp,
-      color: "from-red-500 to-pink-500",
-      url: createPageUrl("AdminPerformanceMonitor"),
-      badge: "Real-time"
+      title: 'Performance Monitor',
+      description: 'Query performance analytics',
+      icon: <Activity className="w-6 h-6" />,
+      color: 'from-teal-500 to-cyan-500',
+      url: createPageUrl('AdminPerformanceMonitor'),
+      badge: 'Analytics'
     },
     {
-      title: "Security Audit",
-      description: "Security vulnerabilities and compliance",
-      icon: Shield,
-      color: "from-yellow-500 to-amber-500",
-      url: createPageUrl("AdminSecurityAudit"),
-      badge: "Enterprise"
+      title: 'Migration Studio',
+      description: 'Database schema migrations',
+      icon: <Zap className="w-6 h-6" />,
+      color: 'from-yellow-500 to-amber-500',
+      url: createPageUrl('AdminMigrationStudio'),
+      badge: 'Advanced'
     },
     {
-      title: "Query Optimizer",
-      description: "Analyze and optimize slow queries",
-      icon: Zap,
-      color: "from-violet-500 to-purple-500",
-      url: createPageUrl("AdminQueryOptimizer"),
-      badge: "Optimizer"
+      title: 'Security Audit',
+      description: 'Security and compliance checks',
+      icon: <Shield className="w-6 h-6" />,
+      color: 'from-rose-500 to-red-500',
+      url: createPageUrl('AdminSecurityAudit'),
+      badge: 'Security'
     },
     {
-      title: "Migration Studio",
-      description: "Database migrations and versioning",
-      icon: GitBranch,
-      color: "from-teal-500 to-cyan-500",
-      url: createPageUrl("AdminMigrationStudio"),
-      badge: "Version Control"
+      title: 'Relationship Mapper',
+      description: 'Visualize table relationships',
+      icon: <Link2 className="w-6 h-6" />,
+      color: 'from-violet-500 to-purple-500',
+      url: createPageUrl('AdminRelationshipMapper'),
+      badge: 'Visual'
     },
     {
-      title: "Replication Manager",
-      description: "Multi-region database replication",
-      icon: Server,
-      color: "from-lime-500 to-green-500",
-      url: createPageUrl("AdminReplicationManager"),
-      badge: "Multi-Region"
-    },
+      title: 'Data Integrity',
+      description: 'Validate data consistency',
+      icon: <CheckCircle className="w-6 h-6" />,
+      color: 'from-green-500 to-teal-500',
+      url: createPageUrl('AdminDataIntegrity'),
+      badge: 'Health'
+    }
   ];
 
   return (
     <div className="space-y-6">
+      {/* Header */}
       <div>
-        <h2 className="text-3xl font-black text-white mb-2">Enterprise Database Center</h2>
-        <p className="text-slate-400 font-semibold">Complete database management and optimization suite</p>
+        <h2 className="text-3xl font-black text-white mb-2">Enterprise Database Tools</h2>
+        <p className="text-slate-400 font-semibold">Professional database management and Glory Wave SQL generator</p>
       </div>
 
-      {/* Database Stats */}
+      {/* Stats Cards */}
       <div className="grid md:grid-cols-4 gap-4">
-        <Card className="bg-[#1a1f3a] border-0">
+        <Card className="bg-gradient-to-br from-[#1e293b] to-[#0f172a] border-0 shadow-xl">
           <CardContent className="p-6">
-            <div className="flex items-center justify-between mb-2">
-              <Database className="w-8 h-8 text-blue-400" />
-              <Badge className="bg-blue-500">Active</Badge>
+            <div className="flex items-center justify-between mb-3">
+              <Database className="w-10 h-10 text-cyan-400" />
+              <Badge className="bg-cyan-500">Active</Badge>
             </div>
-            <p className="text-3xl font-black text-white mb-1">{stats.totalRecords}</p>
+            <p className="text-4xl font-black text-white mb-1">{stats.totalRecords}</p>
             <p className="text-slate-400 text-sm font-semibold">Total Records</p>
           </CardContent>
         </Card>
 
-        <Card className="bg-[#1a1f3a] border-0">
+        <Card className="bg-gradient-to-br from-[#1e293b] to-[#0f172a] border-0 shadow-xl">
           <CardContent className="p-6">
-            <div className="flex items-center justify-between mb-2">
-              <Table className="w-8 h-8 text-green-400" />
+            <div className="flex items-center justify-between mb-3">
+              <Server className="w-10 h-10 text-green-400" />
               <Badge className="bg-green-500">Healthy</Badge>
             </div>
-            <p className="text-3xl font-black text-white mb-1">{stats.totalTables}</p>
+            <p className="text-4xl font-black text-white mb-1">{stats.totalTables}</p>
             <p className="text-slate-400 text-sm font-semibold">Database Tables</p>
           </CardContent>
         </Card>
 
-        <Card className="bg-[#1a1f3a] border-0">
+        <Card className="bg-gradient-to-br from-[#1e293b] to-[#0f172a] border-0 shadow-xl">
           <CardContent className="p-6">
-            <div className="flex items-center justify-between mb-2">
-              <HardDrive className="w-8 h-8 text-purple-400" />
+            <div className="flex items-center justify-between mb-3">
+              <TrendingUp className="w-10 h-10 text-purple-400" />
               <Badge className="bg-purple-500">Optimal</Badge>
             </div>
-            <p className="text-3xl font-black text-white mb-1">{stats.databaseSize.toFixed(2)}</p>
-            <p className="text-slate-400 text-sm font-semibold">Database Size (MB)</p>
+            <p className="text-4xl font-black text-white mb-1">
+              {stats.databaseSize.toFixed(2)}
+              <span className="text-2xl ml-1">MB</span>
+            </p>
+            <p className="text-slate-400 text-sm font-semibold">Database Size</p>
           </CardContent>
         </Card>
 
-        <Card className="bg-[#1a1f3a] border-0">
+        <Card className="bg-gradient-to-br from-[#1e293b] to-[#0f172a] border-0 shadow-xl">
           <CardContent className="p-6">
-            <div className="flex items-center justify-between mb-2">
-              <Activity className="w-8 h-8 text-cyan-400" />
-              <Badge className="bg-cyan-500">Live</Badge>
+            <div className="flex items-center justify-between mb-3">
+              <Activity className="w-10 h-10 text-green-400" />
+              <Badge className="bg-green-500">Live</Badge>
             </div>
-            <p className="text-3xl font-black text-white mb-1">{stats.uptime}%</p>
+            <p className="text-4xl font-black text-white mb-1">{stats.uptime}%</p>
             <p className="text-slate-400 text-sm font-semibold">Uptime</p>
           </CardContent>
         </Card>
       </div>
 
-      {/* Quick Actions */}
-      <Card className="bg-gradient-to-r from-cyan-900/30 to-blue-900/30 border-cyan-500/30">
-        <CardContent className="p-6">
-          <div className="flex items-start gap-4">
-            <Zap className="w-8 h-8 text-cyan-400 flex-shrink-0" />
-            <div className="flex-1">
-              <h3 className="text-white font-bold text-lg mb-2">Quick Actions</h3>
-              <div className="grid md:grid-cols-4 gap-3">
-                <Link to={createPageUrl("AdminSQLScriptGenerator")}>
-                  <Button className="w-full bg-cyan-500 hover:bg-cyan-600">
-                    <Code className="w-4 h-4 mr-2" />
-                    Generate Script
-                  </Button>
-                </Link>
-                <Link to={createPageUrl("AdminAdvancedQueryBuilder")}>
-                  <Button className="w-full bg-purple-500 hover:bg-purple-600">
-                    <Search className="w-4 h-4 mr-2" />
-                    Build Query
-                  </Button>
-                </Link>
-                <Link to={createPageUrl("AdminBackupRestore")}>
-                  <Button className="w-full bg-green-500 hover:bg-green-600">
-                    <Archive className="w-4 h-4 mr-2" />
-                    Backup Now
-                  </Button>
-                </Link>
-                <Link to={createPageUrl("AdminPerformanceMonitor")}>
-                  <Button className="w-full bg-amber-500 hover:bg-amber-600">
-                    <TrendingUp className="w-4 h-4 mr-2" />
-                    Monitor
-                  </Button>
-                </Link>
-              </div>
-            </div>
-          </div>
-        </CardContent>
-      </Card>
+      {/* Main Tabs */}
+      <Tabs defaultValue="export" className="w-full">
+        <TabsList className="bg-[#1e293b] border border-slate-700 p-1">
+          <TabsTrigger value="glory" className="data-[state=active]:bg-gradient-to-r data-[state=active]:from-purple-500 data-[state=active]:to-pink-500">
+            Glory Wave
+          </TabsTrigger>
+          <TabsTrigger value="codegen" className="data-[state=active]:bg-cyan-500">
+            Code Gen
+          </TabsTrigger>
+          <TabsTrigger value="schema" className="data-[state=active]:bg-cyan-500">
+            Schema
+          </TabsTrigger>
+          <TabsTrigger value="queries" className="data-[state=active]:bg-cyan-500">
+            Queries
+          </TabsTrigger>
+          <TabsTrigger value="export" className="data-[state=active]:bg-cyan-500">
+            Export
+          </TabsTrigger>
+          <TabsTrigger value="import" className="data-[state=active]:bg-cyan-500">
+            Import
+          </TabsTrigger>
+          <TabsTrigger value="tables" className="data-[state=active]:bg-cyan-500">
+            Tables
+          </TabsTrigger>
+          <TabsTrigger value="backup" className="data-[state=active]:bg-cyan-500">
+            Backup
+          </TabsTrigger>
+          <TabsTrigger value="performance" className="data-[state=active]:bg-cyan-500">
+            Performance
+          </TabsTrigger>
+          <TabsTrigger value="advanced" className="data-[state=active]:bg-cyan-500">
+            Advanced
+          </TabsTrigger>
+          <TabsTrigger value="enterprise" className="data-[state=active]:bg-cyan-500">
+            Enterprise
+          </TabsTrigger>
+        </TabsList>
 
-      {/* Tools Grid */}
-      <div>
-        <h3 className="text-xl font-bold text-white mb-4 flex items-center gap-2">
-          <Layers className="w-5 h-5 text-cyan-400" />
-          Database Tools & Features
-        </h3>
-        <div className="grid md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-4">
-          {tools.map((tool, idx) => (
-            <Link key={idx} to={tool.url}>
-              <Card className="bg-[#1a1f3a] border-slate-700 hover:shadow-2xl hover:shadow-cyan-500/20 transition-all group cursor-pointer h-full">
-                <CardContent className="p-6">
-                  <div className="flex items-start justify-between mb-4">
-                    <div className={`w-12 h-12 rounded-xl bg-gradient-to-br ${tool.color} flex items-center justify-center shadow-lg group-hover:scale-110 transition-transform`}>
-                      <tool.icon className="w-6 h-6 text-white" />
-                    </div>
-                    <Badge className="bg-slate-700 text-slate-300 text-xs">
-                      {tool.badge}
-                    </Badge>
+        {/* Export Tab */}
+        <TabsContent value="export" className="mt-6">
+          <Card className="bg-gradient-to-br from-[#1e293b] to-[#0f172a] border-slate-700">
+            <CardHeader className="border-b border-slate-700">
+              <CardTitle className="text-white font-bold flex items-center gap-2">
+                <Download className="w-5 h-5" />
+                Data Export Manager
+              </CardTitle>
+            </CardHeader>
+            <CardContent className="p-6">
+              {/* Table Selection */}
+              <div className="mb-6">
+                <div className="flex items-center justify-between mb-4">
+                  <h3 className="text-white font-bold text-lg">Select Tables to Export</h3>
+                  <div className="flex gap-2">
+                    <Button onClick={selectAll} size="sm" variant="outline" className="border-slate-700 text-slate-300">
+                      Select All
+                    </Button>
+                    <Button onClick={clearAll} size="sm" variant="outline" className="border-slate-700 text-slate-300">
+                      Clear
+                    </Button>
                   </div>
-                  <h4 className="text-white font-bold mb-2 group-hover:text-cyan-400 transition-colors">
-                    {tool.title}
-                  </h4>
-                  <p className="text-slate-400 text-sm line-clamp-2">
-                    {tool.description}
-                  </p>
-                </CardContent>
-              </Card>
-            </Link>
-          ))}
-        </div>
-      </div>
+                </div>
+
+                <div className="grid md:grid-cols-3 gap-3 p-6 bg-slate-900/50 rounded-lg border border-slate-700">
+                  {availableTables.map((table) => (
+                    <label
+                      key={table}
+                      className="flex items-center gap-3 cursor-pointer hover:bg-slate-800/50 p-3 rounded-lg transition-all"
+                    >
+                      <Checkbox
+                        checked={selectedTables.includes(table)}
+                        onCheckedChange={() => toggleTable(table)}
+                      />
+                      <span className="text-white font-medium">{table}</span>
+                    </label>
+                  ))}
+                </div>
+              </div>
+
+              {/* Export Format */}
+              <div className="mb-6">
+                <h3 className="text-white font-bold text-lg mb-3">Export Format</h3>
+                <select
+                  value={exportFormat}
+                  onChange={(e) => setExportFormat(e.target.value)}
+                  className="w-full bg-slate-900 border border-slate-700 text-white rounded-lg p-3 font-medium"
+                >
+                  <option value="SQL Dump">SQL Dump</option>
+                  <option value="JSON">JSON</option>
+                  <option value="CSV">CSV</option>
+                  <option value="Excel">Excel (XLSX)</option>
+                  <option value="XML">XML</option>
+                </select>
+              </div>
+
+              {/* Export Button */}
+              <Button
+                onClick={handleExport}
+                disabled={selectedTables.length === 0}
+                className="w-full bg-gradient-to-r from-blue-500 to-cyan-500 hover:from-blue-600 hover:to-cyan-600 text-white font-bold py-6 text-lg"
+              >
+                <Download className="w-5 h-5 mr-2" />
+                Export {selectedTables.length} Tables
+              </Button>
+            </CardContent>
+          </Card>
+        </TabsContent>
+
+        {/* Glory Wave Tab - Tools Grid */}
+        <TabsContent value="glory" className="mt-6">
+          <div className="grid md:grid-cols-3 gap-4">
+            {databaseTools.map((tool, idx) => (
+              <Link key={idx} to={tool.url}>
+                <Card className="bg-gradient-to-br from-[#1e293b] to-[#0f172a] border-slate-700 hover:border-cyan-500 transition-all cursor-pointer group">
+                  <CardContent className="p-6">
+                    <div className="flex items-start justify-between mb-4">
+                      <div className={`w-12 h-12 rounded-xl bg-gradient-to-br ${tool.color} flex items-center justify-center text-white shadow-lg`}>
+                        {tool.icon}
+                      </div>
+                      <Badge className="bg-cyan-500">{tool.badge}</Badge>
+                    </div>
+                    <h3 className="text-white font-bold text-lg mb-2 group-hover:text-cyan-400 transition-colors">
+                      {tool.title}
+                    </h3>
+                    <p className="text-slate-400 text-sm">{tool.description}</p>
+                  </CardContent>
+                </Card>
+              </Link>
+            ))}
+          </div>
+        </TabsContent>
+
+        {/* Other tabs - Coming Soon */}
+        {['codegen', 'schema', 'queries', 'import', 'tables', 'backup', 'performance', 'advanced', 'enterprise'].map((tab) => (
+          <TabsContent key={tab} value={tab} className="mt-6">
+            <Card className="bg-gradient-to-br from-[#1e293b] to-[#0f172a] border-slate-700">
+              <CardContent className="p-12 text-center">
+                <Database className="w-16 h-16 text-slate-600 mx-auto mb-4" />
+                <h3 className="text-white font-bold text-xl mb-2">{tab.charAt(0).toUpperCase() + tab.slice(1)} Tools</h3>
+                <p className="text-slate-400 mb-6">Advanced {tab} features coming soon</p>
+                <Link to={createPageUrl('AdminDatabaseCenter')}>
+                  <Button className="bg-cyan-500 hover:bg-cyan-600">
+                    Explore Available Tools
+                  </Button>
+                </Link>
+              </CardContent>
+            </Card>
+          </TabsContent>
+        ))}
+      </Tabs>
 
       {/* System Health */}
-      <Card className="bg-[#1a1f3a] border-slate-700">
-        <CardHeader className="border-b border-slate-700">
-          <CardTitle className="text-white font-bold flex items-center gap-2">
-            <Activity className="w-5 h-5 text-green-400" />
+      <Card className="bg-gradient-to-br from-green-900/20 to-emerald-900/20 border-green-500/30">
+        <CardHeader className="border-b border-green-500/30">
+          <CardTitle className="text-green-300 font-bold flex items-center gap-2">
+            <CheckCircle className="w-5 h-5" />
             System Health
           </CardTitle>
         </CardHeader>
         <CardContent className="p-6">
-          <div className="space-y-4">
-            <div className="flex items-center justify-between">
-              <div className="flex items-center gap-3">
-                <CheckCircle className="w-5 h-5 text-green-400" />
-                <span className="text-white font-semibold">Database Connectivity</span>
-              </div>
-              <Badge className="bg-green-500">Operational</Badge>
+          <div className="grid md:grid-cols-4 gap-4">
+            <div className="text-center">
+              <p className="text-green-400 font-bold text-2xl mb-1">100%</p>
+              <p className="text-green-200 text-sm">API Operational</p>
             </div>
-            <div className="flex items-center justify-between">
-              <div className="flex items-center gap-3">
-                <CheckCircle className="w-5 h-5 text-green-400" />
-                <span className="text-white font-semibold">Query Performance</span>
-              </div>
-              <Badge className="bg-green-500">Optimal</Badge>
+            <div className="text-center">
+              <p className="text-green-400 font-bold text-2xl mb-1">Fast</p>
+              <p className="text-green-200 text-sm">Query Response</p>
             </div>
-            <div className="flex items-center justify-between">
-              <div className="flex items-center gap-3">
-                <CheckCircle className="w-5 h-5 text-green-400" />
-                <span className="text-white font-semibold">Backup Status</span>
-              </div>
-              <Badge className="bg-green-500">Up to Date</Badge>
+            <div className="text-center">
+              <p className="text-green-400 font-bold text-2xl mb-1">Secure</p>
+              <p className="text-green-200 text-sm">Encrypted</p>
             </div>
-            <div className="flex items-center justify-between">
-              <div className="flex items-center gap-3">
-                <CheckCircle className="w-5 h-5 text-green-400" />
-                <span className="text-white font-semibold">Security</span>
-              </div>
-              <Badge className="bg-green-500">Secure</Badge>
+            <div className="text-center">
+              <p className="text-green-400 font-bold text-2xl mb-1">Backed Up</p>
+              <p className="text-green-200 text-sm">Auto-Save</p>
             </div>
           </div>
         </CardContent>

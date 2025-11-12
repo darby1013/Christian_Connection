@@ -8,9 +8,11 @@ import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
 import { Badge } from "@/components/ui/badge";
 import { Tabs, TabsList, TabsTrigger, TabsContent } from "@/components/ui/tabs";
+import { Slider } from "@/components/ui/slider";
 import {
   Palette, Eye, Save, RotateCcw, Code, Sparkles,
-  Sun, Moon, Type, Square
+  Sun, Moon, Type, Square, Upload, Image as ImageIcon,
+  Droplet, Layers
 } from "lucide-react";
 import { useTheme } from "../components/theme/ThemeProvider";
 
@@ -18,7 +20,11 @@ export default function UserProfileCustomization() {
   const [user, setUser] = useState(null);
   const { theme, updateTheme, toggleMode } = useTheme();
   const [customCSS, setCustomCSS] = useState('');
-  const [previewMode, setPreviewMode] = useState(false);
+  const [backgroundImage, setBackgroundImage] = useState('');
+  const [backgroundBlur, setBackgroundBlur] = useState(0);
+  const [backgroundOpacity, setBackgroundOpacity] = useState(1);
+  const [cardStyle, setCardStyle] = useState('glass');
+  const [uploading, setUploading] = useState(false);
 
   const queryClient = useQueryClient();
 
@@ -28,10 +34,15 @@ export default function UserProfileCustomization() {
         const currentUser = await base44.auth.me();
         setUser(currentUser);
         
-        // Load custom CSS
+        // Load user theme settings
         const userThemes = await base44.entities.UserTheme.filter({ user_id: currentUser.id });
-        if (userThemes.length > 0 && userThemes[0].custom_css) {
-          setCustomCSS(userThemes[0].custom_css);
+        if (userThemes.length > 0) {
+          const userTheme = userThemes[0];
+          setCustomCSS(userTheme.custom_css || '');
+          setBackgroundImage(userTheme.background_image || '');
+          setBackgroundBlur(userTheme.background_blur || 0);
+          setBackgroundOpacity(userTheme.background_opacity || 1);
+          setCardStyle(userTheme.card_style || 'glass');
         }
       } catch (error) {
         base44.auth.redirectToLogin();
@@ -40,43 +51,80 @@ export default function UserProfileCustomization() {
     fetchUser();
   }, []);
 
-  const saveCustomCSS = async () => {
+  const handleImageUpload = async (e) => {
+    const file = e.target.files[0];
+    if (!file) return;
+
+    setUploading(true);
+    try {
+      const { file_url } = await base44.integrations.Core.UploadFile({ file });
+      setBackgroundImage(file_url);
+      
+      // Save to database
+      await saveThemeSettings({ background_image: file_url });
+      alert('✅ Background image uploaded!');
+    } catch (error) {
+      console.error('Upload failed:', error);
+      alert('❌ Failed to upload image');
+    } finally {
+      setUploading(false);
+    }
+  };
+
+  const saveThemeSettings = async (updates = {}) => {
     if (!user) return;
     
     try {
       const userThemes = await base44.entities.UserTheme.filter({ user_id: user.id });
+      const themeData = {
+        background_image: backgroundImage,
+        background_blur: backgroundBlur,
+        background_opacity: backgroundOpacity,
+        card_style: cardStyle,
+        custom_css: customCSS,
+        ...updates
+      };
+
       if (userThemes.length > 0) {
-        await base44.entities.UserTheme.update(userThemes[0].id, { custom_css: customCSS });
+        await base44.entities.UserTheme.update(userThemes[0].id, themeData);
       } else {
         await base44.entities.UserTheme.create({
           user_id: user.id,
-          custom_css: customCSS,
+          ...themeData
         });
       }
-      
-      // Apply custom CSS
-      applyCustomCSS();
-      alert('✅ Custom CSS saved!');
     } catch (error) {
-      console.error('Failed to save CSS:', error);
-      alert('❌ Failed to save CSS');
+      console.error('Failed to save theme:', error);
     }
   };
 
+  const saveCustomCSS = async () => {
+    await saveThemeSettings({ custom_css: customCSS });
+    applyCustomCSS();
+    alert('✅ Custom CSS saved!');
+  };
+
   const applyCustomCSS = () => {
-    // Remove existing custom CSS
     const existingStyle = document.getElementById('user-custom-css');
     if (existingStyle) {
       existingStyle.remove();
     }
 
-    // Add new custom CSS
     if (customCSS) {
       const style = document.createElement('style');
       style.id = 'user-custom-css';
       style.textContent = customCSS;
       document.head.appendChild(style);
     }
+  };
+
+  const applyBackgroundSettings = async () => {
+    await saveThemeSettings({
+      background_blur: backgroundBlur,
+      background_opacity: backgroundOpacity,
+      card_style: cardStyle
+    });
+    alert('✅ Background settings saved!');
   };
 
   const colorPresets = [
@@ -86,6 +134,8 @@ export default function UserProfileCustomization() {
     { name: 'Forest', primary: '#10b981', secondary: '#059669', accent: '#84cc16', bg: '#064e3b' },
     { name: 'Purple Rain', primary: '#8b5cf6', secondary: '#7c3aed', accent: '#ec4899', bg: '#1e1b4b' },
     { name: 'Crimson', primary: '#dc2626', secondary: '#f97316', accent: '#fbbf24', bg: '#450a0a' },
+    { name: 'Cyberpunk', primary: '#ff00ff', secondary: '#00ffff', accent: '#ffff00', bg: '#0a0015' },
+    { name: 'Mint Fresh', primary: '#34d399', secondary: '#10b981', accent: '#6ee7b7', bg: '#064e3b' },
   ];
 
   const resetTheme = () => {
@@ -97,29 +147,57 @@ export default function UserProfileCustomization() {
       font_family: 'Inter',
       border_radius: '0.5rem',
     });
+    setBackgroundImage('');
+    setBackgroundBlur(0);
+    setBackgroundOpacity(1);
+    setCardStyle('glass');
   };
 
+  const cardStyles = [
+    { name: 'Glass', value: 'glass', preview: 'bg-white/10 backdrop-blur-xl border-white/20' },
+    { name: 'Solid', value: 'solid', preview: 'bg-slate-800 border-slate-700' },
+    { name: 'Gradient', value: 'gradient', preview: 'bg-gradient-to-br from-purple-900/50 to-cyan-900/50 border-purple-500/30' },
+    { name: 'Neumorphic', value: 'neumorphic', preview: 'bg-slate-800 shadow-[inset_0_2px_4px_rgba(0,0,0,0.6)]' },
+  ];
+
   return (
-    <div className="min-h-screen bg-[#0a0e27] py-12 px-4">
-      <div className="max-w-7xl mx-auto">
+    <div 
+      className="min-h-screen py-12 px-4 relative"
+      style={{
+        backgroundImage: backgroundImage ? `url(${backgroundImage})` : 'none',
+        backgroundSize: 'cover',
+        backgroundPosition: 'center',
+        backgroundAttachment: 'fixed',
+      }}
+    >
+      {/* Background Overlay */}
+      <div 
+        className="absolute inset-0 bg-[#0a0e27]"
+        style={{
+          opacity: 1 - backgroundOpacity,
+          backdropFilter: `blur(${backgroundBlur}px)`,
+        }}
+      />
+
+      <div className="max-w-7xl mx-auto relative z-10">
         <div className="flex items-center justify-between mb-8">
           <div>
             <h2 className="text-3xl font-black text-white mb-2 flex items-center gap-3">
               <Palette className="w-8 h-8 text-cyan-400" />
-              Profile Customization
+              Advanced Profile Customization
             </h2>
-            <p className="text-slate-400 font-semibold">Personalize your profile with colors and custom styles</p>
+            <p className="text-slate-400 font-semibold">Create your unique visual identity with colors, backgrounds, and custom styles</p>
           </div>
           <div className="flex gap-2">
             <Button
               onClick={toggleMode}
               variant="outline"
-              className="border-slate-700 text-slate-300"
+              className="border-slate-700 text-slate-300 bg-slate-900/80 backdrop-blur-sm"
             >
               {theme.mode === 'dark' ? <Sun className="w-4 h-4 mr-2" /> : <Moon className="w-4 h-4 mr-2" />}
               {theme.mode === 'dark' ? 'Light' : 'Dark'} Mode
             </Button>
-            <Button onClick={resetTheme} variant="outline" className="border-slate-700 text-slate-300">
+            <Button onClick={resetTheme} variant="outline" className="border-slate-700 text-slate-300 bg-slate-900/80 backdrop-blur-sm">
               <RotateCcw className="w-4 h-4 mr-2" />
               Reset
             </Button>
@@ -130,10 +208,14 @@ export default function UserProfileCustomization() {
           {/* Customization Tools */}
           <div className="lg:col-span-2 space-y-6">
             <Tabs defaultValue="colors">
-              <TabsList className="bg-[#1a1f3a] border border-slate-700">
+              <TabsList className="bg-slate-900/80 backdrop-blur-sm border border-slate-700">
                 <TabsTrigger value="colors" className="data-[state=active]:bg-cyan-500">
                   <Palette className="w-4 h-4 mr-2" />
                   Colors
+                </TabsTrigger>
+                <TabsTrigger value="background" className="data-[state=active]:bg-cyan-500">
+                  <ImageIcon className="w-4 h-4 mr-2" />
+                  Background
                 </TabsTrigger>
                 <TabsTrigger value="typography" className="data-[state=active]:bg-cyan-500">
                   <Type className="w-4 h-4 mr-2" />
@@ -151,13 +233,12 @@ export default function UserProfileCustomization() {
 
               {/* Colors Tab */}
               <TabsContent value="colors" className="space-y-6">
-                {/* Color Presets */}
-                <Card className="bg-[#1a1f3a] border-slate-700">
+                <Card className="bg-slate-900/80 backdrop-blur-sm border-slate-700">
                   <CardHeader className="border-b border-slate-700">
                     <CardTitle className="text-white font-bold">Color Scheme Presets</CardTitle>
                   </CardHeader>
                   <CardContent className="p-6">
-                    <div className="grid md:grid-cols-3 gap-4">
+                    <div className="grid md:grid-cols-4 gap-3">
                       {colorPresets.map((preset) => (
                         <Card
                           key={preset.name}
@@ -167,16 +248,15 @@ export default function UserProfileCustomization() {
                             accent_color: preset.accent,
                             background_color: preset.bg,
                           })}
-                          className="cursor-pointer hover:ring-2 hover:ring-cyan-500 transition-all bg-slate-900/50 border-slate-700"
+                          className="cursor-pointer hover:ring-2 hover:ring-cyan-500 transition-all bg-slate-800/50 border-slate-700"
                         >
-                          <CardContent className="p-4">
-                            <div className="flex gap-2 mb-3">
-                              <div className="w-8 h-8 rounded" style={{ backgroundColor: preset.primary }} />
-                              <div className="w-8 h-8 rounded" style={{ backgroundColor: preset.secondary }} />
-                              <div className="w-8 h-8 rounded" style={{ backgroundColor: preset.accent }} />
-                              <div className="w-8 h-8 rounded" style={{ backgroundColor: preset.bg }} />
+                          <CardContent className="p-3">
+                            <div className="flex gap-1 mb-2">
+                              <div className="w-6 h-6 rounded" style={{ backgroundColor: preset.primary }} />
+                              <div className="w-6 h-6 rounded" style={{ backgroundColor: preset.secondary }} />
+                              <div className="w-6 h-6 rounded" style={{ backgroundColor: preset.accent }} />
                             </div>
-                            <p className="text-white font-semibold text-sm">{preset.name}</p>
+                            <p className="text-white font-semibold text-xs">{preset.name}</p>
                           </CardContent>
                         </Card>
                       ))}
@@ -184,8 +264,7 @@ export default function UserProfileCustomization() {
                   </CardContent>
                 </Card>
 
-                {/* Custom Colors */}
-                <Card className="bg-[#1a1f3a] border-slate-700">
+                <Card className="bg-slate-900/80 backdrop-blur-sm border-slate-700">
                   <CardHeader className="border-b border-slate-700">
                     <CardTitle className="text-white font-bold">Custom Colors</CardTitle>
                   </CardHeader>
@@ -203,7 +282,7 @@ export default function UserProfileCustomization() {
                           <Input
                             value={theme.primary_color}
                             onChange={(e) => updateTheme({ primary_color: e.target.value })}
-                            className="flex-1 bg-slate-900 border-slate-700 text-white"
+                            className="flex-1 bg-slate-800 border-slate-700 text-white"
                           />
                         </div>
                       </div>
@@ -220,7 +299,7 @@ export default function UserProfileCustomization() {
                           <Input
                             value={theme.secondary_color}
                             onChange={(e) => updateTheme({ secondary_color: e.target.value })}
-                            className="flex-1 bg-slate-900 border-slate-700 text-white"
+                            className="flex-1 bg-slate-800 border-slate-700 text-white"
                           />
                         </div>
                       </div>
@@ -237,7 +316,7 @@ export default function UserProfileCustomization() {
                           <Input
                             value={theme.accent_color}
                             onChange={(e) => updateTheme({ accent_color: e.target.value })}
-                            className="flex-1 bg-slate-900 border-slate-700 text-white"
+                            className="flex-1 bg-slate-800 border-slate-700 text-white"
                           />
                         </div>
                       </div>
@@ -254,7 +333,7 @@ export default function UserProfileCustomization() {
                           <Input
                             value={theme.background_color}
                             onChange={(e) => updateTheme({ background_color: e.target.value })}
-                            className="flex-1 bg-slate-900 border-slate-700 text-white"
+                            className="flex-1 bg-slate-800 border-slate-700 text-white"
                           />
                         </div>
                       </div>
@@ -263,9 +342,107 @@ export default function UserProfileCustomization() {
                 </Card>
               </TabsContent>
 
+              {/* Background Tab */}
+              <TabsContent value="background" className="space-y-6">
+                <Card className="bg-slate-900/80 backdrop-blur-sm border-slate-700">
+                  <CardHeader className="border-b border-slate-700">
+                    <CardTitle className="text-white font-bold">Background Image</CardTitle>
+                  </CardHeader>
+                  <CardContent className="p-6 space-y-4">
+                    <div>
+                      <Label className="text-white font-bold mb-2 block">Upload Custom Background</Label>
+                      <div className="border-2 border-dashed border-slate-700 rounded-lg p-8 text-center hover:border-cyan-500 transition-all cursor-pointer bg-slate-800/50">
+                        <input
+                          type="file"
+                          accept="image/*"
+                          onChange={handleImageUpload}
+                          className="hidden"
+                          id="bg-upload"
+                        />
+                        <label htmlFor="bg-upload" className="cursor-pointer">
+                          <Upload className="w-12 h-12 text-slate-400 mx-auto mb-3" />
+                          <p className="text-white font-semibold mb-1">
+                            {uploading ? 'Uploading...' : 'Click to upload background image'}
+                          </p>
+                          <p className="text-slate-400 text-sm">PNG, JPG up to 10MB</p>
+                        </label>
+                      </div>
+                    </div>
+
+                    {backgroundImage && (
+                      <div className="relative rounded-lg overflow-hidden border-2 border-cyan-500">
+                        <img src={backgroundImage} alt="Background" className="w-full h-48 object-cover" />
+                        <Button
+                          onClick={() => {
+                            setBackgroundImage('');
+                            saveThemeSettings({ background_image: '' });
+                          }}
+                          size="sm"
+                          className="absolute top-2 right-2 bg-red-500 hover:bg-red-600"
+                        >
+                          Remove
+                        </Button>
+                      </div>
+                    )}
+
+                    <div>
+                      <Label className="text-white font-bold mb-2 block">
+                        Background Blur: {backgroundBlur}px
+                      </Label>
+                      <Slider
+                        value={[backgroundBlur]}
+                        max={20}
+                        step={1}
+                        onValueChange={([value]) => setBackgroundBlur(value)}
+                        className="mb-2"
+                      />
+                    </div>
+
+                    <div>
+                      <Label className="text-white font-bold mb-2 block">
+                        Background Opacity: {Math.round(backgroundOpacity * 100)}%
+                      </Label>
+                      <Slider
+                        value={[backgroundOpacity * 100]}
+                        max={100}
+                        step={1}
+                        onValueChange={([value]) => setBackgroundOpacity(value / 100)}
+                        className="mb-2"
+                      />
+                    </div>
+
+                    <div>
+                      <Label className="text-white font-bold mb-3 block">Card Style</Label>
+                      <div className="grid grid-cols-2 gap-3">
+                        {cardStyles.map((style) => (
+                          <Card
+                            key={style.value}
+                            onClick={() => setCardStyle(style.value)}
+                            className={`cursor-pointer transition-all ${
+                              cardStyle === style.value
+                                ? 'ring-2 ring-cyan-500'
+                                : 'hover:ring-2 hover:ring-slate-600'
+                            } ${style.preview}`}
+                          >
+                            <CardContent className="p-4 text-center">
+                              <p className="text-white font-semibold">{style.name}</p>
+                            </CardContent>
+                          </Card>
+                        ))}
+                      </div>
+                    </div>
+
+                    <Button onClick={applyBackgroundSettings} className="w-full bg-green-500 hover:bg-green-600">
+                      <Save className="w-4 h-4 mr-2" />
+                      Save Background Settings
+                    </Button>
+                  </CardContent>
+                </Card>
+              </TabsContent>
+
               {/* Typography Tab */}
               <TabsContent value="typography">
-                <Card className="bg-[#1a1f3a] border-slate-700">
+                <Card className="bg-slate-900/80 backdrop-blur-sm border-slate-700">
                   <CardHeader className="border-b border-slate-700">
                     <CardTitle className="text-white font-bold">Typography Settings</CardTitle>
                   </CardHeader>
@@ -275,7 +452,7 @@ export default function UserProfileCustomization() {
                       <select
                         value={theme.font_family}
                         onChange={(e) => updateTheme({ font_family: e.target.value })}
-                        className="w-full bg-slate-900 border border-slate-700 text-white rounded-lg p-2"
+                        className="w-full bg-slate-800 border border-slate-700 text-white rounded-lg p-2"
                       >
                         <option value="Inter">Inter (Default)</option>
                         <option value="Roboto">Roboto</option>
@@ -283,10 +460,12 @@ export default function UserProfileCustomization() {
                         <option value="Montserrat">Montserrat</option>
                         <option value="Open Sans">Open Sans</option>
                         <option value="Lato">Lato</option>
+                        <option value="Playfair Display">Playfair Display</option>
+                        <option value="Raleway">Raleway</option>
                       </select>
                     </div>
 
-                    <div className="p-4 bg-slate-900 rounded-lg" style={{ fontFamily: theme.font_family }}>
+                    <div className="p-4 bg-slate-800 rounded-lg" style={{ fontFamily: theme.font_family }}>
                       <p className="text-white text-2xl font-bold mb-2">Heading Example</p>
                       <p className="text-slate-300">This is how your text will look with the selected font family.</p>
                     </div>
@@ -296,7 +475,7 @@ export default function UserProfileCustomization() {
 
               {/* Layout Tab */}
               <TabsContent value="layout">
-                <Card className="bg-[#1a1f3a] border-slate-700">
+                <Card className="bg-slate-900/80 backdrop-blur-sm border-slate-700">
                   <CardHeader className="border-b border-slate-700">
                     <CardTitle className="text-white font-bold">Layout Settings</CardTitle>
                   </CardHeader>
@@ -306,7 +485,7 @@ export default function UserProfileCustomization() {
                       <select
                         value={theme.border_radius}
                         onChange={(e) => updateTheme({ border_radius: e.target.value })}
-                        className="w-full bg-slate-900 border border-slate-700 text-white rounded-lg p-2"
+                        className="w-full bg-slate-800 border border-slate-700 text-white rounded-lg p-2"
                       >
                         <option value="0">None (0px)</option>
                         <option value="0.25rem">Small (4px)</option>
@@ -314,6 +493,7 @@ export default function UserProfileCustomization() {
                         <option value="0.75rem">Large (12px)</option>
                         <option value="1rem">Extra Large (16px)</option>
                         <option value="1.5rem">Rounded (24px)</option>
+                        <option value="9999px">Pill (Full Round)</option>
                       </select>
                     </div>
 
@@ -337,7 +517,7 @@ export default function UserProfileCustomization() {
 
               {/* Custom CSS Tab */}
               <TabsContent value="css">
-                <Card className="bg-[#1a1f3a] border-slate-700">
+                <Card className="bg-slate-900/80 backdrop-blur-sm border-slate-700">
                   <CardHeader className="border-b border-slate-700">
                     <div className="flex items-center justify-between">
                       <CardTitle className="text-white font-bold">Custom CSS</CardTitle>
@@ -352,15 +532,17 @@ export default function UserProfileCustomization() {
                       value={customCSS}
                       onChange={(e) => setCustomCSS(e.target.value)}
                       placeholder="/* Add your custom CSS here */
-.my-profile {
-  background: linear-gradient(to right, #667eea, #764ba2);
+.my-profile-card {
+  background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+  border-radius: 20px;
+  box-shadow: 0 10px 40px rgba(0,0,0,0.3);
 }
 
-.custom-button {
-  border-radius: 20px;
-  box-shadow: 0 4px 6px rgba(0,0,0,0.1);
+.custom-text {
+  font-family: 'Georgia', serif;
+  color: #ffd700;
 }"
-                      className="bg-slate-900 border-slate-700 text-cyan-400 font-mono text-sm h-96"
+                      className="bg-slate-800 border-slate-700 text-cyan-400 font-mono text-sm h-96"
                     />
                   </CardContent>
                 </Card>
@@ -370,7 +552,7 @@ export default function UserProfileCustomization() {
 
           {/* Live Preview */}
           <div className="space-y-6">
-            <Card className="bg-[#1a1f3a] border-slate-700">
+            <Card className="bg-slate-900/80 backdrop-blur-sm border-slate-700">
               <CardHeader className="border-b border-slate-700">
                 <CardTitle className="text-white font-bold flex items-center gap-2">
                   <Eye className="w-5 h-5" />
@@ -378,7 +560,6 @@ export default function UserProfileCustomization() {
                 </CardTitle>
               </CardHeader>
               <CardContent className="p-6 space-y-4">
-                {/* Primary Button */}
                 <Button 
                   className="w-full"
                   style={{ 
@@ -390,7 +571,6 @@ export default function UserProfileCustomization() {
                   Primary Button
                 </Button>
 
-                {/* Secondary Button */}
                 <Button 
                   className="w-full"
                   style={{ 
@@ -402,7 +582,6 @@ export default function UserProfileCustomization() {
                   Secondary Button
                 </Button>
 
-                {/* Accent Card */}
                 <div 
                   className="p-4 text-white"
                   style={{ 
@@ -415,7 +594,6 @@ export default function UserProfileCustomization() {
                   <p className="text-sm opacity-90">This is how accent colors will look</p>
                 </div>
 
-                {/* Background Preview */}
                 <div 
                   className="p-4"
                   style={{ 
@@ -430,18 +608,21 @@ export default function UserProfileCustomization() {
               </CardContent>
             </Card>
 
-            {/* Tips */}
-            <Card className="bg-blue-900/20 border-blue-500/30">
-              <CardHeader className="border-b border-blue-500/30">
-                <CardTitle className="text-blue-300 font-bold text-sm">💡 Customization Tips</CardTitle>
+            <Card className="bg-gradient-to-br from-purple-900/20 to-pink-900/20 border-purple-500/30">
+              <CardHeader className="border-b border-purple-500/30">
+                <CardTitle className="text-purple-300 font-bold text-sm flex items-center gap-2">
+                  <Sparkles className="w-4 h-4" />
+                  Pro Customization
+                </CardTitle>
               </CardHeader>
               <CardContent className="p-4">
-                <ul className="text-blue-200 text-xs space-y-2">
-                  <li>• Use color presets for quick themes</li>
-                  <li>• Custom CSS applies to your profile only</li>
-                  <li>• Changes are saved automatically</li>
-                  <li>• Toggle dark/light mode anytime</li>
-                  <li>• Reset to defaults if needed</li>
+                <ul className="text-purple-200 text-xs space-y-2">
+                  <li>• Upload custom background images</li>
+                  <li>• Adjust blur and opacity</li>
+                  <li>• Choose from 4 card styles</li>
+                  <li>• Add unlimited custom CSS</li>
+                  <li>• 8+ color presets included</li>
+                  <li>• Changes save automatically</li>
                 </ul>
               </CardContent>
             </Card>
