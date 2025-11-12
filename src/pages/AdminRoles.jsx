@@ -1,4 +1,3 @@
-
 import React, { useState } from "react";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { base44 } from "@/api/base44Client";
@@ -22,7 +21,7 @@ import {
   DialogFooter,
   DialogDescription,
 } from "@/components/ui/dialog";
-import { PERMISSION_GROUPS, DEFAULT_ROLES } from "../utils/permissions";
+import { PERMISSION_GROUPS, DEFAULT_ROLES } from "@/utils/permissions";
 
 export default function AdminRoles() {
   const [showDialog, setShowDialog] = useState(false);
@@ -146,13 +145,11 @@ export default function AdminRoles() {
     const hasAll = allGroupPerms.every(p => roleForm.permissions.includes(p));
     
     if (hasAll) {
-      // Remove all group permissions
       setRoleForm(prev => ({
         ...prev,
         permissions: prev.permissions.filter(p => !allGroupPerms.includes(p)),
       }));
     } else {
-      // Add all group permissions
       setRoleForm(prev => ({
         ...prev,
         permissions: [...new Set([...prev.permissions, ...allGroupPerms])],
