@@ -22,7 +22,7 @@ import {
   DialogFooter,
   DialogDescription,
 } from "@/components/ui/dialog";
-import { PERMISSION_GROUPS, DEFAULT_ROLES } from "../../components/utils/permissions";
+import { PERMISSION_GROUPS, DEFAULT_ROLES } from "@/components/utils/permissions";
 
 export default function AdminRoles() {
   const [showDialog, setShowDialog] = useState(false);

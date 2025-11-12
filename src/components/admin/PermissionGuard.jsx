@@ -2,7 +2,7 @@ import React from "react";
 import { Card, CardContent } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Shield, Lock, AlertTriangle } from "lucide-react";
-import { hasPermission, hasAnyPermission, canAccessAdminPage } from "../utils/permissions";
+import { hasPermission, hasAnyPermission, canAccessAdminPage } from "@/components/utils/permissions";
 import { Link } from "react-router-dom";
 import { createPageUrl } from "@/utils";
 
