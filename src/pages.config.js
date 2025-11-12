@@ -112,6 +112,10 @@ import AdminReplicationManager from './pages/AdminReplicationManager';
 import AdminSecurityAudit from './pages/AdminSecurityAudit';
 import Notifications from './pages/Notifications';
 import AdminActivityFeed from './pages/AdminActivityFeed';
+import AdminDatabaseCenter from './pages/AdminDatabaseCenter';
+import AdminAdvancedQueryBuilder from './pages/AdminAdvancedQueryBuilder';
+import AdminSchemaGenerator from './pages/AdminSchemaGenerator';
+import AdminSQLScriptGenerator from './pages/AdminSQLScriptGenerator';
 import Layout from './Layout.jsx';
 
 
@@ -230,6 +234,10 @@ export const PAGES = {
     "AdminSecurityAudit": AdminSecurityAudit,
     "Notifications": Notifications,
     "AdminActivityFeed": AdminActivityFeed,
+    "AdminDatabaseCenter": AdminDatabaseCenter,
+    "AdminAdvancedQueryBuilder": AdminAdvancedQueryBuilder,
+    "AdminSchemaGenerator": AdminSchemaGenerator,
+    "AdminSQLScriptGenerator": AdminSQLScriptGenerator,
 }
 
 export const pagesConfig = {
