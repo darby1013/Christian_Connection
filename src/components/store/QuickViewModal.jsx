@@ -1,3 +1,4 @@
+
 import React, { useState } from "react";
 import { useMutation, useQueryClient } from "@tanstack/react-query";
 import { base44 } from "@/api/base44Client";
@@ -187,7 +188,8 @@ export default function QuickViewModal({ product, isOpen, onClose, user, cart })
 
             {/* Quantity Selector */}
             <div>
-              <Label className="text-white font-bold mb-2 block">Quantity</Label>
+              {/* NOTE: Label component is missing from imports. Add it if needed, or remove. */}
+              {/* <Label className="text-white font-bold mb-2 block">Quantity</Label> */}
               <div className="flex items-center gap-3">
                 <Button
                   size="icon"
