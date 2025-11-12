@@ -107,6 +107,9 @@ import AdminMigrationStudio from './pages/AdminMigrationStudio';
 import AdminPerformanceMonitor from './pages/AdminPerformanceMonitor';
 import AdminDataIntegrity from './pages/AdminDataIntegrity';
 import AdminConnectionPoolMonitor from './pages/AdminConnectionPoolMonitor';
+import AdminIndexOptimizer from './pages/AdminIndexOptimizer';
+import AdminReplicationManager from './pages/AdminReplicationManager';
+import AdminSecurityAudit from './pages/AdminSecurityAudit';
 import Layout from './Layout.jsx';
 
 
@@ -220,6 +223,9 @@ export const PAGES = {
     "AdminPerformanceMonitor": AdminPerformanceMonitor,
     "AdminDataIntegrity": AdminDataIntegrity,
     "AdminConnectionPoolMonitor": AdminConnectionPoolMonitor,
+    "AdminIndexOptimizer": AdminIndexOptimizer,
+    "AdminReplicationManager": AdminReplicationManager,
+    "AdminSecurityAudit": AdminSecurityAudit,
 }
 
 export const pagesConfig = {
