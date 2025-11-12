@@ -90,6 +90,8 @@ import AdminBulkPricing from './pages/AdminBulkPricing';
 import AdminProductBundles from './pages/AdminProductBundles';
 import AdminPreOrders from './pages/AdminPreOrders';
 import AdminGiftCards from './pages/AdminGiftCards';
+import ProductComparison from './pages/ProductComparison';
+import LoyaltyDashboard from './pages/LoyaltyDashboard';
 import Layout from './Layout.jsx';
 
 
@@ -186,6 +188,8 @@ export const PAGES = {
     "AdminProductBundles": AdminProductBundles,
     "AdminPreOrders": AdminPreOrders,
     "AdminGiftCards": AdminGiftCards,
+    "ProductComparison": ProductComparison,
+    "LoyaltyDashboard": LoyaltyDashboard,
 }
 
 export const pagesConfig = {
