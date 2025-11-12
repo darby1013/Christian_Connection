@@ -72,6 +72,11 @@ import AdminPodcastAudioEditor from './pages/AdminPodcastAudioEditor';
 import AdminPodcastVideoEditor from './pages/AdminPodcastVideoEditor';
 import AdminAICourseTools from './pages/AdminAICourseTools';
 import AdminPodcastRepurposing from './pages/AdminPodcastRepurposing';
+import AdminInventoryManagement from './pages/AdminInventoryManagement';
+import AdminTaxConfiguration from './pages/AdminTaxConfiguration';
+import AdminShippingMethods from './pages/AdminShippingMethods';
+import AdminCouponManager from './pages/AdminCouponManager';
+import AdminOrderFulfillment from './pages/AdminOrderFulfillment';
 import Layout from './Layout.jsx';
 
 
@@ -150,6 +155,11 @@ export const PAGES = {
     "AdminPodcastVideoEditor": AdminPodcastVideoEditor,
     "AdminAICourseTools": AdminAICourseTools,
     "AdminPodcastRepurposing": AdminPodcastRepurposing,
+    "AdminInventoryManagement": AdminInventoryManagement,
+    "AdminTaxConfiguration": AdminTaxConfiguration,
+    "AdminShippingMethods": AdminShippingMethods,
+    "AdminCouponManager": AdminCouponManager,
+    "AdminOrderFulfillment": AdminOrderFulfillment,
 }
 
 export const pagesConfig = {
