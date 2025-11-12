@@ -2,11 +2,17 @@ import React from "react";
 import { useQuery } from "@tanstack/react-query";
 import { base44 } from "@/api/base44Client";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import { Button } from "@/components/ui/button";
 import {
   Video, Radio, FileText, Users, ShoppingBag, DollarSign,
-  TrendingUp, Eye, Heart, Calendar, MessageSquare, Activity
+  TrendingUp, Eye, Heart, Calendar, MessageSquare, Activity,
+  Shield, Settings, Database, BarChart3, Podcast, Crown,
+  Gift, Package, Tag, AlertCircle
 } from "lucide-react";
 import { BarChart, Bar, LineChart, Line, PieChart, Pie, Cell, XAxis, YAxis, CartesianGrid, Tooltip, Legend, ResponsiveContainer } from "recharts";
+import ActivityFeedWidget from "../components/activity/ActivityFeedWidget";
+import { Link } from "react-router-dom";
+import { createPageUrl } from "@/utils";
 
 export default function AdminDashboard() {
   const { data: liveStreams = [] } = useQuery({
@@ -72,6 +78,9 @@ export default function AdminDashboard() {
   const totalRevenue = orders.reduce((sum, order) => sum + (order.total_amount || 0), 0) +
                        donations.reduce((sum, donation) => sum + (donation.amount || 0), 0);
 
+  const pendingOrders = orders.filter(o => o.status === 'pending' || o.status === 'confirmed').length;
+  const lowStockProducts = products.filter(p => p.stock_quantity <= (p.low_stock_threshold || 10)).length;
+
   const statsCards = [
     {
       title: "Total Users",
@@ -79,6 +88,7 @@ export default function AdminDashboard() {
       icon: Users,
       color: "from-blue-500 to-cyan-500",
       trend: "+12.5%",
+      link: createPageUrl("AdminUsers"),
     },
     {
       title: "Live Streams",
@@ -86,6 +96,7 @@ export default function AdminDashboard() {
       icon: Video,
       color: "from-purple-500 to-pink-500",
       trend: "+8.2%",
+      link: createPageUrl("AdminLiveStreams"),
     },
     {
       title: "Total Revenue",
@@ -93,6 +104,7 @@ export default function AdminDashboard() {
       icon: DollarSign,
       color: "from-green-500 to-emerald-500",
       trend: "+23.1%",
+      link: createPageUrl("AdminStoreAnalytics"),
     },
     {
       title: "Active Groups",
@@ -100,6 +112,7 @@ export default function AdminDashboard() {
       icon: Users,
       color: "from-orange-500 to-amber-500",
       trend: "+5.4%",
+      link: createPageUrl("AdminGroups"),
     },
     {
       title: "Blog Posts",
@@ -107,6 +120,7 @@ export default function AdminDashboard() {
       icon: FileText,
       color: "from-indigo-500 to-blue-500",
       trend: "+15.3%",
+      link: createPageUrl("AdminBlog"),
     },
     {
       title: "Products",
@@ -114,7 +128,35 @@ export default function AdminDashboard() {
       icon: ShoppingBag,
       color: "from-pink-500 to-rose-500",
       trend: "+7.8%",
+      link: createPageUrl("AdminProducts"),
     }
+  ];
+
+  const quickLinks = [
+    { title: "Content Management", icon: FileText, color: "bg-blue-500", links: [
+      { name: "Podcasts", url: createPageUrl("AdminPodcasts") },
+      { name: "Videos", url: createPageUrl("AdminVideos") },
+      { name: "Blog Posts", url: createPageUrl("AdminBlog") },
+      { name: "Courses", url: createPageUrl("AdminCourses") },
+    ]},
+    { title: "E-Commerce", icon: ShoppingBag, color: "bg-green-500", links: [
+      { name: "Products", url: createPageUrl("AdminProducts") },
+      { name: "Orders", url: createPageUrl("AdminOrders") },
+      { name: "Inventory", url: createPageUrl("AdminInventoryManagement") },
+      { name: "Coupons", url: createPageUrl("AdminCouponManager") },
+    ]},
+    { title: "Community", icon: Users, color: "bg-purple-500", links: [
+      { name: "Groups", url: createPageUrl("AdminGroups") },
+      { name: "Forums", url: createPageUrl("AdminForum") },
+      { name: "Events", url: createPageUrl("AdminEvents") },
+      { name: "Users", url: createPageUrl("AdminUsers") },
+    ]},
+    { title: "System", icon: Settings, color: "bg-amber-500", links: [
+      { name: "Site Settings", url: createPageUrl("AdminSiteSettings") },
+      { name: "Roles & Permissions", url: createPageUrl("AdminRoles") },
+      { name: "Database", url: createPageUrl("AdminDatabaseDashboard") },
+      { name: "Analytics", url: createPageUrl("AdminAnalytics") },
+    ]},
   ];
 
   const contentStats = [
@@ -135,26 +177,98 @@ export default function AdminDashboard() {
 
   return (
     <div className="space-y-6">
+      {/* System Alerts */}
+      {(pendingOrders > 0 || lowStockProducts > 0) && (
+        <div className="grid md:grid-cols-2 gap-4">
+          {pendingOrders > 0 && (
+            <Card className="bg-amber-900/20 border-amber-500/30">
+              <CardContent className="p-4 flex items-center justify-between">
+                <div className="flex items-center gap-3">
+                  <AlertCircle className="w-8 h-8 text-amber-400" />
+                  <div>
+                    <p className="text-amber-300 font-bold">{pendingOrders} Pending Orders</p>
+                    <p className="text-amber-200 text-sm">Require attention</p>
+                  </div>
+                </div>
+                <Link to={createPageUrl("AdminOrders")}>
+                  <Button className="bg-amber-500 hover:bg-amber-600">View Orders</Button>
+                </Link>
+              </CardContent>
+            </Card>
+          )}
+          {lowStockProducts > 0 && (
+            <Card className="bg-red-900/20 border-red-500/30">
+              <CardContent className="p-4 flex items-center justify-between">
+                <div className="flex items-center gap-3">
+                  <Package className="w-8 h-8 text-red-400" />
+                  <div>
+                    <p className="text-red-300 font-bold">{lowStockProducts} Low Stock Products</p>
+                    <p className="text-red-200 text-sm">Need restocking</p>
+                  </div>
+                </div>
+                <Link to={createPageUrl("AdminInventoryManagement")}>
+                  <Button className="bg-red-500 hover:bg-red-600">View Inventory</Button>
+                </Link>
+              </CardContent>
+            </Card>
+          )}
+        </div>
+      )}
+
+      {/* Key Metrics */}
       <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-6 gap-4">
         {statsCards.map((stat, index) => (
-          <Card key={index} className="bg-[#1a1f3a] border-0 overflow-hidden relative group hover:shadow-2xl hover:shadow-cyan-500/20 transition-all">
-            <CardContent className="p-5 relative">
-              <div className="flex items-center justify-between mb-3">
-                <div className={`w-12 h-12 rounded-2xl bg-gradient-to-br ${stat.color} flex items-center justify-center shadow-lg`}>
-                  <stat.icon className="w-6 h-6 text-white" />
+          <Link key={index} to={stat.link}>
+            <Card className="bg-[#1a1f3a] border-0 overflow-hidden relative group hover:shadow-2xl hover:shadow-cyan-500/20 transition-all cursor-pointer">
+              <CardContent className="p-5 relative">
+                <div className="flex items-center justify-between mb-3">
+                  <div className={`w-12 h-12 rounded-2xl bg-gradient-to-br ${stat.color} flex items-center justify-center shadow-lg`}>
+                    <stat.icon className="w-6 h-6 text-white" />
+                  </div>
+                  <span className="text-xs font-semibold text-green-400 flex items-center gap-1">
+                    <TrendingUp className="w-3 h-3" />
+                    {stat.trend}
+                  </span>
                 </div>
-                <span className="text-xs font-semibold text-green-400 flex items-center gap-1">
-                  <TrendingUp className="w-3 h-3" />
-                  {stat.trend}
-                </span>
+                <h3 className="text-xs text-slate-400 mb-1 font-medium">{stat.title}</h3>
+                <p className="text-2xl font-bold text-white">{stat.value}</p>
+              </CardContent>
+            </Card>
+          </Link>
+        ))}
+      </div>
+
+      {/* Quick Links */}
+      <div className="grid lg:grid-cols-4 gap-4">
+        {quickLinks.map((section, idx) => (
+          <Card key={idx} className="bg-[#1a1f3a] border-slate-700">
+            <CardHeader className="border-b border-slate-700 pb-3">
+              <CardTitle className="text-white font-bold text-sm flex items-center gap-2">
+                <div className={`w-8 h-8 rounded-lg ${section.color} flex items-center justify-center`}>
+                  <section.icon className="w-4 h-4 text-white" />
+                </div>
+                {section.title}
+              </CardTitle>
+            </CardHeader>
+            <CardContent className="p-3">
+              <div className="space-y-1">
+                {section.links.map((link, linkIdx) => (
+                  <Link key={linkIdx} to={link.url}>
+                    <Button 
+                      variant="ghost" 
+                      className="w-full justify-start text-slate-300 hover:text-white hover:bg-slate-800/50 h-9 text-sm"
+                    >
+                      {link.name}
+                    </Button>
+                  </Link>
+                ))}
               </div>
-              <h3 className="text-xs text-slate-400 mb-1 font-medium">{stat.title}</h3>
-              <p className="text-2xl font-bold text-white">{stat.value}</p>
             </CardContent>
           </Card>
         ))}
       </div>
 
+      {/* Charts and Activity Feed */}
       <div className="grid lg:grid-cols-3 gap-6">
         <Card className="bg-[#1a1f3a] border-0 lg:col-span-2">
           <CardHeader className="border-b border-white/5 pb-4">
@@ -181,6 +295,11 @@ export default function AdminDashboard() {
           </CardContent>
         </Card>
 
+        {/* Activity Feed Widget */}
+        <ActivityFeedWidget limit={8} />
+      </div>
+
+      <div className="grid lg:grid-cols-2 gap-6">
         <Card className="bg-[#1a1f3a] border-0">
           <CardHeader className="border-b border-white/5 pb-4">
             <CardTitle className="text-white flex items-center gap-2 text-base font-bold">
@@ -212,32 +331,32 @@ export default function AdminDashboard() {
             </ResponsiveContainer>
           </CardContent>
         </Card>
-      </div>
 
-      <Card className="bg-[#1a1f3a] border-0">
-        <CardHeader className="border-b border-white/5 pb-4">
-          <CardTitle className="text-white flex items-center gap-2 text-base font-bold">
-            <DollarSign className="w-5 h-5 text-green-400" />
-            Revenue Overview
-          </CardTitle>
-        </CardHeader>
-        <CardContent className="pt-6">
-          <ResponsiveContainer width="100%" height={300}>
-            <BarChart data={monthlyData}>
-              <CartesianGrid strokeDasharray="3 3" stroke="rgba(255,255,255,0.05)" />
-              <XAxis dataKey="month" stroke="#94a3b8" style={{ fontSize: '12px' }} />
-              <YAxis stroke="#94a3b8" style={{ fontSize: '12px' }} />
-              <Tooltip
-                contentStyle={{ backgroundColor: '#1a1f3a', border: '1px solid rgba(255,255,255,0.1)', borderRadius: '8px' }}
-                labelStyle={{ color: '#f8fafc', fontWeight: '600' }}
-              />
-              <Legend wrapperStyle={{ fontSize: '12px' }} />
-              <Bar dataKey="donations" fill="#10b981" name="Donations ($)" radius={[8, 8, 0, 0]} />
-              <Bar dataKey="orders" fill="#a855f7" name="Orders ($)" radius={[8, 8, 0, 0]} />
-            </BarChart>
-          </ResponsiveContainer>
-        </CardContent>
-      </Card>
+        <Card className="bg-[#1a1f3a] border-0">
+          <CardHeader className="border-b border-white/5 pb-4">
+            <CardTitle className="text-white flex items-center gap-2 text-base font-bold">
+              <DollarSign className="w-5 h-5 text-green-400" />
+              Revenue Overview
+            </CardTitle>
+          </CardHeader>
+          <CardContent className="pt-6">
+            <ResponsiveContainer width="100%" height={300}>
+              <BarChart data={monthlyData}>
+                <CartesianGrid strokeDasharray="3 3" stroke="rgba(255,255,255,0.05)" />
+                <XAxis dataKey="month" stroke="#94a3b8" style={{ fontSize: '12px' }} />
+                <YAxis stroke="#94a3b8" style={{ fontSize: '12px' }} />
+                <Tooltip
+                  contentStyle={{ backgroundColor: '#1a1f3a', border: '1px solid rgba(255,255,255,0.1)', borderRadius: '8px' }}
+                  labelStyle={{ color: '#f8fafc', fontWeight: '600' }}
+                />
+                <Legend wrapperStyle={{ fontSize: '12px' }} />
+                <Bar dataKey="donations" fill="#10b981" name="Donations ($)" radius={[8, 8, 0, 0]} />
+                <Bar dataKey="orders" fill="#a855f7" name="Orders ($)" radius={[8, 8, 0, 0]} />
+              </BarChart>
+            </ResponsiveContainer>
+          </CardContent>
+        </Card>
+      </div>
 
       <div className="grid lg:grid-cols-2 gap-6">
         <Card className="bg-[#1a1f3a] border-0">
