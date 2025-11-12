@@ -92,6 +92,8 @@ import AdminPreOrders from './pages/AdminPreOrders';
 import AdminGiftCards from './pages/AdminGiftCards';
 import ProductComparison from './pages/ProductComparison';
 import LoyaltyDashboard from './pages/LoyaltyDashboard';
+import AdminAIContentSuite from './pages/AdminAIContentSuite';
+import BuildYourBundle from './pages/BuildYourBundle';
 import Layout from './Layout.jsx';
 
 
@@ -190,6 +192,8 @@ export const PAGES = {
     "AdminGiftCards": AdminGiftCards,
     "ProductComparison": ProductComparison,
     "LoyaltyDashboard": LoyaltyDashboard,
+    "AdminAIContentSuite": AdminAIContentSuite,
+    "BuildYourBundle": BuildYourBundle,
 }
 
 export const pagesConfig = {

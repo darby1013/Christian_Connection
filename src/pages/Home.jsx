@@ -1,15 +1,15 @@
+
 import React, { useState, useEffect } from "react";
+import { base44 } from "@/api/base44Client";
+import { useQuery } from "@tanstack/react-query";
+import { Button } from "@/components/ui/button";
 import { Link } from "react-router-dom";
 import { createPageUrl } from "@/utils";
-import { useQuery } from "@tanstack/react-query";
-import { base44 } from "@/api/base44Client";
-import { Button } from "@/components/ui/button";
-import {
-  Video, Users, ArrowRight, Sparkles, Play
-} from "lucide-react";
+import { Play, ArrowRight, Video } from "lucide-react";
 import LiveStreamSection from "../components/home/LiveStreamSection";
 import FeaturesGrid from "../components/home/FeaturesGrid";
-import PersonalizedContent from "../components/recommendations/PersonalizedContent";
+import DynamicHomepageBlocks from "../components/personalization/DynamicHomepageBlocks";
+import AIRecommendations from "../components/personalization/AIRecommendations";
 
 export default function Home() {
   const [user, setUser] = useState(null);
@@ -32,103 +32,126 @@ export default function Home() {
     initialData: [],
   });
 
-  const heroVideoUrl = heroSettings.find(s => s.setting_key === 'hero_video')?.setting_value;
+  const { data: loyalty } = useQuery({
+    queryKey: ['myLoyalty', user?.id],
+    queryFn: async () => {
+      if (!user) return null;
+      const records = await base44.entities.CustomerLoyalty.filter({ user_id: user.id });
+      return records[0] || null;
+    },
+    enabled: !!user,
+  });
+
+  const { data: recentlyViewed = [] } = useQuery({
+    queryKey: ['recentlyViewed', user?.id],
+    queryFn: () => base44.entities.RecentlyViewed.filter({ user_id: user?.id }, '-viewed_at', 10),
+    enabled: !!user,
+    initialData: [],
+  });
+
+  const { data: pastOrders = [] } = useQuery({
+    queryKey: ['myOrders', user?.id],
+    queryFn: () => base44.entities.Order.filter({ customer_id: user?.id }, '-created_date'),
+    enabled: !!user,
+    initialData: [],
+  });
+
+  const { data: userSegment } = useQuery({
+    queryKey: ['userSegment', user?.id],
+    queryFn: async () => {
+      if (!user) return null;
+      const segments = await base44.entities.UserSegment.filter({ user_id: user.id });
+      return segments[0] || null;
+    },
+    enabled: !!user,
+  });
+
+  const heroVideo = heroSettings.find(s => s.setting_key === 'hero_video_url')?.setting_value;
 
   return (
-    <div className="min-h-screen">
+    <div>
       {/* Hero Section */}
-      <section className="relative overflow-hidden bg-gradient-to-br from-[#0a0e27] via-[#1a1f3a] to-[#0a0e27] text-white">
-        {heroVideoUrl && (
-          <div className="absolute inset-0 overflow-hidden">
-            <video
-              autoPlay
-              loop
-              muted
-              playsInline
-              className="w-full h-full object-cover opacity-20"
-            >
-              <source src={heroVideoUrl} type="video/mp4" />
-            </video>
-          </div>
-        )}
-        
-        <div className="absolute inset-0 bg-gradient-to-br from-purple-900/30 via-transparent to-cyan-900/30"></div>
-
-        <div className="relative max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-32 md:py-48">
-          <div className="text-center max-w-5xl mx-auto">
-            <div className="inline-flex items-center gap-2 bg-cyan-500/20 backdrop-blur-md px-6 py-3 rounded-full mb-8 border border-cyan-500/30">
-              <div className="w-2 h-2 bg-red-500 rounded-full animate-pulse"></div>
-              <span className="text-base font-bold tracking-wide">LIVE NOW</span>
-            </div>
-            <h1 className="text-5xl md:text-7xl font-black mb-6 leading-tight">
-              Sunday
-              <span className="block text-transparent bg-clip-text bg-gradient-to-r from-cyan-400 to-blue-500">
-                Service
-              </span>
-            </h1>
-            <p className="text-xl md:text-2xl text-slate-300 mb-10 leading-relaxed font-medium">
-              Join us live for worship, teaching, and community • Every Sunday at 10 AM
-            </p>
-            <div className="flex items-center justify-center gap-2 text-slate-400 mb-10">
-              <Users className="w-5 h-5" />
-              <span className="font-semibold">342 watching now</span>
-            </div>
-            <div className="flex flex-wrap gap-4 justify-center">
-              <Link to={createPageUrl("LiveStreams")}>
-                <Button size="lg" className="bg-cyan-500 hover:bg-cyan-600 text-white font-bold text-lg px-10 py-7 shadow-2xl">
-                  <Play className="w-6 h-6 mr-2" />
-                  WATCH NOW
-                </Button>
-              </Link>
-              <Link to={createPageUrl("Groups")}>
-                <Button size="lg" variant="outline" className="border-2 border-white/30 bg-white/10 backdrop-blur-sm text-white hover:bg-white/20 hover:border-white/50 font-bold text-lg px-10 py-7">
-                  <Users className="w-6 h-6 mr-2" />
-                  Join Community
-                </Button>
-              </Link>
-            </div>
-          </div>
-        </div>
-        <div className="absolute bottom-0 left-0 right-0 h-32 bg-gradient-to-t from-[#0a0e27] to-transparent"></div>
-      </section>
-
-      <LiveStreamSection />
-
-      {/* Personalized Recommendations - Only show for logged-in users */}
-      {user && (
-        <section className="py-20 bg-[#0a0e27]">
-          <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-            <div className="mb-8">
-              <h2 className="text-3xl font-bold text-white mb-2 flex items-center gap-3">
-                <Sparkles className="w-8 h-8 text-purple-400" />
-                Recommended For You
-              </h2>
-              <p className="text-slate-400">Personalized content based on your interests</p>
-            </div>
-            <PersonalizedContent user={user} />
-          </div>
-        </section>
-      )}
-
-      <FeaturesGrid />
-
-      {/* Call to Action */}
-      <section className="relative bg-gradient-to-r from-purple-900/50 via-[#1a1f3a] to-cyan-900/50 text-white py-24 overflow-hidden border-t border-slate-800">
-        <div className="relative max-w-4xl mx-auto px-4 sm:px-6 lg:px-8 text-center">
-          <h2 className="text-4xl md:text-5xl font-black mb-6">Ready to Join Us?</h2>
-          <p className="text-xl text-slate-300 mb-10 font-medium">
-            Connect with believers worldwide • Grow in faith • Make an impact
-          </p>
-          <Button
-            size="lg"
-            onClick={() => base44.auth.redirectToLogin()}
-            className="bg-cyan-500 hover:bg-cyan-600 text-white font-bold text-xl px-12 py-8 shadow-2xl"
+      <section className="relative h-[600px] overflow-hidden">
+        {heroVideo && (
+          <video
+            autoPlay
+            muted
+            loop
+            playsInline
+            className="absolute inset-0 w-full h-full object-cover"
           >
-            Get Started
-            <ArrowRight className="w-6 h-6 ml-2" />
-          </Button>
+            <source src={heroVideo} type="video/mp4" />
+          </video>
+        )}
+        <div className="absolute inset-0 bg-gradient-to-r from-slate-900/90 to-slate-900/50"></div>
+        <div className="relative z-10 h-full flex items-center justify-center text-center px-4">
+          <div className="max-w-4xl">
+            <h1 className="text-6xl md:text-7xl font-black text-white mb-6 leading-tight">
+              Experience Faith<br />Together
+            </h1>
+            <p className="text-xl text-slate-300 mb-8 font-semibold">
+              Live worship, teachings, community, and more
+            </p>
+            <div className="flex gap-4 justify-center">
+              <Link to={createPageUrl("LiveStreamPlayer")}>
+                <Button className="bg-gradient-to-r from-purple-600 to-cyan-500 hover:from-purple-700 hover:to-cyan-600 text-lg px-8 py-6 font-black">
+                  <Play className="w-6 h-6 mr-2" />
+                  Watch Live
+                </Button>
+              </Link>
+              <Link to={createPageUrl("StoreAdvanced")}>
+                <Button variant="outline" className="border-white text-white hover:bg-white hover:text-slate-900 text-lg px-8 py-6 font-black">
+                  Explore Store
+                  <ArrowRight className="w-6 h-6 ml-2" />
+                </Button>
+              </Link>
+            </div>
+          </div>
         </div>
       </section>
+
+      <div className="max-w-7xl mx-auto px-4 py-16">
+        {/* Live Stream Section */}
+        <LiveStreamSection />
+
+        {/* Dynamic Personalized Blocks */}
+        {user && (
+          <DynamicHomepageBlocks
+            user={user}
+            loyalty={loyalty}
+            userSegment={userSegment?.segment_type || 'new_customer'}
+          />
+        )}
+
+        {/* AI Recommendations */}
+        {user && (
+          <AIRecommendations
+            user={user}
+            loyalty={loyalty}
+            recentlyViewed={recentlyViewed}
+            pastOrders={pastOrders}
+          />
+        )}
+
+        {/* Features Grid */}
+        <FeaturesGrid />
+
+        {/* CTA Section */}
+        {!user && (
+          <section className="text-center py-20">
+            <h2 className="text-4xl font-black text-white mb-6">Join Our Community</h2>
+            <p className="text-slate-400 text-lg mb-8 max-w-2xl mx-auto">
+              Connect with believers worldwide, access exclusive content, and grow in faith together
+            </p>
+            <Button
+              onClick={() => base44.auth.redirectToLogin()}
+              className="bg-gradient-to-r from-purple-600 to-cyan-500 hover:from-purple-700 hover:to-cyan-600 text-lg px-12 py-6 font-black"
+            >
+              Get Started Free
+            </Button>
+          </section>
+        )}
+      </div>
     </div>
   );
 }
