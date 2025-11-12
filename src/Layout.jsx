@@ -10,7 +10,8 @@ import {
   LayoutDashboard, PlayCircle, Mic2, FileText, UsersRound, MessagesSquare,
   CalendarDays, Store, DollarSign, User as UserIcon, Shield, Settings as SettingsIcon,
   Image, Film, Palette, Crown, Package, Download, CreditCard, BarChart3, Sparkles,
-  AlertOctagon, TrendingUp, Globe, Star, Book, Rss, UserPlus, Truck, Tag, Warehouse
+  AlertOctagon, TrendingUp, Globe, Star, Book, Rss, UserPlus, Truck, Tag, Warehouse,
+  Gift, Percent, Layers, Clock, Award
 } from "lucide-react";
 import {
   Sidebar,
@@ -174,6 +175,11 @@ export default function Layout({ children, currentPageName }) {
     { title: "Products", url: createPageUrl("AdminProducts"), icon: Store, section: "COMMERCE" },
     { title: "Digital Products", url: createPageUrl("AdminDigitalProducts"), icon: Download, section: "COMMERCE" },
     { title: "Product Variants", url: createPageUrl("AdminProductVariants"), icon: Package, section: "COMMERCE" },
+    { title: "Product Bundles", url: createPageUrl("AdminProductBundles"), icon: Gift, section: "COMMERCE" },
+    { title: "Bulk Pricing", url: createPageUrl("AdminBulkPricing"), icon: Percent, section: "COMMERCE" },
+    { title: "Pre-Orders", url: createPageUrl("AdminPreOrders"), icon: Clock, section: "COMMERCE" },
+    { title: "Gift Cards", url: createPageUrl("AdminGiftCards"), icon: Gift, section: "COMMERCE" },
+    { title: "Loyalty Program", url: createPageUrl("AdminLoyaltyProgram"), icon: Award, section: "COMMERCE" },
     { title: "Orders", url: createPageUrl("AdminOrders"), icon: ShoppingBag, section: "COMMERCE" },
     { title: "Order Fulfillment", url: createPageUrl("AdminOrderFulfillment"), icon: Truck, section: "COMMERCE" },
     { title: "Inventory Management", url: createPageUrl("AdminInventoryManagement"), icon: Warehouse, section: "COMMERCE" },

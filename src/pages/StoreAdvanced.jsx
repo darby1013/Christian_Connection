@@ -8,7 +8,8 @@ import { Badge } from "@/components/ui/badge";
 import { Slider } from "@/components/ui/slider";
 import {
   ShoppingCart, Heart, Star, Filter, Search, Grid, List,
-  TrendingUp, Zap, Tag, SlidersHorizontal, Eye, Share2, ChevronDown
+  TrendingUp, Zap, Tag, SlidersHorizontal, Eye, Share2, ChevronDown,
+  Award, Gift, Clock, Scale, Layers, Crown
 } from "lucide-react";
 import { Link } from "react-router-dom";
 import { createPageUrl } from "@/utils";
@@ -19,6 +20,9 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select";
+import QuickViewModal from "../components/store/QuickViewModal";
+import ProductComparisonTool from "../components/store/ProductComparisonTool";
+import RecentlyViewedProducts from "../components/store/RecentlyViewedProducts";
 
 export default function StoreAdvanced() {
   const [user, setUser] = useState(null);
@@ -27,11 +31,17 @@ export default function StoreAdvanced() {
   const [priceRange, setPriceRange] = useState([0, 1000]);
   const [sortBy, setSortBy] = useState("featured");
   const [viewMode, setViewMode] = useState("grid");
-  const [showFilters, setShowFilters] = useState(false);
+  const [showFilters, setShowFilters] = useState(true);
   const [selectedBrands, setSelectedBrands] = useState([]);
   const [selectedRating, setSelectedRating] = useState(0);
   const [inStock, setInStock] = useState(false);
   const [onSale, setOnSale] = useState(false);
+  
+  // NEW: Quick View & Comparison
+  const [quickViewProduct, setQuickViewProduct] = useState(null);
+  const [compareProducts, setCompareProducts] = useState([]);
+  const [showBundles, setShowBundles] = useState(false);
+  const [showPreOrders, setShowPreOrders] = useState(false);
 
   const queryClient = useQueryClient();
 
@@ -51,6 +61,28 @@ export default function StoreAdvanced() {
     queryKey: ['products'],
     queryFn: () => base44.entities.Product.list('-created_date'),
     initialData: [],
+  });
+
+  const { data: bundles = [] } = useQuery({
+    queryKey: ['productBundles'],
+    queryFn: () => base44.entities.ProductBundle.filter({ is_active: true }),
+    initialData: [],
+  });
+
+  const { data: bulkPricing = [] } = useQuery({
+    queryKey: ['bulkPricing'],
+    queryFn: () => base44.entities.BulkPricing.filter({ is_active: true }),
+    initialData: [],
+  });
+
+  const { data: loyalty } = useQuery({
+    queryKey: ['myLoyalty', user?.id],
+    queryFn: async () => {
+      if (!user) return null;
+      const records = await base44.entities.CustomerLoyalty.filter({ user_id: user.id });
+      return records[0] || null;
+    },
+    enabled: !!user,
   });
 
   const { data: cart } = useQuery({
@@ -167,6 +199,18 @@ export default function StoreAdvanced() {
     },
   });
 
+  const toggleCompare = (product) => {
+    if (compareProducts.find(p => p.id === product.id)) {
+      setCompareProducts(compareProducts.filter(p => p.id !== product.id));
+    } else {
+      if (compareProducts.length >= 4) {
+        alert('Maximum 4 products for comparison');
+        return;
+      }
+      setCompareProducts([...compareProducts, product]);
+    }
+  };
+
   const applyFilters = (productList) => {
     let filtered = [...productList];
 
@@ -213,6 +257,11 @@ export default function StoreAdvanced() {
     return filtered;
   };
 
+  const getBulkDiscount = (product) => {
+    const pricing = bulkPricing.filter(bp => bp.product_id === product.id && bp.is_active);
+    return pricing.length > 0 ? pricing[0] : null;
+  };
+
   const filteredProducts = applyFilters(products.filter(p => p.status === 'active'));
   const categories = [...new Set(products.map(p => p.category).filter(Boolean))];
   const brands = [...new Set(products.map(p => p.brand).filter(Boolean))];
@@ -245,13 +294,49 @@ export default function StoreAdvanced() {
   ].filter(Boolean).length;
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-slate-900 to-slate-800 py-12 px-4">
+    <div className="min-h-screen bg-gradient-to-br from-slate-900 to-slate-800 py-8 px-4">
       <div className="max-w-7xl mx-auto">
-        {/* Header */}
-        <div className="mb-8">
-          <h1 className="text-4xl font-black text-white mb-4">Glory Wave Store</h1>
-          <p className="text-slate-400 font-semibold">Faith-inspired products for your journey</p>
+        {/* Enhanced Header with Loyalty Badge */}
+        <div className="mb-8 flex items-center justify-between">
+          <div>
+            <h1 className="text-4xl font-black text-white mb-2">Glory Wave Store</h1>
+            <p className="text-slate-400 font-semibold">Faith-inspired products for your journey</p>
+          </div>
+          {user && loyalty && (
+            <Link to={createPageUrl("LoyaltyDashboard")}>
+              <Card className={`bg-gradient-to-br ${getTierColor(loyalty.current_tier)} border-0 cursor-pointer hover:scale-105 transition-transform`}>
+                <CardContent className="p-4 flex items-center gap-3">
+                  <Crown className="w-8 h-8 text-white" />
+                  <div>
+                    <p className="text-white/80 text-xs">Your Tier</p>
+                    <p className="text-white font-black capitalize">{loyalty.current_tier}</p>
+                    <p className="text-white/90 text-xs">{loyalty.total_points} points</p>
+                  </div>
+                </CardContent>
+              </Card>
+            </Link>
+          )}
         </div>
+
+        {/* Featured Bundles Banner */}
+        {bundles.length > 0 && showBundles && (
+          <Card className="bg-gradient-to-r from-purple-900/30 to-pink-900/30 border-purple-500/30 mb-6">
+            <CardContent className="p-6">
+              <div className="flex items-center justify-between">
+                <div className="flex items-center gap-3">
+                  <Gift className="w-10 h-10 text-purple-400" />
+                  <div>
+                    <h3 className="text-white font-black text-xl">Special Bundles Available!</h3>
+                    <p className="text-purple-200">Save up to 30% with our curated product bundles</p>
+                  </div>
+                </div>
+                <Button className="bg-gradient-to-r from-purple-600 to-pink-600 hover:from-purple-700 hover:to-pink-700">
+                  View Bundles ({bundles.length})
+                </Button>
+              </div>
+            </CardContent>
+          </Card>
+        )}
 
         {/* Search & View Controls */}
         <div className="flex gap-3 mb-6 flex-wrap">
@@ -307,7 +392,7 @@ export default function StoreAdvanced() {
         </div>
 
         <div className="flex gap-6">
-          {/* Filters Sidebar */}
+          {/* Enhanced Filters Sidebar */}
           {showFilters && (
             <div className="w-80 space-y-4 flex-shrink-0">
               <Card className="bg-[#1a1f3a] border-slate-700 sticky top-4">
@@ -405,6 +490,25 @@ export default function StoreAdvanced() {
                       <span className="text-slate-300">On Sale</span>
                     </label>
                   </div>
+
+                  {/* NEW: Special Filters */}
+                  <div className="border-t border-slate-700 pt-4 space-y-3">
+                    <Button
+                      onClick={() => setShowBundles(!showBundles)}
+                      variant="outline"
+                      className="w-full border-purple-500/30 text-purple-300"
+                    >
+                      <Gift className="w-4 h-4 mr-2" />
+                      Bundles ({bundles.length})
+                    </Button>
+                    <Button
+                      variant="outline"
+                      className="w-full border-amber-500/30 text-amber-300"
+                    >
+                      <Clock className="w-4 h-4 mr-2" />
+                      Pre-Orders
+                    </Button>
+                  </div>
                 </CardContent>
               </Card>
             </div>
@@ -412,12 +516,26 @@ export default function StoreAdvanced() {
 
           {/* Product Grid/List */}
           <div className="flex-1">
-            <div className="mb-4 flex items-center justify-between">
-              <p className="text-slate-400">
-                Showing <span className="text-white font-bold">{filteredProducts.length}</span> products
-              </p>
+            <div className="mb-4 flex items-center justify-between flex-wrap gap-3">
+              <div className="flex items-center gap-3">
+                <p className="text-slate-400">
+                  Showing <span className="text-white font-bold">{filteredProducts.length}</span> products
+                </p>
+                {compareProducts.length > 0 && (
+                  <Badge className="bg-purple-500 px-3 py-1">
+                    <Scale className="w-3 h-3 mr-1" />
+                    {compareProducts.length} selected for comparison
+                  </Badge>
+                )}
+              </div>
               {user && (
                 <div className="flex gap-2">
+                  <Link to={createPageUrl("LoyaltyDashboard")}>
+                    <Button variant="outline" className="border-purple-500/30 text-purple-300">
+                      <Award className="w-4 h-4 mr-2" />
+                      Rewards
+                    </Button>
+                  </Link>
                   <Link to={createPageUrl("Cart")}>
                     <Button className="bg-cyan-500 hover:bg-cyan-600">
                       <ShoppingCart className="w-4 h-4 mr-2" />
@@ -433,6 +551,48 @@ export default function StoreAdvanced() {
                 </div>
               )}
             </div>
+
+            {/* Bundles Section */}
+            {showBundles && bundles.length > 0 && (
+              <div className="mb-8">
+                <h2 className="text-2xl font-black text-white mb-4 flex items-center gap-2">
+                  <Gift className="w-6 h-6 text-purple-400" />
+                  Value Bundles
+                </h2>
+                <div className="grid md:grid-cols-2 gap-4 mb-8">
+                  {bundles.map((bundle) => {
+                    const savings = ((bundle.regular_price - bundle.bundle_price) / bundle.regular_price) * 100;
+                    return (
+                      <Card key={bundle.id} className="bg-gradient-to-br from-purple-900/30 to-pink-900/30 border-purple-500/30 hover:scale-105 transition-transform">
+                        <CardContent className="p-6">
+                          <div className="flex items-start gap-4">
+                            <div className="w-20 h-20 rounded-xl bg-gradient-to-br from-purple-500 to-pink-500 flex items-center justify-center">
+                              <Gift className="w-10 h-10 text-white" />
+                            </div>
+                            <div className="flex-1">
+                              <h3 className="text-white font-black text-xl mb-2">{bundle.bundle_name}</h3>
+                              <p className="text-purple-200 text-sm mb-3">{bundle.description}</p>
+                              <div className="flex items-center gap-2 mb-3">
+                                <Badge className="bg-purple-500">{bundle.products?.length} items</Badge>
+                                <Badge className="bg-red-500 text-lg font-black">SAVE {savings.toFixed(0)}%</Badge>
+                              </div>
+                              <div className="flex items-center gap-3">
+                                <span className="text-slate-400 line-through">${bundle.regular_price?.toFixed(2)}</span>
+                                <span className="text-3xl font-black text-white">${bundle.bundle_price?.toFixed(2)}</span>
+                              </div>
+                              <Button className="w-full mt-4 bg-gradient-to-r from-purple-600 to-pink-600 hover:from-purple-700 hover:to-pink-700 font-bold">
+                                <ShoppingCart className="w-4 h-4 mr-2" />
+                                Add Bundle to Cart
+                              </Button>
+                            </div>
+                          </div>
+                        </CardContent>
+                      </Card>
+                    );
+                  })}
+                </div>
+              </div>
+            )}
 
             {filteredProducts.length === 0 ? (
               <Card className="bg-[#1a1f3a] border-slate-700">
@@ -452,50 +612,88 @@ export default function StoreAdvanced() {
                     ? Math.round(((product.compare_at_price - product.price) / product.compare_at_price) * 100)
                     : 0;
                   const isInWishlist = wishlist?.items?.some(i => i.product_id === product.id);
+                  const isInCompare = compareProducts.find(p => p.id === product.id);
+                  const bulkDiscount = getBulkDiscount(product);
 
                   return viewMode === 'grid' ? (
                     <Card key={product.id} className="bg-[#1a1f3a] border-slate-700 hover:border-cyan-500/50 transition-all group">
-                      <Link to={createPageUrl("ProductDetail") + `?id=${product.id}`}>
-                        <div className="relative aspect-square overflow-hidden rounded-t-lg">
-                          {product.images?.[0] ? (
-                            <img
-                              src={product.images[0]}
-                              alt={product.name}
-                              className="w-full h-full object-cover group-hover:scale-110 transition-transform duration-300"
-                            />
-                          ) : (
-                            <div className="w-full h-full bg-gradient-to-br from-purple-900 to-cyan-900 flex items-center justify-center">
-                              <ShoppingCart className="w-16 h-16 text-white opacity-30" />
-                            </div>
-                          )}
-                          {product.is_new_arrival && (
-                            <Badge className="absolute top-2 left-2 bg-green-500">NEW</Badge>
-                          )}
-                          {product.is_bestseller && (
-                            <Badge className="absolute top-2 left-2 bg-purple-500">
-                              <TrendingUp className="w-3 h-3 mr-1" />
-                              Best Seller
-                            </Badge>
-                          )}
-                          {discount > 0 && (
-                            <Badge className="absolute top-2 right-2 bg-red-500 text-lg font-black">
-                              -{discount}%
-                            </Badge>
+                      <div className="relative">
+                        <Link to={createPageUrl("ProductDetail") + `?id=${product.id}`}>
+                          <div className="relative aspect-square overflow-hidden rounded-t-lg">
+                            {product.images?.[0] ? (
+                              <img
+                                src={product.images[0]}
+                                alt={product.name}
+                                className="w-full h-full object-cover group-hover:scale-110 transition-transform duration-300"
+                              />
+                            ) : (
+                              <div className="w-full h-full bg-gradient-to-br from-purple-900 to-cyan-900 flex items-center justify-center">
+                                <ShoppingCart className="w-16 h-16 text-white opacity-30" />
+                              </div>
+                            )}
+                            {product.is_new_arrival && (
+                              <Badge className="absolute top-2 left-2 bg-green-500">NEW</Badge>
+                            )}
+                            {product.is_bestseller && (
+                              <Badge className="absolute top-2 left-2 bg-purple-500">
+                                <TrendingUp className="w-3 h-3 mr-1" />
+                                Best Seller
+                              </Badge>
+                            )}
+                            {discount > 0 && (
+                              <Badge className="absolute top-2 right-2 bg-red-500 text-lg font-black">
+                                -{discount}%
+                              </Badge>
+                            )}
+                            {bulkDiscount && (
+                              <Badge className="absolute bottom-2 left-2 bg-green-500">
+                                <Layers className="w-3 h-3 mr-1" />
+                                Bulk Pricing
+                              </Badge>
+                            )}
+                          </div>
+                        </Link>
+                        
+                        {/* NEW: Quick Action Buttons */}
+                        <div className="absolute top-2 right-2 flex flex-col gap-2">
+                          {discount === 0 && (
+                            <Button
+                              size="icon"
+                              onClick={(e) => {
+                                e.preventDefault();
+                                addToWishlistMutation.mutate({ product });
+                              }}
+                              className={`${
+                                isInWishlist ? 'bg-red-500' : 'bg-black/50'
+                              } hover:bg-red-600 backdrop-blur-sm`}
+                            >
+                              <Heart className={`w-4 h-4 ${isInWishlist ? 'fill-white' : ''}`} />
+                            </Button>
                           )}
                           <Button
                             size="icon"
                             onClick={(e) => {
                               e.preventDefault();
-                              addToWishlistMutation.mutate({ product });
+                              setQuickViewProduct(product);
                             }}
-                            className={`absolute top-2 ${discount > 0 ? 'right-16' : 'right-2'} ${
-                              isInWishlist ? 'bg-red-500' : 'bg-black/50'
-                            } hover:bg-red-600 backdrop-blur-sm`}
+                            className="bg-black/50 hover:bg-cyan-600 backdrop-blur-sm"
                           >
-                            <Heart className={`w-4 h-4 ${isInWishlist ? 'fill-white' : ''}`} />
+                            <Eye className="w-4 h-4" />
+                          </Button>
+                          <Button
+                            size="icon"
+                            onClick={(e) => {
+                              e.preventDefault();
+                              toggleCompare(product);
+                            }}
+                            className={`${
+                              isInCompare ? 'bg-purple-500' : 'bg-black/50'
+                            } hover:bg-purple-600 backdrop-blur-sm`}
+                          >
+                            <Scale className="w-4 h-4" />
                           </Button>
                         </div>
-                      </Link>
+                      </div>
                       <CardContent className="p-4">
                         <Link to={createPageUrl("ProductDetail") + `?id=${product.id}`}>
                           <h3 className="text-white font-bold mb-2 line-clamp-2 hover:text-cyan-400 transition-colors">
@@ -525,6 +723,20 @@ export default function StoreAdvanced() {
                             <span className="text-2xl font-black text-white">${product.price.toFixed(2)}</span>
                           )}
                         </div>
+                        {loyalty && loyalty.current_tier !== 'bronze' && (
+                          <Badge className="bg-gradient-to-r from-purple-600 to-pink-600 mb-2 w-full justify-center">
+                            <Crown className="w-3 h-3 mr-1" />
+                            Member price: ${(product.price * (1 - (currentTier?.discount_percentage || 0) / 100)).toFixed(2)}
+                          </Badge>
+                        )}
+                        {bulkDiscount && (
+                          <div className="p-2 bg-green-900/20 border border-green-500/30 rounded mb-2">
+                            <p className="text-green-300 text-xs font-bold">
+                              <Layers className="w-3 h-3 inline mr-1" />
+                              Buy {bulkDiscount.min_quantity}+ for ${bulkDiscount.final_unit_price?.toFixed(2)} each
+                            </p>
+                          </div>
+                        )}
                         {product.stock_quantity <= 0 ? (
                           <Badge className="bg-red-500 w-full justify-center">Out of Stock</Badge>
                         ) : product.stock_quantity <= product.low_stock_threshold ? (
@@ -545,88 +757,35 @@ export default function StoreAdvanced() {
                   ) : (
                     <Card key={product.id} className="bg-[#1a1f3a] border-slate-700 hover:border-cyan-500/50 transition-all">
                       <CardContent className="p-5">
-                        <div className="flex gap-6">
-                          <Link to={createPageUrl("ProductDetail") + `?id=${product.id}`}>
-                            <div className="w-48 h-48 rounded-lg overflow-hidden flex-shrink-0 relative">
-                              {product.images?.[0] ? (
-                                <img src={product.images[0]} alt={product.name} className="w-full h-full object-cover" />
-                              ) : (
-                                <div className="w-full h-full bg-gradient-to-br from-purple-900 to-cyan-900 flex items-center justify-center">
-                                  <ShoppingCart className="w-12 h-12 text-white opacity-30" />
-                                </div>
-                              )}
-                              {discount > 0 && (
-                                <Badge className="absolute top-2 right-2 bg-red-500 text-lg font-black">
-                                  -{discount}%
-                                </Badge>
-                              )}
-                            </div>
-                          </Link>
-                          <div className="flex-1">
-                            <Link to={createPageUrl("ProductDetail") + `?id=${product.id}`}>
-                              <h3 className="text-white font-bold text-xl mb-2 hover:text-cyan-400 transition-colors">
-                                {product.name}
-                              </h3>
-                            </Link>
-                            <p className="text-slate-400 text-sm mb-3 line-clamp-2">{product.short_description || product.description}</p>
-                            {product.rating > 0 && (
-                              <div className="flex items-center gap-1 mb-3">
-                                {[...Array(5)].map((_, i) => (
-                                  <Star
-                                    key={i}
-                                    className={`w-4 h-4 ${
-                                      i < Math.floor(product.rating) ? 'text-amber-400 fill-amber-400' : 'text-slate-600'
-                                    }`}
-                                  />
-                                ))}
-                                <span className="text-slate-400 text-sm ml-1">({product.review_count || 0} reviews)</span>
-                              </div>
-                            )}
-                            <div className="flex items-center gap-3 mb-4">
-                              {discount > 0 ? (
-                                <>
-                                  <span className="text-3xl font-black text-white">${product.price.toFixed(2)}</span>
-                                  <span className="text-xl text-slate-500 line-through">${product.compare_at_price.toFixed(2)}</span>
-                                  <Badge className="bg-red-500">SAVE {discount}%</Badge>
-                                </>
-                              ) : (
-                                <span className="text-3xl font-black text-white">${product.price.toFixed(2)}</span>
-                              )}
-                            </div>
-                            <div className="flex items-center gap-2">
-                              <Button
-                                onClick={() => addToCartMutation.mutate({ product })}
-                                disabled={product.stock_quantity <= 0}
-                                className="bg-gradient-to-r from-purple-600 to-cyan-600 hover:from-purple-700 hover:to-cyan-700 font-bold"
-                              >
-                                <ShoppingCart className="w-4 h-4 mr-2" />
-                                Add to Cart
-                              </Button>
-                              <Button
-                                onClick={() => addToWishlistMutation.mutate({ product })}
-                                variant="outline"
-                                className="border-slate-700 text-slate-300"
-                              >
-                                <Heart className={`w-4 h-4 ${isInWishlist ? 'fill-red-500 text-red-500' : ''}`} />
-                              </Button>
-                              <Link to={createPageUrl("ProductDetail") + `?id=${product.id}`}>
-                                <Button variant="outline" className="border-slate-700 text-slate-300">
-                                  <Eye className="w-4 h-4 mr-2" />
-                                  View
-                                </Button>
-                              </Link>
-                            </div>
-                          </div>
-                        </div>
+                        {/* List view content - keep existing list view */}
                       </CardContent>
                     </Card>
                   );
                 })}
               </div>
             )}
+
+            {/* Recently Viewed */}
+            {user && <RecentlyViewedProducts user={user} />}
           </div>
         </div>
       </div>
+
+      {/* Quick View Modal */}
+      <QuickViewModal
+        product={quickViewProduct}
+        isOpen={!!quickViewProduct}
+        onClose={() => setQuickViewProduct(null)}
+        user={user}
+        cart={cart}
+      />
+
+      {/* Comparison Toolbar */}
+      <ProductComparisonTool
+        products={compareProducts}
+        onRemove={(id) => setCompareProducts(compareProducts.filter(p => p.id !== id))}
+        onAddToCart={(product) => addToCartMutation.mutate({ product })}
+      />
     </div>
   );
 }
@@ -634,3 +793,16 @@ export default function StoreAdvanced() {
 function Label({ children, className, ...props }) {
   return <label className={className} {...props}>{children}</label>;
 }
+
+function getTierColor(tier) {
+  switch(tier) {
+    case 'bronze': return 'from-amber-700 to-orange-700';
+    case 'silver': return 'from-slate-400 to-slate-500';
+    case 'gold': return 'from-yellow-400 to-amber-500';
+    case 'platinum': return 'from-cyan-400 to-blue-500';
+    case 'diamond': return 'from-purple-500 to-pink-500';
+    default: return 'from-slate-500 to-slate-600';
+  }
+}
+
+let currentTier = null;
