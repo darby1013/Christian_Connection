@@ -1,3 +1,4 @@
+
 import React, { useState } from "react";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { base44 } from "@/api/base44Client";
@@ -21,7 +22,7 @@ import {
   DialogFooter,
   DialogDescription,
 } from "@/components/ui/dialog";
-import { PERMISSION_GROUPS, DEFAULT_ROLES } from "@/utils";
+import { PERMISSION_GROUPS, DEFAULT_ROLES } from "../../components/utils/permissions";
 
 export default function AdminRoles() {
   const [showDialog, setShowDialog] = useState(false);
