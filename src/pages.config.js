@@ -77,6 +77,9 @@ import AdminTaxConfiguration from './pages/AdminTaxConfiguration';
 import AdminShippingMethods from './pages/AdminShippingMethods';
 import AdminCouponManager from './pages/AdminCouponManager';
 import AdminOrderFulfillment from './pages/AdminOrderFulfillment';
+import StoreAdvanced from './pages/StoreAdvanced';
+import ProductDetail from './pages/ProductDetail';
+import Cart from './pages/Cart';
 import Layout from './Layout.jsx';
 
 
@@ -160,6 +163,9 @@ export const PAGES = {
     "AdminShippingMethods": AdminShippingMethods,
     "AdminCouponManager": AdminCouponManager,
     "AdminOrderFulfillment": AdminOrderFulfillment,
+    "StoreAdvanced": StoreAdvanced,
+    "ProductDetail": ProductDetail,
+    "Cart": Cart,
 }
 
 export const pagesConfig = {
