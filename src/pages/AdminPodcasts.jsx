@@ -39,6 +39,7 @@ import { createPageUrl } from "@/utils";
 import AITrailerGenerator from "../components/podcast/AITrailerGenerator";
 import AISocialMediaGenerator from "../components/podcast/AISocialMediaGenerator";
 import AIChapterGenerator from "../components/podcast/AIChapterGenerator";
+import SEOOptimizer from "../components/podcast/SEOOptimizer";
 
 export default function AdminPodcasts() {
   const [searchQuery, setSearchQuery] = useState("");
@@ -76,6 +77,10 @@ export default function AdminPodcasts() {
   const [selectedForChapters, setSelectedForChapters] = useState(null);
   const [generatedSocial, setGeneratedSocial] = useState(null);
   const [generatedChapters, setGeneratedChapters] = useState(null);
+
+  // NEW: SEO Optimization state
+  const [selectedForSEO, setSelectedForSEO] = useState(null);
+  const [seoDialogOpen, setSeoDialogOpen] = useState(false);
 
   const [podcastForm, setPodcastForm] = useState({
     title: '',
@@ -807,6 +812,14 @@ Make chapters searchable and descriptive for SEO optimization.`,
     }
   };
 
+  const handleSEOUpdate = async (podcastId, updates) => {
+    await updatePodcastMutation.mutateAsync({
+      id: podcastId,
+      data: updates
+    });
+    queryClient.invalidateQueries({ queryKey: ['podcasts'] }); // Invalidate to reflect changes
+  };
+
   return (
     <div className="space-y-6">
       <div className="flex items-center justify-between">
@@ -1413,6 +1426,19 @@ Make chapters searchable and descriptive for SEO optimization.`,
                           ) : (
                             <><Wand2 className="w-3 h-3 mr-1" />Chapters</>
                           )}
+                        </Button>
+
+                        {/* NEW: AI SEO Optimizer */}
+                        <Button
+                          size="sm"
+                          onClick={() => {
+                            setSelectedForSEO(podcast);
+                            setSeoDialogOpen(true);
+                          }}
+                          className="bg-gradient-to-r from-amber-600 to-orange-600 hover:from-amber-700 hover:to-orange-700"
+                        >
+                          <Search className="w-3 h-3 mr-1" />
+                          SEO Optimize
                         </Button>
 
                         {/* NEW: AI Marketing Tools */}
@@ -2205,6 +2231,40 @@ Make chapters searchable and descriptive for SEO optimization.`,
               Close
             </Button>
           </div>
+        </DialogContent>
+      </Dialog>
+
+      {/* NEW: SEO Optimization Dialog */}
+      <Dialog open={seoDialogOpen} onOpenChange={setSeoDialogOpen}>
+        <DialogContent className="bg-[#1a1f3a] border-slate-700 max-w-5xl max-h-[90vh] overflow-y-auto">
+          <DialogHeader>
+            <DialogTitle className="text-white font-black text-2xl flex items-center gap-3">
+              <Search className="w-8 h-8 text-green-400" />
+              AI SEO Optimization Suite
+            </DialogTitle>
+            <DialogDescription className="text-slate-400">
+              {selectedForSEO?.title}
+            </DialogDescription>
+          </DialogHeader>
+          
+          {selectedForSEO && (
+            <SEOOptimizer
+              podcast={selectedForSEO}
+              onUpdate={(updates) => handleSEOUpdate(selectedForSEO.id, updates)}
+            />
+          )}
+
+          <DialogFooter>
+            <Button
+              onClick={() => {
+                setSeoDialogOpen(false);
+                setSelectedForSEO(null);
+              }}
+              className="bg-cyan-500 hover:bg-cyan-600"
+            >
+              Done
+            </Button>
+          </DialogFooter>
         </DialogContent>
       </Dialog>
     </div>

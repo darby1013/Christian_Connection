@@ -1,3 +1,4 @@
+
 import React, { useState, useRef, useEffect } from "react";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { base44 } from "@/api/base44Client";
@@ -27,6 +28,16 @@ export default function AdminPodcastVideoEditor() {
       return results[0] || null;
     },
     enabled: !!podcastId,
+  });
+
+  const { data: script } = useQuery({
+    queryKey: ['podcastScript', podcast?.id],
+    queryFn: async () => {
+      if (!podcast?.id) return null;
+      const transcripts = await base44.entities.PodcastTranscript.filter({ podcast_id: podcast.id });
+      return transcripts[0] || null;
+    },
+    enabled: !!podcast,
   });
 
   const updatePodcastMutation = useMutation({
@@ -117,7 +128,9 @@ export default function AdminPodcastVideoEditor() {
 
       {/* Advanced Editor Component */}
       <AdvancedVideoEditor 
-        videoUrl={podcast.video_url} 
+        videoUrl={podcast.video_url}
+        podcastId={podcast.id}
+        script={script}
         onSave={handleSaveEdits}
       />
 
