@@ -131,6 +131,12 @@ import AdminDataGovernance from './pages/AdminDataGovernance';
 import AdminDatabaseIndexOptimizer from './pages/AdminDatabaseIndexOptimizer';
 import AdminQueryOptimizer from './pages/AdminQueryOptimizer';
 import AdminDataMasking from './pages/AdminDataMasking';
+import AdminDatabaseTransactions from './pages/AdminDatabaseTransactions';
+import AdminDatabaseVersioning from './pages/AdminDatabaseVersioning';
+import AdminDataLineage from './pages/AdminDataLineage';
+import AdminDataCatalog from './pages/AdminDataCatalog';
+import AdminDataQuality from './pages/AdminDataQuality';
+import AdminDataEncryption from './pages/AdminDataEncryption';
 import Layout from './Layout.jsx';
 
 
@@ -268,6 +274,12 @@ export const PAGES = {
     "AdminDatabaseIndexOptimizer": AdminDatabaseIndexOptimizer,
     "AdminQueryOptimizer": AdminQueryOptimizer,
     "AdminDataMasking": AdminDataMasking,
+    "AdminDatabaseTransactions": AdminDatabaseTransactions,
+    "AdminDatabaseVersioning": AdminDatabaseVersioning,
+    "AdminDataLineage": AdminDataLineage,
+    "AdminDataCatalog": AdminDataCatalog,
+    "AdminDataQuality": AdminDataQuality,
+    "AdminDataEncryption": AdminDataEncryption,
 }
 
 export const pagesConfig = {
