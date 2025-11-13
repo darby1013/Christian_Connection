@@ -13,6 +13,14 @@ import { BarChart, Bar, LineChart, Line, PieChart, Pie, Cell, XAxis, YAxis, Cart
 import ActivityFeedWidget from "../components/activity/ActivityFeedWidget";
 import { Link } from "react-router-dom";
 import { createPageUrl } from "@/utils";
+import {
+  RecentActivityWidget,
+  CriticalAlertsWidget,
+  SystemHealthWidget,
+  ActiveConnectionsWidget,
+  PerformanceMetricsWidget,
+  QuickStatsWidget
+} from "../components/dashboard/RealtimeWidgets";
 
 export default function AdminDashboard() {
   const { data: liveStreams = [] } = useQuery({
@@ -154,7 +162,7 @@ export default function AdminDashboard() {
     { title: "System", icon: Settings, color: "bg-amber-500", links: [
       { name: "Site Settings", url: createPageUrl("AdminSiteSettings") },
       { name: "Roles & Permissions", url: createPageUrl("AdminRoles") },
-      { name: "Database", url: createPageUrl("AdminDatabaseDashboard") },
+      { name: "Database", url: createPageUrl("AdminDatabaseCenter") },
       { name: "Analytics", url: createPageUrl("AdminAnalytics") },
     ]},
   ];
@@ -214,6 +222,16 @@ export default function AdminDashboard() {
           )}
         </div>
       )}
+
+      {/* Real-time Widgets */}
+      <div className="grid lg:grid-cols-3 gap-4">
+        <RecentActivityWidget />
+        <SystemHealthWidget />
+        <ActiveConnectionsWidget />
+        <CriticalAlertsWidget />
+        <PerformanceMetricsWidget />
+        <QuickStatsWidget />
+      </div>
 
       {/* Key Metrics */}
       <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-6 gap-4">
