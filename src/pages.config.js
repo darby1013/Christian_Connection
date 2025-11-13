@@ -121,6 +121,11 @@ import AdminAuditLog from './pages/AdminAuditLog';
 import AdminAPIManagement from './pages/AdminAPIManagement';
 import AdminWebhooks from './pages/AdminWebhooks';
 import AdminNotificationCenter from './pages/AdminNotificationCenter';
+import AdminCacheManager from './pages/AdminCacheManager';
+import AdminRateLimiting from './pages/AdminRateLimiting';
+import AdminScheduledJobs from './pages/AdminScheduledJobs';
+import AdminErrorTracking from './pages/AdminErrorTracking';
+import AdminDatabaseReplication from './pages/AdminDatabaseReplication';
 import Layout from './Layout.jsx';
 
 
@@ -248,6 +253,11 @@ export const PAGES = {
     "AdminAPIManagement": AdminAPIManagement,
     "AdminWebhooks": AdminWebhooks,
     "AdminNotificationCenter": AdminNotificationCenter,
+    "AdminCacheManager": AdminCacheManager,
+    "AdminRateLimiting": AdminRateLimiting,
+    "AdminScheduledJobs": AdminScheduledJobs,
+    "AdminErrorTracking": AdminErrorTracking,
+    "AdminDatabaseReplication": AdminDatabaseReplication,
 }
 
 export const pagesConfig = {
