@@ -1,3 +1,4 @@
+
 import React, { useState, useEffect } from "react";
 import { base44 } from "@/api/base44Client";
 import { useQuery } from "@tanstack/react-query";
@@ -13,7 +14,7 @@ import {
   Database, Sparkles, Search, GitBranch, Code, Upload, Archive,
   Download, Activity, Zap, Shield, Link2, TrendingUp, Server,
   FileText, CheckCircle, AlertCircle, Loader2, Table, HardDrive,
-  Clock, Users, FileJson, FileSpreadsheet, FileCode, Package
+  Clock, Users, FileJson, FileSpreadsheet, FileCode, Package, Eye
 } from "lucide-react";
 import { Link } from "react-router-dom";
 import { createPageUrl } from "@/utils";
