@@ -17,9 +17,9 @@ import {
   History, Search, Filter, Download, Eye, AlertCircle, CheckCircle,
   XCircle, Clock, User, Database, Lock, LogOut, Upload, Settings,
   Shield, FileText, Trash2, Edit2, Plus, Activity, TrendingUp,
-  Calendar, BarChart3, Zap, RefreshCw, AlertTriangle
+  Calendar, BarChart3, Zap, RefreshCw, AlertTriangle, RotateCcw
 } from "lucide-react";
-import { format } from "date-fns";
+import { format, subDays, startOfDay, endOfDay, isWithinInterval } from "date-fns";
 
 export default function AdminAuditLog() {
   const [searchQuery, setSearchQuery] = useState("");
@@ -27,12 +27,15 @@ export default function AdminAuditLog() {
   const [selectedSeverity, setSelectedSeverity] = useState("all");
   const [selectedStatus, setSelectedStatus] = useState("all");
   const [selectedUser, setSelectedUser] = useState("all");
-  const [dateRange, setDateRange] = useState("all");
+  const [dateFilter, setDateFilter] = useState("all");
+  const [customStartDate, setCustomStartDate] = useState("");
+  const [customEndDate, setCustomEndDate] = useState("");
+  const [entityIdFilter, setEntityIdFilter] = useState("");
   const [selectedLog, setSelectedLog] = useState(null);
 
   const { data: auditLogs = [], refetch } = useQuery({
     queryKey: ['auditLogs'],
-    queryFn: () => base44.entities.AuditLog.list('-created_date', 500),
+    queryFn: () => base44.entities.AuditLog.list('-created_date', 1000),
     initialData: [],
   });
 
@@ -104,6 +107,35 @@ export default function AdminAuditLog() {
     }
   };
 
+  const filterByDateRange = (log) => {
+    const logDate = new Date(log.created_date);
+    const today = new Date();
+
+    switch(dateFilter) {
+      case 'today':
+        return isWithinInterval(logDate, { start: startOfDay(today), end: endOfDay(today) });
+      case 'yesterday':
+        const yesterday = subDays(today, 1);
+        return isWithinInterval(logDate, { start: startOfDay(yesterday), end: endOfDay(yesterday) });
+      case 'last7days':
+        return isWithinInterval(logDate, { start: subDays(today, 7), end: today });
+      case 'last30days':
+        return isWithinInterval(logDate, { start: subDays(today, 30), end: today });
+      case 'last90days':
+        return isWithinInterval(logDate, { start: subDays(today, 90), end: today });
+      case 'custom':
+        if (customStartDate && customEndDate) {
+          return isWithinInterval(logDate, {
+            start: startOfDay(new Date(customStartDate)),
+            end: endOfDay(new Date(customEndDate))
+          });
+        }
+        return true;
+      default:
+        return true;
+    }
+  };
+
   const filteredLogs = auditLogs.filter(log => {
     if (searchQuery && !log.action_description?.toLowerCase().includes(searchQuery.toLowerCase()) &&
         !log.entity_name?.toLowerCase().includes(searchQuery.toLowerCase()) &&
@@ -115,22 +147,27 @@ export default function AdminAuditLog() {
     if (selectedSeverity !== 'all' && log.severity !== selectedSeverity) return false;
     if (selectedStatus !== 'all' && log.status !== selectedStatus) return false;
     if (selectedUser !== 'all' && log.user_id !== selectedUser) return false;
-
-    if (dateRange !== 'all') {
-      const logDate = new Date(log.created_date);
-      const now = new Date();
-      const daysDiff = (now - logDate) / (1000 * 60 * 60 * 24);
-
-      if (dateRange === 'today' && daysDiff > 1) return false;
-      if (dateRange === 'week' && daysDiff > 7) return false;
-      if (dateRange === 'month' && daysDiff > 30) return false;
-    }
+    if (entityIdFilter && log.entity_id !== entityIdFilter) return false;
+    if (!filterByDateRange(log)) return false;
 
     return true;
   });
 
+  const resetFilters = () => {
+    setSearchQuery("");
+    setSelectedAction("all");
+    setSelectedSeverity("all");
+    setSelectedStatus("all");
+    setSelectedUser("all");
+    setDateFilter("all");
+    setCustomStartDate("");
+    setCustomEndDate("");
+    setEntityIdFilter("");
+  };
+
   const stats = {
     total: auditLogs.length,
+    filtered: filteredLogs.length,
     today: auditLogs.filter(log => {
       const logDate = new Date(log.created_date);
       const today = new Date();
@@ -188,7 +225,7 @@ export default function AdminAuditLog() {
       </div>
 
       {/* Statistics */}
-      <div className="grid md:grid-cols-5 gap-4">
+      <div className="grid md:grid-cols-6 gap-4">
         <Card className="bg-gradient-to-br from-[#1e293b] to-[#0f172a] border-0 shadow-xl">
           <CardContent className="p-6">
             <div className="flex items-center justify-between mb-3">
@@ -197,6 +234,17 @@ export default function AdminAuditLog() {
             </div>
             <p className="text-4xl font-black text-white mb-1">{stats.total}</p>
             <p className="text-slate-400 text-sm font-semibold">All Events</p>
+          </CardContent>
+        </Card>
+
+        <Card className="bg-gradient-to-br from-[#1e293b] to-[#0f172a] border-0 shadow-xl">
+          <CardContent className="p-6">
+            <div className="flex items-center justify-between mb-3">
+              <Filter className="w-10 h-10 text-blue-400" />
+              <Badge className="bg-blue-500">Filtered</Badge>
+            </div>
+            <p className="text-4xl font-black text-white mb-1">{stats.filtered}</p>
+            <p className="text-slate-400 text-sm font-semibold">Showing</p>
           </CardContent>
         </Card>
 
@@ -245,102 +293,169 @@ export default function AdminAuditLog() {
         </Card>
       </div>
 
-      {/* Filters */}
+      {/* Enhanced Filters */}
       <Card className="bg-[#1a1f3a] border-slate-700">
         <CardHeader className="border-b border-slate-700">
-          <CardTitle className="text-white font-bold flex items-center gap-2">
-            <Filter className="w-5 h-5" />
-            Advanced Filters
-          </CardTitle>
+          <div className="flex items-center justify-between">
+            <CardTitle className="text-white font-bold flex items-center gap-2">
+              <Filter className="w-5 h-5" />
+              Advanced Filters
+            </CardTitle>
+            <Button onClick={resetFilters} size="sm" variant="outline" className="border-slate-700">
+              <RotateCcw className="w-3 h-3 mr-1" />
+              Reset Filters
+            </Button>
+          </div>
         </CardHeader>
         <CardContent className="p-6">
-          <div className="grid md:grid-cols-6 gap-4">
-            <div className="md:col-span-2">
-              <Label className="text-white font-bold mb-2 block">Search</Label>
-              <div className="relative">
-                <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 w-4 h-4 text-slate-400" />
+          <div className="space-y-4">
+            {/* Row 1 */}
+            <div className="grid md:grid-cols-4 gap-4">
+              <div className="md:col-span-2">
+                <Label className="text-white font-bold mb-2 block">Search</Label>
+                <div className="relative">
+                  <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 w-4 h-4 text-slate-400" />
+                  <Input
+                    placeholder="Search logs..."
+                    value={searchQuery}
+                    onChange={(e) => setSearchQuery(e.target.value)}
+                    className="pl-10 bg-slate-900 border-slate-700 text-white"
+                  />
+                </div>
+              </div>
+
+              <div>
+                <Label className="text-white font-bold mb-2 block">Action Type</Label>
+                <Select value={selectedAction} onValueChange={setSelectedAction}>
+                  <SelectTrigger className="bg-slate-900 border-slate-700 text-white">
+                    <SelectValue />
+                  </SelectTrigger>
+                  <SelectContent className="bg-slate-800 border-slate-700 max-h-[300px]">
+                    <SelectItem value="all" className="text-white">All Actions</SelectItem>
+                    {actionTypes.map(action => (
+                      <SelectItem key={action.value} value={action.value} className="text-white">
+                        {action.label}
+                      </SelectItem>
+                    ))}
+                  </SelectContent>
+                </Select>
+              </div>
+
+              <div>
+                <Label className="text-white font-bold mb-2 block">Severity</Label>
+                <Select value={selectedSeverity} onValueChange={setSelectedSeverity}>
+                  <SelectTrigger className="bg-slate-900 border-slate-700 text-white">
+                    <SelectValue />
+                  </SelectTrigger>
+                  <SelectContent className="bg-slate-800 border-slate-700">
+                    <SelectItem value="all" className="text-white">All Severity</SelectItem>
+                    <SelectItem value="critical" className="text-white">Critical</SelectItem>
+                    <SelectItem value="high" className="text-white">High</SelectItem>
+                    <SelectItem value="medium" className="text-white">Medium</SelectItem>
+                    <SelectItem value="low" className="text-white">Low</SelectItem>
+                  </SelectContent>
+                </Select>
+              </div>
+            </div>
+
+            {/* Row 2 */}
+            <div className="grid md:grid-cols-4 gap-4">
+              <div>
+                <Label className="text-white font-bold mb-2 block">Status</Label>
+                <Select value={selectedStatus} onValueChange={setSelectedStatus}>
+                  <SelectTrigger className="bg-slate-900 border-slate-700 text-white">
+                    <SelectValue />
+                  </SelectTrigger>
+                  <SelectContent className="bg-slate-800 border-slate-700">
+                    <SelectItem value="all" className="text-white">All Status</SelectItem>
+                    <SelectItem value="success" className="text-white">Success</SelectItem>
+                    <SelectItem value="failure" className="text-white">Failure</SelectItem>
+                    <SelectItem value="warning" className="text-white">Warning</SelectItem>
+                    <SelectItem value="partial" className="text-white">Partial</SelectItem>
+                  </SelectContent>
+                </Select>
+              </div>
+
+              <div>
+                <Label className="text-white font-bold mb-2 block">User</Label>
+                <Select value={selectedUser} onValueChange={setSelectedUser}>
+                  <SelectTrigger className="bg-slate-900 border-slate-700 text-white">
+                    <SelectValue />
+                  </SelectTrigger>
+                  <SelectContent className="bg-slate-800 border-slate-700 max-h-[300px]">
+                    <SelectItem value="all" className="text-white">All Users</SelectItem>
+                    {users.map(user => (
+                      <SelectItem key={user.id} value={user.id} className="text-white">
+                        {user.full_name} ({user.email})
+                      </SelectItem>
+                    ))}
+                  </SelectContent>
+                </Select>
+              </div>
+
+              <div>
+                <Label className="text-white font-bold mb-2 block">Date Range</Label>
+                <Select value={dateFilter} onValueChange={setDateFilter}>
+                  <SelectTrigger className="bg-slate-900 border-slate-700 text-white">
+                    <SelectValue />
+                  </SelectTrigger>
+                  <SelectContent className="bg-slate-800 border-slate-700">
+                    <SelectItem value="all" className="text-white">All Time</SelectItem>
+                    <SelectItem value="today" className="text-white">Today</SelectItem>
+                    <SelectItem value="yesterday" className="text-white">Yesterday</SelectItem>
+                    <SelectItem value="last7days" className="text-white">Last 7 Days</SelectItem>
+                    <SelectItem value="last30days" className="text-white">Last 30 Days</SelectItem>
+                    <SelectItem value="last90days" className="text-white">Last 90 Days</SelectItem>
+                    <SelectItem value="custom" className="text-white">Custom Range</SelectItem>
+                  </SelectContent>
+                </Select>
+              </div>
+
+              <div>
+                <Label className="text-white font-bold mb-2 block">Entity ID</Label>
                 <Input
-                  placeholder="Search logs..."
-                  value={searchQuery}
-                  onChange={(e) => setSearchQuery(e.target.value)}
-                  className="pl-10 bg-slate-900 border-slate-700 text-white"
+                  placeholder="Filter by entity ID..."
+                  value={entityIdFilter}
+                  onChange={(e) => setEntityIdFilter(e.target.value)}
+                  className="bg-slate-900 border-slate-700 text-white"
                 />
               </div>
             </div>
 
-            <div>
-              <Label className="text-white font-bold mb-2 block">Action Type</Label>
-              <Select value={selectedAction} onValueChange={setSelectedAction}>
-                <SelectTrigger className="bg-slate-900 border-slate-700 text-white">
-                  <SelectValue />
-                </SelectTrigger>
-                <SelectContent className="bg-slate-800 border-slate-700">
-                  <SelectItem value="all" className="text-white">All Actions</SelectItem>
-                  {actionTypes.map(action => (
-                    <SelectItem key={action.value} value={action.value} className="text-white">
-                      {action.label}
-                    </SelectItem>
-                  ))}
-                </SelectContent>
-              </Select>
-            </div>
-
-            <div>
-              <Label className="text-white font-bold mb-2 block">Severity</Label>
-              <Select value={selectedSeverity} onValueChange={setSelectedSeverity}>
-                <SelectTrigger className="bg-slate-900 border-slate-700 text-white">
-                  <SelectValue />
-                </SelectTrigger>
-                <SelectContent className="bg-slate-800 border-slate-700">
-                  <SelectItem value="all" className="text-white">All Severity</SelectItem>
-                  <SelectItem value="critical" className="text-white">Critical</SelectItem>
-                  <SelectItem value="high" className="text-white">High</SelectItem>
-                  <SelectItem value="medium" className="text-white">Medium</SelectItem>
-                  <SelectItem value="low" className="text-white">Low</SelectItem>
-                </SelectContent>
-              </Select>
-            </div>
-
-            <div>
-              <Label className="text-white font-bold mb-2 block">Status</Label>
-              <Select value={selectedStatus} onValueChange={setSelectedStatus}>
-                <SelectTrigger className="bg-slate-900 border-slate-700 text-white">
-                  <SelectValue />
-                </SelectTrigger>
-                <SelectContent className="bg-slate-800 border-slate-700">
-                  <SelectItem value="all" className="text-white">All Status</SelectItem>
-                  <SelectItem value="success" className="text-white">Success</SelectItem>
-                  <SelectItem value="failure" className="text-white">Failure</SelectItem>
-                  <SelectItem value="warning" className="text-white">Warning</SelectItem>
-                  <SelectItem value="partial" className="text-white">Partial</SelectItem>
-                </SelectContent>
-              </Select>
-            </div>
-
-            <div>
-              <Label className="text-white font-bold mb-2 block">Date Range</Label>
-              <Select value={dateRange} onValueChange={setDateRange}>
-                <SelectTrigger className="bg-slate-900 border-slate-700 text-white">
-                  <SelectValue />
-                </SelectTrigger>
-                <SelectContent className="bg-slate-800 border-slate-700">
-                  <SelectItem value="all" className="text-white">All Time</SelectItem>
-                  <SelectItem value="today" className="text-white">Today</SelectItem>
-                  <SelectItem value="week" className="text-white">Last 7 Days</SelectItem>
-                  <SelectItem value="month" className="text-white">Last 30 Days</SelectItem>
-                </SelectContent>
-              </Select>
-            </div>
+            {/* Custom Date Range */}
+            {dateFilter === 'custom' && (
+              <div className="grid md:grid-cols-2 gap-4 p-4 bg-slate-900/50 rounded-lg border border-slate-700">
+                <div>
+                  <Label className="text-white font-bold mb-2 block">Start Date</Label>
+                  <Input
+                    type="date"
+                    value={customStartDate}
+                    onChange={(e) => setCustomStartDate(e.target.value)}
+                    className="bg-slate-900 border-slate-700 text-white"
+                  />
+                </div>
+                <div>
+                  <Label className="text-white font-bold mb-2 block">End Date</Label>
+                  <Input
+                    type="date"
+                    value={customEndDate}
+                    onChange={(e) => setCustomEndDate(e.target.value)}
+                    className="bg-slate-900 border-slate-700 text-white"
+                  />
+                </div>
+              </div>
+            )}
           </div>
         </CardContent>
       </Card>
 
+      {/* Rest of existing audit log table code... */}
       {/* Audit Log Table */}
       <Card className="bg-[#1a1f3a] border-slate-700">
         <CardHeader className="border-b border-slate-700">
           <div className="flex items-center justify-between">
             <CardTitle className="text-white font-bold">
-              Activity Log ({filteredLogs.length} entries)
+              Activity Log ({filteredLogs.length} {filteredLogs.length !== stats.total ? `of ${stats.total}` : ''} entries)
             </CardTitle>
           </div>
         </CardHeader>
@@ -349,10 +464,14 @@ export default function AdminAuditLog() {
             <div className="p-12 text-center">
               <History className="w-16 h-16 text-slate-600 mx-auto mb-4" />
               <h3 className="text-white font-bold text-xl mb-2">No Audit Logs Found</h3>
-              <p className="text-slate-400">Try adjusting your filters or search criteria</p>
+              <p className="text-slate-400 mb-4">Try adjusting your filters or search criteria</p>
+              <Button onClick={resetFilters} className="bg-cyan-500 hover:bg-cyan-600">
+                <RotateCcw className="w-4 h-4 mr-2" />
+                Reset Filters
+              </Button>
             </div>
           ) : (
-            <div className="divide-y divide-slate-700">
+            <div className="divide-y divide-slate-700 max-h-[600px] overflow-y-auto">
               {filteredLogs.map((log) => {
                 const ActionIcon = getActionIcon(log.action_type);
                 const StatusIcon = getStatusIcon(log.status);
@@ -371,7 +490,7 @@ export default function AdminAuditLog() {
                         </div>
                         
                         <div className="flex-1 min-w-0">
-                          <div className="flex items-center gap-3 mb-2">
+                          <div className="flex items-center gap-3 mb-2 flex-wrap">
                             <h4 className="text-white font-bold text-base">{log.action_description}</h4>
                             <StatusIcon className={`w-4 h-4 ${getStatusColor(log.status)}`} />
                             <Badge className={getSeverityColor(log.severity)}>
