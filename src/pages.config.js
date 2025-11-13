@@ -117,6 +117,7 @@ import AdminAdvancedQueryBuilder from './pages/AdminAdvancedQueryBuilder';
 import AdminSchemaGenerator from './pages/AdminSchemaGenerator';
 import AdminSQLScriptGenerator from './pages/AdminSQLScriptGenerator';
 import UserProfileCustomization from './pages/UserProfileCustomization';
+import AdminAuditLog from './pages/AdminAuditLog';
 import Layout from './Layout.jsx';
 
 
@@ -240,6 +241,7 @@ export const PAGES = {
     "AdminSchemaGenerator": AdminSchemaGenerator,
     "AdminSQLScriptGenerator": AdminSQLScriptGenerator,
     "UserProfileCustomization": UserProfileCustomization,
+    "AdminAuditLog": AdminAuditLog,
 }
 
 export const pagesConfig = {
