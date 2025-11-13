@@ -126,6 +126,11 @@ import AdminRateLimiting from './pages/AdminRateLimiting';
 import AdminScheduledJobs from './pages/AdminScheduledJobs';
 import AdminErrorTracking from './pages/AdminErrorTracking';
 import AdminDatabaseReplication from './pages/AdminDatabaseReplication';
+import AdminAccessControl from './pages/AdminAccessControl';
+import AdminDataGovernance from './pages/AdminDataGovernance';
+import AdminDatabaseIndexOptimizer from './pages/AdminDatabaseIndexOptimizer';
+import AdminQueryOptimizer from './pages/AdminQueryOptimizer';
+import AdminDataMasking from './pages/AdminDataMasking';
 import Layout from './Layout.jsx';
 
 
@@ -258,6 +263,11 @@ export const PAGES = {
     "AdminScheduledJobs": AdminScheduledJobs,
     "AdminErrorTracking": AdminErrorTracking,
     "AdminDatabaseReplication": AdminDatabaseReplication,
+    "AdminAccessControl": AdminAccessControl,
+    "AdminDataGovernance": AdminDataGovernance,
+    "AdminDatabaseIndexOptimizer": AdminDatabaseIndexOptimizer,
+    "AdminQueryOptimizer": AdminQueryOptimizer,
+    "AdminDataMasking": AdminDataMasking,
 }
 
 export const pagesConfig = {
