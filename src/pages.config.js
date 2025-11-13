@@ -142,6 +142,9 @@ import AdminDataArchiving from './pages/AdminDataArchiving';
 import AdminDataAnonymization from './pages/AdminDataAnonymization';
 import AdminDatabaseCloning from './pages/AdminDatabaseCloning';
 import AdminComplianceReporting from './pages/AdminComplianceReporting';
+import AdminDatabaseComparison from './pages/AdminDatabaseComparison';
+import AdminDataProfiling from './pages/AdminDataProfiling';
+import AdminDatabaseCostOptimizer from './pages/AdminDatabaseCostOptimizer';
 import Layout from './Layout.jsx';
 
 
@@ -290,6 +293,9 @@ export const PAGES = {
     "AdminDataAnonymization": AdminDataAnonymization,
     "AdminDatabaseCloning": AdminDatabaseCloning,
     "AdminComplianceReporting": AdminComplianceReporting,
+    "AdminDatabaseComparison": AdminDatabaseComparison,
+    "AdminDataProfiling": AdminDataProfiling,
+    "AdminDatabaseCostOptimizer": AdminDatabaseCostOptimizer,
 }
 
 export const pagesConfig = {

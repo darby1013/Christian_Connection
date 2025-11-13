@@ -1,3 +1,4 @@
+
 import React, { useState, useEffect } from "react";
 import { Link, useLocation } from "react-router-dom";
 import { createPageUrl } from "@/utils";
@@ -12,7 +13,8 @@ import {
   AlertOctagon, TrendingUp, Globe, Star, Book, Rss, UserPlus, Truck, Tag, Warehouse,
   Gift, Percent, Clock, Award,
   Database, Code, GitBranch, Upload, Archive, Link2,
-  Activity, Zap, RefreshCw, Server, Sun, Moon
+  Activity, Zap, RefreshCw, Server, Sun, Moon, Eye, Lock,
+  Webhook, Key, AlertCircle, GitCompare, UserX, Copy, CheckCircle
 } from "lucide-react";
 import {
   Sidebar,
@@ -163,13 +165,19 @@ function LayoutContent({ children, currentPageName }) {
     { title: "Activity Feed", url: createPageUrl("AdminActivityFeed"), icon: Activity, section: "OVERVIEW" },
     
     { title: "Database Center", url: createPageUrl("AdminDatabaseCenter"), icon: Database, section: "DATABASE" },
-    { title: "SQL Script Generator", url: createPageUrl("AdminSQLScriptGenerator"), icon: Sparkles, section: "DATABASE" },
+    { title: "Audit Log", url: createPageUrl("AdminAuditLog"), icon: Eye, section: "DATABASE" },
+    { title: "Data Integrity", url: createPageUrl("AdminDataIntegrity"), icon: Shield, section: "DATABASE" },
+    { title: "SQL Generator", url: createPageUrl("AdminSQLScriptGenerator"), icon: Sparkles, section: "DATABASE" },
     { title: "Query Builder", url: createPageUrl("AdminAdvancedQueryBuilder"), icon: Search, section: "DATABASE" },
     { title: "Schema Generator", url: createPageUrl("AdminSchemaGenerator"), icon: GitBranch, section: "DATABASE" },
     { title: "SQL Editor", url: createPageUrl("AdminSQLEditor"), icon: Code, section: "DATABASE" },
-    { title: "Schema Viewer", url: createPageUrl("AdminSchemaViewer"), icon: GitBranch, section: "DATABASE" },
+    { title: "Schema Viewer", url: createPageUrl("AdminSchemaViewer"), icon: Database, section: "DATABASE" },
     { title: "Import/Export", url: createPageUrl("AdminDataImportExport"), icon: Upload, section: "DATABASE" },
     { title: "Backup Manager", url: createPageUrl("AdminBackupManager"), icon: Archive, section: "DATABASE" },
+    { title: "Performance Monitor", url: createPageUrl("AdminPerformanceMonitor"), icon: Activity, section: "DATABASE" },
+    { title: "Migration Studio", url: createPageUrl("AdminMigrationStudio"), icon: Zap, section: "DATABASE" },
+    { title: "Security Audit", url: createPageUrl("AdminSecurityAudit"), icon: Shield, section: "DATABASE" },
+    { title: "Relationship Mapper", url: createPageUrl("AdminRelationshipMapper"), icon: Link2, section: "DATABASE" },
     
     { title: "Go Live Studio", url: createPageUrl("AdminBroadcastStudio"), icon: Radio, section: "CONTENT" },
     { title: "Live Streams", url: createPageUrl("AdminLiveStreams"), icon: Video, section: "CONTENT" },
@@ -182,6 +190,34 @@ function LayoutContent({ children, currentPageName }) {
     
     { title: "Users", url: createPageUrl("AdminUsers"), icon: UserIcon, section: "MANAGEMENT" },
     { title: "Roles & Permissions", url: createPageUrl("AdminRoles"), icon: Shield, section: "MANAGEMENT" },
+
+    { title: "API Management", url: createPageUrl("AdminAPIManagement"), icon: Key, section: "ENTERPRISE" },
+    { title: "Webhooks", url: createPageUrl("AdminWebhooks"), icon: Webhook, section: "ENTERPRISE" },
+    { title: "Notifications", url: createPageUrl("AdminNotificationCenter"), icon: Bell, section: "ENTERPRISE" },
+    { title: "Cache Manager", url: createPageUrl("AdminCacheManager"), icon: Zap, section: "ENTERPRISE" },
+    { title: "Rate Limiting", url: createPageUrl("AdminRateLimiting"), icon: Shield, section: "ENTERPRISE" },
+    { title: "Scheduled Jobs", url: createPageUrl("AdminScheduledJobs"), icon: Clock, section: "ENTERPRISE" },
+    { title: "Error Tracking", url: createPageUrl("AdminErrorTracking"), icon: AlertCircle, section: "ENTERPRISE" },
+    { title: "DB Replication", url: createPageUrl("AdminDatabaseReplication"), icon: Copy, section: "ENTERPRISE" },
+    { title: "Access Control", url: createPageUrl("AdminAccessControl"), icon: Lock, section: "ENTERPRISE" },
+    { title: "Data Governance", url: createPageUrl("AdminDataGovernance"), icon: Shield, section: "ENTERPRISE" },
+    { title: "Index Optimizer", url: createPageUrl("AdminDatabaseIndexOptimizer"), icon: Zap, section: "ENTERPRISE" },
+    { title: "Query Optimizer", url: createPageUrl("AdminQueryOptimizer"), icon: TrendingUp, section: "ENTERPRISE" },
+    { title: "Data Masking", url: createPageUrl("AdminDataMasking"), icon: Eye, section: "ENTERPRISE" },
+    { title: "Transactions", url: createPageUrl("AdminDatabaseTransactions"), icon: Activity, section: "ENTERPRISE" },
+    { title: "DB Versioning", url: createPageUrl("AdminDatabaseVersioning"), icon: GitBranch, section: "ENTERPRISE" },
+    { title: "Data Lineage", url: createPageUrl("AdminDataLineage"), icon: Link2, section: "ENTERPRISE" },
+    { title: "Data Catalog", url: createPageUrl("AdminDataCatalog"), icon: Database, section: "ENTERPRISE" },
+    { title: "Data Quality", url: createPageUrl("AdminDataQuality"), icon: CheckCircle, section: "ENTERPRISE" },
+    { title: "Data Encryption", url: createPageUrl("AdminDataEncryption"), icon: Lock, section: "ENTERPRISE" },
+    { title: "DB Monitoring", url: createPageUrl("AdminDatabaseMonitoring"), icon: Activity, section: "ENTERPRISE" },
+    { title: "Data Archiving", url: createPageUrl("AdminDataArchiving"), icon: Archive, section: "ENTERPRISE" },
+    { title: "Anonymization", url: createPageUrl("AdminDataAnonymization"), icon: UserX, section: "ENTERPRISE" },
+    { title: "DB Cloning", url: createPageUrl("AdminDatabaseCloning"), icon: Copy, section: "ENTERPRISE" },
+    { title: "Compliance Reports", url: createPageUrl("AdminComplianceReporting"), icon: FileText, section: "ENTERPRISE" },
+    { title: "DB Comparison", url: createPageUrl("AdminDatabaseComparison"), icon: GitCompare, section: "ENTERPRISE" },
+    { title: "Data Profiling", url: createPageUrl("AdminDataProfiling"), icon: BarChart3, section: "ENTERPRISE" },
+    { title: "Cost Optimizer", url: createPageUrl("AdminDatabaseCostOptimizer"), icon: DollarSign, section: "ENTERPRISE" },
   ];
 
   const groupedAdminItems = adminNavItems.reduce((acc, item) => {
@@ -295,7 +331,7 @@ function LayoutContent({ children, currentPageName }) {
               </div>
             </SidebarHeader>
 
-            <SidebarContent className="p-2" style={{ backgroundColor: '#0f1629' }}>
+            <SidebarContent className="p-2 overflow-y-auto max-h-[calc(100vh-180px)]" style={{ backgroundColor: '#0f1629' }}>
               {Object.entries(groupedAdminItems).map(([section, items]) => (
                 <SidebarGroup key={section}>
                   <SidebarGroupLabel className="sidebar-label px-3 py-2 mb-0.5">
