@@ -1,3 +1,4 @@
+
 import React, { useState } from "react";
 import { useQuery } from "@tanstack/react-query";
 import { base44 } from "@/api/base44Client";
@@ -17,25 +18,26 @@ import {
   History, Search, Filter, Download, Eye, AlertCircle, CheckCircle,
   XCircle, Clock, User, Database, Lock, LogOut, Upload, Settings,
   Shield, FileText, Trash2, Edit2, Plus, Activity, TrendingUp,
-  Calendar, BarChart3, Zap, RefreshCw, AlertTriangle, RotateCcw
+  Calendar, BarChart3, Zap, RefreshCw, AlertTriangle, RotateCcw,
+  Users, Sparkles, Brain // Added new icons from outline
 } from "lucide-react";
-import { format, subDays, startOfDay, endOfDay, isWithinInterval } from "date-fns";
+// Removed date-fns imports as date filtering logic is now handled manually for simplicity
+import AIAnomalyDetector from "../components/ai/AIAnomalyDetector";
 
 export default function AdminAuditLog() {
-  const [searchQuery, setSearchQuery] = useState("");
-  const [selectedAction, setSelectedAction] = useState("all");
-  const [selectedSeverity, setSelectedSeverity] = useState("all");
-  const [selectedStatus, setSelectedStatus] = useState("all");
-  const [selectedUser, setSelectedUser] = useState("all");
-  const [dateFilter, setDateFilter] = useState("all");
-  const [customStartDate, setCustomStartDate] = useState("");
-  const [customEndDate, setCustomEndDate] = useState("");
-  const [entityIdFilter, setEntityIdFilter] = useState("");
-  const [selectedLog, setSelectedLog] = useState(null);
+  // State variables adapted to the new filtering paradigm from the outline
+  const [searchQuery, setSearchQuery] = useState('');
+  const [filterUser, setFilterUser] = useState('all');
+  const [filterAction, setFilterAction] = useState('all');
+  const [filterSeverity, setFilterSeverity] = useState('all');
+  const [filterStatus, setFilterStatus] = useState('all');
+  const [filterDateRange, setFilterDateRange] = useState('all');
+  const [filterEntityId, setFilterEntityId] = useState('');
+  const [selectedLog, setSelectedLog] = useState(null); // Kept for the detailed log modal
 
   const { data: auditLogs = [], refetch } = useQuery({
     queryKey: ['auditLogs'],
-    queryFn: () => base44.entities.AuditLog.list('-created_date', 1000),
+    queryFn: () => base44.entities.AuditLog.list('-created_date', 1000), // Original fetch limit
     initialData: [],
   });
 
@@ -107,76 +109,71 @@ export default function AdminAuditLog() {
     }
   };
 
-  const filterByDateRange = (log) => {
-    const logDate = new Date(log.created_date);
-    const today = new Date();
-
-    switch(dateFilter) {
-      case 'today':
-        return isWithinInterval(logDate, { start: startOfDay(today), end: endOfDay(today) });
-      case 'yesterday':
-        const yesterday = subDays(today, 1);
-        return isWithinInterval(logDate, { start: startOfDay(yesterday), end: endOfDay(yesterday) });
-      case 'last7days':
-        return isWithinInterval(logDate, { start: subDays(today, 7), end: today });
-      case 'last30days':
-        return isWithinInterval(logDate, { start: subDays(today, 30), end: today });
-      case 'last90days':
-        return isWithinInterval(logDate, { start: subDays(today, 90), end: today });
-      case 'custom':
-        if (customStartDate && customEndDate) {
-          return isWithinInterval(logDate, {
-            start: startOfDay(new Date(customStartDate)),
-            end: endOfDay(new Date(customEndDate))
-          });
-        }
-        return true;
-      default:
-        return true;
-    }
-  };
-
+  // Filter logic integrated from outline, adapted to use user_id for consistency with Select
   const filteredLogs = auditLogs.filter(log => {
-    if (searchQuery && !log.action_description?.toLowerCase().includes(searchQuery.toLowerCase()) &&
-        !log.entity_name?.toLowerCase().includes(searchQuery.toLowerCase()) &&
-        !log.user_name?.toLowerCase().includes(searchQuery.toLowerCase())) {
-      return false;
+    const matchesSearch = searchQuery === '' ||
+      log.action_description?.toLowerCase().includes(searchQuery.toLowerCase()) ||
+      log.entity_name?.toLowerCase().includes(searchQuery.toLowerCase()) ||
+      log.user_name?.toLowerCase().includes(searchQuery.toLowerCase());
+
+    const matchesUser = filterUser === 'all' || log.user_id === filterUser;
+    const matchesAction = filterAction === 'all' || log.action_type === filterAction;
+    const matchesSeverity = filterSeverity === 'all' || log.severity === filterSeverity;
+    const matchesStatus = filterStatus === 'all' || log.status === filterStatus;
+    const matchesEntityId = filterEntityId === '' || log.entity_id === filterEntityId;
+
+    let matchesDate = true;
+    if (filterDateRange !== 'all') {
+      const logDate = new Date(log.created_date);
+      const now = new Date();
+      now.setHours(0, 0, 0, 0); // Normalize 'now' to start of today for comparison
+
+      logDate.setHours(0, 0, 0, 0); // Normalize logDate to start of its day
+
+      if (filterDateRange === 'today') {
+        matchesDate = logDate.getTime() === now.getTime();
+      } else if (filterDateRange === 'yesterday') {
+        const yesterday = new Date(now);
+        yesterday.setDate(now.getDate() - 1);
+        matchesDate = logDate.getTime() === yesterday.getTime();
+      } else if (filterDateRange === 'last_7_days') {
+        const sevenDaysAgo = new Date(now);
+        sevenDaysAgo.setDate(now.getDate() - 6); // Includes today + 6 previous days
+        matchesDate = logDate >= sevenDaysAgo;
+      } else if (filterDateRange === 'last_30_days') {
+        const thirtyDaysAgo = new Date(now);
+        thirtyDaysAgo.setDate(now.getDate() - 29); // Includes today + 29 previous days
+        matchesDate = logDate >= thirtyDaysAgo;
+      } else if (filterDateRange === 'last_90_days') {
+        const ninetyDaysAgo = new Date(now);
+        ninetyDaysAgo.setDate(now.getDate() - 89); // Includes today + 89 previous days
+        matchesDate = logDate >= ninetyDaysAgo;
+      }
     }
 
-    if (selectedAction !== 'all' && log.action_type !== selectedAction) return false;
-    if (selectedSeverity !== 'all' && log.severity !== selectedSeverity) return false;
-    if (selectedStatus !== 'all' && log.status !== selectedStatus) return false;
-    if (selectedUser !== 'all' && log.user_id !== selectedUser) return false;
-    if (entityIdFilter && log.entity_id !== entityIdFilter) return false;
-    if (!filterByDateRange(log)) return false;
-
-    return true;
+    return matchesSearch && matchesUser && matchesAction && matchesSeverity && matchesStatus && matchesDate && matchesEntityId;
   });
 
   const resetFilters = () => {
     setSearchQuery("");
-    setSelectedAction("all");
-    setSelectedSeverity("all");
-    setSelectedStatus("all");
-    setSelectedUser("all");
-    setDateFilter("all");
-    setCustomStartDate("");
-    setCustomEndDate("");
-    setEntityIdFilter("");
+    setFilterAction("all");
+    setFilterSeverity("all");
+    setFilterStatus("all");
+    setFilterUser("all");
+    setFilterDateRange("all");
+    setFilterEntityId("");
   };
 
-  const stats = {
-    total: auditLogs.length,
-    filtered: filteredLogs.length,
-    today: auditLogs.filter(log => {
-      const logDate = new Date(log.created_date);
-      const today = new Date();
-      return logDate.toDateString() === today.toDateString();
-    }).length,
-    criticalEvents: auditLogs.filter(log => log.severity === 'critical').length,
-    failedActions: auditLogs.filter(log => log.status === 'failure').length,
-    uniqueUsers: new Set(auditLogs.map(log => log.user_id)).size,
-  };
+  // Simplified stats calculation as per outline, also keeping uniqueUsersCount
+  const totalLogs = auditLogs.length;
+  const todayLogs = auditLogs.filter(log => {
+    const logDate = new Date(log.created_date);
+    const today = new Date();
+    return logDate.toDateString() === today.toDateString();
+  }).length;
+  const criticalLogs = auditLogs.filter(log => log.severity === 'critical' || log.severity === 'high').length;
+  const failedLogs = auditLogs.filter(log => log.status === 'failure').length;
+  const uniqueUsersCount = new Set(auditLogs.map(log => log.user_id)).size;
 
   const exportLogs = () => {
     const csv = [
@@ -206,11 +203,11 @@ export default function AdminAuditLog() {
 
   return (
     <div className="space-y-6">
-      {/* Header */}
+      {/* Header - Updated title and description as per outline */}
       <div className="flex items-center justify-between">
         <div>
-          <h2 className="text-3xl font-black text-white mb-2">Comprehensive Audit Log</h2>
-          <p className="text-slate-400 font-semibold">Complete system activity tracking with advanced filtering and compliance support</p>
+          <h2 className="text-3xl font-black text-white mb-2">Audit Log & AI Security Analysis</h2>
+          <p className="text-slate-400 font-semibold">Track system activity and detect security anomalies with AI</p>
         </div>
         <div className="flex gap-2">
           <Button onClick={() => refetch()} variant="outline" className="border-slate-700">
@@ -224,82 +221,51 @@ export default function AdminAuditLog() {
         </div>
       </div>
 
-      {/* Statistics */}
-      <div className="grid md:grid-cols-6 gap-4">
+      {/* Statistics - Updated to outline's simplified cards. Using filteredLogs.length for the 'filtered' count. */}
+      <div className="grid md:grid-cols-4 gap-4">
         <Card className="bg-gradient-to-br from-[#1e293b] to-[#0f172a] border-0 shadow-xl">
           <CardContent className="p-6">
-            <div className="flex items-center justify-between mb-3">
-              <History className="w-10 h-10 text-cyan-400" />
-              <Badge className="bg-cyan-500">Total</Badge>
-            </div>
-            <p className="text-4xl font-black text-white mb-1">{stats.total}</p>
-            <p className="text-slate-400 text-sm font-semibold">All Events</p>
+            <Eye className="w-10 h-10 text-cyan-400 mb-3" />
+            <p className="text-4xl font-black text-white mb-1">{filteredLogs.length}</p>
+            <p className="text-slate-400 text-sm">Filtered Logs</p>
           </CardContent>
         </Card>
 
         <Card className="bg-gradient-to-br from-[#1e293b] to-[#0f172a] border-0 shadow-xl">
           <CardContent className="p-6">
-            <div className="flex items-center justify-between mb-3">
-              <Filter className="w-10 h-10 text-blue-400" />
-              <Badge className="bg-blue-500">Filtered</Badge>
-            </div>
-            <p className="text-4xl font-black text-white mb-1">{stats.filtered}</p>
-            <p className="text-slate-400 text-sm font-semibold">Showing</p>
+            <Activity className="w-10 h-10 text-green-400 mb-3" />
+            <p className="text-4xl font-black text-white mb-1">{todayLogs}</p>
+            <p className="text-slate-400 text-sm">Today's Activity</p>
           </CardContent>
         </Card>
 
         <Card className="bg-gradient-to-br from-[#1e293b] to-[#0f172a] border-0 shadow-xl">
           <CardContent className="p-6">
-            <div className="flex items-center justify-between mb-3">
-              <Activity className="w-10 h-10 text-green-400" />
-              <Badge className="bg-green-500">Today</Badge>
-            </div>
-            <p className="text-4xl font-black text-white mb-1">{stats.today}</p>
-            <p className="text-slate-400 text-sm font-semibold">Today's Activity</p>
+            <AlertCircle className="w-10 h-10 text-orange-400 mb-3" />
+            <p className="text-4xl font-black text-white mb-1">{criticalLogs}</p>
+            <p className="text-slate-400 text-sm">Critical/High</p>
           </CardContent>
         </Card>
 
         <Card className="bg-gradient-to-br from-[#1e293b] to-[#0f172a] border-0 shadow-xl">
           <CardContent className="p-6">
-            <div className="flex items-center justify-between mb-3">
-              <AlertCircle className="w-10 h-10 text-red-400" />
-              <Badge className="bg-red-500">Critical</Badge>
-            </div>
-            <p className="text-4xl font-black text-white mb-1">{stats.criticalEvents}</p>
-            <p className="text-slate-400 text-sm font-semibold">Critical Events</p>
-          </CardContent>
-        </Card>
-
-        <Card className="bg-gradient-to-br from-[#1e293b] to-[#0f172a] border-0 shadow-xl">
-          <CardContent className="p-6">
-            <div className="flex items-center justify-between mb-3">
-              <XCircle className="w-10 h-10 text-orange-400" />
-              <Badge className="bg-orange-500">Failed</Badge>
-            </div>
-            <p className="text-4xl font-black text-white mb-1">{stats.failedActions}</p>
-            <p className="text-slate-400 text-sm font-semibold">Failed Actions</p>
-          </CardContent>
-        </Card>
-
-        <Card className="bg-gradient-to-br from-[#1e293b] to-[#0f172a] border-0 shadow-xl">
-          <CardContent className="p-6">
-            <div className="flex items-center justify-between mb-3">
-              <User className="w-10 h-10 text-purple-400" />
-              <Badge className="bg-purple-500">Active</Badge>
-            </div>
-            <p className="text-4xl font-black text-white mb-1">{stats.uniqueUsers}</p>
-            <p className="text-slate-400 text-sm font-semibold">Unique Users</p>
+            <XCircle className="w-10 h-10 text-red-400 mb-3" />
+            <p className="text-4xl font-black text-white mb-1">{failedLogs}</p>
+            <p className="text-slate-400 text-sm">Failed Actions</p>
           </CardContent>
         </Card>
       </div>
 
-      {/* Enhanced Filters */}
+      {/* AI Anomaly Detector - Added as per outline */}
+      <AIAnomalyDetector data={filteredLogs} dataType="audit" />
+
+      {/* Enhanced Filters - Replaced with outline's simplified version, but retaining more filters from original */}
       <Card className="bg-[#1a1f3a] border-slate-700">
         <CardHeader className="border-b border-slate-700">
           <div className="flex items-center justify-between">
             <CardTitle className="text-white font-bold flex items-center gap-2">
               <Filter className="w-5 h-5" />
-              Advanced Filters
+              Filter Audit Logs
             </CardTitle>
             <Button onClick={resetFilters} size="sm" variant="outline" className="border-slate-700">
               <RotateCcw className="w-3 h-3 mr-1" />
@@ -308,156 +274,116 @@ export default function AdminAuditLog() {
           </div>
         </CardHeader>
         <CardContent className="p-6">
-          <div className="space-y-4">
-            {/* Row 1 */}
-            <div className="grid md:grid-cols-4 gap-4">
-              <div className="md:col-span-2">
-                <Label className="text-white font-bold mb-2 block">Search</Label>
-                <div className="relative">
-                  <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 w-4 h-4 text-slate-400" />
-                  <Input
-                    placeholder="Search logs..."
-                    value={searchQuery}
-                    onChange={(e) => setSearchQuery(e.target.value)}
-                    className="pl-10 bg-slate-900 border-slate-700 text-white"
-                  />
-                </div>
-              </div>
-
-              <div>
-                <Label className="text-white font-bold mb-2 block">Action Type</Label>
-                <Select value={selectedAction} onValueChange={setSelectedAction}>
-                  <SelectTrigger className="bg-slate-900 border-slate-700 text-white">
-                    <SelectValue />
-                  </SelectTrigger>
-                  <SelectContent className="bg-slate-800 border-slate-700 max-h-[300px]">
-                    <SelectItem value="all" className="text-white">All Actions</SelectItem>
-                    {actionTypes.map(action => (
-                      <SelectItem key={action.value} value={action.value} className="text-white">
-                        {action.label}
-                      </SelectItem>
-                    ))}
-                  </SelectContent>
-                </Select>
-              </div>
-
-              <div>
-                <Label className="text-white font-bold mb-2 block">Severity</Label>
-                <Select value={selectedSeverity} onValueChange={setSelectedSeverity}>
-                  <SelectTrigger className="bg-slate-900 border-slate-700 text-white">
-                    <SelectValue />
-                  </SelectTrigger>
-                  <SelectContent className="bg-slate-800 border-slate-700">
-                    <SelectItem value="all" className="text-white">All Severity</SelectItem>
-                    <SelectItem value="critical" className="text-white">Critical</SelectItem>
-                    <SelectItem value="high" className="text-white">High</SelectItem>
-                    <SelectItem value="medium" className="text-white">Medium</SelectItem>
-                    <SelectItem value="low" className="text-white">Low</SelectItem>
-                  </SelectContent>
-                </Select>
-              </div>
+          <div className="grid md:grid-cols-4 gap-4"> {/* Adjusted grid columns to accommodate more filters */}
+            {/* Search */}
+            <div className="relative">
+              <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 w-4 h-4 text-slate-400" />
+              <Input
+                placeholder="Search logs..."
+                value={searchQuery}
+                onChange={(e) => setSearchQuery(e.target.value)}
+                className="pl-10 bg-slate-900 border-slate-700 text-white"
+              />
             </div>
 
-            {/* Row 2 */}
-            <div className="grid md:grid-cols-4 gap-4">
-              <div>
-                <Label className="text-white font-bold mb-2 block">Status</Label>
-                <Select value={selectedStatus} onValueChange={setSelectedStatus}>
-                  <SelectTrigger className="bg-slate-900 border-slate-700 text-white">
-                    <SelectValue />
-                  </SelectTrigger>
-                  <SelectContent className="bg-slate-800 border-slate-700">
-                    <SelectItem value="all" className="text-white">All Status</SelectItem>
-                    <SelectItem value="success" className="text-white">Success</SelectItem>
-                    <SelectItem value="failure" className="text-white">Failure</SelectItem>
-                    <SelectItem value="warning" className="text-white">Warning</SelectItem>
-                    <SelectItem value="partial" className="text-white">Partial</SelectItem>
-                  </SelectContent>
-                </Select>
-              </div>
+            {/* Date Range */}
+            <Select value={filterDateRange} onValueChange={setFilterDateRange}>
+              <SelectTrigger className="bg-slate-900 border-slate-700 text-white">
+                <SelectValue placeholder="Date Range" />
+              </SelectTrigger>
+              <SelectContent className="bg-slate-800 border-slate-700">
+                <SelectItem value="all" className="text-white">All Time</SelectItem>
+                <SelectItem value="today" className="text-white">Today</SelectItem>
+                <SelectItem value="yesterday" className="text-white">Yesterday</SelectItem>
+                <SelectItem value="last_7_days" className="text-white">Last 7 Days</SelectItem>
+                <SelectItem value="last_30_days" className="text-white">Last 30 Days</SelectItem>
+                <SelectItem value="last_90_days" className="text-white">Last 90 Days</SelectItem>
+              </SelectContent>
+            </Select>
 
-              <div>
-                <Label className="text-white font-bold mb-2 block">User</Label>
-                <Select value={selectedUser} onValueChange={setSelectedUser}>
-                  <SelectTrigger className="bg-slate-900 border-slate-700 text-white">
-                    <SelectValue />
-                  </SelectTrigger>
-                  <SelectContent className="bg-slate-800 border-slate-700 max-h-[300px]">
-                    <SelectItem value="all" className="text-white">All Users</SelectItem>
-                    {users.map(user => (
-                      <SelectItem key={user.id} value={user.id} className="text-white">
-                        {user.full_name} ({user.email})
-                      </SelectItem>
-                    ))}
-                  </SelectContent>
-                </Select>
-              </div>
-
-              <div>
-                <Label className="text-white font-bold mb-2 block">Date Range</Label>
-                <Select value={dateFilter} onValueChange={setDateFilter}>
-                  <SelectTrigger className="bg-slate-900 border-slate-700 text-white">
-                    <SelectValue />
-                  </SelectTrigger>
-                  <SelectContent className="bg-slate-800 border-slate-700">
-                    <SelectItem value="all" className="text-white">All Time</SelectItem>
-                    <SelectItem value="today" className="text-white">Today</SelectItem>
-                    <SelectItem value="yesterday" className="text-white">Yesterday</SelectItem>
-                    <SelectItem value="last7days" className="text-white">Last 7 Days</SelectItem>
-                    <SelectItem value="last30days" className="text-white">Last 30 Days</SelectItem>
-                    <SelectItem value="last90days" className="text-white">Last 90 Days</SelectItem>
-                    <SelectItem value="custom" className="text-white">Custom Range</SelectItem>
-                  </SelectContent>
-                </Select>
-              </div>
-
-              <div>
-                <Label className="text-white font-bold mb-2 block">Entity ID</Label>
-                <Input
-                  placeholder="Filter by entity ID..."
-                  value={entityIdFilter}
-                  onChange={(e) => setEntityIdFilter(e.target.value)}
-                  className="bg-slate-900 border-slate-700 text-white"
-                />
-              </div>
+            {/* Action Type - Using the comprehensive actionTypes from original code */}
+            <div>
+              <Select value={filterAction} onValueChange={setFilterAction}>
+                <SelectTrigger className="bg-slate-900 border-slate-700 text-white">
+                  <SelectValue placeholder="Action Type" />
+                </SelectTrigger>
+                <SelectContent className="bg-slate-800 border-slate-700 max-h-[300px]">
+                  <SelectItem value="all" className="text-white">All Actions</SelectItem>
+                  {actionTypes.map(action => (
+                    <SelectItem key={action.value} value={action.value} className="text-white">
+                      {action.label}
+                    </SelectItem>
+                  ))}
+                </SelectContent>
+              </Select>
             </div>
 
-            {/* Custom Date Range */}
-            {dateFilter === 'custom' && (
-              <div className="grid md:grid-cols-2 gap-4 p-4 bg-slate-900/50 rounded-lg border border-slate-700">
-                <div>
-                  <Label className="text-white font-bold mb-2 block">Start Date</Label>
-                  <Input
-                    type="date"
-                    value={customStartDate}
-                    onChange={(e) => setCustomStartDate(e.target.value)}
-                    className="bg-slate-900 border-slate-700 text-white"
-                  />
-                </div>
-                <div>
-                  <Label className="text-white font-bold mb-2 block">End Date</Label>
-                  <Input
-                    type="date"
-                    value={customEndDate}
-                    onChange={(e) => setCustomEndDate(e.target.value)}
-                    className="bg-slate-900 border-slate-700 text-white"
-                  />
-                </div>
-              </div>
-            )}
+            {/* Severity - Kept from original filters for full functionality */}
+            <div>
+              <Select value={filterSeverity} onValueChange={setFilterSeverity}>
+                <SelectTrigger className="bg-slate-900 border-slate-700 text-white">
+                  <SelectValue placeholder="Severity" />
+                </SelectTrigger>
+                <SelectContent className="bg-slate-800 border-slate-700">
+                  <SelectItem value="all" className="text-white">All Severity</SelectItem>
+                  <SelectItem value="critical" className="text-white">Critical</SelectItem>
+                  <SelectItem value="high" className="text-white">High</SelectItem>
+                  <SelectItem value="medium" className="text-white">Medium</SelectItem>
+                  <SelectItem value="low" className="text-white">Low</SelectItem>
+                </SelectContent>
+              </Select>
+            </div>
+
+            {/* Status - Kept from original filters for full functionality */}
+            <div>
+              <Select value={filterStatus} onValueChange={setFilterStatus}>
+                <SelectTrigger className="bg-slate-900 border-slate-700 text-white">
+                  <SelectValue placeholder="Status" />
+                </SelectTrigger>
+                <SelectContent className="bg-slate-800 border-slate-700">
+                  <SelectItem value="all" className="text-white">All Status</SelectItem>
+                  <SelectItem value="success" className="text-white">Success</SelectItem>
+                  <SelectItem value="failure" className="text-white">Failure</SelectItem>
+                  <SelectItem value="warning" className="text-white">Warning</SelectItem>
+                  <SelectItem value="partial" className="text-white">Partial</SelectItem>
+                </SelectContent>
+              </Select>
+            </div>
+
+            {/* User - Kept from original filters for full functionality */}
+            <div>
+              <Select value={filterUser} onValueChange={setFilterUser}>
+                <SelectTrigger className="bg-slate-900 border-slate-700 text-white">
+                  <SelectValue placeholder="User" />
+                </SelectTrigger>
+                <SelectContent className="bg-slate-800 border-slate-700 max-h-[300px]">
+                  <SelectItem value="all" className="text-white">All Users</SelectItem>
+                  {users.map(user => (
+                    <SelectItem key={user.id} value={user.id} className="text-white">
+                      {user.full_name} ({user.email})
+                    </SelectItem>
+                  ))}
+                </SelectContent>
+              </Select>
+            </div>
+
+            {/* Entity ID - Kept from original filters for full functionality */}
+            <div>
+              <Input
+                placeholder="Filter by entity ID..."
+                value={filterEntityId}
+                onChange={(e) => setFilterEntityId(e.target.value)}
+                className="bg-slate-900 border-slate-700 text-white"
+              />
+            </div>
           </div>
         </CardContent>
       </Card>
 
-      {/* Rest of existing audit log table code... */}
-      {/* Audit Log Table */}
+      {/* Audit Log Table - Replaced with outline's simplified version, but adding back onClick for modal */}
       <Card className="bg-[#1a1f3a] border-slate-700">
         <CardHeader className="border-b border-slate-700">
-          <div className="flex items-center justify-between">
-            <CardTitle className="text-white font-bold">
-              Activity Log ({filteredLogs.length} {filteredLogs.length !== stats.total ? `of ${stats.total}` : ''} entries)
-            </CardTitle>
-          </div>
+          <CardTitle className="text-white font-bold">Audit Logs ({filteredLogs.length})</CardTitle>
         </CardHeader>
         <CardContent className="p-0">
           {filteredLogs.length === 0 ? (
@@ -472,104 +398,33 @@ export default function AdminAuditLog() {
             </div>
           ) : (
             <div className="divide-y divide-slate-700 max-h-[600px] overflow-y-auto">
-              {filteredLogs.map((log) => {
+              {/* Added slice(0, 50) as seen in the outline for a truncated list, if desired */}
+              {filteredLogs.slice(0, 50).map(log => {
                 const ActionIcon = getActionIcon(log.action_type);
-                const StatusIcon = getStatusIcon(log.status);
                 const actionColor = getActionColor(log.action_type);
-                
+
                 return (
-                  <div 
-                    key={log.id} 
-                    className="p-6 hover:bg-slate-800/30 transition-colors cursor-pointer"
-                    onClick={() => setSelectedLog(log)}
+                  <div
+                    key={log.id}
+                    className="flex items-start gap-3 p-3 bg-slate-900/50 rounded-lg hover:bg-slate-800/50 transition-colors cursor-pointer"
+                    onClick={() => setSelectedLog(log)} // Re-added to trigger the detailed log modal
                   >
-                    <div className="flex items-start justify-between">
-                      <div className="flex items-start gap-4 flex-1">
-                        <div className={`w-12 h-12 rounded-xl bg-${actionColor}-500/20 border border-${actionColor}-500/30 flex items-center justify-center flex-shrink-0`}>
-                          <ActionIcon className={`w-6 h-6 text-${actionColor}-400`} />
-                        </div>
-                        
-                        <div className="flex-1 min-w-0">
-                          <div className="flex items-center gap-3 mb-2 flex-wrap">
-                            <h4 className="text-white font-bold text-base">{log.action_description}</h4>
-                            <StatusIcon className={`w-4 h-4 ${getStatusColor(log.status)}`} />
-                            <Badge className={getSeverityColor(log.severity)}>
-                              {log.severity}
-                            </Badge>
-                            {log.is_automated && (
-                              <Badge className="bg-purple-500">
-                                <Zap className="w-3 h-3 mr-1" />
-                                Automated
-                              </Badge>
-                            )}
-                          </div>
-                          
-                          <div className="flex flex-wrap items-center gap-4 text-sm text-slate-400 mb-2">
-                            <div className="flex items-center gap-1">
-                              <User className="w-3 h-3" />
-                              <span>{log.user_name || log.user_email}</span>
-                            </div>
-                            
-                            {log.entity_type && (
-                              <div className="flex items-center gap-1">
-                                <Database className="w-3 h-3" />
-                                <span>{log.entity_type}</span>
-                                {log.entity_name && <span className="text-cyan-400">• {log.entity_name}</span>}
-                              </div>
-                            )}
-                            
-                            <div className="flex items-center gap-1">
-                              <Clock className="w-3 h-3" />
-                              <span>{format(new Date(log.created_date), 'PPpp')}</span>
-                            </div>
-                            
-                            {log.ip_address && (
-                              <div className="flex items-center gap-1">
-                                <Shield className="w-3 h-3" />
-                                <span>{log.ip_address}</span>
-                              </div>
-                            )}
-
-                            {log.response_time && (
-                              <div className="flex items-center gap-1">
-                                <TrendingUp className="w-3 h-3" />
-                                <span>{log.response_time}ms</span>
-                              </div>
-                            )}
-                          </div>
-
-                          {log.changes?.fields_changed && log.changes.fields_changed.length > 0 && (
-                            <div className="flex flex-wrap gap-1 mt-2">
-                              {log.changes.fields_changed.map(field => (
-                                <Badge key={field} className="bg-slate-700 text-xs">
-                                  {field}
-                                </Badge>
-                              ))}
-                            </div>
-                          )}
-
-                          {log.tags && log.tags.length > 0 && (
-                            <div className="flex flex-wrap gap-1 mt-2">
-                              {log.tags.map(tag => (
-                                <Badge key={tag} className="bg-blue-500/20 text-blue-300 text-xs">
-                                  #{tag}
-                                </Badge>
-                              ))}
-                            </div>
-                          )}
-
-                          {log.error_message && (
-                            <div className="mt-2 p-2 bg-red-900/20 border border-red-500/30 rounded text-red-300 text-xs">
-                              <AlertCircle className="w-3 h-3 inline mr-1" />
-                              {log.error_message}
-                            </div>
-                          )}
-                        </div>
+                    <ActionIcon className={`w-5 h-5 text-${actionColor}-400 flex-shrink-0 mt-0.5`} />
+                    <div className="flex-1">
+                      <div className="flex items-center gap-2 mb-1">
+                        <p className="text-white font-semibold text-sm">{log.action_description}</p>
+                        {/* Dynamic badge color based on action type */}
+                        <Badge className={`bg-${actionColor}-500 text-xs`}>{log.action_type}</Badge>
+                        {log.severity && (
+                          <Badge className={`${getSeverityColor(log.severity)} text-xs`}>
+                            {log.severity}
+                          </Badge>
+                        )}
                       </div>
-
-                      <Button size="sm" variant="ghost" className="text-cyan-400 hover:text-cyan-300">
-                        <Eye className="w-4 h-4" />
-                      </Button>
+                      <p className="text-slate-400 text-xs">
+                        <User className="inline-block w-3 h-3 mr-1 align-middle" /> {log.user_name || log.user_email} •
+                        <Clock className="inline-block w-3 h-3 ml-2 mr-1 align-middle" /> {new Date(log.created_date).toLocaleString()}
+                      </p>
                     </div>
                   </div>
                 );
@@ -579,41 +434,9 @@ export default function AdminAuditLog() {
         </CardContent>
       </Card>
 
-      {/* Compliance Notice */}
-      <Card className="bg-gradient-to-br from-blue-900/20 to-cyan-900/20 border-blue-500/30">
-        <CardHeader className="border-b border-blue-500/30">
-          <CardTitle className="text-blue-300 font-bold flex items-center gap-2">
-            <Shield className="w-5 h-5" />
-            Compliance & Security
-          </CardTitle>
-        </CardHeader>
-        <CardContent className="p-6">
-          <div className="grid md:grid-cols-4 gap-4">
-            <div className="text-center">
-              <CheckCircle className="w-8 h-8 text-green-400 mx-auto mb-2" />
-              <p className="text-white font-bold">GDPR Compliant</p>
-              <p className="text-blue-200 text-xs mt-1">Data protection ready</p>
-            </div>
-            <div className="text-center">
-              <Shield className="w-8 h-8 text-cyan-400 mx-auto mb-2" />
-              <p className="text-white font-bold">SOC 2 Ready</p>
-              <p className="text-blue-200 text-xs mt-1">Security controls</p>
-            </div>
-            <div className="text-center">
-              <Lock className="w-8 h-8 text-purple-400 mx-auto mb-2" />
-              <p className="text-white font-bold">Encrypted Logs</p>
-              <p className="text-blue-200 text-xs mt-1">256-bit encryption</p>
-            </div>
-            <div className="text-center">
-              <History className="w-8 h-8 text-amber-400 mx-auto mb-2" />
-              <p className="text-white font-bold">7-Year Retention</p>
-              <p className="text-blue-200 text-xs mt-1">Complete history</p>
-            </div>
-          </div>
-        </CardContent>
-      </Card>
+      {/* Compliance Notice - Removed as it was not present in the outline's JSX */}
 
-      {/* Detailed Log Modal */}
+      {/* Detailed Log Modal - Kept for full functionality, triggered by clicking log items */}
       {selectedLog && (
         <div className="fixed inset-0 bg-black/80 flex items-center justify-center z-50 p-4" onClick={() => setSelectedLog(null)}>
           <Card className="bg-[#1a1f3a] border-slate-700 max-w-4xl w-full max-h-[90vh] overflow-y-auto" onClick={(e) => e.stopPropagation()}>
@@ -643,7 +466,7 @@ export default function AdminAuditLog() {
                   </div>
                   <div>
                     <Label className="text-slate-400 text-sm">Timestamp</Label>
-                    <p className="text-white font-bold">{format(new Date(selectedLog.created_date), 'PPpp')}</p>
+                    <p className="text-white font-bold">{new Date(selectedLog.created_date).toLocaleString()}</p>
                   </div>
                   {selectedLog.entity_type && (
                     <>

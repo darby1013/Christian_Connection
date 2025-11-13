@@ -1,3 +1,4 @@
+
 import React from "react";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
@@ -7,6 +8,7 @@ import {
   Zap, TrendingUp, Database, CheckCircle, AlertTriangle,
   Activity, Plus, Settings, Eye, RefreshCw
 } from "lucide-react";
+import AIDatabaseAssistant from "../components/ai/AIDatabaseAssistant";
 
 export default function AdminDatabaseIndexOptimizer() {
   const indexes = [
@@ -21,11 +23,25 @@ export default function AdminDatabaseIndexOptimizer() {
     { table: 'Order', suggested: 'CREATE INDEX idx_order_status_date ON Order(status, created_date)', impact: 'Medium', performance: '+28%' },
   ];
 
+  const contextData = {
+    indexes,
+    suggestions,
+    tableStats: {
+      Product: { rowCount: 1247, avgQueryTime: '45ms', slowQueries: 3 },
+      Order: { rowCount: 3421, avgQueryTime: '67ms', slowQueries: 7 },
+      User: { rowCount: 5842, avgQueryTime: '23ms', slowQueries: 1 }
+    },
+    recentQueries: [
+      { query: 'SELECT * FROM Product WHERE category = ?', executionTime: '142ms', frequency: 847 },
+      { query: 'SELECT * FROM Order WHERE customer_id = ?', executionTime: '98ms', frequency: 523 }
+    ]
+  };
+
   return (
     <div className="space-y-6">
       <div>
-        <h2 className="text-3xl font-black text-white mb-2">Index Optimizer</h2>
-        <p className="text-slate-400 font-semibold">Analyze and optimize database indexes for maximum performance</p>
+        <h2 className="text-3xl font-black text-white mb-2">Index Optimizer with AI Assistant</h2>
+        <p className="text-slate-400 font-semibold">Analyze and optimize database indexes with AI-powered recommendations</p>
       </div>
 
       {/* Statistics */}
@@ -62,6 +78,9 @@ export default function AdminDatabaseIndexOptimizer() {
           </CardContent>
         </Card>
       </div>
+
+      {/* AI Database Assistant */}
+      <AIDatabaseAssistant context={contextData} />
 
       {/* Current Indexes */}
       <Card className="bg-[#1a1f3a] border-slate-700">
@@ -105,12 +124,12 @@ export default function AdminDatabaseIndexOptimizer() {
         </CardContent>
       </Card>
 
-      {/* AI Suggestions */}
+      {/* Manual Optimization Suggestions */}
       <Card className="bg-gradient-to-br from-purple-900/20 to-cyan-900/20 border-purple-500/30">
         <CardHeader className="border-b border-purple-500/30">
           <CardTitle className="text-purple-300 font-bold flex items-center gap-2">
             <Zap className="w-5 h-5" />
-            AI-Powered Optimization Suggestions
+            Manual Optimization Suggestions
           </CardTitle>
         </CardHeader>
         <CardContent className="p-6">

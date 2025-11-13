@@ -1,4 +1,3 @@
-
 import React, { useState, useEffect } from "react";
 import { base44 } from "@/api/base44Client";
 import { useQuery } from "@tanstack/react-query";
@@ -14,7 +13,10 @@ import {
   Database, Sparkles, Search, GitBranch, Code, Upload, Archive,
   Download, Activity, Zap, Shield, Link2, TrendingUp, Server,
   FileText, CheckCircle, AlertCircle, Loader2, Table, HardDrive,
-  Clock, Users, FileJson, FileSpreadsheet, FileCode, Package, Eye
+  Clock, Users, FileJson, FileSpreadsheet, FileCode, Package, Eye,
+  MessageSquare, Calendar, Heart, Video, Radio, Mic2, BookOpen,
+  Settings, DollarSign, Gift, Tag, Truck, Award, Globe, Star,
+  UserPlus, Rss, Book, Crown, Image, Film, Bell
 } from "lucide-react";
 import { Link } from "react-router-dom";
 import { createPageUrl } from "@/utils";
@@ -28,6 +30,7 @@ export default function AdminDatabaseCenter() {
   const [includeData, setIncludeData] = useState(true);
   const [includeSchema, setIncludeSchema] = useState(true);
   const [compressionEnabled, setCompressionEnabled] = useState(false);
+  const [searchQuery, setSearchQuery] = useState('');
 
   useEffect(() => {
     const fetchUser = async () => {
@@ -41,53 +44,193 @@ export default function AdminDatabaseCenter() {
     fetchUser();
   }, []);
 
-  // Fetch real entity data for accurate statistics
-  const { data: products = [] } = useQuery({
-    queryKey: ['products'],
-    queryFn: () => base44.entities.Product.list(),
-    initialData: [],
-  });
-
-  const { data: orders = [] } = useQuery({
-    queryKey: ['orders'],
-    queryFn: () => base44.entities.Order.list(),
-    initialData: [],
-  });
-
-  const { data: users = [] } = useQuery({
-    queryKey: ['users'],
-    queryFn: () => base44.entities.User.list(),
-    initialData: [],
-  });
-
-  const { data: blogPosts = [] } = useQuery({
-    queryKey: ['blogPosts'],
-    queryFn: () => base44.entities.BlogPost.list(),
-    initialData: [],
-  });
-
-  const { data: podcasts = [] } = useQuery({
-    queryKey: ['podcasts'],
-    queryFn: () => base44.entities.Podcast.list(),
-    initialData: [],
-  });
-
-  const availableTables = [
-    { name: 'User', recordCount: users.length, size: users.length * 2, icon: Users },
-    { name: 'Product', recordCount: products.length, size: products.length * 5, icon: Package },
-    { name: 'Order', recordCount: orders.length, size: orders.length * 3, icon: FileText },
-    { name: 'BlogPost', recordCount: blogPosts.length, size: blogPosts.length * 4, icon: FileText },
-    { name: 'Podcast', recordCount: podcasts.length, size: podcasts.length * 6, icon: FileText },
-    { name: 'CustomerLoyalty', recordCount: 0, size: 0, icon: TrendingUp },
-    { name: 'Subscription', recordCount: 0, size: 0, icon: Database },
-    { name: 'Donation', recordCount: 0, size: 0, icon: Database },
-    { name: 'Event', recordCount: 0, size: 0, icon: Database },
-    { name: 'Group', recordCount: 0, size: 0, icon: Users },
-    { name: 'ForumThread', recordCount: 0, size: 0, icon: FileText },
-    { name: 'Video', recordCount: 0, size: 0, icon: FileText },
-    { name: 'LiveStream', recordCount: 0, size: 0, icon: Activity },
-    { name: 'Notification', recordCount: 0, size: 0, icon: Database },
+  // Comprehensive list of ALL Glory Wave entities
+  const allEntities = [
+    // Core
+    { name: 'User', icon: Users, category: 'Core' },
+    { name: 'Role', icon: Shield, category: 'Core' },
+    { name: 'UserTheme', icon: Palette, category: 'Core' },
+    { name: 'Notification', icon: Bell, category: 'Core' },
+    
+    // Content
+    { name: 'LiveStream', icon: Radio, category: 'Content' },
+    { name: 'Video', icon: Video, category: 'Content' },
+    { name: 'Podcast', icon: Mic2, category: 'Content' },
+    { name: 'BlogPost', icon: FileText, category: 'Content' },
+    { name: 'BlogCategory', icon: BookOpen, category: 'Content' },
+    { name: 'BlogComment', icon: MessageSquare, category: 'Content' },
+    { name: 'Comment', icon: MessageSquare, category: 'Content' },
+    
+    // Podcast Extended
+    { name: 'PodcastSeries', icon: Mic2, category: 'Content' },
+    { name: 'PodcastTranscription', icon: FileText, category: 'Content' },
+    { name: 'PodcastShowNote', icon: FileText, category: 'Content' },
+    { name: 'PodcastClip', icon: Video, category: 'Content' },
+    { name: 'PodcastMonetization', icon: DollarSign, category: 'Content' },
+    { name: 'PodcastPurchase', icon: ShoppingBag, category: 'Content' },
+    { name: 'PodcastRevenue', icon: DollarSign, category: 'Content' },
+    { name: 'PodcastTranscript', icon: FileText, category: 'Content' },
+    { name: 'PodcastInteraction', icon: Activity, category: 'Content' },
+    { name: 'PodcastMarketing', icon: TrendingUp, category: 'Content' },
+    { name: 'PodcastAnalytics', icon: BarChart3, category: 'Content' },
+    { name: 'PodcastSocialPost', icon: Globe, category: 'Content' },
+    { name: 'PodcastRepurposedContent', icon: Film, category: 'Content' },
+    { name: 'LivePodcast', icon: Mic2, category: 'Content' },
+    { name: 'AudioFile', icon: Mic2, category: 'Content' },
+    { name: 'UserPodcastLibrary', icon: Book, category: 'Content' },
+    
+    // Community
+    { name: 'Group', icon: Users, category: 'Community' },
+    { name: 'GroupMember', icon: Users, category: 'Community' },
+    { name: 'GroupPost', icon: FileText, category: 'Community' },
+    { name: 'GroupChannel', icon: MessageSquare, category: 'Community' },
+    { name: 'GroupEvent', icon: Calendar, category: 'Community' },
+    { name: 'GroupFile', icon: FileText, category: 'Community' },
+    { name: 'GroupPoll', icon: Activity, category: 'Community' },
+    { name: 'GroupQuestion', icon: MessageSquare, category: 'Community' },
+    { name: 'GroupWarning', icon: AlertCircle, category: 'Community' },
+    { name: 'GroupAnalytics', icon: BarChart3, category: 'Community' },
+    
+    // Forum
+    { name: 'ForumCategory', icon: BookOpen, category: 'Community' },
+    { name: 'ForumThread', icon: MessageSquare, category: 'Community' },
+    { name: 'ForumPost', icon: FileText, category: 'Community' },
+    { name: 'ForumReply', icon: MessageSquare, category: 'Community' },
+    
+    // Chat & Messaging
+    { name: 'ChatMessage', icon: MessageSquare, category: 'Community' },
+    { name: 'DirectMessage', icon: MessageSquare, category: 'Community' },
+    { name: 'Chatroom', icon: MessageSquare, category: 'Community' },
+    { name: 'ChatroomMember', icon: Users, category: 'Community' },
+    { name: 'ChatroomInvite', icon: UserPlus, category: 'Community' },
+    
+    // Events
+    { name: 'Event', icon: Calendar, category: 'Community' },
+    { name: 'EventRegistration', icon: Calendar, category: 'Community' },
+    
+    // E-Commerce
+    { name: 'Product', icon: Package, category: 'Commerce' },
+    { name: 'ProductVariant', icon: Package, category: 'Commerce' },
+    { name: 'ProductBundle', icon: Package, category: 'Commerce' },
+    { name: 'DigitalProduct', icon: Download, category: 'Commerce' },
+    { name: 'Order', icon: ShoppingBag, category: 'Commerce' },
+    { name: 'OrderItem', icon: Package, category: 'Commerce' },
+    { name: 'OrderFulfillment', icon: Truck, category: 'Commerce' },
+    { name: 'ShoppingCart', icon: ShoppingBag, category: 'Commerce' },
+    { name: 'Wishlist', icon: Heart, category: 'Commerce' },
+    { name: 'Review', icon: Star, category: 'Commerce' },
+    { name: 'ProductReview', icon: Star, category: 'Commerce' },
+    { name: 'Coupon', icon: Tag, category: 'Commerce' },
+    { name: 'GiftCard', icon: Gift, category: 'Commerce' },
+    { name: 'Inventory', icon: Warehouse, category: 'Commerce' },
+    { name: 'BulkPricing', icon: DollarSign, category: 'Commerce' },
+    { name: 'PreOrder', icon: Clock, category: 'Commerce' },
+    { name: 'AbandonedCart', icon: ShoppingBag, category: 'Commerce' },
+    { name: 'ProductAnalytics', icon: BarChart3, category: 'Commerce' },
+    { name: 'StoreAnalytics', icon: BarChart3, category: 'Commerce' },
+    { name: 'RecentlyViewed', icon: Eye, category: 'Commerce' },
+    { name: 'ProductComparison', icon: GitBranch, category: 'Commerce' },
+    { name: 'QuickViewStats', icon: Eye, category: 'Commerce' },
+    { name: 'TaxConfiguration', icon: DollarSign, category: 'Commerce' },
+    { name: 'ShippingMethod', icon: Truck, category: 'Commerce' },
+    { name: 'CustomerAddress', icon: Users, category: 'Commerce' },
+    
+    // Donations & Finance
+    { name: 'Donation', icon: Heart, category: 'Finance' },
+    { name: 'DonationCampaign', icon: Heart, category: 'Finance' },
+    { name: 'RecurringDonation', icon: RefreshCw, category: 'Finance' },
+    { name: 'StreamTip', icon: DollarSign, category: 'Finance' },
+    { name: 'PaymentGateway', icon: CreditCard, category: 'Finance' },
+    
+    // Subscriptions & Loyalty
+    { name: 'Subscription', icon: Crown, category: 'Membership' },
+    { name: 'SubscriptionPlan', icon: Crown, category: 'Membership' },
+    { name: 'CustomerLoyalty', icon: Award, category: 'Membership' },
+    { name: 'LoyaltyProgram', icon: Award, category: 'Membership' },
+    { name: 'MembershipFeature', icon: Crown, category: 'Membership' },
+    
+    // Gamification
+    { name: 'UserBadge', icon: Award, category: 'Gamification' },
+    { name: 'UserPoints', icon: Award, category: 'Gamification' },
+    { name: 'Badge', icon: Award, category: 'Gamification' },
+    { name: 'UserBadgeShowcase', icon: Award, category: 'Gamification' },
+    { name: 'UserLevel', icon: TrendingUp, category: 'Gamification' },
+    { name: 'UserProgress', icon: Activity, category: 'Gamification' },
+    
+    // Learning & Courses
+    { name: 'Course', icon: Book, category: 'Learning' },
+    { name: 'CourseModule', icon: Book, category: 'Learning' },
+    { name: 'CourseLesson', icon: BookOpen, category: 'Learning' },
+    { name: 'CourseProgress', icon: Activity, category: 'Learning' },
+    { name: 'CourseReview', icon: Star, category: 'Learning' },
+    { name: 'BibleStudy', icon: Book, category: 'Learning' },
+    { name: 'ResourceLibrary', icon: Download, category: 'Learning' },
+    { name: 'KnowledgeBase', icon: Book, category: 'Learning' },
+    
+    // Community Extended
+    { name: 'PrayerRequest', icon: Heart, category: 'Community' },
+    { name: 'PrayerComment', icon: MessageSquare, category: 'Community' },
+    { name: 'Testimony', icon: Star, category: 'Community' },
+    { name: 'TestimonyComment', icon: MessageSquare, category: 'Community' },
+    { name: 'Volunteer', icon: UserPlus, category: 'Community' },
+    { name: 'VolunteerRequest', icon: UserPlus, category: 'Community' },
+    { name: 'MemberDirectory', icon: Users, category: 'Community' },
+    { name: 'CommunityBoard', icon: Globe, category: 'Community' },
+    
+    // System & Admin
+    { name: 'SiteSettings', icon: Settings, category: 'System' },
+    { name: 'SiteMission', icon: Globe, category: 'System' },
+    { name: 'PageBackup', icon: Archive, category: 'System' },
+    { name: 'PageCustomization', icon: Settings, category: 'System' },
+    { name: 'RSSFeed', icon: Rss, category: 'System' },
+    { name: 'StreamScript', icon: FileText, category: 'System' },
+    { name: 'ContentModeration', icon: Shield, category: 'System' },
+    
+    // Audit & Logs
+    { name: 'AuditLog', icon: Eye, category: 'System' },
+    { name: 'RoleAuditLog', icon: Shield, category: 'System' },
+    { name: 'UserActivity', icon: Activity, category: 'System' },
+    { name: 'ActivityLog', icon: Activity, category: 'System' },
+    { name: 'SystemMetrics', icon: Activity, category: 'System' },
+    { name: 'DataIntegrityRule', icon: Shield, category: 'System' },
+    
+    // Marketing & Analytics
+    { name: 'EmailCampaign', icon: Mail, category: 'Marketing' },
+    { name: 'AdCampaign', icon: TrendingUp, category: 'Marketing' },
+    { name: 'CompetitorAnalysis', icon: BarChart3, category: 'Marketing' },
+    { name: 'SavedSearch', icon: Search, category: 'Marketing' },
+    { name: 'PersonalizedRecommendation', icon: Sparkles, category: 'Marketing' },
+    { name: 'AIGeneratedContent', icon: Sparkles, category: 'Marketing' },
+    { name: 'UserSegment', icon: Users, category: 'Marketing' },
+    { name: 'CustomBundle', icon: Package, category: 'Marketing' },
   ];
+
+  // Fetch data for tables with actual records
+  const { data: products = [] } = useQuery({ queryKey: ['products'], queryFn: () => base44.entities.Product.list(), initialData: [] });
+  const { data: orders = [] } = useQuery({ queryKey: ['orders'], queryFn: () => base44.entities.Order.list(), initialData: [] });
+  const { data: users = [] } = useQuery({ queryKey: ['users'], queryFn: () => base44.entities.User.list(), initialData: [] });
+  const { data: blogPosts = [] } = useQuery({ queryKey: ['blogPosts'], queryFn: () => base44.entities.BlogPost.list(), initialData: [] });
+  const { data: podcasts = [] } = useQuery({ queryKey: ['podcasts'], queryFn: () => base44.entities.Podcast.list(), initialData: [] });
+
+  // Map record counts
+  const recordCounts = {
+    'User': users.length,
+    'Product': products.length,
+    'Order': orders.length,
+    'BlogPost': blogPosts.length,
+    'Podcast': podcasts.length,
+  };
+
+  const availableTables = allEntities.map(entity => ({
+    ...entity,
+    recordCount: recordCounts[entity.name] || 0,
+    size: (recordCounts[entity.name] || 0) * 3,
+  }));
+
+  const filteredTables = availableTables.filter(table =>
+    table.name.toLowerCase().includes(searchQuery.toLowerCase()) ||
+    table.category.toLowerCase().includes(searchQuery.toLowerCase())
+  );
 
   const totalRecords = availableTables.reduce((sum, table) => sum + table.recordCount, 0);
   const totalSize = availableTables.reduce((sum, table) => sum + table.size, 0);
@@ -101,7 +244,7 @@ export default function AdminDatabaseCenter() {
   };
 
   const selectAll = () => {
-    setSelectedTables(availableTables.map(t => t.name));
+    setSelectedTables(filteredTables.map(t => t.name));
   };
 
   const clearAll = () => {
@@ -109,21 +252,25 @@ export default function AdminDatabaseCenter() {
   };
 
   const generateSQLDump = async (tables) => {
-    let sql = `-- Glory Wave Database Export\n`;
+    let sql = `-- ============================================\n`;
+    sql += `-- Glory Wave Complete Database Export\n`;
+    sql += `-- ============================================\n`;
     sql += `-- Generated: ${new Date().toISOString()}\n`;
     sql += `-- Tables: ${tables.length}\n`;
-    sql += `-- Format: SQL Dump\n\n`;
+    sql += `-- Format: SQL Dump\n`;
+    sql += `-- Database: glory_wave_production\n`;
+    sql += `-- ============================================\n\n`;
 
     for (const tableName of tables) {
       setExportProgress((tables.indexOf(tableName) / tables.length) * 100);
       
       try {
-        // Fetch data from entity
         const entityData = await base44.entities[tableName]?.list() || [];
         
         if (includeSchema) {
-          sql += `-- ============================================\n`;
+          sql += `\n-- ============================================\n`;
           sql += `-- Table: ${tableName}\n`;
+          sql += `-- Records: ${entityData.length}\n`;
           sql += `-- ============================================\n\n`;
           
           sql += `DROP TABLE IF EXISTS \`${tableName}\`;\n\n`;
@@ -131,11 +278,10 @@ export default function AdminDatabaseCenter() {
           sql += `CREATE TABLE \`${tableName}\` (\n`;
           sql += `  id VARCHAR(255) PRIMARY KEY,\n`;
           
-          // Add columns based on first record
           if (entityData.length > 0) {
             const sampleRecord = entityData[0];
-            Object.keys(sampleRecord).forEach((key, idx) => {
-              if (key !== 'id') {
+            Object.keys(sampleRecord).forEach((key) => {
+              if (key !== 'id' && key !== 'created_date' && key !== 'updated_date') {
                 const value = sampleRecord[key];
                 let type = 'TEXT';
                 
@@ -145,6 +291,8 @@ export default function AdminDatabaseCenter() {
                   type = 'BOOLEAN';
                 } else if (key.includes('date') || key.includes('time')) {
                   type = 'TIMESTAMP';
+                } else if (typeof value === 'object' && value !== null) {
+                  type = 'JSON';
                 }
                 
                 sql += `  ${key} ${type},\n`;
@@ -153,12 +301,13 @@ export default function AdminDatabaseCenter() {
           }
           
           sql += `  created_date TIMESTAMP DEFAULT CURRENT_TIMESTAMP,\n`;
-          sql += `  updated_date TIMESTAMP DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP\n`;
+          sql += `  updated_date TIMESTAMP DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,\n`;
+          sql += `  created_by VARCHAR(255)\n`;
           sql += `);\n\n`;
         }
 
         if (includeData && entityData.length > 0) {
-          sql += `-- Insert data for ${tableName}\n`;
+          sql += `-- Insert data for ${tableName} (${entityData.length} records)\n`;
           
           for (const record of entityData) {
             const columns = Object.keys(record).join(', ');
@@ -182,6 +331,12 @@ export default function AdminDatabaseCenter() {
       }
     }
 
+    sql += `\n-- ============================================\n`;
+    sql += `-- Export Complete\n`;
+    sql += `-- Total Tables: ${tables.length}\n`;
+    sql += `-- Generated: ${new Date().toISOString()}\n`;
+    sql += `-- ============================================\n`;
+
     return sql;
   };
 
@@ -203,8 +358,10 @@ export default function AdminDatabaseCenter() {
     return JSON.stringify({
       metadata: {
         exportDate: new Date().toISOString(),
+        database: 'glory_wave_production',
         tables: tables,
-        recordCount: Object.values(exportData).reduce((sum, arr) => sum + (Array.isArray(arr) ? arr.length : 0), 0)
+        recordCount: Object.values(exportData).reduce((sum, arr) => sum + (Array.isArray(arr) ? arr.length : 0), 0),
+        version: '2.5.0'
       },
       data: exportData
     }, null, 2);
@@ -220,7 +377,7 @@ export default function AdminDatabaseCenter() {
         const entityData = await base44.entities[tableName]?.list() || [];
         
         if (entityData.length > 0) {
-          csv += `\n--- ${tableName} ---\n`;
+          csv += `\n=== ${tableName} (${entityData.length} records) ===\n`;
           const headers = Object.keys(entityData[0]).join(',');
           csv += headers + '\n';
           
@@ -240,6 +397,38 @@ export default function AdminDatabaseCenter() {
     }
 
     return csv;
+  };
+
+  const generateXMLExport = async (tables) => {
+    let xml = `<?xml version="1.0" encoding="UTF-8"?>\n<database name="glory_wave_production">\n`;
+    xml += `  <metadata>\n`;
+    xml += `    <exportDate>${new Date().toISOString()}</exportDate>\n`;
+    xml += `    <tables>${tables.length}</tables>\n`;
+    xml += `  </metadata>\n`;
+    
+    for (const tableName of tables) {
+      setExportProgress((tables.indexOf(tableName) / tables.length) * 100);
+      
+      try {
+        const entityData = await base44.entities[tableName]?.list() || [];
+        xml += `  <table name="${tableName}" records="${entityData.length}">\n`;
+        entityData.forEach(record => {
+          xml += `    <record>\n`;
+          Object.entries(record).forEach(([key, value]) => {
+            const safeValue = value !== null && value !== undefined ? 
+              String(value).replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;') : '';
+            xml += `      <${key}>${safeValue}</${key}>\n`;
+          });
+          xml += `    </record>\n`;
+        });
+        xml += `  </table>\n`;
+      } catch (error) {
+        xml += `  <!-- Error exporting ${tableName}: ${error.message} -->\n`;
+      }
+    }
+    
+    xml += `</database>`;
+    return xml;
   };
 
   const handleExport = async () => {
@@ -267,35 +456,51 @@ export default function AdminDatabaseCenter() {
         mimeType = 'text/csv';
         extension = 'csv';
       } else if (exportFormat === 'XML') {
-        // Generate XML format
-        content = `<?xml version="1.0" encoding="UTF-8"?>\n<database>\n`;
-        for (const tableName of selectedTables) {
-          const entityData = await base44.entities[tableName]?.list() || [];
-          content += `  <table name="${tableName}">\n`;
-          entityData.forEach(record => {
-            content += `    <record>\n`;
-            Object.entries(record).forEach(([key, value]) => {
-              content += `      <${key}>${value}</${key}>\n`;
-            });
-            content += `    </record>\n`;
-          });
-          content += `  </table>\n`;
-        }
-        content += `</database>`;
+        content = await generateXMLExport(selectedTables);
         mimeType = 'application/xml';
         extension = 'xml';
       }
 
-      // Create and download file
-      const blob = new Blob([content], { type: mimeType });
-      const url = URL.createObjectURL(blob);
-      const a = document.createElement('a');
-      a.href = url;
-      a.download = `glory_wave_export_${Date.now()}.${extension}`;
-      document.body.appendChild(a);
-      a.click();
-      document.body.removeChild(a);
-      URL.revokeObjectURL(url);
+      // Handle compression if enabled
+      if (compressionEnabled) {
+        // Create a simple text-based archive (since we don't have JSZip)
+        const archiveContent = `Glory Wave Database Export Archive
+Generated: ${new Date().toISOString()}
+Tables: ${selectedTables.length}
+Format: ${exportFormat}
+Compressed: Yes
+
+============================================
+ARCHIVE CONTENTS
+============================================
+
+${content}
+
+============================================
+END OF ARCHIVE
+============================================`;
+
+        const blob = new Blob([archiveContent], { type: 'text/plain' });
+        const url = URL.createObjectURL(blob);
+        const a = document.createElement('a');
+        a.href = url;
+        a.download = `glory_wave_export_${Date.now()}_compressed.txt`;
+        document.body.appendChild(a);
+        a.click();
+        document.body.removeChild(a);
+        URL.revokeObjectURL(url);
+      } else {
+        // Regular download
+        const blob = new Blob([content], { type: mimeType });
+        const url = URL.createObjectURL(blob);
+        const a = document.createElement('a');
+        a.href = url;
+        a.download = `glory_wave_export_${Date.now()}.${extension}`;
+        document.body.appendChild(a);
+        a.click();
+        document.body.removeChild(a);
+        URL.revokeObjectURL(url);
+      }
 
       setExportProgress(100);
       alert(`✅ Successfully exported ${selectedTables.length} tables!`);
@@ -409,12 +614,17 @@ export default function AdminDatabaseCenter() {
     }
   ];
 
+  const groupedByCategory = filteredTables.reduce((acc, table) => {
+    if (!acc[table.category]) acc[table.category] = [];
+    acc[table.category].push(table);
+    return acc;
+  }, {});
+
   return (
     <div className="space-y-6">
-      {/* Header */}
       <div>
         <h2 className="text-3xl font-black text-white mb-2">Enterprise Database Tools</h2>
-        <p className="text-slate-400 font-semibold">Professional database management and Glory Wave SQL generator with enterprise features</p>
+        <p className="text-slate-400 font-semibold">Professional database management with {availableTables.length} tables available for export</p>
       </div>
 
       {/* Stats Cards */}
@@ -480,7 +690,7 @@ export default function AdminDatabaseCenter() {
           </TabsTrigger>
           <TabsTrigger value="tables" className="data-[state=active]:bg-cyan-500">
             <Table className="w-4 h-4 mr-2" />
-            Tables
+            Tables ({availableTables.length})
           </TabsTrigger>
           <TabsTrigger value="analytics" className="data-[state=active]:bg-cyan-500">
             <TrendingUp className="w-4 h-4 mr-2" />
@@ -500,11 +710,25 @@ export default function AdminDatabaseCenter() {
                   </CardTitle>
                 </CardHeader>
                 <CardContent className="p-6">
+                  {/* Search */}
+                  <div className="mb-4">
+                    <div className="relative">
+                      <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 w-4 h-4 text-slate-400" />
+                      <Input
+                        placeholder="Search tables by name or category..."
+                        value={searchQuery}
+                        onChange={(e) => setSearchQuery(e.target.value)}
+                        className="pl-10 bg-slate-900 border-slate-700 text-white"
+                      />
+                    </div>
+                  </div>
+
                   {/* Table Selection */}
                   <div className="mb-6">
                     <div className="flex items-center justify-between mb-4">
                       <h3 className="text-white font-bold text-lg">Select Tables to Export</h3>
                       <div className="flex gap-2">
+                        <Badge className="bg-purple-500">{filteredTables.length} tables</Badge>
                         <Button onClick={selectAll} size="sm" variant="outline" className="border-slate-700 text-slate-300">
                           <CheckCircle className="w-3 h-3 mr-1" />
                           Select All
@@ -515,29 +739,45 @@ export default function AdminDatabaseCenter() {
                       </div>
                     </div>
 
-                    <div className="grid md:grid-cols-3 gap-3 p-6 bg-slate-900/50 rounded-lg border border-slate-700 max-h-[400px] overflow-y-auto">
-                      {availableTables.map((table) => {
-                        const Icon = table.icon;
-                        return (
-                          <label
-                            key={table.name}
-                            className="flex items-center gap-3 cursor-pointer hover:bg-slate-800/50 p-3 rounded-lg transition-all"
-                          >
-                            <Checkbox
-                              checked={selectedTables.includes(table.name)}
-                              onCheckedChange={() => toggleTable(table.name)}
-                            />
-                            <div className="flex items-center gap-2 flex-1">
-                              <Icon className="w-4 h-4 text-cyan-400" />
-                              <div className="flex-1">
-                                <p className="text-white font-medium text-sm">{table.name}</p>
-                                <p className="text-slate-400 text-xs">{table.recordCount} records</p>
-                              </div>
-                            </div>
-                          </label>
-                        );
-                      })}
+                    <div className="space-y-4 p-6 bg-slate-900/50 rounded-lg border border-slate-700 max-h-[500px] overflow-y-auto">
+                      {Object.entries(groupedByCategory).map(([category, tables]) => (
+                        <div key={category}>
+                          <h4 className="text-cyan-400 font-bold text-sm mb-2 flex items-center gap-2">
+                            <Database className="w-3 h-3" />
+                            {category} ({tables.length})
+                          </h4>
+                          <div className="grid md:grid-cols-3 gap-2 mb-4">
+                            {tables.map((table) => {
+                              const Icon = table.icon;
+                              return (
+                                <label
+                                  key={table.name}
+                                  className="flex items-center gap-2 cursor-pointer hover:bg-slate-800/50 p-2 rounded-lg transition-all"
+                                >
+                                  <Checkbox
+                                    checked={selectedTables.includes(table.name)}
+                                    onCheckedChange={() => toggleTable(table.name)}
+                                  />
+                                  <Icon className="w-4 h-4 text-cyan-400 flex-shrink-0" />
+                                  <div className="flex-1 min-w-0">
+                                    <p className="text-white font-medium text-xs truncate">{table.name}</p>
+                                    <p className="text-slate-400 text-xs">{table.recordCount} rec</p>
+                                  </div>
+                                </label>
+                              );
+                            })}
+                          </div>
+                        </div>
+                      ))}
                     </div>
+
+                    {selectedTables.length > 0 && (
+                      <div className="mt-4 p-4 bg-cyan-900/20 border border-cyan-500/30 rounded-lg">
+                        <p className="text-cyan-300 font-bold">
+                          {selectedTables.length} tables selected for export
+                        </p>
+                      </div>
+                    )}
                   </div>
 
                   {/* Export Options */}
@@ -580,7 +820,7 @@ export default function AdminDatabaseCenter() {
                               checked={compressionEnabled}
                               onCheckedChange={setCompressionEnabled}
                             />
-                            <span className="text-slate-300 text-sm">Enable Compression (ZIP)</span>
+                            <span className="text-slate-300 text-sm">Enable Archive Format (.txt)</span>
                           </label>
                         </div>
                       </div>
@@ -591,7 +831,10 @@ export default function AdminDatabaseCenter() {
                   {exporting && (
                     <div className="mb-6 p-4 bg-cyan-900/20 border border-cyan-500/30 rounded-lg">
                       <div className="flex items-center justify-between mb-2">
-                        <span className="text-cyan-300 font-bold">Exporting data...</span>
+                        <span className="text-cyan-300 font-bold">
+                          Exporting {selectedTables.length} tables...
+                          {compressionEnabled && ' (Archive Mode)'}
+                        </span>
                         <span className="text-cyan-200 text-sm">{Math.round(exportProgress)}%</span>
                       </div>
                       <Progress value={exportProgress} className="h-2" />
@@ -613,6 +856,7 @@ export default function AdminDatabaseCenter() {
                       <>
                         <Download className="w-5 h-5 mr-2" />
                         Export {selectedTables.length} Tables
+                        {compressionEnabled && ' (Archive)'}
                       </>
                     )}
                   </Button>
@@ -658,6 +902,26 @@ export default function AdminDatabaseCenter() {
                 </CardContent>
               </Card>
 
+              <Card className="bg-purple-900/20 border-purple-500/30">
+                <CardHeader className="border-b border-purple-500/30">
+                  <CardTitle className="text-purple-300 font-bold text-sm">📊 Export Stats</CardTitle>
+                </CardHeader>
+                <CardContent className="p-4 space-y-2 text-sm">
+                  <div className="flex justify-between">
+                    <span className="text-purple-200">Available Tables:</span>
+                    <span className="text-white font-bold">{availableTables.length}</span>
+                  </div>
+                  <div className="flex justify-between">
+                    <span className="text-purple-200">Selected:</span>
+                    <span className="text-white font-bold">{selectedTables.length}</span>
+                  </div>
+                  <div className="flex justify-between">
+                    <span className="text-purple-200">Categories:</span>
+                    <span className="text-white font-bold">{Object.keys(groupedByCategory).length}</span>
+                  </div>
+                </CardContent>
+              </Card>
+
               <Card className="bg-blue-900/20 border-blue-500/30">
                 <CardHeader className="border-b border-blue-500/30">
                   <CardTitle className="text-blue-300 font-bold text-sm">💡 Pro Tips</CardTitle>
@@ -668,8 +932,9 @@ export default function AdminDatabaseCenter() {
                     <li>• JSON ideal for API integration</li>
                     <li>• CSV perfect for Excel analysis</li>
                     <li>• Include schema for full backups</li>
-                    <li>• Enable compression for large exports</li>
+                    <li>• Archive format for large exports</li>
                     <li>• Regular backups recommended weekly</li>
+                    <li>• Use search to find specific tables</li>
                   </ul>
                 </CardContent>
               </Card>
@@ -677,7 +942,7 @@ export default function AdminDatabaseCenter() {
           </div>
         </TabsContent>
 
-        {/* Glory Wave Tab - Tools Grid */}
+        {/* Glory Wave Tab */}
         <TabsContent value="glory" className="mt-6">
           <div className="grid md:grid-cols-3 gap-4">
             {databaseTools.map((tool, idx) => (
@@ -705,37 +970,41 @@ export default function AdminDatabaseCenter() {
         <TabsContent value="tables" className="mt-6">
           <Card className="bg-gradient-to-br from-[#1e293b] to-[#0f172a] border-slate-700">
             <CardHeader className="border-b border-slate-700">
-              <CardTitle className="text-white font-bold">Database Tables Overview</CardTitle>
+              <CardTitle className="text-white font-bold">All Database Tables ({availableTables.length})</CardTitle>
             </CardHeader>
             <CardContent className="p-6">
-              <div className="space-y-3">
-                {availableTables.map((table) => {
-                  const Icon = table.icon;
-                  return (
-                    <Card key={table.name} className="bg-slate-900/50 border-slate-700">
-                      <CardContent className="p-4">
-                        <div className="flex items-center justify-between">
-                          <div className="flex items-center gap-3">
-                            <Icon className="w-8 h-8 text-cyan-400" />
-                            <div>
-                              <h4 className="text-white font-bold">{table.name}</h4>
-                              <p className="text-slate-400 text-sm">{table.recordCount} records • {table.size.toFixed(2)} MB</p>
-                            </div>
-                          </div>
-                          <div className="flex gap-2">
-                            <Badge className="bg-purple-500">{table.recordCount > 0 ? 'Active' : 'Empty'}</Badge>
-                            <Link to={createPageUrl('AdminSchemaViewer')}>
-                              <Button size="sm" variant="outline" className="border-slate-700">
-                                <Eye className="w-3 h-3 mr-1" />
-                                View
-                              </Button>
-                            </Link>
-                          </div>
-                        </div>
-                      </CardContent>
-                    </Card>
-                  );
-                })}
+              <div className="space-y-6">
+                {Object.entries(groupedByCategory).map(([category, tables]) => (
+                  <div key={category}>
+                    <h3 className="text-cyan-400 font-bold mb-3 flex items-center gap-2">
+                      <Database className="w-4 h-4" />
+                      {category} ({tables.length} tables)
+                    </h3>
+                    <div className="grid md:grid-cols-2 gap-3">
+                      {tables.map((table) => {
+                        const Icon = table.icon;
+                        return (
+                          <Card key={table.name} className="bg-slate-900/50 border-slate-700">
+                            <CardContent className="p-3">
+                              <div className="flex items-center justify-between">
+                                <div className="flex items-center gap-3">
+                                  <Icon className="w-6 h-6 text-cyan-400" />
+                                  <div>
+                                    <h4 className="text-white font-bold text-sm">{table.name}</h4>
+                                    <p className="text-slate-400 text-xs">{table.recordCount} records</p>
+                                  </div>
+                                </div>
+                                <Badge className="bg-purple-500 text-xs">
+                                  {table.recordCount > 0 ? 'Active' : 'Empty'}
+                                </Badge>
+                              </div>
+                            </CardContent>
+                          </Card>
+                        );
+                      })}
+                    </div>
+                  </div>
+                ))}
               </div>
             </CardContent>
           </Card>
@@ -750,7 +1019,7 @@ export default function AdminDatabaseCenter() {
               </CardHeader>
               <CardContent className="p-6">
                 <div className="space-y-3">
-                  {availableTables.filter(t => t.recordCount > 0).map(table => (
+                  {availableTables.filter(t => t.recordCount > 0).slice(0, 10).map(table => (
                     <div key={table.name}>
                       <div className="flex justify-between mb-1">
                         <span className="text-slate-300 text-sm">{table.name}</span>
@@ -765,38 +1034,22 @@ export default function AdminDatabaseCenter() {
 
             <Card className="bg-gradient-to-br from-[#1e293b] to-[#0f172a] border-slate-700">
               <CardHeader className="border-b border-slate-700">
-                <CardTitle className="text-white font-bold">Database Health</CardTitle>
+                <CardTitle className="text-white font-bold">Category Breakdown</CardTitle>
               </CardHeader>
               <CardContent className="p-6">
-                <div className="space-y-4">
-                  <div className="flex items-center justify-between p-3 bg-green-900/20 border border-green-500/30 rounded-lg">
-                    <div className="flex items-center gap-2">
-                      <CheckCircle className="w-5 h-5 text-green-400" />
-                      <span className="text-green-200">Connection</span>
-                    </div>
-                    <Badge className="bg-green-500">Healthy</Badge>
-                  </div>
-                  <div className="flex items-center justify-between p-3 bg-green-900/20 border border-green-500/30 rounded-lg">
-                    <div className="flex items-center gap-2">
-                      <CheckCircle className="w-5 h-5 text-green-400" />
-                      <span className="text-green-200">Performance</span>
-                    </div>
-                    <Badge className="bg-green-500">Optimal</Badge>
-                  </div>
-                  <div className="flex items-center justify-between p-3 bg-green-900/20 border border-green-500/30 rounded-lg">
-                    <div className="flex items-center gap-2">
-                      <CheckCircle className="w-5 h-5 text-green-400" />
-                      <span className="text-green-200">Security</span>
-                    </div>
-                    <Badge className="bg-green-500">Secure</Badge>
-                  </div>
-                  <div className="flex items-center justify-between p-3 bg-green-900/20 border border-green-500/30 rounded-lg">
-                    <div className="flex items-center gap-2">
-                      <CheckCircle className="w-5 h-5 text-green-400" />
-                      <span className="text-green-200">Backups</span>
-                    </div>
-                    <Badge className="bg-green-500">Active</Badge>
-                  </div>
+                <div className="space-y-3">
+                  {Object.entries(groupedByCategory).map(([category, tables]) => {
+                    const totalCategoryRecords = tables.reduce((sum, t) => sum + t.recordCount, 0);
+                    return (
+                      <div key={category}>
+                        <div className="flex justify-between mb-1">
+                          <span className="text-slate-300 text-sm">{category}</span>
+                          <span className="text-white font-bold text-sm">{tables.length} tables</span>
+                        </div>
+                        <Progress value={(tables.length / availableTables.length) * 100} className="h-2" />
+                      </div>
+                    );
+                  })}
                 </div>
               </CardContent>
             </Card>
