@@ -16,7 +16,8 @@ import {
   Clock, Users, FileJson, FileSpreadsheet, FileCode, Package, Eye,
   MessageSquare, Calendar, Heart, Video, Radio, Mic2, BookOpen,
   Settings, DollarSign, Gift, Tag, Truck, Award, Globe, Star,
-  UserPlus, Rss, Book, Crown, Image, Film, Bell
+  UserPlus, Rss, Book, Crown, Image, Film, Bell, ShoppingBag,
+  Mail, BarChart3, Palette, RefreshCw, Warehouse
 } from "lucide-react";
 import { Link } from "react-router-dom";
 import { createPageUrl } from "@/utils";
@@ -140,7 +141,7 @@ export default function AdminDatabaseCenter() {
     { name: 'DonationCampaign', icon: Heart, category: 'Finance' },
     { name: 'RecurringDonation', icon: RefreshCw, category: 'Finance' },
     { name: 'StreamTip', icon: DollarSign, category: 'Finance' },
-    { name: 'PaymentGateway', icon: CreditCard, category: 'Finance' },
+    { name: 'PaymentGateway', icon: Database, category: 'Finance' },
     
     // Subscriptions & Loyalty
     { name: 'Subscription', icon: Crown, category: 'Membership' },
@@ -463,7 +464,6 @@ export default function AdminDatabaseCenter() {
 
       // Handle compression if enabled
       if (compressionEnabled) {
-        // Create a simple text-based archive (since we don't have JSZip)
         const archiveContent = `Glory Wave Database Export Archive
 Generated: ${new Date().toISOString()}
 Tables: ${selectedTables.length}
@@ -490,7 +490,6 @@ END OF ARCHIVE
         document.body.removeChild(a);
         URL.revokeObjectURL(url);
       } else {
-        // Regular download
         const blob = new Blob([content], { type: mimeType });
         const url = URL.createObjectURL(blob);
         const a = document.createElement('a');
