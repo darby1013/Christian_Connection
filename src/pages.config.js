@@ -137,6 +137,11 @@ import AdminDataLineage from './pages/AdminDataLineage';
 import AdminDataCatalog from './pages/AdminDataCatalog';
 import AdminDataQuality from './pages/AdminDataQuality';
 import AdminDataEncryption from './pages/AdminDataEncryption';
+import AdminDatabaseMonitoring from './pages/AdminDatabaseMonitoring';
+import AdminDataArchiving from './pages/AdminDataArchiving';
+import AdminDataAnonymization from './pages/AdminDataAnonymization';
+import AdminDatabaseCloning from './pages/AdminDatabaseCloning';
+import AdminComplianceReporting from './pages/AdminComplianceReporting';
 import Layout from './Layout.jsx';
 
 
@@ -280,6 +285,11 @@ export const PAGES = {
     "AdminDataCatalog": AdminDataCatalog,
     "AdminDataQuality": AdminDataQuality,
     "AdminDataEncryption": AdminDataEncryption,
+    "AdminDatabaseMonitoring": AdminDatabaseMonitoring,
+    "AdminDataArchiving": AdminDataArchiving,
+    "AdminDataAnonymization": AdminDataAnonymization,
+    "AdminDatabaseCloning": AdminDatabaseCloning,
+    "AdminComplianceReporting": AdminComplianceReporting,
 }
 
 export const pagesConfig = {
