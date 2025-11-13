@@ -118,6 +118,9 @@ import AdminSchemaGenerator from './pages/AdminSchemaGenerator';
 import AdminSQLScriptGenerator from './pages/AdminSQLScriptGenerator';
 import UserProfileCustomization from './pages/UserProfileCustomization';
 import AdminAuditLog from './pages/AdminAuditLog';
+import AdminAPIManagement from './pages/AdminAPIManagement';
+import AdminWebhooks from './pages/AdminWebhooks';
+import AdminNotificationCenter from './pages/AdminNotificationCenter';
 import Layout from './Layout.jsx';
 
 
@@ -242,6 +245,9 @@ export const PAGES = {
     "AdminSQLScriptGenerator": AdminSQLScriptGenerator,
     "UserProfileCustomization": UserProfileCustomization,
     "AdminAuditLog": AdminAuditLog,
+    "AdminAPIManagement": AdminAPIManagement,
+    "AdminWebhooks": AdminWebhooks,
+    "AdminNotificationCenter": AdminNotificationCenter,
 }
 
 export const pagesConfig = {
