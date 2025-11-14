@@ -1,3 +1,4 @@
+
 import React, { useState, useEffect } from "react";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
@@ -1003,7 +1004,7 @@ ${selectedFiles.map((f, i) => `${String(i + 1).padStart(3, '0')}. ✅ ${f}`).joi
           <TabsTrigger value="export" className="data-[state=active]:bg-cyan-500">
             <Download className="w-4 h-4 mr-2" />Export
           </TabsTrigger>
-        </Tabs>
+        </TabsList>
 
         <TabsContent value="files" className="mt-6">
           <Card className="bg-[#1a1f3a] border-slate-700">
