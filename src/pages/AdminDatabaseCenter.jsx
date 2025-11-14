@@ -1,3 +1,4 @@
+
 import React, { useState, useEffect } from "react";
 import { base44 } from "@/api/base44Client";
 import { useQuery } from "@tanstack/react-query";
@@ -18,7 +19,7 @@ import {
   Settings, DollarSign, Gift, Tag, Truck, Award, Globe, Star,
   UserPlus, Rss, Book, Crown, Image, Film, Bell, ShoppingBag,
   Mail, BarChart3, Palette, RefreshCw, Warehouse, AlertTriangle,
-  XCircle, Layers, Boxes, PlayCircle, PauseCircle
+  XCircle, Layers, Boxes, PlayCircle, PauseCircle, FolderArchive // Added FolderArchive
 } from "lucide-react";
 import { Link } from "react-router-dom";
 import { createPageUrl } from "@/utils";
@@ -31,7 +32,7 @@ export default function AdminDatabaseCenter() {
   const [exportProgress, setExportProgress] = useState(0);
   const [includeData, setIncludeData] = useState(true);
   const [includeSchema, setIncludeSchema] = useState(true);
-  const [compressionEnabled, setCompressionEnabled] = useState(false);
+  const [compressionEnabled, setCompressionEnabled] = useState(false); // Retained but not actively used for file content in new export logic
   const [searchQuery, setSearchQuery] = useState('');
   const [verificationResults, setVerificationResults] = useState([]);
   const [isVerifying, setIsVerifying] = useState(false);
@@ -45,6 +46,8 @@ export default function AdminDatabaseCenter() {
   const [retryDelay, setRetryDelay] = useState(2000);
   const [safeMode, setSafeMode] = useState(true);
   const [onlyTablesWithData, setOnlyTablesWithData] = useState(false);
+  const [splitExport, setSplitExport] = useState(true); // Added
+  const [tablesPerFile, setTablesPerFile] = useState(20); // Added
 
   useEffect(() => {
     const fetchUser = async () => {
@@ -217,6 +220,12 @@ export default function AdminDatabaseCenter() {
     { name: 'AIGeneratedContent', icon: Sparkles, category: 'Marketing' },
     { name: 'UserSegment', icon: Users, category: 'Marketing' },
     { name: 'CustomBundle', icon: Package, category: 'Marketing' },
+
+    // Collaboration & Permissions (Added these new entities)
+    { name: 'CollaborationSession', icon: Users, category: 'System' },
+    { name: 'Permission', icon: Shield, category: 'System' },
+    { name: 'RolePermission', icon: Shield, category: 'System' },
+    { name: 'UserPermission', icon: Shield, category: 'System' },
   ];
 
   const { data: products = [] } = useQuery({ queryKey: ['products'], queryFn: () => base44.entities.Product.list(), initialData: [] });
@@ -236,7 +245,7 @@ export default function AdminDatabaseCenter() {
   let availableTables = allEntities.map(entity => ({
     ...entity,
     recordCount: recordCounts[entity.name] || 0,
-    size: (recordCounts[entity.name] || 0) * 3,
+    size: (recordCounts[entity.name] || 0) * 3, // Arbitrary size for display
   }));
 
   // Filter only tables with data if option is enabled
@@ -278,6 +287,28 @@ export default function AdminDatabaseCenter() {
 
   const sleep = (ms) => new Promise(resolve => setTimeout(resolve, ms));
 
+  // Download helper that works for large files
+  const downloadFile = (content, filename, mimeType) => {
+    try {
+      const blob = new Blob([content], { type: mimeType });
+      const url = URL.createObjectURL(blob);
+      const a = document.createElement('a');
+      a.href = url;
+      a.download = filename;
+      document.body.appendChild(a);
+      a.click();
+      document.body.removeChild(a);
+      
+      // Clean up after a delay
+      setTimeout(() => URL.revokeObjectURL(url), 1000);
+      
+      return true;
+    } catch (error) {
+      console.error('Download error:', error);
+      return false;
+    }
+  };
+
   // Apply safe mode presets
   const applySafeMode = () => {
     setBatchSize(1);
@@ -288,6 +319,8 @@ export default function AdminDatabaseCenter() {
     setRetryAttempts(4);
     setRetryDelay(3000);
     setSafeMode(true);
+    setSplitExport(true); // Added for Safe Mode
+    setTablesPerFile(20); // Added for Safe Mode
     addLog('🛡️ Safe Mode activated: Ultra-conservative settings applied', 'info');
   };
 
@@ -300,6 +333,7 @@ export default function AdminDatabaseCenter() {
     setRetryAttempts(2);
     setRetryDelay(1000);
     setSafeMode(false);
+    setSplitExport(false); // Added for Fast Mode
     addLog('⚡ Fast Mode activated: Optimized for speed', 'info');
   };
 
@@ -416,42 +450,37 @@ export default function AdminDatabaseCenter() {
     }
   };
 
-  // Enhanced SQL dump with ultra-safe processing
-  const generateSQLDump = async (tables) => {
+  // Logic for generating a single SQL file (part of a split export or a single full export)
+  const generateSingleSQLFile = async (tablesToExport, effectiveBatchSize, effectiveDelay, partNum, totalParts, totalSelectedTablesCount) => {
     let sql = `-- ============================================\n`;
     sql += `-- Glory Wave Enterprise Database Export\n`;
+    if (totalParts > 1) {
+      sql += `-- Part ${partNum} of ${totalParts}\n`;
+    }
     sql += `-- ============================================\n`;
     sql += `-- Generated: ${new Date().toISOString()}\n`;
-    sql += `-- Tables: ${tables.length}\n`;
+    sql += `-- Tables in this file: ${tablesToExport.length}\n`;
     sql += `-- Safe Mode: ${safeMode ? 'ENABLED' : 'DISABLED'}\n`;
-    sql += `-- Batch Size: ${safeMode ? 1 : batchSize}\n`;
-    sql += `-- Batch Delay: ${safeMode ? 5000 : delayBetweenBatches}ms\n`;
-    sql += `-- Retry Attempts: ${retryAttempts}\n`;
-    sql += `-- Retry Delay: ${retryDelay}ms\n`;
     sql += `-- ============================================\n\n`;
 
-    const effectiveBatchSize = safeMode ? 1 : batchSize;
-    const effectiveDelay = safeMode ? 5000 : delayBetweenBatches;
-
     const batches = [];
-    for (let i = 0; i < tables.length; i += effectiveBatchSize) {
-      batches.push(tables.slice(i, i + effectiveBatchSize));
+    for (let i = 0; i < tablesToExport.length; i += effectiveBatchSize) {
+      batches.push(tablesToExport.slice(i, i + effectiveBatchSize));
     }
 
-    addLog(`📦 Exporting ${tables.length} tables in ${batches.length} batches`, 'info');
-
-    let processedCount = 0;
     let successCount = 0;
     let errorCount = 0;
+    
+    // Track processed tables across all files for overall progress
+    let processedTablesForProgress = (partNum - 1) * tablesPerFile; 
 
     for (let batchIndex = 0; batchIndex < batches.length; batchIndex++) {
       const batch = batches[batchIndex];
-      addLog(`🔄 Export batch ${batchIndex + 1}/${batches.length}`, 'info');
 
       for (const tableName of batch) {
-        processedCount++;
-        const progress = (processedCount / tables.length) * 100;
-        setExportProgress(progress);
+        processedTablesForProgress++;
+        const overallProgress = (processedTablesForProgress / totalSelectedTablesCount) * 100;
+        setExportProgress(overallProgress);
         
         let exported = false;
         let lastError = null;
@@ -464,7 +493,6 @@ export default function AdminDatabaseCenter() {
             if (includeSchema) {
               sql += `\n-- ============================================\n`;
               sql += `-- Table: ${tableName} | Records: ${entityData.length}\n`;
-              sql += `-- Batch: ${batchIndex + 1}/${batches.length} | Attempt: ${attempt}\n`;
               sql += `-- ============================================\n\n`;
               
               sql += `DROP TABLE IF EXISTS \`${tableName}\`;\n\n`;
@@ -518,7 +546,7 @@ export default function AdminDatabaseCenter() {
             }
 
             sql += `\n`;
-            addLog(`✅ ${tableName}: ${entityData.length} records [attempt ${attempt}]`, 'success');
+            addLog(`✅ ${tableName}: ${entityData.length} records exported`, 'success');
             successCount++;
             exported = true;
             break;
@@ -541,9 +569,8 @@ export default function AdminDatabaseCenter() {
           sql += `-- ============================================\n`;
           sql += `-- ❌ EXPORT FAILED: ${tableName}\n`;
           sql += `-- Error: ${lastError?.message || 'Unknown error'}\n`;
-          sql += `-- Attempts: ${retryAttempts}\n`;
           sql += `-- ============================================\n\n`;
-          addLog(`❌ ${tableName}: All attempts exhausted`, 'error');
+          addLog(`❌ ${tableName}: Export failed`, 'error');
           errorCount++;
         }
 
@@ -557,38 +584,84 @@ export default function AdminDatabaseCenter() {
     }
 
     sql += `\n-- ============================================\n`;
-    sql += `-- EXPORT SUMMARY\n`;
+    sql += `-- EXPORT SUMMARY`;
+    if (totalParts > 1) {
+      sql += ` (Part ${partNum}/${totalParts})`;
+    }
+    sql += `\n`;
     sql += `-- ============================================\n`;
-    sql += `-- Total Tables: ${tables.length}\n`;
+    sql += `-- Tables in this file: ${tablesToExport.length}\n`;
     sql += `-- Successfully Exported: ${successCount}\n`;
     sql += `-- Failed: ${errorCount}\n`;
-    sql += `-- Success Rate: ${((successCount / tables.length) * 100).toFixed(1)}%\n`;
-    sql += `-- Batches Processed: ${batches.length}\n`;
+    sql += `-- Success Rate: ${((successCount / tablesToExport.length) * 100).toFixed(1)}%\n`;
     sql += `-- Generated: ${new Date().toISOString()}\n`;
     sql += `-- ============================================\n`;
 
     return sql;
   };
 
-  // Similar enhancements for other formats
-  const generateJSONExport = async (tables) => {
+  // Enhanced SQL dump with split file support
+  const generateSQLDump = async (tables) => {
+    const timestamp = Date.now();
+    const effectiveBatchSize = safeMode ? 1 : batchSize;
+    const effectiveDelay = safeMode ? 5000 : delayBetweenBatches;
+
+    // Split into multiple files if enabled
+    if (splitExport && tables.length > tablesPerFile) {
+      addLog(`📦 Splitting export into multiple files (${tablesPerFile} tables per file)`, 'info');
+      
+      const fileCount = Math.ceil(tables.length / tablesPerFile);
+      
+      for (let fileIndex = 0; fileIndex < fileCount; fileIndex++) {
+        const startIdx = fileIndex * tablesPerFile;
+        const endIdx = Math.min(startIdx + tablesPerFile, tables.length);
+        const fileTables = tables.slice(startIdx, endIdx);
+        
+        addLog(`📄 Generating file ${fileIndex + 1}/${fileCount} (${fileTables.length} tables)`, 'info');
+        
+        const sql = await generateSingleSQLFile(fileTables, effectiveBatchSize, effectiveDelay, fileIndex + 1, fileCount, tables.length);
+        
+        const filename = `glory_wave_export_part_${fileIndex + 1}_of_${fileCount}_${timestamp}.sql`;
+        const success = downloadFile(sql, filename, 'text/sql');
+        
+        if (success) {
+          addLog(`✅ Downloaded: ${filename}`, 'success');
+        } else {
+          addLog(`❌ Failed to download: ${filename}`, 'error');
+          throw new Error(`Failed to download part ${fileIndex + 1}`);
+        }
+        
+        // Small delay between file downloads
+        await sleep(500);
+      }
+      
+      return null; // Already downloaded all parts
+    } else {
+      // Single file export
+      return await generateSingleSQLFile(tables, effectiveBatchSize, effectiveDelay, 1, 1, tables.length);
+    }
+  };
+
+  // Logic for generating a single JSON file (part of a split export or a single full export)
+  const generateSingleJSONFile = async (tablesToExport, partNum, totalParts, totalSelectedTablesCount) => {
     const exportData = {};
     const effectiveBatchSize = safeMode ? 1 : batchSize;
     const effectiveDelay = safeMode ? 5000 : delayBetweenBatches;
     const batches = [];
     
-    for (let i = 0; i < tables.length; i += effectiveBatchSize) {
-      batches.push(tables.slice(i, i + effectiveBatchSize));
+    for (let i = 0; i < tablesToExport.length; i += effectiveBatchSize) {
+      batches.push(tablesToExport.slice(i, i + effectiveBatchSize));
     }
 
-    let processedCount = 0;
+    let processedTablesForProgress = (partNum - 1) * tablesPerFile;
 
     for (let batchIndex = 0; batchIndex < batches.length; batchIndex++) {
       const batch = batches[batchIndex];
 
       for (const tableName of batch) {
-        processedCount++;
-        setExportProgress((processedCount / tables.length) * 100);
+        processedTablesForProgress++;
+        const overallProgress = (processedTablesForProgress / totalSelectedTablesCount) * 100;
+        setExportProgress(overallProgress);
         
         for (let attempt = 1; attempt <= retryAttempts; attempt++) {
           try {
@@ -599,6 +672,7 @@ export default function AdminDatabaseCenter() {
           } catch (error) {
             if (attempt < retryAttempts) {
               const waitTime = error.message?.includes('Rate limit') ? retryDelay * attempt * 2 : retryDelay * attempt;
+              addLog(`⚠️ ${tableName}: ${error.message} [attempt ${attempt}/${retryAttempts}]`, 'warning');
               await sleep(waitTime);
             } else {
               exportData[tableName] = { error: error.message, attempts: retryAttempts };
@@ -610,6 +684,7 @@ export default function AdminDatabaseCenter() {
       }
 
       if (batchIndex < batches.length - 1) {
+        addLog(`⏱️ Waiting ${effectiveDelay}ms before next batch...`, 'info');
         await sleep(effectiveDelay);
       }
     }
@@ -618,14 +693,47 @@ export default function AdminDatabaseCenter() {
       metadata: {
         exportDate: new Date().toISOString(),
         database: 'glory_wave_production',
+        part: partNum,
+        totalParts: totalParts,
+        tablesInFile: tablesToExport.length,
         safeMode,
-        tables: tables,
         recordCount: Object.values(exportData).reduce((sum, arr) => sum + (Array.isArray(arr) ? arr.length : 0), 0),
-        version: '3.5.0',
-        batches: batches.length
+        version: '4.0.0'
       },
       data: exportData
     }, null, 2);
+  };
+
+  const generateJSONExport = async (tables) => {
+    const timestamp = Date.now();
+    
+    if (splitExport && tables.length > tablesPerFile) {
+      addLog(`📦 Splitting export into multiple files (${tablesPerFile} tables per file)`, 'info');
+      const fileCount = Math.ceil(tables.length / tablesPerFile);
+      
+      for (let fileIndex = 0; fileIndex < fileCount; fileIndex++) {
+        const startIdx = fileIndex * tablesPerFile;
+        const endIdx = Math.min(startIdx + tablesPerFile, tables.length);
+        const fileTables = tables.slice(startIdx, endIdx);
+        
+        addLog(`📄 Generating file ${fileIndex + 1}/${fileCount} (${fileTables.length} tables)`, 'info');
+        const json = await generateSingleJSONFile(fileTables, fileIndex + 1, fileCount, tables.length);
+        const filename = `glory_wave_export_part_${fileIndex + 1}_of_${fileCount}_${timestamp}.json`;
+        
+        const success = downloadFile(json, filename, 'application/json');
+        if (success) {
+          addLog(`✅ Downloaded: ${filename}`, 'success');
+        } else {
+          addLog(`❌ Failed to download: ${filename}`, 'error');
+          throw new Error(`Failed to download part ${fileIndex + 1}`);
+        }
+        await sleep(500);
+      }
+      
+      return null; // Already downloaded all parts
+    } else {
+      return await generateSingleJSONFile(tables, 1, 1, tables.length);
+    }
   };
 
   const handleExport = async () => {
@@ -649,67 +757,56 @@ export default function AdminDatabaseCenter() {
     setExportProgress(0);
     setExportLog([]);
     
-    const effectiveBatchSize = safeMode ? 1 : batchSize;
-    const effectiveDelay = safeMode ? 5000 : delayBetweenBatches;
-    
     addLog(`🚀 Starting export of ${selectedTables.length} tables`, 'info');
-    addLog(`🛡️ Safe Mode: ${safeMode ? 'ENABLED' : 'DISABLED'}`, 'info');
     addLog(`📋 Format: ${exportFormat}`, 'info');
-    addLog(`⚙️ Batch size: ${effectiveBatchSize}, Delay: ${effectiveDelay}ms`, 'info');
+    addLog(`📦 Split mode: ${splitExport && selectedTables.length > tablesPerFile ? `ON (${tablesPerFile} tables/file)` : 'OFF'}`, 'info');
+    addLog(`🛡️ Safe Mode: ${safeMode ? 'ENABLED' : 'DISABLED'}`, 'info');
     addLog(`🔁 Retry: ${retryAttempts} attempts with ${retryDelay}ms delay`, 'info');
 
+
     try {
-      let content, mimeType, extension;
+      let content; // This will only be used for single file exports
 
       if (exportFormat === 'SQL Dump') {
         content = await generateSQLDump(selectedTables);
-        mimeType = 'text/sql';
-        extension = 'sql';
+        if (content) { // If content is returned, it means it's a single file export
+          const success = downloadFile(
+            content,
+            `glory_wave_export_${Date.now()}.sql`,
+            'text/sql'
+          );
+          if (!success) {
+            throw new Error('Download failed - file may be too large');
+          }
+        }
       } else if (exportFormat === 'JSON') {
         content = await generateJSONExport(selectedTables);
-        mimeType = 'application/json';
-        extension = 'json';
-      }
-
-      if (compressionEnabled) {
-        const archiveContent = `Glory Wave Database Export Archive
-Generated: ${new Date().toISOString()}
-Tables: ${selectedTables.length}
-Format: ${exportFormat}
-Safe Mode: ${safeMode}
-
-============================================
-${content}
-============================================`;
-
-        const blob = new Blob([archiveContent], { type: 'text/plain' });
-        const url = URL.createObjectURL(blob);
-        const a = document.createElement('a');
-        a.href = url;
-        a.download = `glory_wave_export_${Date.now()}.txt`;
-        document.body.appendChild(a);
-        a.click();
-        document.body.removeChild(a);
-        URL.revokeObjectURL(url);
-      } else {
-        const blob = new Blob([content], { type: mimeType });
-        const url = URL.createObjectURL(blob);
-        const a = document.createElement('a');
-        a.href = url;
-        a.download = `glory_wave_export_${Date.now()}.${extension}`;
-        document.body.appendChild(a);
-        a.click();
-        document.body.removeChild(a);
-        URL.revokeObjectURL(url);
+        if (content) { // If content is returned, it means it's a single file export
+          const success = downloadFile(
+            content,
+            `glory_wave_export_${Date.now()}.json`,
+            'application/json'
+          );
+          if (!success) {
+            throw new Error('Download failed - file may be too large');
+          }
+        }
       }
 
       setExportProgress(100);
-      addLog(`✅ Export completed!`, 'success');
-      addLog(`💾 Download initiated`, 'success');
-      alert(`✅ Export complete! Check logs for details.`);
+      addLog(`✅ Export completed successfully!`, 'success');
+      
+      if (splitExport && selectedTables.length > tablesPerFile) {
+        const fileCount = Math.ceil(selectedTables.length / tablesPerFile);
+        addLog(`📦 Generated ${fileCount} files`, 'success');
+        alert(`✅ Export complete! Downloaded ${fileCount} files. Check your downloads folder.`);
+      } else {
+        addLog(`💾 Single file downloaded`, 'success');
+        alert('✅ Export complete! File downloaded successfully.');
+      }
     } catch (error) {
       addLog(`❌ Export failed: ${error.message}`, 'error');
-      alert('❌ Export failed: ' + error.message);
+      alert(`❌ Export failed: ${error.message}\n\nTry enabling "Split into multiple files" option if not already, or reduce tables per file.`);
     } finally {
       setTimeout(() => {
         setExporting(false);
@@ -830,7 +927,7 @@ ${content}
       <div className="flex items-center justify-between">
         <div>
           <h2 className="text-3xl font-black text-white mb-2">Enterprise Database Tools</h2>
-          <p className="text-slate-400 font-semibold">Fail-proof export system with intelligent retry and ultra-safe processing</p>
+          <p className="text-slate-400 font-semibold">Fail-proof export with split-file support for large databases</p>
         </div>
         <div className="flex gap-2">
           <Button
@@ -856,9 +953,9 @@ ${content}
           <CardContent className="p-4">
             <div className="flex items-center gap-3">
               <Shield className="w-8 h-8 text-green-400" />
-              <div>
+              <div className="flex-1">
                 <p className="text-green-300 font-bold">🛡️ Safe Mode Active</p>
-                <p className="text-green-200 text-sm">Processing 1 table at a time with 5s delays - guaranteed no rate limits</p>
+                <p className="text-green-200 text-sm">Processing 1 table at a time with 5s delays. Split Export {splitExport ? `enabled (${tablesPerFile} tables/file)` : 'disabled'}.</p>
               </div>
             </div>
           </CardContent>
@@ -893,9 +990,14 @@ ${content}
 
         <Card className="bg-gradient-to-br from-[#1e293b] to-[#0f172a] border-0 shadow-xl">
           <CardContent className="p-4 md:p-6">
-            <Activity className="w-8 md:w-10 h-8 md:h-10 text-green-400 mb-2" />
-            <p className="text-2xl md:text-4xl font-black text-white mb-1">100%</p>
-            <p className="text-slate-400 text-xs md:text-sm font-semibold">Uptime</p>
+            <FolderArchive className="w-8 md:w-10 h-8 md:h-10 text-amber-400 mb-2" />
+            <p className="text-2xl md:text-4xl font-black text-white mb-1">
+              {selectedTables.length > 0 && splitExport && selectedTables.length > tablesPerFile
+                ? Math.ceil(selectedTables.length / tablesPerFile)
+                : (selectedTables.length > 0 ? 1 : 0)
+              }
+            </p>
+            <p className="text-slate-400 text-xs md:text-sm font-semibold">Files ({splitExport && selectedTables.length > tablesPerFile ? 'split' : 'single'})</p>
           </CardContent>
         </Card>
       </div>
@@ -933,7 +1035,7 @@ ${content}
                     <Boxes className="w-4 md:w-5 h-4 md:h-5" />
                     <span className="hidden md:inline">Ultra-Advanced Data Export Manager</span>
                     <span className="md:hidden">Export Manager</span>
-                    <Badge className="bg-gradient-to-r from-purple-500 to-pink-500 ml-2 text-xs">v3.5</Badge>
+                    <Badge className="bg-gradient-to-r from-purple-500 to-pink-500 ml-2 text-xs">v4.0</Badge>
                   </CardTitle>
                 </CardHeader>
                 <CardContent className="p-4 md:p-6 space-y-4 md:space-y-6">
@@ -1017,11 +1119,16 @@ ${content}
                           <CheckCircle className="w-4 md:w-5 h-4 md:h-5" />
                           {selectedTables.length} tables selected
                         </p>
+                        {splitExport && selectedTables.length > tablesPerFile && (
+                          <p className="text-cyan-200 text-xs mt-1">
+                            → Will create {Math.ceil(selectedTables.length / tablesPerFile)} separate files
+                          </p>
+                        )}
                       </div>
                     )}
                   </div>
 
-                  {/* Advanced Configuration - Now in expandable card */}
+                  {/* Advanced Configuration */}
                   <Card className="bg-slate-900/50 border-purple-500/30">
                     <CardHeader className="border-b border-purple-500/30 pb-3">
                       <CardTitle className="text-purple-300 font-bold text-xs md:text-sm flex items-center gap-2">
@@ -1149,8 +1256,49 @@ ${content}
                         </label>
                         <label className="flex items-center gap-2 cursor-pointer">
                           <Checkbox checked={compressionEnabled} onCheckedChange={setCompressionEnabled} />
-                          <span className="text-slate-300 text-xs md:text-sm">Archive Format</span>
+                          <span className="text-slate-300 text-xs md:text-sm">Archive Format (Legacy)</span>
                         </label>
+                      </div>
+                    </CardContent>
+                  </Card>
+
+                  {/* NEW: Split Export Configuration */}
+                  <Card className="bg-amber-900/20 border-amber-500/30">
+                    <CardHeader className="border-b border-amber-500/30 pb-3">
+                      <CardTitle className="text-amber-300 font-bold text-xs md:text-sm flex items-center gap-2">
+                        <FolderArchive className="w-3 md:w-4 h-3 md:h-4" />
+                        File Management {splitExport && <Badge className="bg-green-500 text-xs">ENABLED</Badge>}
+                      </CardTitle>
+                    </CardHeader>
+                    <CardContent className="p-3 md:p-4 space-y-3">
+                      <label className="flex items-center gap-2 cursor-pointer">
+                        <Checkbox
+                          checked={splitExport}
+                          onCheckedChange={setSplitExport}
+                          disabled={safeMode} // Disable if safe mode is on
+                        />
+                        <span className="text-amber-200 text-xs md:text-sm font-medium">Split into multiple files (Recommended for 50+ tables)</span>
+                      </label>
+                      
+                      {splitExport && (
+                        <div>
+                          <Label className="text-amber-200 font-bold mb-2 block text-xs md:text-sm">Tables per file</Label>
+                          <Input
+                            type="number"
+                            min="10"
+                            max="50"
+                            value={tablesPerFile}
+                            onChange={(e) => setTablesPerFile(parseInt(e.target.value) || 20)}
+                            className="bg-slate-900 border-slate-700 text-white w-32"
+                          />
+                          <p className="text-xs text-amber-300 mt-1">
+                            Will create {selectedTables.length > 0 ? Math.ceil(selectedTables.length / tablesPerFile) : 0} files
+                          </p>
+                        </div>
+                      )}
+                      
+                      <div className="p-2 bg-slate-900/50 rounded text-xs text-amber-200">
+                        ⚡ Prevents browser memory issues with large exports
                       </div>
                     </CardContent>
                   </Card>
@@ -1284,6 +1432,9 @@ ${content}
                       <>
                         <Download className="w-4 md:w-5 h-4 md:h-5 mr-2" />
                         Export {selectedTables.length} Tables
+                        {splitExport && selectedTables.length > tablesPerFile && 
+                          ` (${Math.ceil(selectedTables.length / tablesPerFile)} files)`
+                        }
                       </>
                     )}
                   </Button>
@@ -1307,13 +1458,18 @@ ${content}
                     <span className="text-white font-bold">{selectedTables.length}</span>
                   </div>
                   <div className="flex justify-between">
-                    <span className="text-purple-200">Batches:</span>
-                    <span className="text-white font-bold">{Math.ceil(selectedTables.length / (safeMode ? 1 : batchSize))}</span>
+                    <span className="text-purple-200">Files:</span>
+                    <span className="text-white font-bold">
+                      {selectedTables.length > 0 && splitExport && selectedTables.length > tablesPerFile
+                        ? Math.ceil(selectedTables.length / tablesPerFile)
+                        : (selectedTables.length > 0 ? 1 : 0)
+                      }
+                    </span>
                   </div>
                   <div className="flex justify-between">
                     <span className="text-purple-200">Est. Time:</span>
                     <span className="text-white font-bold">
-                      {Math.ceil((selectedTables.length / (safeMode ? 1 : batchSize)) * ((safeMode ? 5000 : delayBetweenBatches) / 1000))}s
+                      {Math.ceil((selectedTables.length * (delayBetweenTables / 1000) + (Math.ceil(selectedTables.length / batchSize) * (delayBetweenBatches / 1000))))}s
                     </span>
                   </div>
                   {verificationResults.length > 0 && (
@@ -1344,6 +1500,10 @@ ${content}
                   <ul className="text-green-200 text-xs space-y-1.5 md:space-y-2">
                     <li className="flex items-start gap-2">
                       <CheckCircle className="w-3 h-3 mt-0.5 flex-shrink-0" />
+                      <span>Split-file for large exports</span>
+                    </li>
+                    <li className="flex items-start gap-2">
+                      <CheckCircle className="w-3 h-3 mt-0.5 flex-shrink-0" />
                       <span>Exponential backoff retry</span>
                     </li>
                     <li className="flex items-start gap-2">
@@ -1352,15 +1512,11 @@ ${content}
                     </li>
                     <li className="flex items-start gap-2">
                       <CheckCircle className="w-3 h-3 mt-0.5 flex-shrink-0" />
-                      <span>Adaptive rate limiting</span>
+                      <span>Memory-efficient downloads</span>
                     </li>
                     <li className="flex items-start gap-2">
                       <CheckCircle className="w-3 h-3 mt-0.5 flex-shrink-0" />
                       <span>Pre-verification system</span>
-                    </li>
-                    <li className="flex items-start gap-2">
-                      <CheckCircle className="w-3 h-3 mt-0.5 flex-shrink-0" />
-                      <span>Detailed error tracking</span>
                     </li>
                   </ul>
                 </CardContent>
@@ -1372,11 +1528,11 @@ ${content}
                 </CardHeader>
                 <CardContent className="p-3 md:p-4">
                   <ul className="text-blue-200 text-xs space-y-1.5 md:space-y-2">
-                    <li>• Use Safe Mode for 100+ tables</li>
+                    <li>• Enable split export for 50+ tables</li>
                     <li>• Run verification first (required)</li>
-                    <li>• Check logs for issues</li>
-                    <li>• Increase delays if failures persist</li>
-                    <li>• Failed tables can be re-verified</li>
+                    <li>• Check downloads folder for files</li>
+                    <li>• Use Safe Mode for 100% success</li>
+                    <li>• Multiple files prevent memory issues</li>
                   </ul>
                 </CardContent>
               </Card>
@@ -1512,12 +1668,12 @@ ${content}
               <p className="text-green-200 text-xs md:text-sm">Response</p>
             </div>
             <div className="text-center">
-              <p className="text-green-400 font-bold text-xl md:text-2xl mb-1">Auto</p>
-              <p className="text-green-200 text-xs md:text-sm">Retry</p>
+              <p className="text-green-400 font-bold text-xl md:text-2xl mb-1">Split</p>
+              <p className="text-green-200 text-xs md:text-sm">File Support</p>
             </div>
             <div className="text-center">
               <p className="text-green-400 font-bold text-xl md:text-2xl mb-1">Smart</p>
-              <p className="text-green-200 text-xs md:text-sm">Protection</p>
+              <p className="text-green-200 text-xs md:text-sm">Memory Mgmt</p>
             </div>
           </div>
         </CardContent>
