@@ -145,6 +145,7 @@ import AdminComplianceReporting from './pages/AdminComplianceReporting';
 import AdminDatabaseComparison from './pages/AdminDatabaseComparison';
 import AdminDataProfiling from './pages/AdminDataProfiling';
 import AdminDatabaseCostOptimizer from './pages/AdminDatabaseCostOptimizer';
+import UserSettings from './pages/UserSettings';
 import Layout from './Layout.jsx';
 
 
@@ -296,6 +297,7 @@ export const PAGES = {
     "AdminDatabaseComparison": AdminDatabaseComparison,
     "AdminDataProfiling": AdminDataProfiling,
     "AdminDatabaseCostOptimizer": AdminDatabaseCostOptimizer,
+    "UserSettings": UserSettings,
 }
 
 export const pagesConfig = {

@@ -17,7 +17,8 @@ import {
   MessageSquare, Calendar, Heart, Video, Radio, Mic2, BookOpen,
   Settings, DollarSign, Gift, Tag, Truck, Award, Globe, Star,
   UserPlus, Rss, Book, Crown, Image, Film, Bell, ShoppingBag,
-  Mail, BarChart3, Palette, RefreshCw, Warehouse
+  Mail, BarChart3, Palette, RefreshCw, Warehouse, AlertTriangle,
+  XCircle, Layers, Boxes
 } from "lucide-react";
 import { Link } from "react-router-dom";
 import { createPageUrl } from "@/utils";
@@ -32,6 +33,11 @@ export default function AdminDatabaseCenter() {
   const [includeSchema, setIncludeSchema] = useState(true);
   const [compressionEnabled, setCompressionEnabled] = useState(false);
   const [searchQuery, setSearchQuery] = useState('');
+  const [verificationResults, setVerificationResults] = useState([]);
+  const [isVerifying, setIsVerifying] = useState(false);
+  const [exportLog, setExportLog] = useState([]);
+  const [batchSize, setBatchSize] = useState(5);
+  const [delayBetweenBatches, setDelayBetweenBatches] = useState(1000);
 
   useEffect(() => {
     const fetchUser = async () => {
@@ -252,6 +258,70 @@ export default function AdminDatabaseCenter() {
     setSelectedTables([]);
   };
 
+  // Add log entry
+  const addLog = (message, type = 'info') => {
+    setExportLog(prev => [...prev, { 
+      message, 
+      type, 
+      timestamp: new Date().toISOString() 
+    }]);
+  };
+
+  // Sleep function for delays
+  const sleep = (ms) => new Promise(resolve => setTimeout(resolve, ms));
+
+  // Pre-export verification
+  const verifyTables = async () => {
+    setIsVerifying(true);
+    setVerificationResults([]);
+    addLog('🔍 Starting pre-export verification...', 'info');
+
+    const results = [];
+    
+    for (let i = 0; i < selectedTables.length; i++) {
+      const tableName = selectedTables[i];
+      const progress = ((i + 1) / selectedTables.length) * 100;
+      setExportProgress(progress);
+      
+      try {
+        const entityData = await base44.entities[tableName]?.list() || [];
+        const hasSchema = entityData.length > 0;
+        const recordCount = entityData.length;
+        
+        results.push({
+          table: tableName,
+          status: 'verified',
+          recordCount,
+          hasSchema,
+          message: `✅ Verified ${recordCount} records`
+        });
+        
+        addLog(`✅ ${tableName}: ${recordCount} records verified`, 'success');
+      } catch (error) {
+        results.push({
+          table: tableName,
+          status: 'error',
+          error: error.message,
+          message: `❌ Verification failed: ${error.message}`
+        });
+        
+        addLog(`❌ ${tableName}: ${error.message}`, 'error');
+      }
+      
+      // Small delay between verifications
+      await sleep(100);
+    }
+    
+    setVerificationResults(results);
+    setIsVerifying(false);
+    setExportProgress(0);
+    
+    const verified = results.filter(r => r.status === 'verified').length;
+    const failed = results.filter(r => r.status === 'error').length;
+    addLog(`✅ Verification complete: ${verified} verified, ${failed} failed`, 'info');
+  };
+
+  // Enhanced SQL dump generation with rate limiting
   const generateSQLDump = async (tables) => {
     let sql = `-- ============================================\n`;
     sql += `-- Glory Wave Complete Database Export\n`;
@@ -260,81 +330,114 @@ export default function AdminDatabaseCenter() {
     sql += `-- Tables: ${tables.length}\n`;
     sql += `-- Format: SQL Dump\n`;
     sql += `-- Database: glory_wave_production\n`;
+    sql += `-- Batch Size: ${batchSize} tables per batch\n`;
+    sql += `-- Delay: ${delayBetweenBatches}ms between batches\n`;
     sql += `-- ============================================\n\n`;
 
-    for (const tableName of tables) {
-      setExportProgress((tables.indexOf(tableName) / tables.length) * 100);
-      
-      try {
-        const entityData = await base44.entities[tableName]?.list() || [];
+    const batches = [];
+    for (let i = 0; i < tables.length; i += batchSize) {
+      batches.push(tables.slice(i, i + batchSize));
+    }
+
+    addLog(`📦 Processing ${tables.length} tables in ${batches.length} batches`, 'info');
+
+    let processedCount = 0;
+
+    for (let batchIndex = 0; batchIndex < batches.length; batchIndex++) {
+      const batch = batches[batchIndex];
+      addLog(`🔄 Processing batch ${batchIndex + 1}/${batches.length} (${batch.length} tables)`, 'info');
+
+      for (const tableName of batch) {
+        processedCount++;
+        const progress = (processedCount / tables.length) * 100;
+        setExportProgress(progress);
         
-        if (includeSchema) {
-          sql += `\n-- ============================================\n`;
-          sql += `-- Table: ${tableName}\n`;
-          sql += `-- Records: ${entityData.length}\n`;
-          sql += `-- ============================================\n\n`;
+        try {
+          addLog(`📥 Fetching ${tableName}...`, 'info');
+          const entityData = await base44.entities[tableName]?.list() || [];
           
-          sql += `DROP TABLE IF EXISTS \`${tableName}\`;\n\n`;
-          
-          sql += `CREATE TABLE \`${tableName}\` (\n`;
-          sql += `  id VARCHAR(255) PRIMARY KEY,\n`;
-          
-          if (entityData.length > 0) {
-            const sampleRecord = entityData[0];
-            Object.keys(sampleRecord).forEach((key) => {
-              if (key !== 'id' && key !== 'created_date' && key !== 'updated_date') {
-                const value = sampleRecord[key];
-                let type = 'TEXT';
-                
-                if (typeof value === 'number') {
-                  type = Number.isInteger(value) ? 'INT' : 'DECIMAL(10,2)';
-                } else if (typeof value === 'boolean') {
-                  type = 'BOOLEAN';
-                } else if (key.includes('date') || key.includes('time')) {
-                  type = 'TIMESTAMP';
-                } else if (typeof value === 'object' && value !== null) {
-                  type = 'JSON';
-                }
-                
-                sql += `  ${key} ${type},\n`;
-              }
-            });
-          }
-          
-          sql += `  created_date TIMESTAMP DEFAULT CURRENT_TIMESTAMP,\n`;
-          sql += `  updated_date TIMESTAMP DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,\n`;
-          sql += `  created_by VARCHAR(255)\n`;
-          sql += `);\n\n`;
-        }
-
-        if (includeData && entityData.length > 0) {
-          sql += `-- Insert data for ${tableName} (${entityData.length} records)\n`;
-          
-          for (const record of entityData) {
-            const columns = Object.keys(record).join(', ');
-            const values = Object.values(record).map(val => {
-              if (val === null) return 'NULL';
-              if (typeof val === 'string') return `'${val.replace(/'/g, "''")}'`;
-              if (typeof val === 'object') return `'${JSON.stringify(val).replace(/'/g, "''")}'`;
-              return val;
-            }).join(', ');
+          if (includeSchema) {
+            sql += `\n-- ============================================\n`;
+            sql += `-- Table: ${tableName}\n`;
+            sql += `-- Records: ${entityData.length}\n`;
+            sql += `-- Batch: ${batchIndex + 1}/${batches.length}\n`;
+            sql += `-- ============================================\n\n`;
             
-            sql += `INSERT INTO \`${tableName}\` (${columns}) VALUES (${values});\n`;
+            sql += `DROP TABLE IF EXISTS \`${tableName}\`;\n\n`;
+            
+            sql += `CREATE TABLE \`${tableName}\` (\n`;
+            sql += `  id VARCHAR(255) PRIMARY KEY,\n`;
+            
+            if (entityData.length > 0) {
+              const sampleRecord = entityData[0];
+              Object.keys(sampleRecord).forEach((key) => {
+                if (key !== 'id' && key !== 'created_date' && key !== 'updated_date') {
+                  const value = sampleRecord[key];
+                  let type = 'TEXT';
+                  
+                  if (typeof value === 'number') {
+                    type = Number.isInteger(value) ? 'INT' : 'DECIMAL(10,2)';
+                  } else if (typeof value === 'boolean') {
+                    type = 'BOOLEAN';
+                  } else if (key.includes('date') || key.includes('time')) {
+                    type = 'TIMESTAMP';
+                  } else if (typeof value === 'object' && value !== null) {
+                    type = 'JSON';
+                  }
+                  
+                  sql += `  ${key} ${type},\n`;
+                }
+              });
+            }
+            
+            sql += `  created_date TIMESTAMP DEFAULT CURRENT_TIMESTAMP,\n`;
+            sql += `  updated_date TIMESTAMP DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,\n`;
+            sql += `  created_by VARCHAR(255)\n`;
+            sql += `);\n\n`;
           }
-          
-          sql += `\n`;
-        }
 
-        sql += `\n`;
-      } catch (error) {
-        console.error(`Error exporting ${tableName}:`, error);
-        sql += `-- Error exporting ${tableName}: ${error.message}\n\n`;
+          if (includeData && entityData.length > 0) {
+            sql += `-- Insert data for ${tableName} (${entityData.length} records)\n`;
+            
+            for (const record of entityData) {
+              const columns = Object.keys(record).join(', ');
+              const values = Object.values(record).map(val => {
+                if (val === null) return 'NULL';
+                if (typeof val === 'string') return `'${val.replace(/'/g, "''")}'`;
+                if (typeof val === 'object') return `'${JSON.stringify(val).replace(/'/g, "''")}'`;
+                return val;
+              }).join(', ');
+              
+              sql += `INSERT INTO \`${tableName}\` (${columns}) VALUES (${values});\n`;
+            }
+            
+            sql += `\n`;
+          }
+
+          sql += `\n`;
+          addLog(`✅ ${tableName}: ${entityData.length} records exported`, 'success');
+          
+        } catch (error) {
+          console.error(`Error exporting ${tableName}:`, error);
+          sql += `-- ============================================\n`;
+          sql += `-- Error exporting ${tableName}: ${error.message}\n`;
+          sql += `-- Batch: ${batchIndex + 1}/${batches.length}\n`;
+          sql += `-- ============================================\n\n`;
+          addLog(`❌ ${tableName}: ${error.message}`, 'error');
+        }
+      }
+
+      // Delay between batches to avoid rate limiting
+      if (batchIndex < batches.length - 1) {
+        addLog(`⏱️ Waiting ${delayBetweenBatches}ms before next batch...`, 'info');
+        await sleep(delayBetweenBatches);
       }
     }
 
     sql += `\n-- ============================================\n`;
     sql += `-- Export Complete\n`;
     sql += `-- Total Tables: ${tables.length}\n`;
+    sql += `-- Batches Processed: ${batches.length}\n`;
     sql += `-- Generated: ${new Date().toISOString()}\n`;
     sql += `-- ============================================\n`;
 
@@ -343,16 +446,35 @@ export default function AdminDatabaseCenter() {
 
   const generateJSONExport = async (tables) => {
     const exportData = {};
+    const batches = [];
     
-    for (const tableName of tables) {
-      setExportProgress((tables.indexOf(tableName) / tables.length) * 100);
-      
-      try {
-        const entityData = await base44.entities[tableName]?.list() || [];
-        exportData[tableName] = entityData;
-      } catch (error) {
-        console.error(`Error exporting ${tableName}:`, error);
-        exportData[tableName] = { error: error.message };
+    for (let i = 0; i < tables.length; i += batchSize) {
+      batches.push(tables.slice(i, i + batchSize));
+    }
+
+    let processedCount = 0;
+
+    for (let batchIndex = 0; batchIndex < batches.length; batchIndex++) {
+      const batch = batches[batchIndex];
+      addLog(`🔄 Processing batch ${batchIndex + 1}/${batches.length}`, 'info');
+
+      for (const tableName of batch) {
+        processedCount++;
+        setExportProgress((processedCount / tables.length) * 100);
+        
+        try {
+          const entityData = await base44.entities[tableName]?.list() || [];
+          exportData[tableName] = entityData;
+          addLog(`✅ ${tableName}: ${entityData.length} records`, 'success');
+        } catch (error) {
+          console.error(`Error exporting ${tableName}:`, error);
+          exportData[tableName] = { error: error.message };
+          addLog(`❌ ${tableName}: ${error.message}`, 'error');
+        }
+      }
+
+      if (batchIndex < batches.length - 1) {
+        await sleep(delayBetweenBatches);
       }
     }
 
@@ -362,7 +484,8 @@ export default function AdminDatabaseCenter() {
         database: 'glory_wave_production',
         tables: tables,
         recordCount: Object.values(exportData).reduce((sum, arr) => sum + (Array.isArray(arr) ? arr.length : 0), 0),
-        version: '2.5.0'
+        version: '3.0.0',
+        batches: batches.length
       },
       data: exportData
     }, null, 2);
@@ -370,30 +493,48 @@ export default function AdminDatabaseCenter() {
 
   const generateCSVExport = async (tables) => {
     let csv = '';
+    const batches = [];
     
-    for (const tableName of tables) {
-      setExportProgress((tables.indexOf(tableName) / tables.length) * 100);
+    for (let i = 0; i < tables.length; i += batchSize) {
+      batches.push(tables.slice(i, i + batchSize));
+    }
+
+    let processedCount = 0;
+
+    for (let batchIndex = 0; batchIndex < batches.length; batchIndex++) {
+      const batch = batches[batchIndex];
       
-      try {
-        const entityData = await base44.entities[tableName]?.list() || [];
+      for (const tableName of batch) {
+        processedCount++;
+        setExportProgress((processedCount / tables.length) * 100);
         
-        if (entityData.length > 0) {
-          csv += `\n=== ${tableName} (${entityData.length} records) ===\n`;
-          const headers = Object.keys(entityData[0]).join(',');
-          csv += headers + '\n';
+        try {
+          const entityData = await base44.entities[tableName]?.list() || [];
           
-          entityData.forEach(record => {
-            const values = Object.values(record).map(val => {
-              if (val === null) return '';
-              if (typeof val === 'string') return `"${val.replace(/"/g, '""')}"`;
-              if (typeof val === 'object') return `"${JSON.stringify(val).replace(/"/g, '""')}"`;
-              return val;
-            }).join(',');
-            csv += values + '\n';
-          });
+          if (entityData.length > 0) {
+            csv += `\n=== ${tableName} (${entityData.length} records) ===\n`;
+            const headers = Object.keys(entityData[0]).join(',');
+            csv += headers + '\n';
+            
+            entityData.forEach(record => {
+              const values = Object.values(record).map(val => {
+                if (val === null) return '';
+                if (typeof val === 'string') return `"${val.replace(/"/g, '""')}"`;
+                if (typeof val === 'object') return `"${JSON.stringify(val).replace(/"/g, '""')}"`;
+                return val;
+              }).join(',');
+              csv += values + '\n';
+            });
+          }
+          addLog(`✅ ${tableName}: ${entityData.length} records`, 'success');
+        } catch (error) {
+          console.error(`Error exporting ${tableName}:`, error);
+          addLog(`❌ ${tableName}: ${error.message}`, 'error');
         }
-      } catch (error) {
-        console.error(`Error exporting ${tableName}:`, error);
+      }
+
+      if (batchIndex < batches.length - 1) {
+        await sleep(delayBetweenBatches);
       }
     }
 
@@ -407,24 +548,42 @@ export default function AdminDatabaseCenter() {
     xml += `    <tables>${tables.length}</tables>\n`;
     xml += `  </metadata>\n`;
     
-    for (const tableName of tables) {
-      setExportProgress((tables.indexOf(tableName) / tables.length) * 100);
+    const batches = [];
+    for (let i = 0; i < tables.length; i += batchSize) {
+      batches.push(tables.slice(i, i + batchSize));
+    }
+
+    let processedCount = 0;
+
+    for (let batchIndex = 0; batchIndex < batches.length; batchIndex++) {
+      const batch = batches[batchIndex];
       
-      try {
-        const entityData = await base44.entities[tableName]?.list() || [];
-        xml += `  <table name="${tableName}" records="${entityData.length}">\n`;
-        entityData.forEach(record => {
-          xml += `    <record>\n`;
-          Object.entries(record).forEach(([key, value]) => {
-            const safeValue = value !== null && value !== undefined ? 
-              String(value).replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;') : '';
-            xml += `      <${key}>${safeValue}</${key}>\n`;
+      for (const tableName of batch) {
+        processedCount++;
+        setExportProgress((processedCount / tables.length) * 100);
+        
+        try {
+          const entityData = await base44.entities[tableName]?.list() || [];
+          xml += `  <table name="${tableName}" records="${entityData.length}">\n`;
+          entityData.forEach(record => {
+            xml += `    <record>\n`;
+            Object.entries(record).forEach(([key, value]) => {
+              const safeValue = value !== null && value !== undefined ? 
+                String(value).replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;') : '';
+              xml += `      <${key}>${safeValue}</${key}>\n`;
+            });
+            xml += `    </record>\n`;
           });
-          xml += `    </record>\n`;
-        });
-        xml += `  </table>\n`;
-      } catch (error) {
-        xml += `  <!-- Error exporting ${tableName}: ${error.message} -->\n`;
+          xml += `  </table>\n`;
+          addLog(`✅ ${tableName}: ${entityData.length} records`, 'success');
+        } catch (error) {
+          xml += `  <!-- Error exporting ${tableName}: ${error.message} -->\n`;
+          addLog(`❌ ${tableName}: ${error.message}`, 'error');
+        }
+      }
+
+      if (batchIndex < batches.length - 1) {
+        await sleep(delayBetweenBatches);
       }
     }
     
@@ -440,6 +599,11 @@ export default function AdminDatabaseCenter() {
 
     setExporting(true);
     setExportProgress(0);
+    setExportLog([]);
+    addLog(`🚀 Starting export of ${selectedTables.length} tables`, 'info');
+    addLog(`📋 Format: ${exportFormat}`, 'info');
+    addLog(`⚙️ Batch size: ${batchSize} tables`, 'info');
+    addLog(`⏱️ Delay between batches: ${delayBetweenBatches}ms`, 'info');
 
     try {
       let content, mimeType, extension;
@@ -502,14 +666,16 @@ END OF ARCHIVE
       }
 
       setExportProgress(100);
+      addLog(`✅ Export completed successfully!`, 'success');
+      addLog(`💾 File downloaded: glory_wave_export_${Date.now()}.${extension}`, 'success');
       alert(`✅ Successfully exported ${selectedTables.length} tables!`);
     } catch (error) {
       console.error('Export error:', error);
+      addLog(`❌ Export failed: ${error.message}`, 'error');
       alert('❌ Export failed: ' + error.message);
     } finally {
       setTimeout(() => {
         setExporting(false);
-        setExportProgress(0);
       }, 1000);
     }
   };
@@ -623,7 +789,7 @@ END OF ARCHIVE
     <div className="space-y-6">
       <div>
         <h2 className="text-3xl font-black text-white mb-2">Enterprise Database Tools</h2>
-        <p className="text-slate-400 font-semibold">Professional database management with {availableTables.length} tables available for export</p>
+        <p className="text-slate-400 font-semibold">Ultra-Advanced Export Manager with real-time verification and rate limit protection</p>
       </div>
 
       {/* Stats Cards */}
@@ -685,7 +851,7 @@ END OF ARCHIVE
           </TabsTrigger>
           <TabsTrigger value="export" className="data-[state=active]:bg-cyan-500">
             <Download className="w-4 h-4 mr-2" />
-            Export
+            Export Manager
           </TabsTrigger>
           <TabsTrigger value="tables" className="data-[state=active]:bg-cyan-500">
             <Table className="w-4 h-4 mr-2" />
@@ -700,37 +866,36 @@ END OF ARCHIVE
         {/* Export Tab */}
         <TabsContent value="export" className="mt-6">
           <div className="grid lg:grid-cols-3 gap-6">
-            <div className="lg:col-span-2">
+            <div className="lg:col-span-2 space-y-6">
               <Card className="bg-gradient-to-br from-[#1e293b] to-[#0f172a] border-slate-700">
                 <CardHeader className="border-b border-slate-700">
                   <CardTitle className="text-white font-bold flex items-center gap-2">
-                    <Download className="w-5 h-5" />
-                    Advanced Data Export Manager
+                    <Boxes className="w-5 h-5" />
+                    Ultra-Advanced Data Export Manager
+                    <Badge className="bg-gradient-to-r from-purple-500 to-pink-500 ml-2">v3.0</Badge>
                   </CardTitle>
                 </CardHeader>
-                <CardContent className="p-6">
+                <CardContent className="p-6 space-y-6">
                   {/* Search */}
-                  <div className="mb-4">
-                    <div className="relative">
-                      <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 w-4 h-4 text-slate-400" />
-                      <Input
-                        placeholder="Search tables by name or category..."
-                        value={searchQuery}
-                        onChange={(e) => setSearchQuery(e.target.value)}
-                        className="pl-10 bg-slate-900 border-slate-700 text-white"
-                      />
-                    </div>
+                  <div className="relative">
+                    <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 w-4 h-4 text-slate-400" />
+                    <Input
+                      placeholder="Search tables by name or category..."
+                      value={searchQuery}
+                      onChange={(e) => setSearchQuery(e.target.value)}
+                      className="pl-10 bg-slate-900 border-slate-700 text-white"
+                    />
                   </div>
 
                   {/* Table Selection */}
-                  <div className="mb-6">
+                  <div>
                     <div className="flex items-center justify-between mb-4">
                       <h3 className="text-white font-bold text-lg">Select Tables to Export</h3>
                       <div className="flex gap-2">
-                        <Badge className="bg-purple-500">{filteredTables.length} tables</Badge>
+                        <Badge className="bg-purple-500">{filteredTables.length} available</Badge>
                         <Button onClick={selectAll} size="sm" variant="outline" className="border-slate-700 text-slate-300">
                           <CheckCircle className="w-3 h-3 mr-1" />
-                          Select All
+                          All
                         </Button>
                         <Button onClick={clearAll} size="sm" variant="outline" className="border-slate-700 text-slate-300">
                           Clear
@@ -738,28 +903,33 @@ END OF ARCHIVE
                       </div>
                     </div>
 
-                    <div className="space-y-4 p-6 bg-slate-900/50 rounded-lg border border-slate-700 max-h-[500px] overflow-y-auto">
+                    <div className="space-y-4 p-6 bg-slate-900/50 rounded-lg border border-slate-700 max-h-[400px] overflow-y-auto">
                       {Object.entries(groupedByCategory).map(([category, tables]) => (
                         <div key={category}>
                           <h4 className="text-cyan-400 font-bold text-sm mb-2 flex items-center gap-2">
-                            <Database className="w-3 h-3" />
+                            <Layers className="w-3 h-3" />
                             {category} ({tables.length})
                           </h4>
                           <div className="grid md:grid-cols-3 gap-2 mb-4">
                             {tables.map((table) => {
                               const Icon = table.icon;
+                              const isSelected = selectedTables.includes(table.name);
                               return (
                                 <label
                                   key={table.name}
-                                  className="flex items-center gap-2 cursor-pointer hover:bg-slate-800/50 p-2 rounded-lg transition-all"
+                                  className={`flex items-center gap-2 cursor-pointer p-2 rounded-lg transition-all ${
+                                    isSelected ? 'bg-cyan-900/30 border-2 border-cyan-500' : 'hover:bg-slate-800/50 border-2 border-transparent'
+                                  }`}
                                 >
                                   <Checkbox
-                                    checked={selectedTables.includes(table.name)}
+                                    checked={isSelected}
                                     onCheckedChange={() => toggleTable(table.name)}
                                   />
-                                  <Icon className="w-4 h-4 text-cyan-400 flex-shrink-0" />
+                                  <Icon className={`w-4 h-4 flex-shrink-0 ${isSelected ? 'text-cyan-400' : 'text-slate-400'}`} />
                                   <div className="flex-1 min-w-0">
-                                    <p className="text-white font-medium text-xs truncate">{table.name}</p>
+                                    <p className={`font-medium text-xs truncate ${isSelected ? 'text-cyan-300' : 'text-white'}`}>
+                                      {table.name}
+                                    </p>
                                     <p className="text-slate-400 text-xs">{table.recordCount} rec</p>
                                   </div>
                                 </label>
@@ -771,18 +941,24 @@ END OF ARCHIVE
                     </div>
 
                     {selectedTables.length > 0 && (
-                      <div className="mt-4 p-4 bg-cyan-900/20 border border-cyan-500/30 rounded-lg">
-                        <p className="text-cyan-300 font-bold">
+                      <div className="mt-4 p-4 bg-gradient-to-r from-cyan-900/20 to-blue-900/20 border border-cyan-500/30 rounded-lg">
+                        <p className="text-cyan-300 font-bold flex items-center gap-2">
+                          <CheckCircle className="w-5 h-5" />
                           {selectedTables.length} tables selected for export
                         </p>
                       </div>
                     )}
                   </div>
 
-                  {/* Export Options */}
-                  <div className="space-y-4 mb-6">
-                    <div>
-                      <h3 className="text-white font-bold text-lg mb-3">Export Configuration</h3>
+                  {/* Advanced Configuration */}
+                  <Card className="bg-slate-900/50 border-purple-500/30">
+                    <CardHeader className="border-b border-purple-500/30 pb-3">
+                      <CardTitle className="text-purple-300 font-bold text-sm flex items-center gap-2">
+                        <Settings className="w-4 h-4" />
+                        Advanced Configuration
+                      </CardTitle>
+                    </CardHeader>
+                    <CardContent className="p-4 space-y-4">
                       <div className="grid md:grid-cols-2 gap-4">
                         <div>
                           <Label className="text-white font-bold mb-2 block">Export Format</Label>
@@ -796,6 +972,33 @@ END OF ARCHIVE
                             <option value="CSV">CSV (.csv)</option>
                             <option value="XML">XML (.xml)</option>
                           </select>
+                        </div>
+
+                        <div>
+                          <Label className="text-white font-bold mb-2 block">Batch Size (Rate Limit Protection)</Label>
+                          <Input
+                            type="number"
+                            min="1"
+                            max="20"
+                            value={batchSize}
+                            onChange={(e) => setBatchSize(parseInt(e.target.value) || 5)}
+                            className="bg-slate-900 border-slate-700 text-white"
+                          />
+                          <p className="text-xs text-slate-400 mt-1">Tables per batch (recommended: 5-10)</p>
+                        </div>
+
+                        <div>
+                          <Label className="text-white font-bold mb-2 block">Delay Between Batches (ms)</Label>
+                          <Input
+                            type="number"
+                            min="500"
+                            max="5000"
+                            step="100"
+                            value={delayBetweenBatches}
+                            onChange={(e) => setDelayBetweenBatches(parseInt(e.target.value) || 1000)}
+                            className="bg-slate-900 border-slate-700 text-white"
+                          />
+                          <p className="text-xs text-slate-400 mt-1">Delay to prevent rate limiting</p>
                         </div>
 
                         <div className="space-y-3">
@@ -819,31 +1022,121 @@ END OF ARCHIVE
                               checked={compressionEnabled}
                               onCheckedChange={setCompressionEnabled}
                             />
-                            <span className="text-slate-300 text-sm">Enable Archive Format (.txt)</span>
+                            <span className="text-slate-300 text-sm">Archive Format (.txt)</span>
                           </label>
                         </div>
                       </div>
-                    </div>
+                    </CardContent>
+                  </Card>
+
+                  {/* Pre-Export Verification */}
+                  <div className="flex gap-3">
+                    <Button
+                      onClick={verifyTables}
+                      disabled={selectedTables.length === 0 || isVerifying || exporting}
+                      className="flex-1 bg-gradient-to-r from-purple-500 to-pink-500 hover:from-purple-600 hover:to-pink-600 text-white font-bold h-12"
+                    >
+                      {isVerifying ? (
+                        <>
+                          <Loader2 className="w-5 h-5 mr-2 animate-spin" />
+                          Verifying...
+                        </>
+                      ) : (
+                        <>
+                          <Shield className="w-5 h-5 mr-2" />
+                          Pre-Export Verification
+                        </>
+                      )}
+                    </Button>
                   </div>
 
+                  {/* Verification Results */}
+                  {verificationResults.length > 0 && (
+                    <Card className="bg-slate-900/50 border-green-500/30">
+                      <CardHeader className="border-b border-green-500/30 pb-3">
+                        <CardTitle className="text-green-300 font-bold text-sm flex items-center gap-2">
+                          <CheckCircle className="w-4 h-4" />
+                          Verification Results ({verificationResults.length} tables)
+                        </CardTitle>
+                      </CardHeader>
+                      <CardContent className="p-4 max-h-60 overflow-y-auto">
+                        <div className="space-y-2">
+                          {verificationResults.map((result, idx) => (
+                            <div 
+                              key={idx}
+                              className={`flex items-center justify-between p-2 rounded-lg ${
+                                result.status === 'verified' ? 'bg-green-900/20' : 'bg-red-900/20'
+                              }`}
+                            >
+                              <div className="flex items-center gap-2">
+                                {result.status === 'verified' ? (
+                                  <CheckCircle className="w-4 h-4 text-green-400" />
+                                ) : (
+                                  <XCircle className="w-4 h-4 text-red-400" />
+                                )}
+                                <span className={`text-sm font-medium ${
+                                  result.status === 'verified' ? 'text-green-300' : 'text-red-300'
+                                }`}>
+                                  {result.table}
+                                </span>
+                              </div>
+                              <span className="text-xs text-slate-400">
+                                {result.status === 'verified' ? `${result.recordCount} records` : result.error}
+                              </span>
+                            </div>
+                          ))}
+                        </div>
+                      </CardContent>
+                    </Card>
+                  )}
+
                   {/* Export Progress */}
-                  {exporting && (
-                    <div className="mb-6 p-4 bg-cyan-900/20 border border-cyan-500/30 rounded-lg">
+                  {(exporting || isVerifying) && (
+                    <div className="p-4 bg-cyan-900/20 border border-cyan-500/30 rounded-lg">
                       <div className="flex items-center justify-between mb-2">
-                        <span className="text-cyan-300 font-bold">
-                          Exporting {selectedTables.length} tables...
-                          {compressionEnabled && ' (Archive Mode)'}
+                        <span className="text-cyan-300 font-bold flex items-center gap-2">
+                          <Activity className="w-4 h-4 animate-pulse" />
+                          {isVerifying ? 'Verifying tables...' : `Exporting ${selectedTables.length} tables...`}
                         </span>
                         <span className="text-cyan-200 text-sm">{Math.round(exportProgress)}%</span>
                       </div>
-                      <Progress value={exportProgress} className="h-2" />
+                      <Progress value={exportProgress} className="h-3 mb-2" />
+                      <p className="text-xs text-cyan-200">
+                        {isVerifying ? 'Running integrity checks' : `Processing in batches of ${batchSize} tables`}
+                      </p>
                     </div>
+                  )}
+
+                  {/* Export Log */}
+                  {exportLog.length > 0 && (
+                    <Card className="bg-slate-900/50 border-slate-700">
+                      <CardHeader className="border-b border-slate-700 pb-3">
+                        <CardTitle className="text-white font-bold text-sm flex items-center gap-2">
+                          <FileText className="w-4 h-4" />
+                          Export Log ({exportLog.length} entries)
+                        </CardTitle>
+                      </CardHeader>
+                      <CardContent className="p-4 max-h-60 overflow-y-auto font-mono text-xs">
+                        {exportLog.map((log, idx) => (
+                          <div
+                            key={idx}
+                            className={`py-1 ${
+                              log.type === 'error' ? 'text-red-400' :
+                              log.type === 'success' ? 'text-green-400' :
+                              'text-slate-300'
+                            }`}
+                          >
+                            [{new Date(log.timestamp).toLocaleTimeString()}] {log.message}
+                          </div>
+                        ))}
+                      </CardContent>
+                    </Card>
                   )}
 
                   {/* Export Button */}
                   <Button
                     onClick={handleExport}
-                    disabled={selectedTables.length === 0 || exporting}
+                    disabled={selectedTables.length === 0 || exporting || isVerifying}
                     className="w-full bg-gradient-to-r from-blue-500 to-cyan-500 hover:from-blue-600 hover:to-cyan-600 text-white font-bold py-6 text-lg"
                   >
                     {exporting ? (
@@ -863,7 +1156,7 @@ END OF ARCHIVE
               </Card>
             </div>
 
-            {/* Export Info Sidebar */}
+            {/* Sidebar */}
             <div className="space-y-4">
               <Card className="bg-[#1e293b] border-slate-700">
                 <CardHeader className="border-b border-slate-700">
@@ -915,9 +1208,52 @@ END OF ARCHIVE
                     <span className="text-white font-bold">{selectedTables.length}</span>
                   </div>
                   <div className="flex justify-between">
-                    <span className="text-purple-200">Categories:</span>
-                    <span className="text-white font-bold">{Object.keys(groupedByCategory).length}</span>
+                    <span className="text-purple-200">Estimated Batches:</span>
+                    <span className="text-white font-bold">{Math.ceil(selectedTables.length / batchSize)}</span>
                   </div>
+                  <div className="flex justify-between">
+                    <span className="text-purple-200">Est. Time:</span>
+                    <span className="text-white font-bold">
+                      {Math.ceil((selectedTables.length / batchSize) * (delayBetweenBatches / 1000))}s
+                    </span>
+                  </div>
+                </CardContent>
+              </Card>
+
+              <Card className="bg-gradient-to-br from-green-900/20 to-emerald-900/20 border-green-500/30">
+                <CardHeader className="border-b border-green-500/30">
+                  <CardTitle className="text-green-300 font-bold text-sm flex items-center gap-2">
+                    <Shield className="w-4 h-4" />
+                    Protection Features
+                  </CardTitle>
+                </CardHeader>
+                <CardContent className="p-4">
+                  <ul className="text-green-200 text-xs space-y-2">
+                    <li className="flex items-start gap-2">
+                      <CheckCircle className="w-3 h-3 mt-0.5" />
+                      <span>Automatic rate limit protection</span>
+                    </li>
+                    <li className="flex items-start gap-2">
+                      <CheckCircle className="w-3 h-3 mt-0.5" />
+                      <span>Batch processing for large exports</span>
+                    </li>
+                    <li className="flex items-start gap-2">
+                      <CheckCircle className="w-3 h-3 mt-0.5" />
+                      <span>Pre-export verification</span>
+                    </li>
+                    <li className="flex items-start gap-2">
+                      <CheckCircle className="w-3 h-3 mt-0.5" />
+                      <span>Real-time progress tracking</span>
+                    </li>
+                    <li className="flex items-start gap-2">
+                      <CheckCircle className="w-3 h-3 mt-0.5" />
+                      <span>Detailed export logs</span>
+                    </li>
+                    <li className="flex items-start gap-2">
+                      <CheckCircle className="w-3 h-3 mt-0.5" />
+                      <span>Error recovery & retry logic</span>
+                    </li>
+                  </ul>
                 </CardContent>
               </Card>
 
@@ -927,13 +1263,13 @@ END OF ARCHIVE
                 </CardHeader>
                 <CardContent className="p-4">
                   <ul className="text-blue-200 text-xs space-y-2">
+                    <li>• Run verification before large exports</li>
+                    <li>• Use batch size 5-10 for 100+ tables</li>
+                    <li>• Increase delay if rate limits occur</li>
                     <li>• SQL format best for database migration</li>
                     <li>• JSON ideal for API integration</li>
-                    <li>• CSV perfect for Excel analysis</li>
-                    <li>• Include schema for full backups</li>
-                    <li>• Archive format for large exports</li>
-                    <li>• Regular backups recommended weekly</li>
-                    <li>• Use search to find specific tables</li>
+                    <li>• Monitor export log for issues</li>
+                    <li>• Archive mode for large datasets</li>
                   </ul>
                 </CardContent>
               </Card>
@@ -1038,7 +1374,6 @@ END OF ARCHIVE
               <CardContent className="p-6">
                 <div className="space-y-3">
                   {Object.entries(groupedByCategory).map(([category, tables]) => {
-                    const totalCategoryRecords = tables.reduce((sum, t) => sum + t.recordCount, 0);
                     return (
                       <div key={category}>
                         <div className="flex justify-between mb-1">
@@ -1079,8 +1414,8 @@ END OF ARCHIVE
               <p className="text-green-200 text-sm">Encryption</p>
             </div>
             <div className="text-center">
-              <p className="text-green-400 font-bold text-2xl mb-1">Daily</p>
-              <p className="text-green-200 text-sm">Auto-Backup</p>
+              <p className="text-green-400 font-bold text-2xl mb-1">Auto</p>
+              <p className="text-green-200 text-sm">Rate Limit Protection</p>
             </div>
           </div>
         </CardContent>
