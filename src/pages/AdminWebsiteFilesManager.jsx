@@ -373,15 +373,15 @@ COMPLETE SYSTEM EXPORT PACKAGE
 🔧 HOW TO EXTRACT & DEPLOY:
 
 OPTION A - Manual Recreation (Recommended for Smaller Projects or Review):
-   1. Create the top-level folders first (e.g., 'pages', 'components', 'entities', 'root'):
+   1. Create the top-level folders first (e.g., pages, components, entities, root):
       ${Object.keys(exportPackage).map(f => `   mkdir -p ${f}`).join('\n      ')}
    
    2. Refer to GLORY_WAVE_MANIFEST_[timestamp].json for the exact nested folder structure and file paths.
    
    3. Open GLORY_WAVE_ALL_FILES_[timestamp].txt.
-      - Each file's content is prefixed with "FILE: foldername/filename" and surrounded by lines of dashes (———).
+      - Each file's content is prefixed with FILE: foldername/filename and surrounded by lines of dashes.
       - Copy the content block for each file.
-      - Create the file in its correct folder (e.g., 'pages/Home.jsx') and paste the content.
+      - Create the file in its correct folder (e.g., pages/Home.jsx) and paste the content.
    
    4. After placing all files, you can optionally verify their integrity using the checksums provided in the manifest.
 
@@ -389,40 +389,15 @@ OPTION B - Automated Recreation (Requires Node.js for Scripting):
    This method uses a simple Node.js script to automate the file system recreation.
    1. Ensure you have Node.js installed.
    2. Create a new empty directory for your project.
-   3. Place GLORY_WAVE_MANIFEST_[timestamp].json and GLORY_WAVE_ALL_FILES_[timestamp].txt into this new directory.
-   4. Run the following command in your terminal within that directory:
-      <pre><code>node -e "const fs = require('fs');
-const manifest = JSON.parse(fs.readFileSync('GLORY_WAVE_MANIFEST_${Date.now()}.json', 'utf8'));
-const allFilesContent = fs.readFileSync('GLORY_WAVE_ALL_FILES_${Date.now()}.txt', 'utf8');
-
-manifest.directory_structure.forEach(folderEntry => {
-    fs.mkdirSync(folderEntry.folder, { recursive: true });
-    folderEntry.files.forEach(fileMeta => {
-        const filePath = fileMeta.path;
-        const fileRegex = new RegExp(\`------\\nFILE: \${filePath}\\\\nSIZE: .*?\\\\nCHECKSUM: .*?\\\\n------\\\\n\\\\n([\\\\s\\\\S]*?)\\\\n\`, 'm');
-        const match = allFilesContent.match(fileRegex);
-        if (match && match[1]) {
-            fs.writeFileSync(filePath, match[1].trim(), 'utf8');
-            console.log(\`Created \${filePath}\`);
-        } else {
-            console.warn(\`Content not found for \${filePath}\`);
-        }
-    });
-});
-console.log('File system recreation complete.');"</code></pre>
-      (Note: The actual Node.js command might need adjustment based on specific file naming conventions and content parsing.)
-   
-OPTION C - True ZIP File Export:
-   The current system generates a structured package. For a single, extractable .zip archive:
-   1. This functionality typically requires server-side processing or client-side libraries like 'jszip'.
-   2. If you need a direct .zip download, consider integrating a robust client-side ZIP library or a backend service for file archiving.
+   3. Place both GLORY_WAVE_MANIFEST and GLORY_WAVE_ALL_FILES into this new directory.
+   4. The manifest contains the complete directory structure that can be programmatically recreated.
 
 🚀 DEPLOYMENT AFTER EXTRACTION:
    Once your file system is recreated:
    1. Navigate to your project directory.
-   2. Install dependencies: `npm install` (or `yarn install`)
-   3. Start development server: `npm run dev` (or `yarn dev`)
-   4. Build for production: `npm run build` (or `yarn build`)
+   2. Install dependencies: npm install (or yarn install)
+   3. Start development server: npm run dev (or yarn dev)
+   4. Build for production: npm run build (or yarn build)
    5. Deploy the generated build folder to your hosting environment (cPanel, VPS, Cloud, etc.).
 
 ✅ VERIFICATION SUMMARY:
@@ -456,7 +431,7 @@ OPTION C - True ZIP File Export:
       fileCount: selectedFiles.length,
       folderCount: Object.keys(exportPackage).length,
       integrity: '100%',
-      format: 'Structured Package', // Updated format
+      format: 'Structured Package',
       compression: compressionLevel
     };
     setExportHistory(prev => [exportRecord, ...prev].slice(0, 10));
