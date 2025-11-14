@@ -1,4 +1,3 @@
-
 import React, { useState, useEffect } from "react";
 import { Link, useLocation } from "react-router-dom";
 import { createPageUrl } from "@/utils";
@@ -14,7 +13,7 @@ import {
   Gift, Percent, Clock, Award,
   Database, Code, GitBranch, Upload, Archive, Link2,
   Activity, Zap, RefreshCw, Server, Sun, Moon, Eye, Lock,
-  Webhook, Key, AlertCircle, GitCompare, UserX, Copy, CheckCircle, FolderOpen
+  Webhook, Key, AlertCircle, GitCompare, UserX, Copy, CheckCircle, FolderOpen, Cpu
 } from "lucide-react";
 import {
   Sidebar,
@@ -163,7 +162,7 @@ function LayoutContent({ children, currentPageName }) {
     { title: "Analytics", url: createPageUrl("AdminAnalytics"), icon: BarChart3, section: "OVERVIEW" },
     { title: "Site Settings", url: createPageUrl("AdminSiteSettings"), icon: SettingsIcon, section: "OVERVIEW" },
     { title: "Activity Feed", url: createPageUrl("AdminActivityFeed"), icon: Activity, section: "OVERVIEW" },
-    { title: "System Health", url: createPageUrl("AdminSystemHealth"), icon: Activity, section: "OVERVIEW" },
+    { title: "System Health", url: createPageUrl("AdminSystemHealth"), icon: Cpu, section: "OVERVIEW" },
     
     { title: "Database Center", url: createPageUrl("AdminDatabaseCenter"), icon: Database, section: "DATABASE" },
     { title: "Audit Log", url: createPageUrl("AdminAuditLog"), icon: Eye, section: "DATABASE" },
@@ -416,7 +415,7 @@ function LayoutContent({ children, currentPageName }) {
             </header>
 
             <div className="flex-1 overflow-auto admin-content w-full">
-              <div className="w-full max-w-full">
+              <div className="w-full max-width-full">
                 {children}
               </div>
             </div>
