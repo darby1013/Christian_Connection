@@ -149,6 +149,8 @@ import UserSettings from './pages/UserSettings';
 import AdminPermissionManager from './pages/AdminPermissionManager';
 import CollaborativeBlogEditor from './pages/CollaborativeBlogEditor';
 import AdminRolesEnhanced from './pages/AdminRolesEnhanced';
+import AdminWebsiteFilesManager from './pages/AdminWebsiteFilesManager';
+import AdminSystemHealth from './pages/AdminSystemHealth';
 import Layout from './Layout.jsx';
 
 
@@ -304,6 +306,8 @@ export const PAGES = {
     "AdminPermissionManager": AdminPermissionManager,
     "CollaborativeBlogEditor": CollaborativeBlogEditor,
     "AdminRolesEnhanced": AdminRolesEnhanced,
+    "AdminWebsiteFilesManager": AdminWebsiteFilesManager,
+    "AdminSystemHealth": AdminSystemHealth,
 }
 
 export const pagesConfig = {

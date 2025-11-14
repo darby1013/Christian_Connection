@@ -1,3 +1,4 @@
+
 import React, { useState, useEffect } from "react";
 import { Link, useLocation } from "react-router-dom";
 import { createPageUrl } from "@/utils";
@@ -13,7 +14,7 @@ import {
   Gift, Percent, Clock, Award,
   Database, Code, GitBranch, Upload, Archive, Link2,
   Activity, Zap, RefreshCw, Server, Sun, Moon, Eye, Lock,
-  Webhook, Key, AlertCircle, GitCompare, UserX, Copy, CheckCircle
+  Webhook, Key, AlertCircle, GitCompare, UserX, Copy, CheckCircle, FolderOpen
 } from "lucide-react";
 import {
   Sidebar,
@@ -162,6 +163,7 @@ function LayoutContent({ children, currentPageName }) {
     { title: "Analytics", url: createPageUrl("AdminAnalytics"), icon: BarChart3, section: "OVERVIEW" },
     { title: "Site Settings", url: createPageUrl("AdminSiteSettings"), icon: SettingsIcon, section: "OVERVIEW" },
     { title: "Activity Feed", url: createPageUrl("AdminActivityFeed"), icon: Activity, section: "OVERVIEW" },
+    { title: "System Health", url: createPageUrl("AdminSystemHealth"), icon: Activity, section: "OVERVIEW" },
     
     { title: "Database Center", url: createPageUrl("AdminDatabaseCenter"), icon: Database, section: "DATABASE" },
     { title: "Audit Log", url: createPageUrl("AdminAuditLog"), icon: Eye, section: "DATABASE" },
@@ -190,33 +192,34 @@ function LayoutContent({ children, currentPageName }) {
     { title: "Users", url: createPageUrl("AdminUsers"), icon: UserIcon, section: "MANAGEMENT" },
     { title: "Roles & Permissions", url: createPageUrl("AdminRoles"), icon: Shield, section: "MANAGEMENT" },
 
-    { title: "API Management", url: createPageUrl("AdminAPIManagement"), icon: Key, section: "ENTERPRISE" },
-    { title: "Webhooks", url: createPageUrl("AdminWebhooks"), icon: Webhook, section: "ENTERPRISE" },
-    { title: "Notifications", url: createPageUrl("AdminNotificationCenter"), icon: Bell, section: "ENTERPRISE" },
-    { title: "Cache Manager", url: createPageUrl("AdminCacheManager"), icon: Zap, section: "ENTERPRISE" },
-    { title: "Rate Limiting", url: createPageUrl("AdminRateLimiting"), icon: Shield, section: "ENTERPRISE" },
-    { title: "Scheduled Jobs", url: createPageUrl("AdminScheduledJobs"), icon: Clock, section: "ENTERPRISE" },
-    { title: "Error Tracking", url: createPageUrl("AdminErrorTracking"), icon: AlertCircle, section: "ENTERPRISE" },
-    { title: "DB Replication", url: createPageUrl("AdminDatabaseReplication"), icon: Copy, section: "ENTERPRISE" },
-    { title: "Access Control", url: createPageUrl("AdminAccessControl"), icon: Lock, section: "ENTERPRISE" },
-    { title: "Data Governance", url: createPageUrl("AdminDataGovernance"), icon: Shield, section: "ENTERPRISE" },
-    { title: "Index Optimizer", url: createPageUrl("AdminDatabaseIndexOptimizer"), icon: Zap, section: "ENTERPRISE" },
-    { title: "Query Optimizer", url: createPageUrl("AdminQueryOptimizer"), icon: TrendingUp, section: "ENTERPRISE" },
-    { title: "Data Masking", url: createPageUrl("AdminDataMasking"), icon: Eye, section: "ENTERPRISE" },
-    { title: "Transactions", url: createPageUrl("AdminDatabaseTransactions"), icon: Activity, section: "ENTERPRISE" },
-    { title: "DB Versioning", url: createPageUrl("AdminDatabaseVersioning"), icon: GitBranch, section: "ENTERPRISE" },
-    { title: "Data Lineage", url: createPageUrl("AdminDataLineage"), icon: Link2, section: "ENTERPRISE" },
-    { title: "Data Catalog", url: createPageUrl("AdminDataCatalog"), icon: Database, section: "ENTERPRISE" },
-    { title: "Data Quality", url: createPageUrl("AdminDataQuality"), icon: CheckCircle, section: "ENTERPRISE" },
-    { title: "Data Encryption", url: createPageUrl("AdminDataEncryption"), icon: Lock, section: "ENTERPRISE" },
-    { title: "DB Monitoring", url: createPageUrl("AdminDatabaseMonitoring"), icon: Activity, section: "ENTERPRISE" },
-    { title: "Data Archiving", url: createPageUrl("AdminDataArchiving"), icon: Archive, section: "ENTERPRISE" },
-    { title: "Anonymization", url: createPageUrl("AdminDataAnonymization"), icon: UserX, section: "ENTERPRISE" },
-    { title: "DB Cloning", url: createPageUrl("AdminDatabaseCloning"), icon: Copy, section: "ENTERPRISE" },
-    { title: "Compliance Reports", url: createPageUrl("AdminComplianceReporting"), icon: FileText, section: "ENTERPRISE" },
-    { title: "DB Comparison", url: createPageUrl("AdminDatabaseComparison"), icon: GitCompare, section: "ENTERPRISE" },
-    { title: "Data Profiling", url: createPageUrl("AdminDataProfiling"), icon: BarChart3, section: "ENTERPRISE" },
-    { title: "Cost Optimizer", url: createPageUrl("AdminDatabaseCostOptimizer"), icon: DollarSign, section: "ENTERPRISE" },
+    { title: "Website Files", url: createPageUrl("AdminWebsiteFilesManager"), icon: FolderOpen, section: "SYSTEM" },
+    { title: "API Management", url: createPageUrl("AdminAPIManagement"), icon: Key, section: "SYSTEM" },
+    { title: "Webhooks", url: createPageUrl("AdminWebhooks"), icon: Webhook, section: "SYSTEM" },
+    { title: "Notifications", url: createPageUrl("AdminNotificationCenter"), icon: Bell, section: "SYSTEM" },
+    { title: "Cache Manager", url: createPageUrl("AdminCacheManager"), icon: Zap, section: "SYSTEM" },
+    { title: "Rate Limiting", url: createPageUrl("AdminRateLimiting"), icon: Shield, section: "SYSTEM" },
+    { title: "Scheduled Jobs", url: createPageUrl("AdminScheduledJobs"), icon: Clock, section: "SYSTEM" },
+    { title: "Error Tracking", url: createPageUrl("AdminErrorTracking"), icon: AlertCircle, section: "SYSTEM" },
+    { title: "DB Replication", url: createPageUrl("AdminDatabaseReplication"), icon: Copy, section: "SYSTEM" },
+    { title: "Access Control", url: createPageUrl("AdminAccessControl"), icon: Lock, section: "SYSTEM" },
+    { title: "Data Governance", url: createPageUrl("AdminDataGovernance"), icon: Shield, section: "SYSTEM" },
+    { title: "Index Optimizer", url: createPageUrl("AdminDatabaseIndexOptimizer"), icon: Zap, section: "SYSTEM" },
+    { title: "Query Optimizer", url: createPageUrl("AdminQueryOptimizer"), icon: TrendingUp, section: "SYSTEM" },
+    { title: "Data Masking", url: createPageUrl("AdminDataMasking"), icon: Eye, section: "SYSTEM" },
+    { title: "Transactions", url: createPageUrl("AdminDatabaseTransactions"), icon: Activity, section: "SYSTEM" },
+    { title: "DB Versioning", url: createPageUrl("AdminDatabaseVersioning"), icon: GitBranch, section: "SYSTEM" },
+    { title: "Data Lineage", url: createPageUrl("AdminDataLineage"), icon: Link2, section: "SYSTEM" },
+    { title: "Data Catalog", url: createPageUrl("AdminDataCatalog"), icon: Database, section: "SYSTEM" },
+    { title: "Data Quality", url: createPageUrl("AdminDataQuality"), icon: CheckCircle, section: "SYSTEM" },
+    { title: "Data Encryption", url: createPageUrl("AdminDataEncryption"), icon: Lock, section: "SYSTEM" },
+    { title: "DB Monitoring", url: createPageUrl("AdminDatabaseMonitoring"), icon: Activity, section: "SYSTEM" },
+    { title: "Data Archiving", url: createPageUrl("AdminDataArchiving"), icon: Archive, section: "SYSTEM" },
+    { title: "Anonymization", url: createPageUrl("AdminDataAnonymization"), icon: UserX, section: "SYSTEM" },
+    { title: "DB Cloning", url: createPageUrl("AdminDatabaseCloning"), icon: Copy, section: "SYSTEM" },
+    { title: "Compliance Reports", url: createPageUrl("AdminComplianceReporting"), icon: FileText, section: "SYSTEM" },
+    { title: "DB Comparison", url: createPageUrl("AdminDatabaseComparison"), icon: GitCompare, section: "SYSTEM" },
+    { title: "Data Profiling", url: createPageUrl("AdminDataProfiling"), icon: BarChart3, section: "SYSTEM" },
+    { title: "Cost Optimizer", url: createPageUrl("AdminDatabaseCostOptimizer"), icon: DollarSign, section: "SYSTEM" },
   ];
 
   const groupedAdminItems = adminNavItems.reduce((acc, item) => {
