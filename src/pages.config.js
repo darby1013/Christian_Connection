@@ -165,6 +165,7 @@ import AdminAISocialMediaGenerator from './pages/AdminAISocialMediaGenerator';
 import AdminAIChapterGenerator from './pages/AdminAIChapterGenerator';
 import AdminAIPodcastRepurposing from './pages/AdminAIPodcastRepurposing';
 import AdminAITagGenerator from './pages/AdminAITagGenerator';
+import AdminAIContentEnhancer from './pages/AdminAIContentEnhancer';
 import Layout from './Layout.jsx';
 
 
@@ -336,6 +337,7 @@ export const PAGES = {
     "AdminAIChapterGenerator": AdminAIChapterGenerator,
     "AdminAIPodcastRepurposing": AdminAIPodcastRepurposing,
     "AdminAITagGenerator": AdminAITagGenerator,
+    "AdminAIContentEnhancer": AdminAIContentEnhancer,
 }
 
 export const pagesConfig = {
