@@ -146,6 +146,9 @@ import AdminDatabaseComparison from './pages/AdminDatabaseComparison';
 import AdminDataProfiling from './pages/AdminDataProfiling';
 import AdminDatabaseCostOptimizer from './pages/AdminDatabaseCostOptimizer';
 import UserSettings from './pages/UserSettings';
+import AdminPermissionManager from './pages/AdminPermissionManager';
+import CollaborativeBlogEditor from './pages/CollaborativeBlogEditor';
+import AdminRolesEnhanced from './pages/AdminRolesEnhanced';
 import Layout from './Layout.jsx';
 
 
@@ -298,6 +301,9 @@ export const PAGES = {
     "AdminDataProfiling": AdminDataProfiling,
     "AdminDatabaseCostOptimizer": AdminDatabaseCostOptimizer,
     "UserSettings": UserSettings,
+    "AdminPermissionManager": AdminPermissionManager,
+    "CollaborativeBlogEditor": CollaborativeBlogEditor,
+    "AdminRolesEnhanced": AdminRolesEnhanced,
 }
 
 export const pagesConfig = {
