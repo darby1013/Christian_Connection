@@ -166,6 +166,11 @@ import AdminAIChapterGenerator from './pages/AdminAIChapterGenerator';
 import AdminAIPodcastRepurposing from './pages/AdminAIPodcastRepurposing';
 import AdminAITagGenerator from './pages/AdminAITagGenerator';
 import AdminAIContentEnhancer from './pages/AdminAIContentEnhancer';
+import StoreEnterprise from './pages/StoreEnterprise';
+import ProductDetailEnterprise from './pages/ProductDetailEnterprise';
+import ShoppingCartEnterprise from './pages/ShoppingCartEnterprise';
+import CheckoutEnterprise from './pages/CheckoutEnterprise';
+import AdminProductsEnhanced from './pages/AdminProductsEnhanced';
 import Layout from './Layout.jsx';
 
 
@@ -338,6 +343,11 @@ export const PAGES = {
     "AdminAIPodcastRepurposing": AdminAIPodcastRepurposing,
     "AdminAITagGenerator": AdminAITagGenerator,
     "AdminAIContentEnhancer": AdminAIContentEnhancer,
+    "StoreEnterprise": StoreEnterprise,
+    "ProductDetailEnterprise": ProductDetailEnterprise,
+    "ShoppingCartEnterprise": ShoppingCartEnterprise,
+    "CheckoutEnterprise": CheckoutEnterprise,
+    "AdminProductsEnhanced": AdminProductsEnhanced,
 }
 
 export const pagesConfig = {
