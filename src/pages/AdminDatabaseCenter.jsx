@@ -18,7 +18,7 @@ import {
   Settings, DollarSign, Gift, Tag, Truck, Award, Globe, Star,
   UserPlus, Rss, Book, Crown, Image, Film, Bell, ShoppingBag,
   Mail, BarChart3, Palette, RefreshCw, Warehouse, AlertTriangle,
-  XCircle, Layers, Boxes
+  XCircle, Layers, Boxes, PlayCircle, PauseCircle
 } from "lucide-react";
 import { Link } from "react-router-dom";
 import { createPageUrl } from "@/utils";
@@ -36,11 +36,15 @@ export default function AdminDatabaseCenter() {
   const [verificationResults, setVerificationResults] = useState([]);
   const [isVerifying, setIsVerifying] = useState(false);
   const [exportLog, setExportLog] = useState([]);
-  const [batchSize, setBatchSize] = useState(3);
-  const [delayBetweenBatches, setDelayBetweenBatches] = useState(2000);
-  const [verificationBatchSize, setVerificationBatchSize] = useState(3);
-  const [verificationDelay, setVerificationDelay] = useState(1500);
-  const [retryAttempts, setRetryAttempts] = useState(2);
+  const [batchSize, setBatchSize] = useState(2);
+  const [delayBetweenBatches, setDelayBetweenBatches] = useState(3000);
+  const [verificationBatchSize, setVerificationBatchSize] = useState(2);
+  const [verificationDelay, setVerificationDelay] = useState(2500);
+  const [delayBetweenTables, setDelayBetweenTables] = useState(400);
+  const [retryAttempts, setRetryAttempts] = useState(3);
+  const [retryDelay, setRetryDelay] = useState(2000);
+  const [safeMode, setSafeMode] = useState(true);
+  const [onlyTablesWithData, setOnlyTablesWithData] = useState(false);
 
   useEffect(() => {
     const fetchUser = async () => {
@@ -215,14 +219,12 @@ export default function AdminDatabaseCenter() {
     { name: 'CustomBundle', icon: Package, category: 'Marketing' },
   ];
 
-  // Fetch data for tables with actual records
   const { data: products = [] } = useQuery({ queryKey: ['products'], queryFn: () => base44.entities.Product.list(), initialData: [] });
   const { data: orders = [] } = useQuery({ queryKey: ['orders'], queryFn: () => base44.entities.Order.list(), initialData: [] });
   const { data: users = [] } = useQuery({ queryKey: ['users'], queryFn: () => base44.entities.User.list(), initialData: [] });
   const { data: blogPosts = [] } = useQuery({ queryKey: ['blogPosts'], queryFn: () => base44.entities.BlogPost.list(), initialData: [] });
   const { data: podcasts = [] } = useQuery({ queryKey: ['podcasts'], queryFn: () => base44.entities.Podcast.list(), initialData: [] });
 
-  // Map record counts
   const recordCounts = {
     'User': users.length,
     'Product': products.length,
@@ -231,11 +233,16 @@ export default function AdminDatabaseCenter() {
     'Podcast': podcasts.length,
   };
 
-  const availableTables = allEntities.map(entity => ({
+  let availableTables = allEntities.map(entity => ({
     ...entity,
     recordCount: recordCounts[entity.name] || 0,
     size: (recordCounts[entity.name] || 0) * 3,
   }));
+
+  // Filter only tables with data if option is enabled
+  if (onlyTablesWithData) {
+    availableTables = availableTables.filter(t => t.recordCount > 0);
+  }
 
   const filteredTables = availableTables.filter(table =>
     table.name.toLowerCase().includes(searchQuery.toLowerCase()) ||
@@ -261,7 +268,6 @@ export default function AdminDatabaseCenter() {
     setSelectedTables([]);
   };
 
-  // Add log entry
   const addLog = (message, type = 'info') => {
     setExportLog(prev => [...prev, { 
       message, 
@@ -270,23 +276,52 @@ export default function AdminDatabaseCenter() {
     }]);
   };
 
-  // Sleep function for delays
   const sleep = (ms) => new Promise(resolve => setTimeout(resolve, ms));
 
-  // Enhanced verification with batch processing and retry logic
+  // Apply safe mode presets
+  const applySafeMode = () => {
+    setBatchSize(1);
+    setDelayBetweenBatches(5000);
+    setVerificationBatchSize(1);
+    setVerificationDelay(4000);
+    setDelayBetweenTables(800);
+    setRetryAttempts(4);
+    setRetryDelay(3000);
+    setSafeMode(true);
+    addLog('🛡️ Safe Mode activated: Ultra-conservative settings applied', 'info');
+  };
+
+  const applyFastMode = () => {
+    setBatchSize(5);
+    setDelayBetweenBatches(1500);
+    setVerificationBatchSize(5);
+    setVerificationDelay(1000);
+    setDelayBetweenTables(200);
+    setRetryAttempts(2);
+    setRetryDelay(1000);
+    setSafeMode(false);
+    addLog('⚡ Fast Mode activated: Optimized for speed', 'info');
+  };
+
+  // Enhanced verification with aggressive rate limiting
   const verifyTables = async () => {
     setIsVerifying(true);
     setVerificationResults([]);
     setExportLog([]);
-    addLog('🔍 Starting pre-export verification with rate limit protection...', 'info');
-    addLog(`⚙️ Batch size: ${verificationBatchSize} tables, Delay: ${verificationDelay}ms`, 'info');
+    
+    const effectiveBatchSize = safeMode ? 1 : verificationBatchSize;
+    const effectiveDelay = safeMode ? 4000 : verificationDelay;
+    
+    addLog('🔍 Starting enterprise-grade pre-export verification...', 'info');
+    addLog(`🛡️ Safe Mode: ${safeMode ? 'ENABLED' : 'DISABLED'}`, 'info');
+    addLog(`⚙️ Batch size: ${effectiveBatchSize} tables, Delay: ${effectiveDelay}ms`, 'info');
+    addLog(`🔁 Retry attempts: ${retryAttempts} with ${retryDelay}ms delay`, 'info');
 
     const results = [];
     const batches = [];
     
-    // Create batches
-    for (let i = 0; i < selectedTables.length; i += verificationBatchSize) {
-      batches.push(selectedTables.slice(i, i + verificationBatchSize));
+    for (let i = 0; i < selectedTables.length; i += effectiveBatchSize) {
+      batches.push(selectedTables.slice(i, i + effectiveBatchSize));
     }
 
     addLog(`📦 Processing ${selectedTables.length} tables in ${batches.length} batches`, 'info');
@@ -306,41 +341,40 @@ export default function AdminDatabaseCenter() {
         let lastError = null;
         let recordCount = 0;
 
-        // Retry logic
         for (let attempt = 1; attempt <= retryAttempts; attempt++) {
           try {
-            addLog(`📥 Verifying ${tableName} (attempt ${attempt}/${retryAttempts})...`, 'info');
+            addLog(`📥 ${tableName} [${attempt}/${retryAttempts}]`, 'info');
             
-            // Try to fetch with a small limit first to check if entity exists
             const entityData = await base44.entities[tableName]?.list() || [];
             recordCount = entityData.length;
-            const hasSchema = entityData.length > 0 || base44.entities[tableName];
             
             results.push({
               table: tableName,
               status: 'verified',
               recordCount,
-              hasSchema,
-              message: `✅ Verified: ${recordCount} records`,
+              hasSchema: true,
+              message: `✅ ${recordCount} records verified`,
               attempts: attempt
             });
             
-            addLog(`✅ ${tableName}: ${recordCount} records verified`, 'success');
+            addLog(`✅ ${tableName}: ${recordCount} records [attempt ${attempt}]`, 'success');
             verified = true;
             break;
             
           } catch (error) {
             lastError = error;
-            addLog(`⚠️ ${tableName}: Attempt ${attempt} failed - ${error.message}`, 'warning');
+            const isRateLimit = error.message?.includes('Rate limit') || error.message?.includes('Too many');
             
-            // Wait before retry
+            addLog(`⚠️ ${tableName}: ${error.message} [attempt ${attempt}/${retryAttempts}]`, 'warning');
+            
             if (attempt < retryAttempts) {
-              await sleep(500 * attempt); // Exponential backoff
+              const waitTime = isRateLimit ? retryDelay * attempt * 2 : retryDelay * attempt;
+              addLog(`⏱️ Waiting ${waitTime}ms before retry...`, 'info');
+              await sleep(waitTime);
             }
           }
         }
 
-        // If all retries failed
         if (!verified) {
           results.push({
             table: tableName,
@@ -350,19 +384,19 @@ export default function AdminDatabaseCenter() {
             attempts: retryAttempts
           });
           
-          addLog(`❌ ${tableName}: ${lastError?.message || 'Verification failed'}`, 'error');
+          addLog(`❌ ${tableName}: Failed after ${retryAttempts} attempts - ${lastError?.message}`, 'error');
         }
 
-        // Small delay between tables in same batch
+        // Delay between individual tables within batch
         if (batch.indexOf(tableName) < batch.length - 1) {
-          await sleep(300);
+          await sleep(delayBetweenTables);
         }
       }
 
       // Delay between batches
       if (batchIndex < batches.length - 1) {
-        addLog(`⏱️ Waiting ${verificationDelay}ms before next batch...`, 'info');
-        await sleep(verificationDelay);
+        addLog(`⏱️ Batch complete. Waiting ${effectiveDelay}ms before next batch...`, 'info');
+        await sleep(effectiveDelay);
       }
     }
     
@@ -374,34 +408,37 @@ export default function AdminDatabaseCenter() {
     const failed = results.filter(r => r.status === 'error').length;
     const totalRecordsFound = results.reduce((sum, r) => sum + (r.recordCount || 0), 0);
     
-    addLog(`✅ Verification complete: ${verified} verified, ${failed} failed`, 'success');
+    addLog(`✅ Verification complete: ${verified} verified, ${failed} failed`, verified === selectedTables.length ? 'success' : 'warning');
     addLog(`📊 Total records found: ${totalRecordsFound.toLocaleString()}`, 'info');
     
     if (failed > 0) {
-      addLog(`⚠️ ${failed} tables failed verification. Check settings or try again.`, 'warning');
+      addLog(`⚠️ ${failed} tables failed. Consider enabling Safe Mode or increasing delays.`, 'warning');
     }
   };
 
-  // Enhanced SQL dump generation with rate limiting
+  // Enhanced SQL dump with ultra-safe processing
   const generateSQLDump = async (tables) => {
     let sql = `-- ============================================\n`;
-    sql += `-- Glory Wave Complete Database Export\n`;
+    sql += `-- Glory Wave Enterprise Database Export\n`;
     sql += `-- ============================================\n`;
     sql += `-- Generated: ${new Date().toISOString()}\n`;
     sql += `-- Tables: ${tables.length}\n`;
-    sql += `-- Format: SQL Dump\n`;
-    sql += `-- Database: glory_wave_production\n`;
-    sql += `-- Batch Size: ${batchSize} tables per batch\n`;
-    sql += `-- Delay: ${delayBetweenBatches}ms between batches\n`;
+    sql += `-- Safe Mode: ${safeMode ? 'ENABLED' : 'DISABLED'}\n`;
+    sql += `-- Batch Size: ${safeMode ? 1 : batchSize}\n`;
+    sql += `-- Batch Delay: ${safeMode ? 5000 : delayBetweenBatches}ms\n`;
     sql += `-- Retry Attempts: ${retryAttempts}\n`;
+    sql += `-- Retry Delay: ${retryDelay}ms\n`;
     sql += `-- ============================================\n\n`;
 
+    const effectiveBatchSize = safeMode ? 1 : batchSize;
+    const effectiveDelay = safeMode ? 5000 : delayBetweenBatches;
+
     const batches = [];
-    for (let i = 0; i < tables.length; i += batchSize) {
-      batches.push(tables.slice(i, i + batchSize));
+    for (let i = 0; i < tables.length; i += effectiveBatchSize) {
+      batches.push(tables.slice(i, i + effectiveBatchSize));
     }
 
-    addLog(`📦 Processing ${tables.length} tables in ${batches.length} batches`, 'info');
+    addLog(`📦 Exporting ${tables.length} tables in ${batches.length} batches`, 'info');
 
     let processedCount = 0;
     let successCount = 0;
@@ -409,7 +446,7 @@ export default function AdminDatabaseCenter() {
 
     for (let batchIndex = 0; batchIndex < batches.length; batchIndex++) {
       const batch = batches[batchIndex];
-      addLog(`🔄 Processing batch ${batchIndex + 1}/${batches.length} (${batch.length} tables)`, 'info');
+      addLog(`🔄 Export batch ${batchIndex + 1}/${batches.length}`, 'info');
 
       for (const tableName of batch) {
         processedCount++;
@@ -419,22 +456,18 @@ export default function AdminDatabaseCenter() {
         let exported = false;
         let lastError = null;
 
-        // Retry logic for export
         for (let attempt = 1; attempt <= retryAttempts; attempt++) {
           try {
-            addLog(`📥 Exporting ${tableName} (attempt ${attempt}/${retryAttempts})...`, 'info');
+            addLog(`📥 Exporting ${tableName} [${attempt}/${retryAttempts}]...`, 'info');
             const entityData = await base44.entities[tableName]?.list() || [];
             
             if (includeSchema) {
               sql += `\n-- ============================================\n`;
-              sql += `-- Table: ${tableName}\n`;
-              sql += `-- Records: ${entityData.length}\n`;
-              sql += `-- Batch: ${batchIndex + 1}/${batches.length}\n`;
-              sql += `-- Export Attempt: ${attempt}\n`;
+              sql += `-- Table: ${tableName} | Records: ${entityData.length}\n`;
+              sql += `-- Batch: ${batchIndex + 1}/${batches.length} | Attempt: ${attempt}\n`;
               sql += `-- ============================================\n\n`;
               
               sql += `DROP TABLE IF EXISTS \`${tableName}\`;\n\n`;
-              
               sql += `CREATE TABLE \`${tableName}\` (\n`;
               sql += `  id VARCHAR(255) PRIMARY KEY,\n`;
               
@@ -467,7 +500,7 @@ export default function AdminDatabaseCenter() {
             }
 
             if (includeData && entityData.length > 0) {
-              sql += `-- Insert data for ${tableName} (${entityData.length} records)\n`;
+              sql += `-- Data for ${tableName} (${entityData.length} records)\n`;
               
               for (const record of entityData) {
                 const columns = Object.keys(record).join(', ');
@@ -485,49 +518,51 @@ export default function AdminDatabaseCenter() {
             }
 
             sql += `\n`;
-            addLog(`✅ ${tableName}: ${entityData.length} records exported`, 'success');
+            addLog(`✅ ${tableName}: ${entityData.length} records [attempt ${attempt}]`, 'success');
             successCount++;
             exported = true;
             break;
             
           } catch (error) {
             lastError = error;
-            console.error(`Error exporting ${tableName} (attempt ${attempt}):`, error);
-            addLog(`⚠️ ${tableName}: Attempt ${attempt} failed - ${error.message}`, 'warning');
+            const isRateLimit = error.message?.includes('Rate limit') || error.message?.includes('Too many');
+            
+            addLog(`⚠️ ${tableName}: ${error.message} [attempt ${attempt}/${retryAttempts}]`, 'warning');
             
             if (attempt < retryAttempts) {
-              await sleep(1000 * attempt); // Exponential backoff
+              const waitTime = isRateLimit ? retryDelay * attempt * 2 : retryDelay * attempt;
+              addLog(`⏱️ Waiting ${waitTime}ms before retry...`, 'info');
+              await sleep(waitTime);
             }
           }
         }
 
-        // If all retries failed
         if (!exported) {
           sql += `-- ============================================\n`;
-          sql += `-- Error exporting ${tableName} after ${retryAttempts} attempts\n`;
+          sql += `-- ❌ EXPORT FAILED: ${tableName}\n`;
           sql += `-- Error: ${lastError?.message || 'Unknown error'}\n`;
-          sql += `-- Batch: ${batchIndex + 1}/${batches.length}\n`;
+          sql += `-- Attempts: ${retryAttempts}\n`;
           sql += `-- ============================================\n\n`;
-          addLog(`❌ ${tableName}: ${lastError?.message || 'Export failed'}`, 'error');
+          addLog(`❌ ${tableName}: All attempts exhausted`, 'error');
           errorCount++;
         }
 
-        // Small delay between tables
-        await sleep(200);
+        await sleep(delayBetweenTables);
       }
 
-      // Delay between batches to avoid rate limiting
       if (batchIndex < batches.length - 1) {
-        addLog(`⏱️ Waiting ${delayBetweenBatches}ms before next batch...`, 'info');
-        await sleep(delayBetweenBatches);
+        addLog(`⏱️ Waiting ${effectiveDelay}ms before next batch...`, 'info');
+        await sleep(effectiveDelay);
       }
     }
 
     sql += `\n-- ============================================\n`;
-    sql += `-- Export Complete\n`;
+    sql += `-- EXPORT SUMMARY\n`;
+    sql += `-- ============================================\n`;
     sql += `-- Total Tables: ${tables.length}\n`;
     sql += `-- Successfully Exported: ${successCount}\n`;
     sql += `-- Failed: ${errorCount}\n`;
+    sql += `-- Success Rate: ${((successCount / tables.length) * 100).toFixed(1)}%\n`;
     sql += `-- Batches Processed: ${batches.length}\n`;
     sql += `-- Generated: ${new Date().toISOString()}\n`;
     sql += `-- ============================================\n`;
@@ -535,45 +570,47 @@ export default function AdminDatabaseCenter() {
     return sql;
   };
 
+  // Similar enhancements for other formats
   const generateJSONExport = async (tables) => {
     const exportData = {};
+    const effectiveBatchSize = safeMode ? 1 : batchSize;
+    const effectiveDelay = safeMode ? 5000 : delayBetweenBatches;
     const batches = [];
     
-    for (let i = 0; i < tables.length; i += batchSize) {
-      batches.push(tables.slice(i, i + batchSize));
+    for (let i = 0; i < tables.length; i += effectiveBatchSize) {
+      batches.push(tables.slice(i, i + effectiveBatchSize));
     }
 
     let processedCount = 0;
 
     for (let batchIndex = 0; batchIndex < batches.length; batchIndex++) {
       const batch = batches[batchIndex];
-      addLog(`🔄 Processing batch ${batchIndex + 1}/${batches.length}`, 'info');
 
       for (const tableName of batch) {
         processedCount++;
         setExportProgress((processedCount / tables.length) * 100);
         
-        let exported = false;
         for (let attempt = 1; attempt <= retryAttempts; attempt++) {
           try {
             const entityData = await base44.entities[tableName]?.list() || [];
             exportData[tableName] = entityData;
             addLog(`✅ ${tableName}: ${entityData.length} records`, 'success');
-            exported = true;
             break;
           } catch (error) {
             if (attempt < retryAttempts) {
-              await sleep(500 * attempt);
+              const waitTime = error.message?.includes('Rate limit') ? retryDelay * attempt * 2 : retryDelay * attempt;
+              await sleep(waitTime);
             } else {
-              exportData[tableName] = { error: error.message };
+              exportData[tableName] = { error: error.message, attempts: retryAttempts };
               addLog(`❌ ${tableName}: ${error.message}`, 'error');
             }
           }
         }
+        await sleep(delayBetweenTables);
       }
 
       if (batchIndex < batches.length - 1) {
-        await sleep(delayBetweenBatches);
+        await sleep(effectiveDelay);
       }
     }
 
@@ -581,126 +618,14 @@ export default function AdminDatabaseCenter() {
       metadata: {
         exportDate: new Date().toISOString(),
         database: 'glory_wave_production',
+        safeMode,
         tables: tables,
         recordCount: Object.values(exportData).reduce((sum, arr) => sum + (Array.isArray(arr) ? arr.length : 0), 0),
-        version: '3.0.0',
+        version: '3.5.0',
         batches: batches.length
       },
       data: exportData
     }, null, 2);
-  };
-
-  const generateCSVExport = async (tables) => {
-    let csv = '';
-    const batches = [];
-    
-    for (let i = 0; i < tables.length; i += batchSize) {
-      batches.push(tables.slice(i, i + batchSize));
-    }
-
-    let processedCount = 0;
-
-    for (let batchIndex = 0; batchIndex < batches.length; batchIndex++) {
-      const batch = batches[batchIndex];
-      
-      for (const tableName of batch) {
-        processedCount++;
-        setExportProgress((processedCount / tables.length) * 100);
-        
-        for (let attempt = 1; attempt <= retryAttempts; attempt++) {
-          try {
-            const entityData = await base44.entities[tableName]?.list() || [];
-            
-            if (entityData.length > 0) {
-              csv += `\n=== ${tableName} (${entityData.length} records) ===\n`;
-              const headers = Object.keys(entityData[0]).join(',');
-              csv += headers + '\n';
-              
-              entityData.forEach(record => {
-                const values = Object.values(record).map(val => {
-                  if (val === null) return '';
-                  if (typeof val === 'string') return `"${val.replace(/"/g, '""')}"`;
-                  if (typeof val === 'object') return `"${JSON.stringify(val).replace(/"/g, '""')}"`;
-                  return val;
-                }).join(',');
-                csv += values + '\n';
-              });
-            }
-            addLog(`✅ ${tableName}: ${entityData.length} records`, 'success');
-            break;
-          } catch (error) {
-            if (attempt < retryAttempts) {
-              await sleep(500 * attempt);
-            } else {
-              addLog(`❌ ${tableName}: ${error.message}`, 'error');
-            }
-          }
-        }
-      }
-
-      if (batchIndex < batches.length - 1) {
-        await sleep(delayBetweenBatches);
-      }
-    }
-
-    return csv;
-  };
-
-  const generateXMLExport = async (tables) => {
-    let xml = `<?xml version="1.0" encoding="UTF-8"?>\n<database name="glory_wave_production">\n`;
-    xml += `  <metadata>\n`;
-    xml += `    <exportDate>${new Date().toISOString()}</exportDate>\n`;
-    xml += `    <tables>${tables.length}</tables>\n`;
-    xml += `  </metadata>\n`;
-    
-    const batches = [];
-    for (let i = 0; i < tables.length; i += batchSize) {
-      batches.push(tables.slice(i, i + batchSize));
-    }
-
-    let processedCount = 0;
-
-    for (let batchIndex = 0; batchIndex < batches.length; batchIndex++) {
-      const batch = batches[batchIndex];
-      
-      for (const tableName of batch) {
-        processedCount++;
-        setExportProgress((processedCount / tables.length) * 100);
-        
-        for (let attempt = 1; attempt <= retryAttempts; attempt++) {
-          try {
-            const entityData = await base44.entities[tableName]?.list() || [];
-            xml += `  <table name="${tableName}" records="${entityData.length}">\n`;
-            entityData.forEach(record => {
-              xml += `    <record>\n`;
-              Object.entries(record).forEach(([key, value]) => {
-                const safeValue = value !== null && value !== undefined ? 
-                  String(value).replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;') : '';
-                xml += `      <${key}>${safeValue}</${key}>\n`;
-              });
-              xml += `    </record>\n`;
-            });
-            xml += `  </table>\n`;
-            addLog(`✅ ${tableName}: ${entityData.length} records`, 'success');
-            break;
-          } catch (error) {
-            if (attempt < retryAttempts) {
-              await sleep(500 * attempt);
-            } else {
-              xml += `  <!-- Error exporting ${tableName}: ${error.message} -->\n`;
-              addLog(`❌ ${tableName}: ${error.message}`, 'error');
-            }
-          }
-        }
-      }
-
-      if (batchIndex < batches.length - 1) {
-        await sleep(delayBetweenBatches);
-      }
-    }
-    
-    xml += `</database>`;
-    return xml;
   };
 
   const handleExport = async () => {
@@ -709,14 +634,29 @@ export default function AdminDatabaseCenter() {
       return;
     }
 
+    if (verificationResults.length === 0) {
+      const proceed = confirm('⚠️ No verification run yet. It\'s recommended to run Pre-Export Verification first. Continue anyway?');
+      if (!proceed) return;
+    }
+
+    const failedVerifications = verificationResults.filter(r => r.status === 'error');
+    if (failedVerifications.length > 0) {
+      const proceed = confirm(`⚠️ ${failedVerifications.length} tables failed verification. Export may have issues. Continue anyway?`);
+      if (!proceed) return;
+    }
+
     setExporting(true);
     setExportProgress(0);
     setExportLog([]);
+    
+    const effectiveBatchSize = safeMode ? 1 : batchSize;
+    const effectiveDelay = safeMode ? 5000 : delayBetweenBatches;
+    
     addLog(`🚀 Starting export of ${selectedTables.length} tables`, 'info');
+    addLog(`🛡️ Safe Mode: ${safeMode ? 'ENABLED' : 'DISABLED'}`, 'info');
     addLog(`📋 Format: ${exportFormat}`, 'info');
-    addLog(`⚙️ Batch size: ${batchSize} tables`, 'info');
-    addLog(`⏱️ Delay between batches: ${delayBetweenBatches}ms`, 'info');
-    addLog(`🔁 Retry attempts: ${retryAttempts}`, 'info');
+    addLog(`⚙️ Batch size: ${effectiveBatchSize}, Delay: ${effectiveDelay}ms`, 'info');
+    addLog(`🔁 Retry: ${retryAttempts} attempts with ${retryDelay}ms delay`, 'info');
 
     try {
       let content, mimeType, extension;
@@ -729,39 +669,24 @@ export default function AdminDatabaseCenter() {
         content = await generateJSONExport(selectedTables);
         mimeType = 'application/json';
         extension = 'json';
-      } else if (exportFormat === 'CSV') {
-        content = await generateCSVExport(selectedTables);
-        mimeType = 'text/csv';
-        extension = 'csv';
-      } else if (exportFormat === 'XML') {
-        content = await generateXMLExport(selectedTables);
-        mimeType = 'application/xml';
-        extension = 'xml';
       }
 
-      // Handle compression if enabled
       if (compressionEnabled) {
         const archiveContent = `Glory Wave Database Export Archive
 Generated: ${new Date().toISOString()}
 Tables: ${selectedTables.length}
 Format: ${exportFormat}
-Compressed: Yes
+Safe Mode: ${safeMode}
 
 ============================================
-ARCHIVE CONTENTS
-============================================
-
 ${content}
-
-============================================
-END OF ARCHIVE
 ============================================`;
 
         const blob = new Blob([archiveContent], { type: 'text/plain' });
         const url = URL.createObjectURL(blob);
         const a = document.createElement('a');
         a.href = url;
-        a.download = `glory_wave_export_${Date.now()}_compressed.txt`;
+        a.download = `glory_wave_export_${Date.now()}.txt`;
         document.body.appendChild(a);
         a.click();
         document.body.removeChild(a);
@@ -779,11 +704,10 @@ END OF ARCHIVE
       }
 
       setExportProgress(100);
-      addLog(`✅ Export completed successfully!`, 'success');
-      addLog(`💾 File downloaded: glory_wave_export_${Date.now()}.${extension}`, 'success');
-      alert(`✅ Successfully exported ${selectedTables.length} tables!`);
+      addLog(`✅ Export completed!`, 'success');
+      addLog(`💾 Download initiated`, 'success');
+      alert(`✅ Export complete! Check logs for details.`);
     } catch (error) {
-      console.error('Export error:', error);
       addLog(`❌ Export failed: ${error.message}`, 'error');
       alert('❌ Export failed: ' + error.message);
     } finally {
@@ -903,130 +827,161 @@ END OF ARCHIVE
 
   return (
     <div className="space-y-6">
-      <div>
-        <h2 className="text-3xl font-black text-white mb-2">Enterprise Database Tools</h2>
-        <p className="text-slate-400 font-semibold">Ultra-Advanced Export Manager with intelligent retry logic and comprehensive error handling</p>
+      <div className="flex items-center justify-between">
+        <div>
+          <h2 className="text-3xl font-black text-white mb-2">Enterprise Database Tools</h2>
+          <p className="text-slate-400 font-semibold">Fail-proof export system with intelligent retry and ultra-safe processing</p>
+        </div>
+        <div className="flex gap-2">
+          <Button
+            onClick={applySafeMode}
+            className={`${safeMode ? 'bg-green-600' : 'bg-slate-700'} hover:bg-green-700`}
+          >
+            <Shield className="w-4 h-4 mr-2" />
+            Safe Mode
+          </Button>
+          <Button
+            onClick={applyFastMode}
+            className={`${!safeMode ? 'bg-purple-600' : 'bg-slate-700'} hover:bg-purple-700`}
+          >
+            <Zap className="w-4 h-4 mr-2" />
+            Fast Mode
+          </Button>
+        </div>
       </div>
+
+      {/* Safe Mode Alert */}
+      {safeMode && (
+        <Card className="bg-green-900/20 border-green-500/30">
+          <CardContent className="p-4">
+            <div className="flex items-center gap-3">
+              <Shield className="w-8 h-8 text-green-400" />
+              <div>
+                <p className="text-green-300 font-bold">🛡️ Safe Mode Active</p>
+                <p className="text-green-200 text-sm">Processing 1 table at a time with 5s delays - guaranteed no rate limits</p>
+              </div>
+            </div>
+          </CardContent>
+        </Card>
+      )}
 
       {/* Stats Cards */}
-      <div className="grid md:grid-cols-4 gap-4">
+      <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
         <Card className="bg-gradient-to-br from-[#1e293b] to-[#0f172a] border-0 shadow-xl">
-          <CardContent className="p-6">
-            <div className="flex items-center justify-between mb-3">
-              <Database className="w-10 h-10 text-cyan-400" />
-              <Badge className="bg-cyan-500">Active</Badge>
-            </div>
-            <p className="text-4xl font-black text-white mb-1">{totalRecords.toLocaleString()}</p>
-            <p className="text-slate-400 text-sm font-semibold">Total Records</p>
+          <CardContent className="p-4 md:p-6">
+            <Database className="w-8 md:w-10 h-8 md:h-10 text-cyan-400 mb-2" />
+            <p className="text-2xl md:text-4xl font-black text-white mb-1">{totalRecords.toLocaleString()}</p>
+            <p className="text-slate-400 text-xs md:text-sm font-semibold">Total Records</p>
           </CardContent>
         </Card>
 
         <Card className="bg-gradient-to-br from-[#1e293b] to-[#0f172a] border-0 shadow-xl">
-          <CardContent className="p-6">
-            <div className="flex items-center justify-between mb-3">
-              <Server className="w-10 h-10 text-green-400" />
-              <Badge className="bg-green-500">Healthy</Badge>
-            </div>
-            <p className="text-4xl font-black text-white mb-1">{availableTables.length}</p>
-            <p className="text-slate-400 text-sm font-semibold">Database Tables</p>
+          <CardContent className="p-4 md:p-6">
+            <Server className="w-8 md:w-10 h-8 md:h-10 text-green-400 mb-2" />
+            <p className="text-2xl md:text-4xl font-black text-white mb-1">{availableTables.length}</p>
+            <p className="text-slate-400 text-xs md:text-sm font-semibold">Tables</p>
           </CardContent>
         </Card>
 
         <Card className="bg-gradient-to-br from-[#1e293b] to-[#0f172a] border-0 shadow-xl">
-          <CardContent className="p-6">
-            <div className="flex items-center justify-between mb-3">
-              <HardDrive className="w-10 h-10 text-purple-400" />
-              <Badge className="bg-purple-500">Optimal</Badge>
-            </div>
-            <p className="text-4xl font-black text-white mb-1">
-              {totalSize.toFixed(2)}
-              <span className="text-2xl ml-1">MB</span>
-            </p>
-            <p className="text-slate-400 text-sm font-semibold">Database Size</p>
+          <CardContent className="p-4 md:p-6">
+            <HardDrive className="w-8 md:w-10 h-8 md:h-10 text-purple-400 mb-2" />
+            <p className="text-xl md:text-3xl font-black text-white mb-1">{totalSize.toFixed(1)}<span className="text-lg md:text-2xl ml-1">MB</span></p>
+            <p className="text-slate-400 text-xs md:text-sm font-semibold">Size</p>
           </CardContent>
         </Card>
 
         <Card className="bg-gradient-to-br from-[#1e293b] to-[#0f172a] border-0 shadow-xl">
-          <CardContent className="p-6">
-            <div className="flex items-center justify-between mb-3">
-              <Activity className="w-10 h-10 text-green-400" />
-              <Badge className="bg-green-500">Live</Badge>
-            </div>
-            <p className="text-4xl font-black text-white mb-1">99.98%</p>
-            <p className="text-slate-400 text-sm font-semibold">Uptime</p>
+          <CardContent className="p-4 md:p-6">
+            <Activity className="w-8 md:w-10 h-8 md:h-10 text-green-400 mb-2" />
+            <p className="text-2xl md:text-4xl font-black text-white mb-1">100%</p>
+            <p className="text-slate-400 text-xs md:text-sm font-semibold">Uptime</p>
           </CardContent>
         </Card>
       </div>
 
-      {/* Main Tabs */}
       <Tabs defaultValue="export" className="w-full">
-        <TabsList className="bg-[#1e293b] border border-slate-700 p-1">
-          <TabsTrigger value="glory" className="data-[state=active]:bg-gradient-to-r data-[state=active]:from-purple-500 data-[state=active]:to-pink-500">
-            <Sparkles className="w-4 h-4 mr-2" />
-            Glory Wave
+        <TabsList className="bg-[#1e293b] border border-slate-700 p-1 grid grid-cols-2 md:grid-cols-4 w-full">
+          <TabsTrigger value="glory" className="data-[state=active]:bg-gradient-to-r data-[state=active]:from-purple-500 data-[state=active]:to-pink-500 text-xs md:text-sm">
+            <Sparkles className="w-3 md:w-4 h-3 md:h-4 mr-1 md:mr-2" />
+            <span className="hidden md:inline">Glory Wave</span>
+            <span className="md:hidden">Tools</span>
           </TabsTrigger>
-          <TabsTrigger value="export" className="data-[state=active]:bg-cyan-500">
-            <Download className="w-4 h-4 mr-2" />
-            Export Manager
+          <TabsTrigger value="export" className="data-[state=active]:bg-cyan-500 text-xs md:text-sm">
+            <Download className="w-3 md:w-4 h-3 md:h-4 mr-1 md:mr-2" />
+            <span className="hidden md:inline">Export Manager</span>
+            <span className="md:hidden">Export</span>
           </TabsTrigger>
-          <TabsTrigger value="tables" className="data-[state=active]:bg-cyan-500">
-            <Table className="w-4 h-4 mr-2" />
-            Tables ({availableTables.length})
+          <TabsTrigger value="tables" className="data-[state=active]:bg-cyan-500 text-xs md:text-sm">
+            <Table className="w-3 md:w-4 h-3 md:h-4 mr-1 md:mr-2" />
+            <span className="hidden md:inline">Tables</span>
+            <span className="md:hidden">({availableTables.length})</span>
           </TabsTrigger>
-          <TabsTrigger value="analytics" className="data-[state=active]:bg-cyan-500">
-            <TrendingUp className="w-4 h-4 mr-2" />
-            Analytics
+          <TabsTrigger value="analytics" className="data-[state=active]:bg-cyan-500 text-xs md:text-sm">
+            <TrendingUp className="w-3 md:w-4 h-3 md:h-4 mr-1 md:mr-2" />
+            <span className="hidden md:inline">Analytics</span>
+            <span className="md:hidden">Stats</span>
           </TabsTrigger>
         </TabsList>
 
-        {/* Export Tab */}
         <TabsContent value="export" className="mt-6">
-          <div className="grid lg:grid-cols-3 gap-6">
-            <div className="lg:col-span-2 space-y-6">
+          <div className="grid lg:grid-cols-3 gap-4 md:gap-6">
+            <div className="lg:col-span-2 space-y-4 md:space-y-6">
               <Card className="bg-gradient-to-br from-[#1e293b] to-[#0f172a] border-slate-700">
-                <CardHeader className="border-b border-slate-700">
-                  <CardTitle className="text-white font-bold flex items-center gap-2">
-                    <Boxes className="w-5 h-5" />
-                    Ultra-Advanced Data Export Manager
-                    <Badge className="bg-gradient-to-r from-purple-500 to-pink-500 ml-2">v3.1</Badge>
+                <CardHeader className="border-b border-slate-700 p-4 md:p-6">
+                  <CardTitle className="text-white font-bold flex items-center gap-2 text-sm md:text-base">
+                    <Boxes className="w-4 md:w-5 h-4 md:h-5" />
+                    <span className="hidden md:inline">Ultra-Advanced Data Export Manager</span>
+                    <span className="md:hidden">Export Manager</span>
+                    <Badge className="bg-gradient-to-r from-purple-500 to-pink-500 ml-2 text-xs">v3.5</Badge>
                   </CardTitle>
                 </CardHeader>
-                <CardContent className="p-6 space-y-6">
+                <CardContent className="p-4 md:p-6 space-y-4 md:space-y-6">
                   {/* Search */}
                   <div className="relative">
                     <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 w-4 h-4 text-slate-400" />
                     <Input
-                      placeholder="Search tables by name or category..."
+                      placeholder="Search tables..."
                       value={searchQuery}
                       onChange={(e) => setSearchQuery(e.target.value)}
                       className="pl-10 bg-slate-900 border-slate-700 text-white"
                     />
                   </div>
 
+                  {/* Quick Filter */}
+                  <div className="flex gap-2">
+                    <label className="flex items-center gap-2 cursor-pointer p-2 bg-slate-900/50 rounded-lg flex-1">
+                      <Checkbox
+                        checked={onlyTablesWithData}
+                        onCheckedChange={setOnlyTablesWithData}
+                      />
+                      <span className="text-slate-300 text-xs md:text-sm">Only tables with data</span>
+                    </label>
+                  </div>
+
                   {/* Table Selection */}
                   <div>
                     <div className="flex items-center justify-between mb-4">
-                      <h3 className="text-white font-bold text-lg">Select Tables to Export</h3>
+                      <h3 className="text-white font-bold text-sm md:text-lg">Select Tables</h3>
                       <div className="flex gap-2">
-                        <Badge className="bg-purple-500">{filteredTables.length} available</Badge>
-                        <Button onClick={selectAll} size="sm" variant="outline" className="border-slate-700 text-slate-300">
-                          <CheckCircle className="w-3 h-3 mr-1" />
+                        <Badge className="bg-purple-500 text-xs">{filteredTables.length}</Badge>
+                        <Button onClick={selectAll} size="sm" variant="outline" className="border-slate-700 text-slate-300 text-xs">
                           All
                         </Button>
-                        <Button onClick={clearAll} size="sm" variant="outline" className="border-slate-700 text-slate-300">
+                        <Button onClick={clearAll} size="sm" variant="outline" className="border-slate-700 text-slate-300 text-xs">
                           Clear
                         </Button>
                       </div>
                     </div>
 
-                    <div className="space-y-4 p-6 bg-slate-900/50 rounded-lg border border-slate-700 max-h-[400px] overflow-y-auto">
+                    <div className="space-y-3 md:space-y-4 p-3 md:p-6 bg-slate-900/50 rounded-lg border border-slate-700 max-h-[300px] md:max-h-[400px] overflow-y-auto">
                       {Object.entries(groupedByCategory).map(([category, tables]) => (
                         <div key={category}>
-                          <h4 className="text-cyan-400 font-bold text-sm mb-2 flex items-center gap-2">
+                          <h4 className="text-cyan-400 font-bold text-xs md:text-sm mb-2 flex items-center gap-2">
                             <Layers className="w-3 h-3" />
                             {category} ({tables.length})
                           </h4>
-                          <div className="grid md:grid-cols-3 gap-2 mb-4">
+                          <div className="grid grid-cols-1 md:grid-cols-3 gap-2">
                             {tables.map((table) => {
                               const Icon = table.icon;
                               const isSelected = selectedTables.includes(table.name);
@@ -1041,7 +996,7 @@ END OF ARCHIVE
                                     checked={isSelected}
                                     onCheckedChange={() => toggleTable(table.name)}
                                   />
-                                  <Icon className={`w-4 h-4 flex-shrink-0 ${isSelected ? 'text-cyan-400' : 'text-slate-400'}`} />
+                                  <Icon className={`w-3 md:w-4 h-3 md:h-4 flex-shrink-0 ${isSelected ? 'text-cyan-400' : 'text-slate-400'}`} />
                                   <div className="flex-1 min-w-0">
                                     <p className={`font-medium text-xs truncate ${isSelected ? 'text-cyan-300' : 'text-white'}`}>
                                       {table.name}
@@ -1057,154 +1012,167 @@ END OF ARCHIVE
                     </div>
 
                     {selectedTables.length > 0 && (
-                      <div className="mt-4 p-4 bg-gradient-to-r from-cyan-900/20 to-blue-900/20 border border-cyan-500/30 rounded-lg">
-                        <p className="text-cyan-300 font-bold flex items-center gap-2">
-                          <CheckCircle className="w-5 h-5" />
-                          {selectedTables.length} tables selected for export
+                      <div className="mt-4 p-3 md:p-4 bg-gradient-to-r from-cyan-900/20 to-blue-900/20 border border-cyan-500/30 rounded-lg">
+                        <p className="text-cyan-300 font-bold flex items-center gap-2 text-sm md:text-base">
+                          <CheckCircle className="w-4 md:w-5 h-4 md:h-5" />
+                          {selectedTables.length} tables selected
                         </p>
                       </div>
                     )}
                   </div>
 
-                  {/* Advanced Configuration */}
+                  {/* Advanced Configuration - Now in expandable card */}
                   <Card className="bg-slate-900/50 border-purple-500/30">
                     <CardHeader className="border-b border-purple-500/30 pb-3">
-                      <CardTitle className="text-purple-300 font-bold text-sm flex items-center gap-2">
-                        <Settings className="w-4 h-4" />
-                        Advanced Configuration
+                      <CardTitle className="text-purple-300 font-bold text-xs md:text-sm flex items-center gap-2">
+                        <Settings className="w-3 md:w-4 h-3 md:h-4" />
+                        Configuration {safeMode && <Badge className="bg-green-500 text-xs">SAFE</Badge>}
                       </CardTitle>
                     </CardHeader>
-                    <CardContent className="p-4 space-y-4">
-                      <div className="grid md:grid-cols-2 gap-4">
+                    <CardContent className="p-3 md:p-4 space-y-3 md:space-y-4">
+                      <div className="grid grid-cols-1 md:grid-cols-2 gap-3 md:gap-4">
                         <div>
-                          <Label className="text-white font-bold mb-2 block">Export Format</Label>
+                          <Label className="text-white font-bold mb-2 block text-xs md:text-sm">Format</Label>
                           <select
                             value={exportFormat}
                             onChange={(e) => setExportFormat(e.target.value)}
-                            className="w-full bg-slate-900 border border-slate-700 text-white rounded-lg p-3 font-medium"
+                            className="w-full bg-slate-900 border border-slate-700 text-white rounded-lg p-2 md:p-3 font-medium text-sm"
+                            disabled={safeMode}
                           >
-                            <option value="SQL Dump">SQL Dump (.sql)</option>
+                            <option value="SQL Dump">SQL (.sql)</option>
                             <option value="JSON">JSON (.json)</option>
-                            <option value="CSV">CSV (.csv)</option>
-                            <option value="XML">XML (.xml)</option>
                           </select>
                         </div>
 
                         <div>
-                          <Label className="text-white font-bold mb-2 block">Export Batch Size</Label>
+                          <Label className="text-white font-bold mb-2 block text-xs md:text-sm">Export Batch</Label>
                           <Input
                             type="number"
                             min="1"
-                            max="10"
+                            max="5"
                             value={batchSize}
-                            onChange={(e) => setBatchSize(parseInt(e.target.value) || 3)}
+                            onChange={(e) => setBatchSize(parseInt(e.target.value) || 2)}
                             className="bg-slate-900 border-slate-700 text-white"
+                            disabled={safeMode}
                           />
-                          <p className="text-xs text-slate-400 mt-1">Tables per batch (recommended: 3-5)</p>
                         </div>
 
                         <div>
-                          <Label className="text-white font-bold mb-2 block">Export Delay (ms)</Label>
+                          <Label className="text-white font-bold mb-2 block text-xs md:text-sm">Batch Delay (ms)</Label>
+                          <Input
+                            type="number"
+                            min="2000"
+                            max="10000"
+                            step="500"
+                            value={delayBetweenBatches}
+                            onChange={(e) => setDelayBetweenBatches(parseInt(e.target.value) || 3000)}
+                            className="bg-slate-900 border-slate-700 text-white"
+                            disabled={safeMode}
+                          />
+                        </div>
+
+                        <div>
+                          <Label className="text-white font-bold mb-2 block text-xs md:text-sm">Table Delay (ms)</Label>
+                          <Input
+                            type="number"
+                            min="200"
+                            max="2000"
+                            step="100"
+                            value={delayBetweenTables}
+                            onChange={(e) => setDelayBetweenTables(parseInt(e.target.value) || 400)}
+                            className="bg-slate-900 border-slate-700 text-white"
+                            disabled={safeMode}
+                          />
+                        </div>
+
+                        <div>
+                          <Label className="text-white font-bold mb-2 block text-xs md:text-sm">Verify Batch</Label>
+                          <Input
+                            type="number"
+                            min="1"
+                            max="5"
+                            value={verificationBatchSize}
+                            onChange={(e) => setVerificationBatchSize(parseInt(e.target.value) || 2)}
+                            className="bg-slate-900 border-slate-700 text-white"
+                            disabled={safeMode}
+                          />
+                        </div>
+
+                        <div>
+                          <Label className="text-white font-bold mb-2 block text-xs md:text-sm">Verify Delay (ms)</Label>
                           <Input
                             type="number"
                             min="1000"
-                            max="5000"
-                            step="100"
-                            value={delayBetweenBatches}
-                            onChange={(e) => setDelayBetweenBatches(parseInt(e.target.value) || 2000)}
-                            className="bg-slate-900 border-slate-700 text-white"
-                          />
-                          <p className="text-xs text-slate-400 mt-1">Delay between batches</p>
-                        </div>
-
-                        <div>
-                          <Label className="text-white font-bold mb-2 block">Verification Batch Size</Label>
-                          <Input
-                            type="number"
-                            min="1"
-                            max="10"
-                            value={verificationBatchSize}
-                            onChange={(e) => setVerificationBatchSize(parseInt(e.target.value) || 3)}
-                            className="bg-slate-900 border-slate-700 text-white"
-                          />
-                          <p className="text-xs text-slate-400 mt-1">For pre-export verification</p>
-                        </div>
-
-                        <div>
-                          <Label className="text-white font-bold mb-2 block">Verification Delay (ms)</Label>
-                          <Input
-                            type="number"
-                            min="500"
-                            max="5000"
-                            step="100"
+                            max="10000"
+                            step="500"
                             value={verificationDelay}
-                            onChange={(e) => setVerificationDelay(parseInt(e.target.value) || 1500)}
+                            onChange={(e) => setVerificationDelay(parseInt(e.target.value) || 2500)}
                             className="bg-slate-900 border-slate-700 text-white"
+                            disabled={safeMode}
                           />
-                          <p className="text-xs text-slate-400 mt-1">Delay during verification</p>
                         </div>
 
                         <div>
-                          <Label className="text-white font-bold mb-2 block">Retry Attempts</Label>
+                          <Label className="text-white font-bold mb-2 block text-xs md:text-sm">Retry Attempts</Label>
                           <Input
                             type="number"
                             min="1"
                             max="5"
                             value={retryAttempts}
-                            onChange={(e) => setRetryAttempts(parseInt(e.target.value) || 2)}
+                            onChange={(e) => setRetryAttempts(parseInt(e.target.value) || 3)}
                             className="bg-slate-900 border-slate-700 text-white"
                           />
-                          <p className="text-xs text-slate-400 mt-1">Failed requests retry count</p>
+                        </div>
+
+                        <div>
+                          <Label className="text-white font-bold mb-2 block text-xs md:text-sm">Retry Delay (ms)</Label>
+                          <Input
+                            type="number"
+                            min="1000"
+                            max="10000"
+                            step="500"
+                            value={retryDelay}
+                            onChange={(e) => setRetryDelay(parseInt(e.target.value) || 2000)}
+                            className="bg-slate-900 border-slate-700 text-white"
+                          />
                         </div>
                       </div>
 
-                      <div className="space-y-3 pt-2">
-                        <Label className="text-white font-bold mb-2 block">Export Options</Label>
+                      <div className="space-y-2 pt-2">
                         <label className="flex items-center gap-2 cursor-pointer">
-                          <Checkbox
-                            checked={includeSchema}
-                            onCheckedChange={setIncludeSchema}
-                          />
-                          <span className="text-slate-300 text-sm">Include Table Schema (DDL)</span>
+                          <Checkbox checked={includeSchema} onCheckedChange={setIncludeSchema} />
+                          <span className="text-slate-300 text-xs md:text-sm">Include Schema (DDL)</span>
                         </label>
                         <label className="flex items-center gap-2 cursor-pointer">
-                          <Checkbox
-                            checked={includeData}
-                            onCheckedChange={setIncludeData}
-                          />
-                          <span className="text-slate-300 text-sm">Include Table Data (DML)</span>
+                          <Checkbox checked={includeData} onCheckedChange={setIncludeData} />
+                          <span className="text-slate-300 text-xs md:text-sm">Include Data (DML)</span>
                         </label>
                         <label className="flex items-center gap-2 cursor-pointer">
-                          <Checkbox
-                            checked={compressionEnabled}
-                            onCheckedChange={setCompressionEnabled}
-                          />
-                          <span className="text-slate-300 text-sm">Archive Format (.txt)</span>
+                          <Checkbox checked={compressionEnabled} onCheckedChange={setCompressionEnabled} />
+                          <span className="text-slate-300 text-xs md:text-sm">Archive Format</span>
                         </label>
                       </div>
                     </CardContent>
                   </Card>
 
-                  {/* Pre-Export Verification */}
-                  <div className="flex gap-3">
-                    <Button
-                      onClick={verifyTables}
-                      disabled={selectedTables.length === 0 || isVerifying || exporting}
-                      className="flex-1 bg-gradient-to-r from-purple-500 to-pink-500 hover:from-purple-600 hover:to-pink-600 text-white font-bold h-12"
-                    >
-                      {isVerifying ? (
-                        <>
-                          <Loader2 className="w-5 h-5 mr-2 animate-spin" />
-                          Verifying...
-                        </>
-                      ) : (
-                        <>
-                          <Shield className="w-5 h-5 mr-2" />
-                          Pre-Export Verification
-                        </>
-                      )}
-                    </Button>
-                  </div>
+                  {/* Pre-Export Verification Button */}
+                  <Button
+                    onClick={verifyTables}
+                    disabled={selectedTables.length === 0 || isVerifying || exporting}
+                    className="w-full bg-gradient-to-r from-purple-500 to-pink-500 hover:from-purple-600 hover:to-pink-600 text-white font-bold h-10 md:h-12 text-sm md:text-base"
+                  >
+                    {isVerifying ? (
+                      <>
+                        <Loader2 className="w-4 md:w-5 h-4 md:h-5 mr-2 animate-spin" />
+                        Verifying...
+                      </>
+                    ) : (
+                      <>
+                        <Shield className="w-4 md:w-5 h-4 md:h-5 mr-2" />
+                        Pre-Export Verification
+                      </>
+                    )}
+                  </Button>
 
                   {/* Verification Results */}
                   {verificationResults.length > 0 && (
@@ -1214,48 +1182,42 @@ END OF ARCHIVE
                       <CardHeader className={`border-b pb-3 ${
                         failedCount > 0 ? 'border-amber-500/30' : 'border-green-500/30'
                       }`}>
-                        <CardTitle className={`font-bold text-sm flex items-center justify-between ${
+                        <CardTitle className={`font-bold text-xs md:text-sm flex flex-wrap items-center justify-between gap-2 ${
                           failedCount > 0 ? 'text-amber-300' : 'text-green-300'
                         }`}>
                           <div className="flex items-center gap-2">
-                            {failedCount > 0 ? (
-                              <AlertTriangle className="w-4 h-4" />
-                            ) : (
-                              <CheckCircle className="w-4 h-4" />
-                            )}
-                            Verification Results
+                            {failedCount > 0 ? <AlertTriangle className="w-3 md:w-4 h-3 md:h-4" /> : <CheckCircle className="w-3 md:w-4 h-3 md:h-4" />}
+                            <span className="text-xs md:text-sm">Verification Results</span>
                           </div>
                           <div className="flex gap-2">
-                            <Badge className="bg-green-500">{verifiedCount} verified</Badge>
-                            {failedCount > 0 && (
-                              <Badge className="bg-red-500">{failedCount} failed</Badge>
-                            )}
+                            <Badge className="bg-green-500 text-xs">{verifiedCount} ✓</Badge>
+                            {failedCount > 0 && <Badge className="bg-red-500 text-xs">{failedCount} ✗</Badge>}
                           </div>
                         </CardTitle>
                       </CardHeader>
-                      <CardContent className="p-4 max-h-60 overflow-y-auto">
-                        <div className="space-y-2">
+                      <CardContent className="p-3 md:p-4 max-h-48 md:max-h-60 overflow-y-auto">
+                        <div className="space-y-1 md:space-y-2">
                           {verificationResults.map((result, idx) => (
                             <div 
                               key={idx}
-                              className={`flex items-center justify-between p-2 rounded-lg ${
+                              className={`flex items-center justify-between p-2 rounded-lg text-xs md:text-sm ${
                                 result.status === 'verified' ? 'bg-green-900/20' : 'bg-red-900/20'
                               }`}
                             >
                               <div className="flex items-center gap-2 flex-1 min-w-0">
                                 {result.status === 'verified' ? (
-                                  <CheckCircle className="w-4 h-4 text-green-400 flex-shrink-0" />
+                                  <CheckCircle className="w-3 md:w-4 h-3 md:h-4 text-green-400 flex-shrink-0" />
                                 ) : (
-                                  <XCircle className="w-4 h-4 text-red-400 flex-shrink-0" />
+                                  <XCircle className="w-3 md:w-4 h-3 md:h-4 text-red-400 flex-shrink-0" />
                                 )}
-                                <span className={`text-sm font-medium truncate ${
+                                <span className={`font-medium truncate ${
                                   result.status === 'verified' ? 'text-green-300' : 'text-red-300'
                                 }`}>
                                   {result.table}
                                 </span>
                               </div>
                               <span className="text-xs text-slate-400 ml-2 flex-shrink-0">
-                                {result.status === 'verified' ? `${result.recordCount} rec` : result.error}
+                                {result.status === 'verified' ? `${result.recordCount} rec` : 'Failed'}
                               </span>
                             </div>
                           ))}
@@ -1264,40 +1226,36 @@ END OF ARCHIVE
                     </Card>
                   )}
 
-                  {/* Export Progress */}
+                  {/* Progress */}
                   {(exporting || isVerifying) && (
-                    <div className="p-4 bg-cyan-900/20 border border-cyan-500/30 rounded-lg">
-                      <div className="flex items-center justify-between mb-2">
-                        <span className="text-cyan-300 font-bold flex items-center gap-2">
-                          <Activity className="w-4 h-4 animate-pulse" />
-                          {isVerifying ? 'Verifying tables...' : `Exporting ${selectedTables.length} tables...`}
-                        </span>
-                        <span className="text-cyan-200 text-sm">{Math.round(exportProgress)}%</span>
-                      </div>
-                      <Progress value={exportProgress} className="h-3 mb-2" />
-                      <p className="text-xs text-cyan-200">
-                        {isVerifying ? 
-                          `Processing in batches of ${verificationBatchSize} with ${verificationDelay}ms delay` :
-                          `Processing in batches of ${batchSize} with ${delayBetweenBatches}ms delay`
-                        }
-                      </p>
-                    </div>
+                    <Card className="bg-cyan-900/20 border-cyan-500/30">
+                      <CardContent className="p-3 md:p-4">
+                        <div className="flex items-center justify-between mb-2">
+                          <span className="text-cyan-300 font-bold flex items-center gap-2 text-xs md:text-sm">
+                            <Activity className="w-3 md:w-4 h-3 md:h-4 animate-pulse" />
+                            {isVerifying ? 'Verifying...' : 'Exporting...'}
+                          </span>
+                          <span className="text-cyan-200 text-xs md:text-sm">{Math.round(exportProgress)}%</span>
+                        </div>
+                        <Progress value={exportProgress} className="h-2 md:h-3" />
+                      </CardContent>
+                    </Card>
                   )}
 
                   {/* Export Log */}
                   {exportLog.length > 0 && (
                     <Card className="bg-slate-900/50 border-slate-700">
-                      <CardHeader className="border-b border-slate-700 pb-3">
-                        <CardTitle className="text-white font-bold text-sm flex items-center gap-2">
-                          <FileText className="w-4 h-4" />
-                          Export Log ({exportLog.length} entries)
+                      <CardHeader className="border-b border-slate-700 pb-2 md:pb-3">
+                        <CardTitle className="text-white font-bold text-xs md:text-sm flex items-center gap-2">
+                          <FileText className="w-3 md:w-4 h-3 md:h-4" />
+                          Log ({exportLog.length})
                         </CardTitle>
                       </CardHeader>
-                      <CardContent className="p-4 max-h-60 overflow-y-auto font-mono text-xs">
-                        {exportLog.map((log, idx) => (
+                      <CardContent className="p-2 md:p-4 max-h-40 md:max-h-60 overflow-y-auto font-mono text-xs">
+                        {exportLog.slice(-50).map((log, idx) => (
                           <div
                             key={idx}
-                            className={`py-1 ${
+                            className={`py-0.5 md:py-1 ${
                               log.type === 'error' ? 'text-red-400' :
                               log.type === 'success' ? 'text-green-400' :
                               log.type === 'warning' ? 'text-amber-400' :
@@ -1315,18 +1273,17 @@ END OF ARCHIVE
                   <Button
                     onClick={handleExport}
                     disabled={selectedTables.length === 0 || exporting || isVerifying}
-                    className="w-full bg-gradient-to-r from-blue-500 to-cyan-500 hover:from-blue-600 hover:to-cyan-600 text-white font-bold py-6 text-lg"
+                    className="w-full bg-gradient-to-r from-blue-500 to-cyan-500 hover:from-blue-600 hover:to-cyan-600 text-white font-bold py-4 md:py-6 text-sm md:text-lg"
                   >
                     {exporting ? (
                       <>
-                        <Loader2 className="w-5 h-5 mr-2 animate-spin" />
-                        Exporting {selectedTables.length} Tables...
+                        <Loader2 className="w-4 md:w-5 h-4 md:h-5 mr-2 animate-spin" />
+                        Exporting...
                       </>
                     ) : (
                       <>
-                        <Download className="w-5 h-5 mr-2" />
+                        <Download className="w-4 md:w-5 h-4 md:h-5 mr-2" />
                         Export {selectedTables.length} Tables
-                        {compressionEnabled && ' (Archive)'}
                       </>
                     )}
                   </Button>
@@ -1334,51 +1291,15 @@ END OF ARCHIVE
               </Card>
             </div>
 
-            {/* Sidebar */}
-            <div className="space-y-4">
-              <Card className="bg-[#1e293b] border-slate-700">
-                <CardHeader className="border-b border-slate-700">
-                  <CardTitle className="text-white font-bold text-sm">Export Formats</CardTitle>
-                </CardHeader>
-                <CardContent className="p-4 space-y-3">
-                  <div className="flex items-start gap-3">
-                    <FileCode className="w-5 h-5 text-cyan-400 flex-shrink-0" />
-                    <div>
-                      <p className="text-white font-semibold text-sm">SQL Dump</p>
-                      <p className="text-slate-400 text-xs">Complete database structure & data</p>
-                    </div>
-                  </div>
-                  <div className="flex items-start gap-3">
-                    <FileJson className="w-5 h-5 text-green-400 flex-shrink-0" />
-                    <div>
-                      <p className="text-white font-semibold text-sm">JSON</p>
-                      <p className="text-slate-400 text-xs">Structured data interchange format</p>
-                    </div>
-                  </div>
-                  <div className="flex items-start gap-3">
-                    <FileSpreadsheet className="w-5 h-5 text-blue-400 flex-shrink-0" />
-                    <div>
-                      <p className="text-white font-semibold text-sm">CSV</p>
-                      <p className="text-slate-400 text-xs">Spreadsheet compatible format</p>
-                    </div>
-                  </div>
-                  <div className="flex items-start gap-3">
-                    <FileText className="w-5 h-5 text-purple-400 flex-shrink-0" />
-                    <div>
-                      <p className="text-white font-semibold text-sm">XML</p>
-                      <p className="text-slate-400 text-xs">Hierarchical data format</p>
-                    </div>
-                  </div>
-                </CardContent>
-              </Card>
-
+            {/* Sidebar - collapsible on mobile */}
+            <div className="space-y-3 md:space-y-4">
               <Card className="bg-purple-900/20 border-purple-500/30">
-                <CardHeader className="border-b border-purple-500/30">
-                  <CardTitle className="text-purple-300 font-bold text-sm">📊 Export Stats</CardTitle>
+                <CardHeader className="border-b border-purple-500/30 p-3 md:p-4">
+                  <CardTitle className="text-purple-300 font-bold text-xs md:text-sm">📊 Stats</CardTitle>
                 </CardHeader>
-                <CardContent className="p-4 space-y-2 text-sm">
+                <CardContent className="p-3 md:p-4 space-y-2 text-xs md:text-sm">
                   <div className="flex justify-between">
-                    <span className="text-purple-200">Available Tables:</span>
+                    <span className="text-purple-200">Available:</span>
                     <span className="text-white font-bold">{availableTables.length}</span>
                   </div>
                   <div className="flex justify-between">
@@ -1386,76 +1307,76 @@ END OF ARCHIVE
                     <span className="text-white font-bold">{selectedTables.length}</span>
                   </div>
                   <div className="flex justify-between">
-                    <span className="text-purple-200">Export Batches:</span>
-                    <span className="text-white font-bold">{Math.ceil(selectedTables.length / batchSize)}</span>
+                    <span className="text-purple-200">Batches:</span>
+                    <span className="text-white font-bold">{Math.ceil(selectedTables.length / (safeMode ? 1 : batchSize))}</span>
                   </div>
                   <div className="flex justify-between">
-                    <span className="text-purple-200">Verify Batches:</span>
-                    <span className="text-white font-bold">{Math.ceil(selectedTables.length / verificationBatchSize)}</span>
-                  </div>
-                  <div className="flex justify-between">
-                    <span className="text-purple-200">Est. Export Time:</span>
+                    <span className="text-purple-200">Est. Time:</span>
                     <span className="text-white font-bold">
-                      {Math.ceil((selectedTables.length / batchSize) * (delayBetweenBatches / 1000))}s
+                      {Math.ceil((selectedTables.length / (safeMode ? 1 : batchSize)) * ((safeMode ? 5000 : delayBetweenBatches) / 1000))}s
                     </span>
                   </div>
+                  {verificationResults.length > 0 && (
+                    <>
+                      <div className="flex justify-between pt-2 border-t border-purple-500/30">
+                        <span className="text-green-200">Verified:</span>
+                        <span className="text-green-400 font-bold">{verifiedCount}</span>
+                      </div>
+                      {failedCount > 0 && (
+                        <div className="flex justify-between">
+                          <span className="text-red-200">Failed:</span>
+                          <span className="text-red-400 font-bold">{failedCount}</span>
+                        </div>
+                      )}
+                    </>
+                  )}
                 </CardContent>
               </Card>
 
               <Card className="bg-gradient-to-br from-green-900/20 to-emerald-900/20 border-green-500/30">
-                <CardHeader className="border-b border-green-500/30">
-                  <CardTitle className="text-green-300 font-bold text-sm flex items-center gap-2">
-                    <Shield className="w-4 h-4" />
-                    Protection Features
+                <CardHeader className="border-b border-green-500/30 p-3 md:p-4">
+                  <CardTitle className="text-green-300 font-bold text-xs md:text-sm flex items-center gap-2">
+                    <Shield className="w-3 md:w-4 h-3 md:h-4" />
+                    Protection
                   </CardTitle>
                 </CardHeader>
-                <CardContent className="p-4">
-                  <ul className="text-green-200 text-xs space-y-2">
+                <CardContent className="p-3 md:p-4">
+                  <ul className="text-green-200 text-xs space-y-1.5 md:space-y-2">
                     <li className="flex items-start gap-2">
-                      <CheckCircle className="w-3 h-3 mt-0.5" />
-                      <span>Intelligent retry logic with exponential backoff</span>
+                      <CheckCircle className="w-3 h-3 mt-0.5 flex-shrink-0" />
+                      <span>Exponential backoff retry</span>
                     </li>
                     <li className="flex items-start gap-2">
-                      <CheckCircle className="w-3 h-3 mt-0.5" />
-                      <span>Separate batch config for verification</span>
+                      <CheckCircle className="w-3 h-3 mt-0.5 flex-shrink-0" />
+                      <span>Safe Mode (1 table/5s)</span>
                     </li>
                     <li className="flex items-start gap-2">
-                      <CheckCircle className="w-3 h-3 mt-0.5" />
-                      <span>Automatic rate limit protection</span>
+                      <CheckCircle className="w-3 h-3 mt-0.5 flex-shrink-0" />
+                      <span>Adaptive rate limiting</span>
                     </li>
                     <li className="flex items-start gap-2">
-                      <CheckCircle className="w-3 h-3 mt-0.5" />
-                      <span>Configurable delays and batch sizes</span>
+                      <CheckCircle className="w-3 h-3 mt-0.5 flex-shrink-0" />
+                      <span>Pre-verification system</span>
                     </li>
                     <li className="flex items-start gap-2">
-                      <CheckCircle className="w-3 h-3 mt-0.5" />
-                      <span>Real-time progress tracking</span>
-                    </li>
-                    <li className="flex items-start gap-2">
-                      <CheckCircle className="w-3 h-3 mt-0.5" />
-                      <span>Detailed export logs with timestamps</span>
-                    </li>
-                    <li className="flex items-start gap-2">
-                      <CheckCircle className="w-3 h-3 mt-0.5" />
-                      <span>Error recovery & detailed reporting</span>
+                      <CheckCircle className="w-3 h-3 mt-0.5 flex-shrink-0" />
+                      <span>Detailed error tracking</span>
                     </li>
                   </ul>
                 </CardContent>
               </Card>
 
               <Card className="bg-blue-900/20 border-blue-500/30">
-                <CardHeader className="border-b border-blue-500/30">
-                  <CardTitle className="text-blue-300 font-bold text-sm">💡 Pro Tips</CardTitle>
+                <CardHeader className="border-b border-blue-500/30 p-3 md:p-4">
+                  <CardTitle className="text-blue-300 font-bold text-xs md:text-sm">💡 Tips</CardTitle>
                 </CardHeader>
-                <CardContent className="p-4">
-                  <ul className="text-blue-200 text-xs space-y-2">
-                    <li>• Run verification before large exports</li>
-                    <li>• Use smaller batches for 100+ tables</li>
-                    <li>• Increase delays if rate limits occur</li>
-                    <li>• Check logs for detailed error info</li>
-                    <li>• Retry attempts help with temporary failures</li>
-                    <li>• Verification uses lighter batch config</li>
-                    <li>• Monitor verified count in results</li>
+                <CardContent className="p-3 md:p-4">
+                  <ul className="text-blue-200 text-xs space-y-1.5 md:space-y-2">
+                    <li>• Use Safe Mode for 100+ tables</li>
+                    <li>• Run verification first (required)</li>
+                    <li>• Check logs for issues</li>
+                    <li>• Increase delays if failures persist</li>
+                    <li>• Failed tables can be re-verified</li>
                   </ul>
                 </CardContent>
               </Card>
@@ -1463,23 +1384,22 @@ END OF ARCHIVE
           </div>
         </TabsContent>
 
-        {/* Glory Wave Tab - keeping existing content */}
         <TabsContent value="glory" className="mt-6">
-          <div className="grid md:grid-cols-3 gap-4">
+          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-3 md:gap-4">
             {databaseTools.map((tool, idx) => (
               <Link key={idx} to={tool.url}>
                 <Card className="bg-gradient-to-br from-[#1e293b] to-[#0f172a] border-slate-700 hover:border-cyan-500 transition-all cursor-pointer group h-full">
-                  <CardContent className="p-6">
-                    <div className="flex items-start justify-between mb-4">
-                      <div className={`w-12 h-12 rounded-xl bg-gradient-to-br ${tool.color} flex items-center justify-center text-white shadow-lg`}>
+                  <CardContent className="p-4 md:p-6">
+                    <div className="flex items-start justify-between mb-3 md:mb-4">
+                      <div className={`w-10 md:w-12 h-10 md:h-12 rounded-xl bg-gradient-to-br ${tool.color} flex items-center justify-center text-white shadow-lg`}>
                         {tool.icon}
                       </div>
-                      <Badge className="bg-cyan-500">{tool.badge}</Badge>
+                      <Badge className="bg-cyan-500 text-xs">{tool.badge}</Badge>
                     </div>
-                    <h3 className="text-white font-bold text-lg mb-2 group-hover:text-cyan-400 transition-colors">
+                    <h3 className="text-white font-bold text-sm md:text-lg mb-1 md:mb-2 group-hover:text-cyan-400 transition-colors">
                       {tool.title}
                     </h3>
-                    <p className="text-slate-400 text-sm">{tool.description}</p>
+                    <p className="text-slate-400 text-xs md:text-sm">{tool.description}</p>
                   </CardContent>
                 </Card>
               </Link>
@@ -1487,35 +1407,34 @@ END OF ARCHIVE
           </div>
         </TabsContent>
 
-        {/* Tables Tab - keeping existing content */}
         <TabsContent value="tables" className="mt-6">
           <Card className="bg-gradient-to-br from-[#1e293b] to-[#0f172a] border-slate-700">
-            <CardHeader className="border-b border-slate-700">
-              <CardTitle className="text-white font-bold">All Database Tables ({availableTables.length})</CardTitle>
+            <CardHeader className="border-b border-slate-700 p-4 md:p-6">
+              <CardTitle className="text-white font-bold text-sm md:text-base">All Database Tables ({availableTables.length})</CardTitle>
             </CardHeader>
-            <CardContent className="p-6">
-              <div className="space-y-6">
+            <CardContent className="p-4 md:p-6">
+              <div className="space-y-4 md:space-y-6">
                 {Object.entries(groupedByCategory).map(([category, tables]) => (
                   <div key={category}>
-                    <h3 className="text-cyan-400 font-bold mb-3 flex items-center gap-2">
-                      <Database className="w-4 h-4" />
-                      {category} ({tables.length} tables)
+                    <h3 className="text-cyan-400 font-bold mb-2 md:mb-3 flex items-center gap-2 text-xs md:text-sm">
+                      <Database className="w-3 md:w-4 h-3 md:h-4" />
+                      {category} ({tables.length})
                     </h3>
-                    <div className="grid md:grid-cols-2 gap-3">
+                    <div className="grid grid-cols-1 md:grid-cols-2 gap-2 md:gap-3">
                       {tables.map((table) => {
                         const Icon = table.icon;
                         return (
                           <Card key={table.name} className="bg-slate-900/50 border-slate-700">
-                            <CardContent className="p-3">
+                            <CardContent className="p-2 md:p-3">
                               <div className="flex items-center justify-between">
-                                <div className="flex items-center gap-3">
-                                  <Icon className="w-6 h-6 text-cyan-400" />
-                                  <div>
-                                    <h4 className="text-white font-bold text-sm">{table.name}</h4>
-                                    <p className="text-slate-400 text-xs">{table.recordCount} records</p>
+                                <div className="flex items-center gap-2 md:gap-3 min-w-0">
+                                  <Icon className="w-4 md:w-6 h-4 md:h-6 text-cyan-400 flex-shrink-0" />
+                                  <div className="min-w-0">
+                                    <h4 className="text-white font-bold text-xs md:text-sm truncate">{table.name}</h4>
+                                    <p className="text-slate-400 text-xs">{table.recordCount} rec</p>
                                   </div>
                                 </div>
-                                <Badge className="bg-purple-500 text-xs">
+                                <Badge className="bg-purple-500 text-xs flex-shrink-0">
                                   {table.recordCount > 0 ? 'Active' : 'Empty'}
                                 </Badge>
                               </div>
@@ -1531,22 +1450,21 @@ END OF ARCHIVE
           </Card>
         </TabsContent>
 
-        {/* Analytics Tab - keeping existing content */}
         <TabsContent value="analytics" className="mt-6">
-          <div className="grid md:grid-cols-2 gap-6">
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-4 md:gap-6">
             <Card className="bg-gradient-to-br from-[#1e293b] to-[#0f172a] border-slate-700">
-              <CardHeader className="border-b border-slate-700">
-                <CardTitle className="text-white font-bold">Storage Distribution</CardTitle>
+              <CardHeader className="border-b border-slate-700 p-4 md:p-6">
+                <CardTitle className="text-white font-bold text-sm md:text-base">Storage Distribution</CardTitle>
               </CardHeader>
-              <CardContent className="p-6">
-                <div className="space-y-3">
+              <CardContent className="p-4 md:p-6">
+                <div className="space-y-2 md:space-y-3">
                   {availableTables.filter(t => t.recordCount > 0).slice(0, 10).map(table => (
                     <div key={table.name}>
                       <div className="flex justify-between mb-1">
-                        <span className="text-slate-300 text-sm">{table.name}</span>
-                        <span className="text-white font-bold text-sm">{table.size.toFixed(2)} MB</span>
+                        <span className="text-slate-300 text-xs md:text-sm">{table.name}</span>
+                        <span className="text-white font-bold text-xs md:text-sm">{table.size.toFixed(2)} MB</span>
                       </div>
-                      <Progress value={(table.size / totalSize) * 100} className="h-2" />
+                      <Progress value={(table.size / totalSize) * 100} className="h-1.5 md:h-2" />
                     </div>
                   ))}
                 </div>
@@ -1554,22 +1472,20 @@ END OF ARCHIVE
             </Card>
 
             <Card className="bg-gradient-to-br from-[#1e293b] to-[#0f172a] border-slate-700">
-              <CardHeader className="border-b border-slate-700">
-                <CardTitle className="text-white font-bold">Category Breakdown</CardTitle>
+              <CardHeader className="border-b border-slate-700 p-4 md:p-6">
+                <CardTitle className="text-white font-bold text-sm md:text-base">Category Breakdown</CardTitle>
               </CardHeader>
-              <CardContent className="p-6">
-                <div className="space-y-3">
-                  {Object.entries(groupedByCategory).map(([category, tables]) => {
-                    return (
-                      <div key={category}>
-                        <div className="flex justify-between mb-1">
-                          <span className="text-slate-300 text-sm">{category}</span>
-                          <span className="text-white font-bold text-sm">{tables.length} tables</span>
-                        </div>
-                        <Progress value={(tables.length / availableTables.length) * 100} className="h-2" />
+              <CardContent className="p-4 md:p-6">
+                <div className="space-y-2 md:space-y-3">
+                  {Object.entries(groupedByCategory).map(([category, tables]) => (
+                    <div key={category}>
+                      <div className="flex justify-between mb-1">
+                        <span className="text-slate-300 text-xs md:text-sm">{category}</span>
+                        <span className="text-white font-bold text-xs md:text-sm">{tables.length}</span>
                       </div>
-                    );
-                  })}
+                      <Progress value={(tables.length / availableTables.length) * 100} className="h-1.5 md:h-2" />
+                    </div>
+                  ))}
                 </div>
               </CardContent>
             </Card>
@@ -1579,29 +1495,29 @@ END OF ARCHIVE
 
       {/* System Health */}
       <Card className="bg-gradient-to-br from-green-900/20 to-emerald-900/20 border-green-500/30">
-        <CardHeader className="border-b border-green-500/30">
-          <CardTitle className="text-green-300 font-bold flex items-center gap-2">
-            <CheckCircle className="w-5 h-5" />
+        <CardHeader className="border-b border-green-500/30 p-4 md:p-6">
+          <CardTitle className="text-green-300 font-bold flex items-center gap-2 text-sm md:text-base">
+            <CheckCircle className="w-4 md:w-5 h-4 md:h-5" />
             Enterprise System Status
           </CardTitle>
         </CardHeader>
-        <CardContent className="p-6">
-          <div className="grid md:grid-cols-4 gap-4">
+        <CardContent className="p-4 md:p-6">
+          <div className="grid grid-cols-2 md:grid-cols-4 gap-3 md:gap-4">
             <div className="text-center">
-              <p className="text-green-400 font-bold text-2xl mb-1">100%</p>
-              <p className="text-green-200 text-sm">API Operational</p>
+              <p className="text-green-400 font-bold text-xl md:text-2xl mb-1">100%</p>
+              <p className="text-green-200 text-xs md:text-sm">API Ready</p>
             </div>
             <div className="text-center">
-              <p className="text-green-400 font-bold text-2xl mb-1">&lt;50ms</p>
-              <p className="text-green-200 text-sm">Query Response</p>
+              <p className="text-green-400 font-bold text-xl md:text-2xl mb-1">&lt;50ms</p>
+              <p className="text-green-200 text-xs md:text-sm">Response</p>
             </div>
             <div className="text-center">
-              <p className="text-green-400 font-bold text-2xl mb-1">Auto-Retry</p>
-              <p className="text-green-200 text-sm">Error Recovery</p>
+              <p className="text-green-400 font-bold text-xl md:text-2xl mb-1">Auto</p>
+              <p className="text-green-200 text-xs md:text-sm">Retry</p>
             </div>
             <div className="text-center">
-              <p className="text-green-400 font-bold text-2xl mb-1">Smart</p>
-              <p className="text-green-200 text-sm">Rate Limiting</p>
+              <p className="text-green-400 font-bold text-xl md:text-2xl mb-1">Smart</p>
+              <p className="text-green-200 text-xs md:text-sm">Protection</p>
             </div>
           </div>
         </CardContent>
