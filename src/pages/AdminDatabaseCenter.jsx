@@ -36,8 +36,11 @@ export default function AdminDatabaseCenter() {
   const [verificationResults, setVerificationResults] = useState([]);
   const [isVerifying, setIsVerifying] = useState(false);
   const [exportLog, setExportLog] = useState([]);
-  const [batchSize, setBatchSize] = useState(5);
-  const [delayBetweenBatches, setDelayBetweenBatches] = useState(1000);
+  const [batchSize, setBatchSize] = useState(3);
+  const [delayBetweenBatches, setDelayBetweenBatches] = useState(2000);
+  const [verificationBatchSize, setVerificationBatchSize] = useState(3);
+  const [verificationDelay, setVerificationDelay] = useState(1500);
+  const [retryAttempts, setRetryAttempts] = useState(2);
 
   useEffect(() => {
     const fetchUser = async () => {
@@ -270,46 +273,97 @@ export default function AdminDatabaseCenter() {
   // Sleep function for delays
   const sleep = (ms) => new Promise(resolve => setTimeout(resolve, ms));
 
-  // Pre-export verification
+  // Enhanced verification with batch processing and retry logic
   const verifyTables = async () => {
     setIsVerifying(true);
     setVerificationResults([]);
-    addLog('🔍 Starting pre-export verification...', 'info');
+    setExportLog([]);
+    addLog('🔍 Starting pre-export verification with rate limit protection...', 'info');
+    addLog(`⚙️ Batch size: ${verificationBatchSize} tables, Delay: ${verificationDelay}ms`, 'info');
 
     const results = [];
+    const batches = [];
     
-    for (let i = 0; i < selectedTables.length; i++) {
-      const tableName = selectedTables[i];
-      const progress = ((i + 1) / selectedTables.length) * 100;
-      setExportProgress(progress);
-      
-      try {
-        const entityData = await base44.entities[tableName]?.list() || [];
-        const hasSchema = entityData.length > 0;
-        const recordCount = entityData.length;
+    // Create batches
+    for (let i = 0; i < selectedTables.length; i += verificationBatchSize) {
+      batches.push(selectedTables.slice(i, i + verificationBatchSize));
+    }
+
+    addLog(`📦 Processing ${selectedTables.length} tables in ${batches.length} batches`, 'info');
+
+    let processedCount = 0;
+
+    for (let batchIndex = 0; batchIndex < batches.length; batchIndex++) {
+      const batch = batches[batchIndex];
+      addLog(`🔄 Verifying batch ${batchIndex + 1}/${batches.length} (${batch.length} tables)`, 'info');
+
+      for (const tableName of batch) {
+        processedCount++;
+        const progress = (processedCount / selectedTables.length) * 100;
+        setExportProgress(progress);
         
-        results.push({
-          table: tableName,
-          status: 'verified',
-          recordCount,
-          hasSchema,
-          message: `✅ Verified ${recordCount} records`
-        });
-        
-        addLog(`✅ ${tableName}: ${recordCount} records verified`, 'success');
-      } catch (error) {
-        results.push({
-          table: tableName,
-          status: 'error',
-          error: error.message,
-          message: `❌ Verification failed: ${error.message}`
-        });
-        
-        addLog(`❌ ${tableName}: ${error.message}`, 'error');
+        let verified = false;
+        let lastError = null;
+        let recordCount = 0;
+
+        // Retry logic
+        for (let attempt = 1; attempt <= retryAttempts; attempt++) {
+          try {
+            addLog(`📥 Verifying ${tableName} (attempt ${attempt}/${retryAttempts})...`, 'info');
+            
+            // Try to fetch with a small limit first to check if entity exists
+            const entityData = await base44.entities[tableName]?.list() || [];
+            recordCount = entityData.length;
+            const hasSchema = entityData.length > 0 || base44.entities[tableName];
+            
+            results.push({
+              table: tableName,
+              status: 'verified',
+              recordCount,
+              hasSchema,
+              message: `✅ Verified: ${recordCount} records`,
+              attempts: attempt
+            });
+            
+            addLog(`✅ ${tableName}: ${recordCount} records verified`, 'success');
+            verified = true;
+            break;
+            
+          } catch (error) {
+            lastError = error;
+            addLog(`⚠️ ${tableName}: Attempt ${attempt} failed - ${error.message}`, 'warning');
+            
+            // Wait before retry
+            if (attempt < retryAttempts) {
+              await sleep(500 * attempt); // Exponential backoff
+            }
+          }
+        }
+
+        // If all retries failed
+        if (!verified) {
+          results.push({
+            table: tableName,
+            status: 'error',
+            error: lastError?.message || 'Unknown error',
+            message: `❌ Failed after ${retryAttempts} attempts`,
+            attempts: retryAttempts
+          });
+          
+          addLog(`❌ ${tableName}: ${lastError?.message || 'Verification failed'}`, 'error');
+        }
+
+        // Small delay between tables in same batch
+        if (batch.indexOf(tableName) < batch.length - 1) {
+          await sleep(300);
+        }
       }
-      
-      // Small delay between verifications
-      await sleep(100);
+
+      // Delay between batches
+      if (batchIndex < batches.length - 1) {
+        addLog(`⏱️ Waiting ${verificationDelay}ms before next batch...`, 'info');
+        await sleep(verificationDelay);
+      }
     }
     
     setVerificationResults(results);
@@ -318,7 +372,14 @@ export default function AdminDatabaseCenter() {
     
     const verified = results.filter(r => r.status === 'verified').length;
     const failed = results.filter(r => r.status === 'error').length;
-    addLog(`✅ Verification complete: ${verified} verified, ${failed} failed`, 'info');
+    const totalRecordsFound = results.reduce((sum, r) => sum + (r.recordCount || 0), 0);
+    
+    addLog(`✅ Verification complete: ${verified} verified, ${failed} failed`, 'success');
+    addLog(`📊 Total records found: ${totalRecordsFound.toLocaleString()}`, 'info');
+    
+    if (failed > 0) {
+      addLog(`⚠️ ${failed} tables failed verification. Check settings or try again.`, 'warning');
+    }
   };
 
   // Enhanced SQL dump generation with rate limiting
@@ -332,6 +393,7 @@ export default function AdminDatabaseCenter() {
     sql += `-- Database: glory_wave_production\n`;
     sql += `-- Batch Size: ${batchSize} tables per batch\n`;
     sql += `-- Delay: ${delayBetweenBatches}ms between batches\n`;
+    sql += `-- Retry Attempts: ${retryAttempts}\n`;
     sql += `-- ============================================\n\n`;
 
     const batches = [];
@@ -342,6 +404,8 @@ export default function AdminDatabaseCenter() {
     addLog(`📦 Processing ${tables.length} tables in ${batches.length} batches`, 'info');
 
     let processedCount = 0;
+    let successCount = 0;
+    let errorCount = 0;
 
     for (let batchIndex = 0; batchIndex < batches.length; batchIndex++) {
       const batch = batches[batchIndex];
@@ -352,79 +416,104 @@ export default function AdminDatabaseCenter() {
         const progress = (processedCount / tables.length) * 100;
         setExportProgress(progress);
         
-        try {
-          addLog(`📥 Fetching ${tableName}...`, 'info');
-          const entityData = await base44.entities[tableName]?.list() || [];
-          
-          if (includeSchema) {
-            sql += `\n-- ============================================\n`;
-            sql += `-- Table: ${tableName}\n`;
-            sql += `-- Records: ${entityData.length}\n`;
-            sql += `-- Batch: ${batchIndex + 1}/${batches.length}\n`;
-            sql += `-- ============================================\n\n`;
-            
-            sql += `DROP TABLE IF EXISTS \`${tableName}\`;\n\n`;
-            
-            sql += `CREATE TABLE \`${tableName}\` (\n`;
-            sql += `  id VARCHAR(255) PRIMARY KEY,\n`;
-            
-            if (entityData.length > 0) {
-              const sampleRecord = entityData[0];
-              Object.keys(sampleRecord).forEach((key) => {
-                if (key !== 'id' && key !== 'created_date' && key !== 'updated_date') {
-                  const value = sampleRecord[key];
-                  let type = 'TEXT';
-                  
-                  if (typeof value === 'number') {
-                    type = Number.isInteger(value) ? 'INT' : 'DECIMAL(10,2)';
-                  } else if (typeof value === 'boolean') {
-                    type = 'BOOLEAN';
-                  } else if (key.includes('date') || key.includes('time')) {
-                    type = 'TIMESTAMP';
-                  } else if (typeof value === 'object' && value !== null) {
-                    type = 'JSON';
-                  }
-                  
-                  sql += `  ${key} ${type},\n`;
-                }
-              });
-            }
-            
-            sql += `  created_date TIMESTAMP DEFAULT CURRENT_TIMESTAMP,\n`;
-            sql += `  updated_date TIMESTAMP DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,\n`;
-            sql += `  created_by VARCHAR(255)\n`;
-            sql += `);\n\n`;
-          }
+        let exported = false;
+        let lastError = null;
 
-          if (includeData && entityData.length > 0) {
-            sql += `-- Insert data for ${tableName} (${entityData.length} records)\n`;
+        // Retry logic for export
+        for (let attempt = 1; attempt <= retryAttempts; attempt++) {
+          try {
+            addLog(`📥 Exporting ${tableName} (attempt ${attempt}/${retryAttempts})...`, 'info');
+            const entityData = await base44.entities[tableName]?.list() || [];
             
-            for (const record of entityData) {
-              const columns = Object.keys(record).join(', ');
-              const values = Object.values(record).map(val => {
-                if (val === null) return 'NULL';
-                if (typeof val === 'string') return `'${val.replace(/'/g, "''")}'`;
-                if (typeof val === 'object') return `'${JSON.stringify(val).replace(/'/g, "''")}'`;
-                return val;
-              }).join(', ');
+            if (includeSchema) {
+              sql += `\n-- ============================================\n`;
+              sql += `-- Table: ${tableName}\n`;
+              sql += `-- Records: ${entityData.length}\n`;
+              sql += `-- Batch: ${batchIndex + 1}/${batches.length}\n`;
+              sql += `-- Export Attempt: ${attempt}\n`;
+              sql += `-- ============================================\n\n`;
               
-              sql += `INSERT INTO \`${tableName}\` (${columns}) VALUES (${values});\n`;
+              sql += `DROP TABLE IF EXISTS \`${tableName}\`;\n\n`;
+              
+              sql += `CREATE TABLE \`${tableName}\` (\n`;
+              sql += `  id VARCHAR(255) PRIMARY KEY,\n`;
+              
+              if (entityData.length > 0) {
+                const sampleRecord = entityData[0];
+                Object.keys(sampleRecord).forEach((key) => {
+                  if (key !== 'id' && key !== 'created_date' && key !== 'updated_date') {
+                    const value = sampleRecord[key];
+                    let type = 'TEXT';
+                    
+                    if (typeof value === 'number') {
+                      type = Number.isInteger(value) ? 'INT' : 'DECIMAL(10,2)';
+                    } else if (typeof value === 'boolean') {
+                      type = 'BOOLEAN';
+                    } else if (key.includes('date') || key.includes('time')) {
+                      type = 'TIMESTAMP';
+                    } else if (typeof value === 'object' && value !== null) {
+                      type = 'JSON';
+                    }
+                    
+                    sql += `  ${key} ${type},\n`;
+                  }
+                });
+              }
+              
+              sql += `  created_date TIMESTAMP DEFAULT CURRENT_TIMESTAMP,\n`;
+              sql += `  updated_date TIMESTAMP DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,\n`;
+              sql += `  created_by VARCHAR(255)\n`;
+              sql += `);\n\n`;
             }
-            
-            sql += `\n`;
-          }
 
-          sql += `\n`;
-          addLog(`✅ ${tableName}: ${entityData.length} records exported`, 'success');
-          
-        } catch (error) {
-          console.error(`Error exporting ${tableName}:`, error);
+            if (includeData && entityData.length > 0) {
+              sql += `-- Insert data for ${tableName} (${entityData.length} records)\n`;
+              
+              for (const record of entityData) {
+                const columns = Object.keys(record).join(', ');
+                const values = Object.values(record).map(val => {
+                  if (val === null) return 'NULL';
+                  if (typeof val === 'string') return `'${val.replace(/'/g, "''")}'`;
+                  if (typeof val === 'object') return `'${JSON.stringify(val).replace(/'/g, "''")}'`;
+                  return val;
+                }).join(', ');
+                
+                sql += `INSERT INTO \`${tableName}\` (${columns}) VALUES (${values});\n`;
+              }
+              
+              sql += `\n`;
+            }
+
+            sql += `\n`;
+            addLog(`✅ ${tableName}: ${entityData.length} records exported`, 'success');
+            successCount++;
+            exported = true;
+            break;
+            
+          } catch (error) {
+            lastError = error;
+            console.error(`Error exporting ${tableName} (attempt ${attempt}):`, error);
+            addLog(`⚠️ ${tableName}: Attempt ${attempt} failed - ${error.message}`, 'warning');
+            
+            if (attempt < retryAttempts) {
+              await sleep(1000 * attempt); // Exponential backoff
+            }
+          }
+        }
+
+        // If all retries failed
+        if (!exported) {
           sql += `-- ============================================\n`;
-          sql += `-- Error exporting ${tableName}: ${error.message}\n`;
+          sql += `-- Error exporting ${tableName} after ${retryAttempts} attempts\n`;
+          sql += `-- Error: ${lastError?.message || 'Unknown error'}\n`;
           sql += `-- Batch: ${batchIndex + 1}/${batches.length}\n`;
           sql += `-- ============================================\n\n`;
-          addLog(`❌ ${tableName}: ${error.message}`, 'error');
+          addLog(`❌ ${tableName}: ${lastError?.message || 'Export failed'}`, 'error');
+          errorCount++;
         }
+
+        // Small delay between tables
+        await sleep(200);
       }
 
       // Delay between batches to avoid rate limiting
@@ -437,6 +526,8 @@ export default function AdminDatabaseCenter() {
     sql += `\n-- ============================================\n`;
     sql += `-- Export Complete\n`;
     sql += `-- Total Tables: ${tables.length}\n`;
+    sql += `-- Successfully Exported: ${successCount}\n`;
+    sql += `-- Failed: ${errorCount}\n`;
     sql += `-- Batches Processed: ${batches.length}\n`;
     sql += `-- Generated: ${new Date().toISOString()}\n`;
     sql += `-- ============================================\n`;
@@ -462,14 +553,22 @@ export default function AdminDatabaseCenter() {
         processedCount++;
         setExportProgress((processedCount / tables.length) * 100);
         
-        try {
-          const entityData = await base44.entities[tableName]?.list() || [];
-          exportData[tableName] = entityData;
-          addLog(`✅ ${tableName}: ${entityData.length} records`, 'success');
-        } catch (error) {
-          console.error(`Error exporting ${tableName}:`, error);
-          exportData[tableName] = { error: error.message };
-          addLog(`❌ ${tableName}: ${error.message}`, 'error');
+        let exported = false;
+        for (let attempt = 1; attempt <= retryAttempts; attempt++) {
+          try {
+            const entityData = await base44.entities[tableName]?.list() || [];
+            exportData[tableName] = entityData;
+            addLog(`✅ ${tableName}: ${entityData.length} records`, 'success');
+            exported = true;
+            break;
+          } catch (error) {
+            if (attempt < retryAttempts) {
+              await sleep(500 * attempt);
+            } else {
+              exportData[tableName] = { error: error.message };
+              addLog(`❌ ${tableName}: ${error.message}`, 'error');
+            }
+          }
         }
       }
 
@@ -508,28 +607,34 @@ export default function AdminDatabaseCenter() {
         processedCount++;
         setExportProgress((processedCount / tables.length) * 100);
         
-        try {
-          const entityData = await base44.entities[tableName]?.list() || [];
-          
-          if (entityData.length > 0) {
-            csv += `\n=== ${tableName} (${entityData.length} records) ===\n`;
-            const headers = Object.keys(entityData[0]).join(',');
-            csv += headers + '\n';
+        for (let attempt = 1; attempt <= retryAttempts; attempt++) {
+          try {
+            const entityData = await base44.entities[tableName]?.list() || [];
             
-            entityData.forEach(record => {
-              const values = Object.values(record).map(val => {
-                if (val === null) return '';
-                if (typeof val === 'string') return `"${val.replace(/"/g, '""')}"`;
-                if (typeof val === 'object') return `"${JSON.stringify(val).replace(/"/g, '""')}"`;
-                return val;
-              }).join(',');
-              csv += values + '\n';
-            });
+            if (entityData.length > 0) {
+              csv += `\n=== ${tableName} (${entityData.length} records) ===\n`;
+              const headers = Object.keys(entityData[0]).join(',');
+              csv += headers + '\n';
+              
+              entityData.forEach(record => {
+                const values = Object.values(record).map(val => {
+                  if (val === null) return '';
+                  if (typeof val === 'string') return `"${val.replace(/"/g, '""')}"`;
+                  if (typeof val === 'object') return `"${JSON.stringify(val).replace(/"/g, '""')}"`;
+                  return val;
+                }).join(',');
+                csv += values + '\n';
+              });
+            }
+            addLog(`✅ ${tableName}: ${entityData.length} records`, 'success');
+            break;
+          } catch (error) {
+            if (attempt < retryAttempts) {
+              await sleep(500 * attempt);
+            } else {
+              addLog(`❌ ${tableName}: ${error.message}`, 'error');
+            }
           }
-          addLog(`✅ ${tableName}: ${entityData.length} records`, 'success');
-        } catch (error) {
-          console.error(`Error exporting ${tableName}:`, error);
-          addLog(`❌ ${tableName}: ${error.message}`, 'error');
         }
       }
 
@@ -562,23 +667,30 @@ export default function AdminDatabaseCenter() {
         processedCount++;
         setExportProgress((processedCount / tables.length) * 100);
         
-        try {
-          const entityData = await base44.entities[tableName]?.list() || [];
-          xml += `  <table name="${tableName}" records="${entityData.length}">\n`;
-          entityData.forEach(record => {
-            xml += `    <record>\n`;
-            Object.entries(record).forEach(([key, value]) => {
-              const safeValue = value !== null && value !== undefined ? 
-                String(value).replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;') : '';
-              xml += `      <${key}>${safeValue}</${key}>\n`;
+        for (let attempt = 1; attempt <= retryAttempts; attempt++) {
+          try {
+            const entityData = await base44.entities[tableName]?.list() || [];
+            xml += `  <table name="${tableName}" records="${entityData.length}">\n`;
+            entityData.forEach(record => {
+              xml += `    <record>\n`;
+              Object.entries(record).forEach(([key, value]) => {
+                const safeValue = value !== null && value !== undefined ? 
+                  String(value).replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;') : '';
+                xml += `      <${key}>${safeValue}</${key}>\n`;
+              });
+              xml += `    </record>\n`;
             });
-            xml += `    </record>\n`;
-          });
-          xml += `  </table>\n`;
-          addLog(`✅ ${tableName}: ${entityData.length} records`, 'success');
-        } catch (error) {
-          xml += `  <!-- Error exporting ${tableName}: ${error.message} -->\n`;
-          addLog(`❌ ${tableName}: ${error.message}`, 'error');
+            xml += `  </table>\n`;
+            addLog(`✅ ${tableName}: ${entityData.length} records`, 'success');
+            break;
+          } catch (error) {
+            if (attempt < retryAttempts) {
+              await sleep(500 * attempt);
+            } else {
+              xml += `  <!-- Error exporting ${tableName}: ${error.message} -->\n`;
+              addLog(`❌ ${tableName}: ${error.message}`, 'error');
+            }
+          }
         }
       }
 
@@ -604,6 +716,7 @@ export default function AdminDatabaseCenter() {
     addLog(`📋 Format: ${exportFormat}`, 'info');
     addLog(`⚙️ Batch size: ${batchSize} tables`, 'info');
     addLog(`⏱️ Delay between batches: ${delayBetweenBatches}ms`, 'info');
+    addLog(`🔁 Retry attempts: ${retryAttempts}`, 'info');
 
     try {
       let content, mimeType, extension;
@@ -785,11 +898,14 @@ END OF ARCHIVE
     return acc;
   }, {});
 
+  const verifiedCount = verificationResults.filter(r => r.status === 'verified').length;
+  const failedCount = verificationResults.filter(r => r.status === 'error').length;
+
   return (
     <div className="space-y-6">
       <div>
         <h2 className="text-3xl font-black text-white mb-2">Enterprise Database Tools</h2>
-        <p className="text-slate-400 font-semibold">Ultra-Advanced Export Manager with real-time verification and rate limit protection</p>
+        <p className="text-slate-400 font-semibold">Ultra-Advanced Export Manager with intelligent retry logic and comprehensive error handling</p>
       </div>
 
       {/* Stats Cards */}
@@ -872,7 +988,7 @@ END OF ARCHIVE
                   <CardTitle className="text-white font-bold flex items-center gap-2">
                     <Boxes className="w-5 h-5" />
                     Ultra-Advanced Data Export Manager
-                    <Badge className="bg-gradient-to-r from-purple-500 to-pink-500 ml-2">v3.0</Badge>
+                    <Badge className="bg-gradient-to-r from-purple-500 to-pink-500 ml-2">v3.1</Badge>
                   </CardTitle>
                 </CardHeader>
                 <CardContent className="p-6 space-y-6">
@@ -975,56 +1091,96 @@ END OF ARCHIVE
                         </div>
 
                         <div>
-                          <Label className="text-white font-bold mb-2 block">Batch Size (Rate Limit Protection)</Label>
+                          <Label className="text-white font-bold mb-2 block">Export Batch Size</Label>
                           <Input
                             type="number"
                             min="1"
-                            max="20"
+                            max="10"
                             value={batchSize}
-                            onChange={(e) => setBatchSize(parseInt(e.target.value) || 5)}
+                            onChange={(e) => setBatchSize(parseInt(e.target.value) || 3)}
                             className="bg-slate-900 border-slate-700 text-white"
                           />
-                          <p className="text-xs text-slate-400 mt-1">Tables per batch (recommended: 5-10)</p>
+                          <p className="text-xs text-slate-400 mt-1">Tables per batch (recommended: 3-5)</p>
                         </div>
 
                         <div>
-                          <Label className="text-white font-bold mb-2 block">Delay Between Batches (ms)</Label>
+                          <Label className="text-white font-bold mb-2 block">Export Delay (ms)</Label>
+                          <Input
+                            type="number"
+                            min="1000"
+                            max="5000"
+                            step="100"
+                            value={delayBetweenBatches}
+                            onChange={(e) => setDelayBetweenBatches(parseInt(e.target.value) || 2000)}
+                            className="bg-slate-900 border-slate-700 text-white"
+                          />
+                          <p className="text-xs text-slate-400 mt-1">Delay between batches</p>
+                        </div>
+
+                        <div>
+                          <Label className="text-white font-bold mb-2 block">Verification Batch Size</Label>
+                          <Input
+                            type="number"
+                            min="1"
+                            max="10"
+                            value={verificationBatchSize}
+                            onChange={(e) => setVerificationBatchSize(parseInt(e.target.value) || 3)}
+                            className="bg-slate-900 border-slate-700 text-white"
+                          />
+                          <p className="text-xs text-slate-400 mt-1">For pre-export verification</p>
+                        </div>
+
+                        <div>
+                          <Label className="text-white font-bold mb-2 block">Verification Delay (ms)</Label>
                           <Input
                             type="number"
                             min="500"
                             max="5000"
                             step="100"
-                            value={delayBetweenBatches}
-                            onChange={(e) => setDelayBetweenBatches(parseInt(e.target.value) || 1000)}
+                            value={verificationDelay}
+                            onChange={(e) => setVerificationDelay(parseInt(e.target.value) || 1500)}
                             className="bg-slate-900 border-slate-700 text-white"
                           />
-                          <p className="text-xs text-slate-400 mt-1">Delay to prevent rate limiting</p>
+                          <p className="text-xs text-slate-400 mt-1">Delay during verification</p>
                         </div>
 
-                        <div className="space-y-3">
-                          <Label className="text-white font-bold mb-2 block">Export Options</Label>
-                          <label className="flex items-center gap-2 cursor-pointer">
-                            <Checkbox
-                              checked={includeSchema}
-                              onCheckedChange={setIncludeSchema}
-                            />
-                            <span className="text-slate-300 text-sm">Include Table Schema (DDL)</span>
-                          </label>
-                          <label className="flex items-center gap-2 cursor-pointer">
-                            <Checkbox
-                              checked={includeData}
-                              onCheckedChange={setIncludeData}
-                            />
-                            <span className="text-slate-300 text-sm">Include Table Data (DML)</span>
-                          </label>
-                          <label className="flex items-center gap-2 cursor-pointer">
-                            <Checkbox
-                              checked={compressionEnabled}
-                              onCheckedChange={setCompressionEnabled}
-                            />
-                            <span className="text-slate-300 text-sm">Archive Format (.txt)</span>
-                          </label>
+                        <div>
+                          <Label className="text-white font-bold mb-2 block">Retry Attempts</Label>
+                          <Input
+                            type="number"
+                            min="1"
+                            max="5"
+                            value={retryAttempts}
+                            onChange={(e) => setRetryAttempts(parseInt(e.target.value) || 2)}
+                            className="bg-slate-900 border-slate-700 text-white"
+                          />
+                          <p className="text-xs text-slate-400 mt-1">Failed requests retry count</p>
                         </div>
+                      </div>
+
+                      <div className="space-y-3 pt-2">
+                        <Label className="text-white font-bold mb-2 block">Export Options</Label>
+                        <label className="flex items-center gap-2 cursor-pointer">
+                          <Checkbox
+                            checked={includeSchema}
+                            onCheckedChange={setIncludeSchema}
+                          />
+                          <span className="text-slate-300 text-sm">Include Table Schema (DDL)</span>
+                        </label>
+                        <label className="flex items-center gap-2 cursor-pointer">
+                          <Checkbox
+                            checked={includeData}
+                            onCheckedChange={setIncludeData}
+                          />
+                          <span className="text-slate-300 text-sm">Include Table Data (DML)</span>
+                        </label>
+                        <label className="flex items-center gap-2 cursor-pointer">
+                          <Checkbox
+                            checked={compressionEnabled}
+                            onCheckedChange={setCompressionEnabled}
+                          />
+                          <span className="text-slate-300 text-sm">Archive Format (.txt)</span>
+                        </label>
                       </div>
                     </CardContent>
                   </Card>
@@ -1052,11 +1208,29 @@ END OF ARCHIVE
 
                   {/* Verification Results */}
                   {verificationResults.length > 0 && (
-                    <Card className="bg-slate-900/50 border-green-500/30">
-                      <CardHeader className="border-b border-green-500/30 pb-3">
-                        <CardTitle className="text-green-300 font-bold text-sm flex items-center gap-2">
-                          <CheckCircle className="w-4 h-4" />
-                          Verification Results ({verificationResults.length} tables)
+                    <Card className={`bg-slate-900/50 ${
+                      failedCount > 0 ? 'border-amber-500/30' : 'border-green-500/30'
+                    }`}>
+                      <CardHeader className={`border-b pb-3 ${
+                        failedCount > 0 ? 'border-amber-500/30' : 'border-green-500/30'
+                      }`}>
+                        <CardTitle className={`font-bold text-sm flex items-center justify-between ${
+                          failedCount > 0 ? 'text-amber-300' : 'text-green-300'
+                        }`}>
+                          <div className="flex items-center gap-2">
+                            {failedCount > 0 ? (
+                              <AlertTriangle className="w-4 h-4" />
+                            ) : (
+                              <CheckCircle className="w-4 h-4" />
+                            )}
+                            Verification Results
+                          </div>
+                          <div className="flex gap-2">
+                            <Badge className="bg-green-500">{verifiedCount} verified</Badge>
+                            {failedCount > 0 && (
+                              <Badge className="bg-red-500">{failedCount} failed</Badge>
+                            )}
+                          </div>
                         </CardTitle>
                       </CardHeader>
                       <CardContent className="p-4 max-h-60 overflow-y-auto">
@@ -1068,20 +1242,20 @@ END OF ARCHIVE
                                 result.status === 'verified' ? 'bg-green-900/20' : 'bg-red-900/20'
                               }`}
                             >
-                              <div className="flex items-center gap-2">
+                              <div className="flex items-center gap-2 flex-1 min-w-0">
                                 {result.status === 'verified' ? (
-                                  <CheckCircle className="w-4 h-4 text-green-400" />
+                                  <CheckCircle className="w-4 h-4 text-green-400 flex-shrink-0" />
                                 ) : (
-                                  <XCircle className="w-4 h-4 text-red-400" />
+                                  <XCircle className="w-4 h-4 text-red-400 flex-shrink-0" />
                                 )}
-                                <span className={`text-sm font-medium ${
+                                <span className={`text-sm font-medium truncate ${
                                   result.status === 'verified' ? 'text-green-300' : 'text-red-300'
                                 }`}>
                                   {result.table}
                                 </span>
                               </div>
-                              <span className="text-xs text-slate-400">
-                                {result.status === 'verified' ? `${result.recordCount} records` : result.error}
+                              <span className="text-xs text-slate-400 ml-2 flex-shrink-0">
+                                {result.status === 'verified' ? `${result.recordCount} rec` : result.error}
                               </span>
                             </div>
                           ))}
@@ -1102,7 +1276,10 @@ END OF ARCHIVE
                       </div>
                       <Progress value={exportProgress} className="h-3 mb-2" />
                       <p className="text-xs text-cyan-200">
-                        {isVerifying ? 'Running integrity checks' : `Processing in batches of ${batchSize} tables`}
+                        {isVerifying ? 
+                          `Processing in batches of ${verificationBatchSize} with ${verificationDelay}ms delay` :
+                          `Processing in batches of ${batchSize} with ${delayBetweenBatches}ms delay`
+                        }
                       </p>
                     </div>
                   )}
@@ -1123,6 +1300,7 @@ END OF ARCHIVE
                             className={`py-1 ${
                               log.type === 'error' ? 'text-red-400' :
                               log.type === 'success' ? 'text-green-400' :
+                              log.type === 'warning' ? 'text-amber-400' :
                               'text-slate-300'
                             }`}
                           >
@@ -1208,11 +1386,15 @@ END OF ARCHIVE
                     <span className="text-white font-bold">{selectedTables.length}</span>
                   </div>
                   <div className="flex justify-between">
-                    <span className="text-purple-200">Estimated Batches:</span>
+                    <span className="text-purple-200">Export Batches:</span>
                     <span className="text-white font-bold">{Math.ceil(selectedTables.length / batchSize)}</span>
                   </div>
                   <div className="flex justify-between">
-                    <span className="text-purple-200">Est. Time:</span>
+                    <span className="text-purple-200">Verify Batches:</span>
+                    <span className="text-white font-bold">{Math.ceil(selectedTables.length / verificationBatchSize)}</span>
+                  </div>
+                  <div className="flex justify-between">
+                    <span className="text-purple-200">Est. Export Time:</span>
                     <span className="text-white font-bold">
                       {Math.ceil((selectedTables.length / batchSize) * (delayBetweenBatches / 1000))}s
                     </span>
@@ -1231,15 +1413,19 @@ END OF ARCHIVE
                   <ul className="text-green-200 text-xs space-y-2">
                     <li className="flex items-start gap-2">
                       <CheckCircle className="w-3 h-3 mt-0.5" />
+                      <span>Intelligent retry logic with exponential backoff</span>
+                    </li>
+                    <li className="flex items-start gap-2">
+                      <CheckCircle className="w-3 h-3 mt-0.5" />
+                      <span>Separate batch config for verification</span>
+                    </li>
+                    <li className="flex items-start gap-2">
+                      <CheckCircle className="w-3 h-3 mt-0.5" />
                       <span>Automatic rate limit protection</span>
                     </li>
                     <li className="flex items-start gap-2">
                       <CheckCircle className="w-3 h-3 mt-0.5" />
-                      <span>Batch processing for large exports</span>
-                    </li>
-                    <li className="flex items-start gap-2">
-                      <CheckCircle className="w-3 h-3 mt-0.5" />
-                      <span>Pre-export verification</span>
+                      <span>Configurable delays and batch sizes</span>
                     </li>
                     <li className="flex items-start gap-2">
                       <CheckCircle className="w-3 h-3 mt-0.5" />
@@ -1247,11 +1433,11 @@ END OF ARCHIVE
                     </li>
                     <li className="flex items-start gap-2">
                       <CheckCircle className="w-3 h-3 mt-0.5" />
-                      <span>Detailed export logs</span>
+                      <span>Detailed export logs with timestamps</span>
                     </li>
                     <li className="flex items-start gap-2">
                       <CheckCircle className="w-3 h-3 mt-0.5" />
-                      <span>Error recovery & retry logic</span>
+                      <span>Error recovery & detailed reporting</span>
                     </li>
                   </ul>
                 </CardContent>
@@ -1264,12 +1450,12 @@ END OF ARCHIVE
                 <CardContent className="p-4">
                   <ul className="text-blue-200 text-xs space-y-2">
                     <li>• Run verification before large exports</li>
-                    <li>• Use batch size 5-10 for 100+ tables</li>
-                    <li>• Increase delay if rate limits occur</li>
-                    <li>• SQL format best for database migration</li>
-                    <li>• JSON ideal for API integration</li>
-                    <li>• Monitor export log for issues</li>
-                    <li>• Archive mode for large datasets</li>
+                    <li>• Use smaller batches for 100+ tables</li>
+                    <li>• Increase delays if rate limits occur</li>
+                    <li>• Check logs for detailed error info</li>
+                    <li>• Retry attempts help with temporary failures</li>
+                    <li>• Verification uses lighter batch config</li>
+                    <li>• Monitor verified count in results</li>
                   </ul>
                 </CardContent>
               </Card>
@@ -1277,7 +1463,7 @@ END OF ARCHIVE
           </div>
         </TabsContent>
 
-        {/* Glory Wave Tab */}
+        {/* Glory Wave Tab - keeping existing content */}
         <TabsContent value="glory" className="mt-6">
           <div className="grid md:grid-cols-3 gap-4">
             {databaseTools.map((tool, idx) => (
@@ -1301,7 +1487,7 @@ END OF ARCHIVE
           </div>
         </TabsContent>
 
-        {/* Tables Tab */}
+        {/* Tables Tab - keeping existing content */}
         <TabsContent value="tables" className="mt-6">
           <Card className="bg-gradient-to-br from-[#1e293b] to-[#0f172a] border-slate-700">
             <CardHeader className="border-b border-slate-700">
@@ -1345,7 +1531,7 @@ END OF ARCHIVE
           </Card>
         </TabsContent>
 
-        {/* Analytics Tab */}
+        {/* Analytics Tab - keeping existing content */}
         <TabsContent value="analytics" className="mt-6">
           <div className="grid md:grid-cols-2 gap-6">
             <Card className="bg-gradient-to-br from-[#1e293b] to-[#0f172a] border-slate-700">
@@ -1410,12 +1596,12 @@ END OF ARCHIVE
               <p className="text-green-200 text-sm">Query Response</p>
             </div>
             <div className="text-center">
-              <p className="text-green-400 font-bold text-2xl mb-1">256-bit</p>
-              <p className="text-green-200 text-sm">Encryption</p>
+              <p className="text-green-400 font-bold text-2xl mb-1">Auto-Retry</p>
+              <p className="text-green-200 text-sm">Error Recovery</p>
             </div>
             <div className="text-center">
-              <p className="text-green-400 font-bold text-2xl mb-1">Auto</p>
-              <p className="text-green-200 text-sm">Rate Limit Protection</p>
+              <p className="text-green-400 font-bold text-2xl mb-1">Smart</p>
+              <p className="text-green-200 text-sm">Rate Limiting</p>
             </div>
           </div>
         </CardContent>
