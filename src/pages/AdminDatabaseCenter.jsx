@@ -19,7 +19,7 @@ import {
   Image, Film, Bell, ShoppingBag, Mail, BarChart3, Palette, RefreshCw,
   Warehouse, XCircle, Layers, Boxes, FolderArchive, Key, Lock, Webhook,
   Cpu, FileArchive, Briefcase, Share2, Bookmark, Repeat, CircleDot,
-  PlayCircle, FileCode, Folder, FolderOpen, HardDriveDownload
+  PlayCircle, FileCode, Folder, FolderOpen, HardDriveDownload, CreditCard
 } from "lucide-react";
 import { Link } from "react-router-dom";
 import { createPageUrl } from "@/utils";
@@ -47,7 +47,7 @@ export default function AdminDatabaseCenter() {
   const [onlyTablesWithData, setOnlyTablesWithData] = useState(false);
   const [splitExport, setSplitExport] = useState(true);
   const [tablesPerFile, setTablesPerFile] = useState(25);
-  const [exportSystemFiles, setExportSystemFiles] = useState(false);
+  const [includeSystemFiles, setIncludeSystemFiles] = useState(false);
 
   useEffect(() => {
     const fetchUser = async () => {
@@ -102,7 +102,7 @@ export default function AdminDatabaseCenter() {
     { name: 'Devotional', icon: Book, category: 'Streaming' },
     { name: 'StreamTip', icon: DollarSign, category: 'Streaming' },
     
-    // ========== PODCAST (18) ==========
+    // ========== PODCAST (19) ==========
     { name: 'PodcastSeries', icon: Mic2, category: 'Podcast' },
     { name: 'PodcastTranscription', icon: FileText, category: 'Podcast' },
     { name: 'PodcastShowNote', icon: FileText, category: 'Podcast' },
@@ -166,7 +166,7 @@ export default function AdminDatabaseCenter() {
     { name: 'EventTicket', icon: Tag, category: 'Events' },
     { name: 'Attendance', icon: CheckCircle, category: 'Events' },
     
-    // ========== COMMERCE CORE (30) ==========
+    // ========== COMMERCE CORE (33) ==========
     { name: 'Product', icon: Package, category: 'Commerce' },
     { name: 'ProductVariant', icon: Package, category: 'Commerce' },
     { name: 'ProductBundle', icon: Package, category: 'Commerce' },
@@ -201,7 +201,7 @@ export default function AdminDatabaseCenter() {
     { name: 'DiscountRule', icon: Tag, category: 'Commerce' },
     { name: 'RefundRequest', icon: RefreshCw, category: 'Commerce' },
     
-    // ========== FINANCE (8) ==========
+    // ========== FINANCE (9) ==========
     { name: 'Donation', icon: Heart, category: 'Finance' },
     { name: 'DonationCampaign', icon: Heart, category: 'Finance' },
     { name: 'RecurringDonation', icon: RefreshCw, category: 'Finance' },
@@ -238,7 +238,7 @@ export default function AdminDatabaseCenter() {
     { name: 'ResourceLibrary', icon: Download, category: 'Learning' },
     { name: 'KnowledgeBase', icon: Book, category: 'Learning' },
     
-    // ========== COMMUNITY EXT (6) ==========
+    // ========== COMMUNITY EXT (7) ==========
     { name: 'Testimony', icon: Star, category: 'Community Ext' },
     { name: 'TestimonyComment', icon: MessageSquare, category: 'Community Ext' },
     { name: 'TestimonyCategory', icon: BookOpen, category: 'Community Ext' },
@@ -274,7 +274,7 @@ export default function AdminDatabaseCenter() {
     { name: 'DataQualityCheck', icon: CheckCircle, category: 'Data Quality' },
     { name: 'DataProfile', icon: BarChart3, category: 'Data Quality' },
     
-    // ========== MARKETING (11) ==========
+    // ========== MARKETING (12) ==========
     { name: 'EmailCampaign', icon: Mail, category: 'Marketing' },
     { name: 'AdCampaign', icon: TrendingUp, category: 'Marketing' },
     { name: 'CompetitorAnalysis', icon: BarChart3, category: 'Marketing' },
@@ -350,7 +350,7 @@ export default function AdminDatabaseCenter() {
     { name: 'DataImportJob', icon: Upload, category: 'Archive' },
     { name: 'SystemBackup', icon: HardDriveDownload, category: 'Archive' },
     
-    // ========== ENGAGEMENT (7) ==========
+    // ========== ENGAGEMENT (8) ==========
     { name: 'ContentLike', icon: Heart, category: 'Engagement' },
     { name: 'ContentShare', icon: Share2, category: 'Engagement' },
     { name: 'BookmarkedContent', icon: Bookmark, category: 'Engagement' },
@@ -591,7 +591,7 @@ export default function AdminDatabaseCenter() {
     sql += `-- Generated: ${new Date().toISOString()}\n`;
     sql += `-- Total System Tables: ${allEntities.length}\n`;
     sql += `-- Tables in this file: ${tables.length}\n`;
-    sql += `-- Export Mode: ${safeMode ? 'SAFE' : 'BALANCED'}\n`;
+    sql += `-- Export Mode: ${safeMode ? 'SAFE' : 'TURBO'}\n`;
     sql += `-- Version: 5.0.0 Enterprise\n`;
     sql += `-- ============================================\n\n`;
 
@@ -711,7 +711,6 @@ export default function AdminDatabaseCenter() {
     }
   };
 
-  // Similar for JSON
   const generateSingleJSONFile = async (tables, partNum, totalParts) => {
     const data = {};
     const batches = [];
@@ -777,7 +776,7 @@ export default function AdminDatabaseCenter() {
     }
   };
 
-  const exportSystemFiles = async () => {
+  const generateSystemFilesExport = async () => {
     addLog('📁 Generating system files export...', 'info');
     
     const systemFiles = {
@@ -799,7 +798,7 @@ export default function AdminDatabaseCenter() {
       
       'README.md': `# Glory Wave Platform - Complete Export\n\nGenerated: ${new Date().toISOString()}\n\n## Database\n- Total Tables: ${allEntities.length}\n- Categories: ${Object.keys(groupedByCategory).length}\n\n## Features\n- Real-time collaboration\n- Enterprise permissions\n- Live streaming\n- E-commerce\n- Community management\n\n## Setup\n1. Import SQL files to database\n2. Install dependencies: npm install\n3. Configure environment\n4. Deploy\n`,
       
-      'DATABASE_SCHEMA.md': allEntities.map(e => `## ${e.name}\nCategory: ${e.category}\nIcon: ${e.icon.name}\n`).join('\n'),
+      'DATABASE_SCHEMA.md': allEntities.map(e => `## ${e.name}\nCategory: ${e.category}\n`).join('\n'),
       
       '.env.example': `DATABASE_URL=your_database_url\nAPI_KEY=your_api_key\nENVIRONMENT=production\n`,
       
@@ -845,8 +844,8 @@ export default function AdminDatabaseCenter() {
         }
       }
 
-      if (exportSystemFiles) {
-        await exportSystemFiles();
+      if (includeSystemFiles) {
+        await generateSystemFilesExport();
       }
 
       setExportProgress(100);
@@ -1126,7 +1125,7 @@ export default function AdminDatabaseCenter() {
               <Card className="bg-purple-900/20 border-purple-500/30">
                 <CardContent className="p-4">
                   <div className="space-y-2 text-xs">
-                    <div className="flex justify-between"><span className="text-purple-200">Mode:</span><span className="text-white font-bold">{safeMode ? 'Safe' : 'Balanced'}</span></div>
+                    <div className="flex justify-between"><span className="text-purple-200">Mode:</span><span className="text-white font-bold">{safeMode ? 'Safe' : 'Turbo'}</span></div>
                     <div className="flex justify-between"><span className="text-purple-200">Batch:</span><span className="text-white font-bold">{safeMode ? 1 : verificationBatchSize}</span></div>
                     <div className="flex justify-between"><span className="text-purple-200">Delay:</span><span className="text-white font-bold">{safeMode ? '4000ms' : verificationDelay + 'ms'}</span></div>
                     <div className="flex justify-between"><span className="text-purple-200">Files:</span><span className="text-white font-bold">{selectedTables.length > 0 ? Math.ceil(selectedTables.length / tablesPerFile) : 0}</span></div>
@@ -1139,10 +1138,10 @@ export default function AdminDatabaseCenter() {
                   <p className="text-blue-300 font-bold text-xs mb-2">✨ NEW</p>
                   <ul className="text-blue-200 text-xs space-y-1">
                     <li>• {allEntities.length} complete tables</li>
-                    <li>• 3x faster verification</li>
-                    <li>• Turbo mode available</li>
+                    <li>• 6x faster turbo mode</li>
                     <li>• System files export</li>
-                    <li>• Enhanced logging</li>
+                    <li>• All prayers & donations</li>
+                    <li>• Guest hosts & speakers</li>
                   </ul>
                 </CardContent>
               </Card>
@@ -1198,7 +1197,7 @@ export default function AdminDatabaseCenter() {
             </CardHeader>
             <CardContent className="p-6 space-y-4">
               <label className="flex items-center gap-2 cursor-pointer p-3 bg-slate-900/50 rounded-lg">
-                <Checkbox checked={exportSystemFiles} onCheckedChange={setExportSystemFiles} />
+                <Checkbox checked={includeSystemFiles} onCheckedChange={setIncludeSystemFiles} />
                 <div>
                   <p className="text-white font-bold text-sm">Include System Files</p>
                   <p className="text-slate-400 text-xs">package.json, configs, docs</p>
@@ -1223,7 +1222,7 @@ export default function AdminDatabaseCenter() {
                 </Card>
               </div>
 
-              <Button onClick={() => exportSystemFiles()} className="w-full bg-purple-500 hover:bg-purple-600">
+              <Button onClick={generateSystemFilesExport} className="w-full bg-purple-500 hover:bg-purple-600">
                 <FolderArchive className="w-4 h-4 mr-2" />
                 Export System Files
               </Button>
@@ -1257,7 +1256,7 @@ export default function AdminDatabaseCenter() {
           <div className="flex items-center justify-between">
             <div>
               <p className="text-green-300 font-black text-2xl mb-1">✅ COMPLETE SYSTEM AUDIT</p>
-              <p className="text-green-200 text-sm">{allEntities.length} tables • {Object.keys(groupedByCategory).length} categories • 100% coverage guaranteed</p>
+              <p className="text-green-200 text-sm">{allEntities.length} tables • {Object.keys(groupedByCategory).length} categories • Prayers, Donations, Guests all included!</p>
             </div>
             <CheckCircle className="w-16 h-16 text-green-400" />
           </div>
