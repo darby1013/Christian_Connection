@@ -1,3 +1,4 @@
+
 import React, { useState, useEffect } from "react";
 import { Link, useLocation } from "react-router-dom";
 import { createPageUrl } from "@/utils";
@@ -240,102 +241,159 @@ function LayoutContent({ children, currentPageName }) {
       <SidebarProvider>
         <style>{`
           :root {
-            --sidebar-background: #0f1629 !important;
+            --sidebar-background: #0a0f1e !important;
             --sidebar-foreground: #ffffff !important;
-            --sidebar-primary: #22d3ee !important;
+            --sidebar-primary: #06b6d4 !important;
             --sidebar-primary-foreground: #ffffff !important;
-            --sidebar-accent: rgba(255, 255, 255, 0.05) !important;
+            --sidebar-accent: rgba(6, 182, 212, 0.1) !important;
             --sidebar-accent-foreground: #ffffff !important;
-            --sidebar-border: rgba(255, 255, 255, 0.05) !important;
+            --sidebar-border: rgba(71, 85, 105, 0.3) !important;
           }
           
           [data-sidebar] {
-            background-color: #0f1629 !important;
-            border-color: rgba(255, 255, 255, 0.05) !important;
+            background: linear-gradient(180deg, #0a0f1e 0%, #050911 100%) !important;
+            border-right: 1px solid rgba(71, 85, 105, 0.3) !important;
           }
           
           [data-sidebar-header],
           [data-sidebar-content],
           [data-sidebar-footer] {
-            background-color: #0f1629 !important;
-          }
-          
-          [data-sidebar] * {
-            border-color: rgba(255, 255, 255, 0.05) !important;
+            background-color: transparent !important;
           }
           
           .admin-layout {
-            background: #0a0e27 !important;
+            background: linear-gradient(135deg, #0a0e27 0%, #050911 100%) !important;
             min-height: 100vh;
             width: 100%;
           }
           
           .admin-main {
-            background: #0a0e27 !important;
+            background: transparent !important;
             flex: 1;
             width: 100%;
             max-width: 100%;
           }
           
           .admin-header {
-            background: #0f1629 !important;
-            border-bottom: 1px solid rgba(255, 255, 255, 0.05) !important;
+            background: linear-gradient(90deg, rgba(15, 23, 42, 0.8) 0%, rgba(15, 23, 42, 0.6) 100%) !important;
+            backdrop-filter: blur(20px);
+            border-bottom: 1px solid rgba(71, 85, 105, 0.3) !important;
             width: 100%;
+            box-shadow: 0 4px 20px rgba(0, 0, 0, 0.3);
           }
           
           .admin-content {
             width: 100%;
             max-width: 100%;
-            padding: 1.5rem;
-          }
-          
-          .admin-card {
-            background: linear-gradient(135deg, #1a1f3a 0%, #0f1629 100%) !important;
-            border: 1px solid rgba(255, 255, 255, 0.05) !important;
-            border-radius: 16px;
+            padding: 2rem;
+            background: linear-gradient(180deg, rgba(10, 14, 39, 0) 0%, rgba(10, 14, 39, 0.5) 100%);
           }
           
           .sidebar-label {
-            color: #22d3ee !important;
-            font-size: 11px !important;
-            font-weight: 700 !important;
-            letter-spacing: 0.05em !important;
+            color: #06b6d4 !important;
+            font-size: 10px !important;
+            font-weight: 800 !important;
+            letter-spacing: 0.1em !important;
             text-transform: uppercase !important;
+            padding: 12px 12px 8px 12px !important;
+            position: relative;
+          }
+          
+          .sidebar-label::before {
+            content: '';
+            position: absolute;
+            left: 12px;
+            right: 12px;
+            top: 0;
+            height: 1px;
+            background: linear-gradient(90deg, transparent 0%, rgba(6, 182, 212, 0.3) 50%, transparent 100%);
           }
           
           .sidebar-menu-item {
             color: #94a3b8 !important;
+            border-radius: 8px !important;
+            margin: 2px 8px !important;
+            padding: 10px 12px !important;
+            font-weight: 600 !important;
+            transition: all 0.2s ease !important;
+            position: relative;
           }
           
           .sidebar-menu-item:hover {
-            background-color: rgba(255, 255, 255, 0.05) !important;
+            background: linear-gradient(90deg, rgba(6, 182, 212, 0.15) 0%, rgba(6, 182, 212, 0.05) 100%) !important;
             color: #ffffff !important;
+            transform: translateX(4px);
           }
           
           .sidebar-menu-item.active {
-            background-color: #22d3ee !important;
+            background: linear-gradient(135deg, #06b6d4 0%, #0891b2 100%) !important;
             color: #ffffff !important;
+            box-shadow: 0 4px 12px rgba(6, 182, 212, 0.3), inset 0 1px 0 rgba(255, 255, 255, 0.1);
+            font-weight: 700 !important;
+          }
+          
+          .sidebar-menu-item.active::before {
+            content: '';
+            position: absolute;
+            left: 0;
+            top: 50%;
+            transform: translateY(-50%);
+            width: 3px;
+            height: 20px;
+            background: linear-gradient(180deg, #fff 0%, rgba(255,255,255,0.5) 100%);
+            border-radius: 0 2px 2px 0;
           }
           
           .sidebar-menu-item svg {
             color: inherit !important;
           }
+
+          .enterprise-header-glow {
+            box-shadow: 0 0 40px rgba(6, 182, 212, 0.1);
+          }
+
+          .admin-card {
+            background: linear-gradient(135deg, rgba(30, 41, 59, 0.4) 0%, rgba(15, 23, 42, 0.6) 100%) !important;
+            border: 1px solid rgba(71, 85, 105, 0.3) !important;
+            border-radius: 16px;
+            backdrop-filter: blur(10px);
+          }
+
+          .admin-card:hover {
+            border-color: rgba(6, 182, 212, 0.4) !important;
+            box-shadow: 0 8px 24px rgba(0, 0, 0, 0.2);
+          }
+
+          @keyframes shimmer {
+            0% { background-position: -1000px 0; }
+            100% { background-position: 1000px 0; }
+          }
+
+          .enterprise-shimmer {
+            background: linear-gradient(90deg, transparent 0%, rgba(6, 182, 212, 0.1) 50%, transparent 100%);
+            background-size: 1000px 100%;
+            animation: shimmer 3s infinite;
+          }
         `}</style>
         <div className="flex min-h-screen w-full admin-layout">
-          <Sidebar className="border-r border-white/5" style={{ backgroundColor: '#0f1629' }}>
-            <SidebarHeader className="border-b border-white/5 p-4" style={{ backgroundColor: '#0f1629' }}>
-              <div className="flex items-center gap-2">
-                <div className="w-8 h-8 bg-gradient-to-br from-blue-600 to-cyan-500 rounded-lg flex items-center justify-center">
-                  <Shield className="w-5 h-5 text-white" />
+          <Sidebar className="border-r-0" style={{ background: 'linear-gradient(180deg, #0a0f1e 0%, #050911 100%)' }}>
+            <SidebarHeader className="border-b border-slate-700/30 p-5" style={{ backgroundColor: 'transparent' }}>
+              <div className="flex items-center gap-3">
+                <div className="w-10 h-10 bg-gradient-to-br from-cyan-500 via-blue-600 to-cyan-700 rounded-xl flex items-center justify-center shadow-lg shadow-cyan-500/30 relative overflow-hidden">
+                  <div className="absolute inset-0 bg-gradient-to-tr from-transparent via-white/20 to-transparent enterprise-shimmer"></div>
+                  <Shield className="w-6 h-6 text-white relative z-10" />
                 </div>
-                <span className="text-white font-bold text-sm">Admin Panel</span>
+                <div>
+                  <span className="text-white font-black text-base tracking-tight">Admin Panel</span>
+                  <p className="text-cyan-400 text-xs font-bold">Enterprise Edition</p>
+                </div>
               </div>
             </SidebarHeader>
-
-            <SidebarContent className="p-2 overflow-y-auto max-h-[calc(100vh-180px)]" style={{ backgroundColor: '#0f1629' }}>
+  
+            <SidebarContent className="p-3 overflow-y-auto max-h-[calc(100vh-180px)]" style={{ backgroundColor: 'transparent' }}>
               {Object.entries(groupedAdminItems).map(([section, items]) => (
                 <SidebarGroup key={section}>
-                  <SidebarGroupLabel className="sidebar-label px-3 py-2 mb-0.5">
+                  <SidebarGroupLabel className="sidebar-label">
                     {section}
                   </SidebarGroupLabel>
                   <SidebarGroupContent>
@@ -347,8 +405,11 @@ function LayoutContent({ children, currentPageName }) {
                             <SidebarMenuButton asChild>
                               <Link 
                                 to={item.url} 
-                                className={`flex items-center gap-2.5 px-3 py-2 text-sm font-medium rounded-lg mb-0.5 transition-all sidebar-menu-item ${isActive ? 'active' : ''}`}
-                                style={isActive ? { backgroundColor: '#22d3ee', color: '#ffffff' } : { color: '#94a3b8' }}
+                                className={`flex items-center gap-3 text-sm font-semibold rounded-lg transition-all sidebar-menu-item ${isActive ? 'active' : ''}`}
+                                style={isActive ? { 
+                                  background: 'linear-gradient(135deg, #06b6d4 0%, #0891b2 100%)', 
+                                  color: '#ffffff' 
+                                } : { color: '#94a3b8' }}
                               >
                                 <item.icon className="w-4 h-4" />
                                 <span>{item.title}</span>
@@ -362,58 +423,61 @@ function LayoutContent({ children, currentPageName }) {
                 </SidebarGroup>
               ))}
             </SidebarContent>
-
-            <SidebarFooter className="border-t border-white/5 p-3" style={{ backgroundColor: '#0f1629' }}>
-              <div className="flex items-center gap-2.5 mb-2 px-1">
-                <Avatar className="w-8 h-8 border border-cyan-500/30">
+  
+            <SidebarFooter className="border-t border-slate-700/30 p-4" style={{ backgroundColor: 'transparent' }}>
+              <div className="flex items-center gap-3 mb-3 px-2 p-3 rounded-lg bg-gradient-to-br from-slate-800/40 to-slate-900/40 border border-slate-700/30">
+                <Avatar className="w-10 h-10 border-2 border-cyan-500/40 shadow-lg shadow-cyan-500/20">
                   <AvatarImage src={user?.profile_image} />
-                  <AvatarFallback className="bg-gradient-to-br from-purple-600 to-cyan-500 text-white font-bold text-xs">
+                  <AvatarFallback className="bg-gradient-to-br from-purple-600 to-cyan-500 text-white font-bold">
                     {user?.full_name?.[0] || 'A'}
                   </AvatarFallback>
                 </Avatar>
                 <div className="flex-1 min-w-0">
-                  <p className="font-semibold text-white text-xs truncate">{user?.full_name || 'Admin'}</p>
-                  <p className="text-xs text-slate-400 truncate">{user?.email}</p>
+                  <p className="font-bold text-white text-sm truncate">{user?.full_name || 'Admin'}</p>
+                  <p className="text-xs text-cyan-400 truncate font-semibold">{user?.role || 'Administrator'}</p>
                 </div>
               </div>
-              <div className="flex gap-1.5">
+              <div className="flex gap-2">
                 <Button
                   variant="ghost"
                   size="sm"
                   onClick={() => window.location.href = createPageUrl("Home")}
-                  className="flex-1 bg-white/5 hover:bg-white/10 text-slate-300 text-xs h-8"
+                  className="flex-1 bg-slate-800/50 hover:bg-slate-700/50 text-slate-300 hover:text-white text-xs h-9 font-semibold border border-slate-700/30"
                 >
-                  <Home className="w-3 h-3 mr-1" />
+                  <Home className="w-3 h-3 mr-1.5" />
                   Site
                 </Button>
                 <Button
                   variant="ghost"
                   size="sm"
                   onClick={handleLogout}
-                  className="bg-white/5 hover:bg-white/10 text-slate-300 h-8 px-2"
+                  className="bg-slate-800/50 hover:bg-red-500/20 hover:border-red-500/50 text-slate-300 hover:text-red-400 h-9 px-3 border border-slate-700/30"
                 >
                   <LogOut className="w-3 h-3" />
                 </Button>
               </div>
             </SidebarFooter>
           </Sidebar>
-
+  
           <main className="flex-1 flex flex-col overflow-hidden admin-main w-full">
-            <header className="admin-header px-6 py-4 w-full">
+            <header className="admin-header px-8 py-5 w-full enterprise-header-glow">
               <div className="flex items-center justify-between w-full">
                 <div className="flex items-center gap-4">
                   <SidebarTrigger className="lg:hidden text-white hover:bg-white/10 p-2 rounded-lg" />
-                  <h1 className="text-xl font-bold text-white">{currentPageName?.replace('Admin', '')}</h1>
+                  <div>
+                    <h1 className="text-2xl font-black text-white tracking-tight">{currentPageName?.replace('Admin', '')}</h1>
+                    <p className="text-cyan-400 text-xs font-semibold mt-0.5">Enterprise Administration</p>
+                  </div>
                 </div>
-                <div className="flex items-center gap-2">
+                <div className="flex items-center gap-3">
                   <NotificationBell user={user} />
-                  <Button variant="ghost" size="icon" className="text-slate-400 hover:text-white hover:bg-white/10 rounded-lg">
+                  <Button variant="ghost" size="icon" className="text-slate-400 hover:text-white hover:bg-slate-800/50 rounded-xl border border-transparent hover:border-slate-700/50">
                     <Settings className="w-5 h-5" />
                   </Button>
                 </div>
               </div>
             </header>
-
+  
             <div className="flex-1 overflow-auto admin-content w-full">
               <div className="w-full max-width-full">
                 {children}

@@ -1,14 +1,13 @@
+
 import React, { useState } from "react";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { base44 } from "@/api/base44Client";
-import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Badge } from "@/components/ui/badge";
-import { Tabs, TabsList, TabsTrigger, TabsContent } from "@/components/ui/tabs";
 import {
   ShoppingBag, Search, TrendingUp, Package, Truck, CheckCircle,
-  XCircle, Clock, DollarSign, Eye, Filter, Download
+  XCircle, Clock, DollarSign, Eye, Filter, Download, RefreshCw
 } from "lucide-react";
 import {
   Dialog,
@@ -18,6 +17,10 @@ import {
   DialogTitle,
 } from "@/components/ui/dialog";
 import { format } from "date-fns";
+
+import EnterpriseHeader from '../components/admin/EnterpriseHeader';
+import EnterpriseStats from '../components/admin/EnterpriseStats';
+import EnterpriseTable from '../components/admin/EnterpriseTable';
 
 export default function AdminOrders() {
   const [searchQuery, setSearchQuery] = useState("");
@@ -37,7 +40,7 @@ export default function AdminOrders() {
     mutationFn: ({ id, data }) => base44.entities.Order.update(id, data),
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['orders'] });
-      setDetailDialogOpen(false);
+      setDetailDialogOpen(false); // Close dialog if an update was initiated from it
     },
   });
 
@@ -56,7 +59,7 @@ export default function AdminOrders() {
   };
 
   const filteredOrders = orders.filter(order => {
-    const matchesSearch = 
+    const matchesSearch =
       order.order_number?.toLowerCase().includes(searchQuery.toLowerCase()) ||
       order.customer_name?.toLowerCase().includes(searchQuery.toLowerCase()) ||
       order.customer_email?.toLowerCase().includes(searchQuery.toLowerCase());
@@ -67,9 +70,13 @@ export default function AdminOrders() {
   });
 
   const totalRevenue = orders.reduce((sum, o) => sum + (o.total_amount || 0), 0);
-  const pendingOrders = orders.filter(o => o.status === 'pending').length;
-  const processingOrders = orders.filter(o => o.status === 'processing').length;
-  const completedOrders = orders.filter(o => o.status === 'delivered').length;
+
+  const stats = [
+    { title: 'Total Orders', value: orders.length, icon: ShoppingBag, color: 'cyan', trend: 'up', trendValue: '+15%' },
+    { title: 'Pending', value: orders.filter(o => o.status === 'pending').length, icon: Clock, color: 'amber' },
+    { title: 'Completed', value: orders.filter(o => o.status === 'delivered').length, icon: CheckCircle, color: 'green' },
+    { title: 'Revenue', value: `$${totalRevenue.toLocaleString()}`, icon: DollarSign, color: 'green', trend: 'up', trendValue: '+24%' },
+  ];
 
   const getStatusColor = (status) => {
     const colors = {
@@ -94,63 +101,80 @@ export default function AdminOrders() {
     return <Icon className="w-3 h-3" />;
   };
 
+  const columns = [
+    { header: 'Order ID', key: 'order_number', render: (val, row) => <span className="font-mono text-cyan-400">{val || `#${row.id.slice(0, 8)}`}</span> },
+    { header: 'Customer', key: 'customer_email', render: (val, row) => (
+      <div>
+        <p className="text-white font-semibold">{row.customer_name}</p>
+        <p className="text-slate-400 text-sm">{val}</p>
+      </div>
+    )},
+    { header: 'Date', key: 'created_date', render: (val) => (
+      <p className="text-slate-300 text-sm">
+        {format(new Date(val), 'MMM d, yyyy')}
+      </p>
+    )},
+    { header: 'Amount', key: 'total_amount', render: (val) => <span className="text-green-400 font-bold">${val?.toFixed(2)}</span> },
+    { 
+      header: 'Status', 
+      key: 'status',
+      render: (val) => {
+        return (
+          <Badge className={getStatusColor(val)}>
+            {getStatusIcon(val)}
+            <span className="ml-1 capitalize">{val}</span>
+          </Badge>
+        );
+      }
+    },
+    { header: 'Payment', key: 'payment_status', render: (val) => (
+      <Badge className={val === 'paid' ? 'bg-green-500' : 'bg-amber-500'}>
+        {val}
+      </Badge>
+    )},
+    { 
+      header: 'Actions', 
+      key: 'actions', 
+      render: (val, row) => (
+        <div className="flex items-center justify-end gap-2">
+          <Button
+            size="sm"
+            onClick={() => viewOrderDetails(row)}
+            className="bg-cyan-500 hover:bg-cyan-600"
+          >
+            <Eye className="w-3 h-3 mr-1" />
+            View
+          </Button>
+          {row.status !== 'delivered' && row.status !== 'cancelled' && (
+            <select
+              value={row.status}
+              onChange={(e) => handleStatusChange(row.id, e.target.value)}
+              className="h-8 px-2 text-sm rounded bg-slate-800 border border-slate-700 text-white"
+            >
+              <option value="pending">Pending</option>
+              <option value="processing">Processing</option>
+              <option value="shipped">Shipped</option>
+              <option value="delivered">Delivered</option>
+              <option value="cancelled">Cancelled</option>
+            </select>
+          )}
+        </div>
+      )
+    },
+  ];
+
   return (
     <div className="space-y-6">
-      <div className="flex items-center justify-between">
-        <div>
-          <h2 className="text-3xl font-black text-white mb-2">Order Management</h2>
-          <p className="text-slate-400 font-semibold">Track and manage customer orders</p>
-        </div>
-        <Button className="bg-cyan-500 hover:bg-cyan-600 font-bold">
-          <Download className="w-4 h-4 mr-2" />
-          Export Orders
-        </Button>
-      </div>
+      <EnterpriseHeader
+        title="Orders"
+        subtitle={`${orders.length} total orders • $${totalRevenue.toLocaleString()} revenue`}
+        icon={ShoppingBag}
+        actions={[
+          { label: 'Export Orders', icon: Download, onClick: () => console.log('Export Orders clicked') }
+        ]}
+      />
 
-      <div className="grid md:grid-cols-4 gap-4">
-        <Card className="bg-[#1a1f3a] border-0">
-          <CardContent className="p-6">
-            <div className="flex items-center justify-between mb-2">
-              <ShoppingBag className="w-8 h-8 text-cyan-400" />
-              <TrendingUp className="w-5 h-5 text-green-400" />
-            </div>
-            <p className="text-2xl font-black text-white mb-1">{orders.length}</p>
-            <p className="text-slate-400 text-sm font-semibold">Total Orders</p>
-          </CardContent>
-        </Card>
-
-        <Card className="bg-[#1a1f3a] border-0">
-          <CardContent className="p-6">
-            <div className="flex items-center justify-between mb-2">
-              <DollarSign className="w-8 h-8 text-green-400" />
-            </div>
-            <p className="text-2xl font-black text-white mb-1">${totalRevenue.toLocaleString()}</p>
-            <p className="text-slate-400 text-sm font-semibold">Total Revenue</p>
-          </CardContent>
-        </Card>
-
-        <Card className="bg-[#1a1f3a] border-0">
-          <CardContent className="p-6">
-            <div className="flex items-center justify-between mb-2">
-              <Clock className="w-8 h-8 text-amber-400" />
-              <Badge className="bg-amber-500">{pendingOrders}</Badge>
-            </div>
-            <p className="text-2xl font-black text-white mb-1">{pendingOrders}</p>
-            <p className="text-slate-400 text-sm font-semibold">Pending</p>
-          </CardContent>
-        </Card>
-
-        <Card className="bg-[#1a1f3a] border-0">
-          <CardContent className="p-6">
-            <div className="flex items-center justify-between mb-2">
-              <CheckCircle className="w-8 h-8 text-green-400" />
-              <Badge className="bg-green-500">{completedOrders}</Badge>
-            </div>
-            <p className="text-2xl font-black text-white mb-1">{completedOrders}</p>
-            <p className="text-slate-400 text-sm font-semibold">Completed</p>
-          </CardContent>
-        </Card>
-      </div>
+      <EnterpriseStats stats={stats} />
 
       <div className="flex items-center gap-4">
         <div className="relative flex-1 max-w-md">
@@ -179,89 +203,19 @@ export default function AdminOrders() {
         </div>
       </div>
 
-      <Card className="bg-[#1a1f3a] border-slate-700">
-        <div className="overflow-x-auto">
-          <table className="w-full">
-            <thead>
-              <tr className="border-b border-slate-700">
-                <th className="text-left p-4 text-slate-400 font-semibold text-sm">Order #</th>
-                <th className="text-left p-4 text-slate-400 font-semibold text-sm">Customer</th>
-                <th className="text-left p-4 text-slate-400 font-semibold text-sm">Date</th>
-                <th className="text-left p-4 text-slate-400 font-semibold text-sm">Amount</th>
-                <th className="text-left p-4 text-slate-400 font-semibold text-sm">Status</th>
-                <th className="text-left p-4 text-slate-400 font-semibold text-sm">Payment</th>
-                <th className="text-right p-4 text-slate-400 font-semibold text-sm">Actions</th>
-              </tr>
-            </thead>
-            <tbody>
-              {filteredOrders.map((order) => (
-                <tr key={order.id} className="border-b border-slate-700/50 hover:bg-slate-800/30">
-                  <td className="p-4">
-                    <p className="text-white font-semibold">{order.order_number || `#${order.id.slice(0, 8)}`}</p>
-                  </td>
-                  <td className="p-4">
-                    <p className="text-white font-semibold">{order.customer_name}</p>
-                    <p className="text-slate-400 text-sm">{order.customer_email}</p>
-                  </td>
-                  <td className="p-4">
-                    <p className="text-slate-300 text-sm">
-                      {format(new Date(order.created_date), 'MMM d, yyyy')}
-                    </p>
-                  </td>
-                  <td className="p-4">
-                    <p className="text-white font-bold">${order.total_amount?.toFixed(2)}</p>
-                  </td>
-                  <td className="p-4">
-                    <Badge className={getStatusColor(order.status)}>
-                      {getStatusIcon(order.status)}
-                      <span className="ml-1 capitalize">{order.status}</span>
-                    </Badge>
-                  </td>
-                  <td className="p-4">
-                    <Badge className={order.payment_status === 'paid' ? 'bg-green-500' : 'bg-amber-500'}>
-                      {order.payment_status}
-                    </Badge>
-                  </td>
-                  <td className="p-4">
-                    <div className="flex items-center justify-end gap-2">
-                      <Button
-                        size="sm"
-                        onClick={() => viewOrderDetails(order)}
-                        className="bg-cyan-500 hover:bg-cyan-600"
-                      >
-                        <Eye className="w-3 h-3 mr-1" />
-                        View
-                      </Button>
-                      {order.status !== 'delivered' && order.status !== 'cancelled' && (
-                        <select
-                          value={order.status}
-                          onChange={(e) => handleStatusChange(order.id, e.target.value)}
-                          className="h-8 px-2 text-sm rounded bg-slate-800 border border-slate-700 text-white"
-                        >
-                          <option value="pending">Pending</option>
-                          <option value="processing">Processing</option>
-                          <option value="shipped">Shipped</option>
-                          <option value="delivered">Delivered</option>
-                          <option value="cancelled">Cancelled</option>
-                        </select>
-                      )}
-                    </div>
-                  </td>
-                </tr>
-              ))}
-            </tbody>
-          </table>
-        </div>
-      </Card>
+      <EnterpriseTable
+        columns={columns}
+        data={filteredOrders} // Pass filtered orders
+        // The actions prop from the outline is not used here because we integrated specific actions directly into the 'Actions' column render.
+        // onRowClick is also handled via explicit buttons in the 'Actions' column.
+      />
 
       {filteredOrders.length === 0 && (
-        <Card className="bg-[#1a1f3a] border-slate-700">
-          <CardContent className="p-12 text-center">
-            <ShoppingBag className="w-16 h-16 text-slate-600 mx-auto mb-4" />
-            <h3 className="text-white font-bold text-lg mb-2">No Orders Found</h3>
-            <p className="text-slate-400">No orders match your search criteria</p>
-          </CardContent>
-        </Card>
+        <div className="bg-[#1a1f3a] border-slate-700 rounded-lg p-12 text-center mt-6">
+          <ShoppingBag className="w-16 h-16 text-slate-600 mx-auto mb-4" />
+          <h3 className="text-white font-bold text-lg mb-2">No Orders Found</h3>
+          <p className="text-slate-400">No orders match your search criteria</p>
+        </div>
       )}
 
       <Dialog open={detailDialogOpen} onOpenChange={setDetailDialogOpen}>

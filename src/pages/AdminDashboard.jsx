@@ -1,3 +1,4 @@
+
 import React from "react";
 import { useQuery } from "@tanstack/react-query";
 import { base44 } from "@/api/base44Client";
@@ -7,9 +8,9 @@ import {
   Video, Radio, FileText, Users, ShoppingBag, DollarSign,
   TrendingUp, Eye, Heart, Calendar, MessageSquare, Activity,
   Shield, Settings, Database, BarChart3, Podcast, Crown,
-  Gift, Package, Tag, AlertCircle
+  Gift, Package, Tag, AlertCircle, LayoutDashboard, RefreshCw, Download
 } from "lucide-react";
-import { BarChart, Bar, LineChart, Line, PieChart, Pie, Cell, XAxis, YAxis, CartesianGrid, Tooltip, Legend, ResponsiveContainer } from "recharts";
+import { PieChart, Pie, Cell, XAxis, YAxis, CartesianGrid, Tooltip, Legend, ResponsiveContainer } from "recharts";
 import ActivityFeedWidget from "../components/activity/ActivityFeedWidget";
 import { Link } from "react-router-dom";
 import { createPageUrl } from "@/utils";
@@ -21,6 +22,10 @@ import {
   PerformanceMetricsWidget,
   QuickStatsWidget
 } from "../components/dashboard/RealtimeWidgets";
+import EnterpriseStats from '../components/admin/EnterpriseStats';
+import EnterpriseCard from '../components/admin/EnterpriseCard';
+import EnterpriseChart from '../components/admin/EnterpriseChart';
+import EnterpriseHeader from '../components/admin/EnterpriseHeader';
 
 export default function AdminDashboard() {
   const { data: liveStreams = [] } = useQuery({
@@ -89,55 +94,43 @@ export default function AdminDashboard() {
   const pendingOrders = orders.filter(o => o.status === 'pending' || o.status === 'confirmed').length;
   const lowStockProducts = products.filter(p => p.stock_quantity <= (p.low_stock_threshold || 10)).length;
 
-  const statsCards = [
+  const stats = [
     {
-      title: "Total Users",
-      value: users.length,
+      title: 'Total Users',
+      value: users.length.toLocaleString(),
       icon: Users,
-      color: "from-blue-500 to-cyan-500",
-      trend: "+12.5%",
-      link: createPageUrl("AdminUsers"),
+      trend: 'up',
+      trendValue: '+12.5%',
+      subtitle: 'vs last month',
+      color: 'cyan'
     },
     {
-      title: "Live Streams",
-      value: liveStreams.length,
-      icon: Video,
-      color: "from-purple-500 to-pink-500",
-      trend: "+8.2%",
-      link: createPageUrl("AdminLiveStreams"),
+      title: 'Active Streams',
+      value: liveStreams.filter(s => s.status === 'live').length,
+      icon: Radio,
+      trend: liveStreams.filter(s => s.status === 'live').length > 0 ? 'up' : 'neutral',
+      trendValue: liveStreams.filter(s => s.status === 'live').length > 0 ? 'LIVE' : 'Offline',
+      subtitle: 'Right now',
+      color: 'red'
     },
     {
-      title: "Total Revenue",
-      value: `$${totalRevenue.toFixed(2)}`,
+      title: 'Total Revenue',
+      value: `$${(orders.reduce((sum, o) => sum + (o.total_amount || 0), 0) + donations.reduce((sum, d) => sum + (d.amount || 0), 0)).toLocaleString()}`,
       icon: DollarSign,
-      color: "from-green-500 to-emerald-500",
-      trend: "+23.1%",
-      link: createPageUrl("AdminStoreAnalytics"),
+      trend: 'up',
+      trendValue: '+24.3%',
+      subtitle: 'This month',
+      color: 'green'
     },
     {
-      title: "Active Groups",
-      value: groups.length,
-      icon: Users,
-      color: "from-orange-500 to-amber-500",
-      trend: "+5.4%",
-      link: createPageUrl("AdminGroups"),
-    },
-    {
-      title: "Blog Posts",
-      value: blogPosts.length,
+      title: 'Total Content',
+      value: (videos.length + podcasts.length + blogPosts.length).toLocaleString(),
       icon: FileText,
-      color: "from-indigo-500 to-blue-500",
-      trend: "+15.3%",
-      link: createPageUrl("AdminBlog"),
+      trend: 'up',
+      trendValue: '+8.7%',
+      subtitle: 'Videos, podcasts, blogs',
+      color: 'purple'
     },
-    {
-      title: "Products",
-      value: products.length,
-      icon: ShoppingBag,
-      color: "from-pink-500 to-rose-500",
-      trend: "+7.8%",
-      link: createPageUrl("AdminProducts"),
-    }
   ];
 
   const quickLinks = [
@@ -174,17 +167,56 @@ export default function AdminDashboard() {
     { name: 'Events', value: events.length, color: '#f59e0b' }
   ];
 
-  const monthlyData = [
-    { month: 'Jan', streams: 24, donations: 3200, orders: 18 },
-    { month: 'Feb', streams: 28, donations: 4100, orders: 22 },
-    { month: 'Mar', streams: 32, donations: 3800, orders: 25 },
-    { month: 'Apr', streams: 35, donations: 5200, orders: 30 },
-    { month: 'May', streams: 38, donations: 4900, orders: 28 },
-    { month: 'Jun', streams: 42, donations: 6100, orders: 35 }
+  const activityData = [
+    { name: 'Mon', streams: 12, orders: 45 },
+    { name: 'Tue', streams: 19, orders: 52 },
+    { name: 'Wed', streams: 15, orders: 48 },
+    { name: 'Thu', streams: 22, orders: 61 },
+    { name: 'Fri', streams: 28, orders: 73 },
+    { name: 'Sat', streams: 35, orders: 89 },
+    { name: 'Sun', streams: 31, orders: 67 },
   ];
 
   return (
     <div className="space-y-6">
+      <EnterpriseHeader
+        title="Dashboard"
+        subtitle="Enterprise Analytics & Insights"
+        icon={LayoutDashboard}
+        badge="LIVE"
+        actions={[
+          { label: 'Refresh', icon: RefreshCw, onClick: () => window.location.reload() },
+          { label: 'Export Report', icon: Download, onClick: () => alert('Export feature') }
+        ]}
+      />
+
+      <EnterpriseStats stats={stats} />
+
+      {/* Main Charts area */}
+      <div className="grid lg:grid-cols-2 gap-6">
+        <EnterpriseChart
+          title="Platform Activity"
+          subtitle="Last 7 days"
+          icon={Activity}
+          type="area"
+          data={activityData}
+          dataKey="streams"
+          xKey="name"
+          colors={['primary']}
+        />
+
+        <EnterpriseChart
+          title="Revenue Trend"
+          subtitle="Weekly performance"
+          icon={TrendingUp}
+          type="bar"
+          data={activityData}
+          dataKey="orders"
+          xKey="name"
+          colors={['success']}
+        />
+      </div>
+
       {/* System Alerts */}
       {(pendingOrders > 0 || lowStockProducts > 0) && (
         <div className="grid md:grid-cols-2 gap-4">
@@ -233,210 +265,139 @@ export default function AdminDashboard() {
         <QuickStatsWidget />
       </div>
 
-      {/* Key Metrics */}
-      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-6 gap-4">
-        {statsCards.map((stat, index) => (
-          <Link key={index} to={stat.link}>
-            <Card className="bg-[#1a1f3a] border-0 overflow-hidden relative group hover:shadow-2xl hover:shadow-cyan-500/20 transition-all cursor-pointer">
-              <CardContent className="p-5 relative">
-                <div className="flex items-center justify-between mb-3">
-                  <div className={`w-12 h-12 rounded-2xl bg-gradient-to-br ${stat.color} flex items-center justify-center shadow-lg`}>
-                    <stat.icon className="w-6 h-6 text-white" />
+      {/* Quick Links - Wrapped in EnterpriseCard */}
+      <EnterpriseCard
+        title="Quick Links"
+        icon={Settings}
+        subtitle="Access frequently used admin sections"
+      >
+        <div className="grid lg:grid-cols-4 gap-4">
+          {quickLinks.map((section, idx) => (
+            <Card key={idx} className="bg-[#1a1f3a] border-slate-700">
+              <CardHeader className="border-b border-slate-700 pb-3">
+                <CardTitle className="text-white font-bold text-sm flex items-center gap-2">
+                  <div className={`w-8 h-8 rounded-lg ${section.color} flex items-center justify-center`}>
+                    <section.icon className="w-4 h-4 text-white" />
                   </div>
-                  <span className="text-xs font-semibold text-green-400 flex items-center gap-1">
-                    <TrendingUp className="w-3 h-3" />
-                    {stat.trend}
-                  </span>
+                  {section.title}
+                </CardTitle>
+              </CardHeader>
+              <CardContent className="p-3">
+                <div className="space-y-1">
+                  {section.links.map((link, linkIdx) => (
+                    <Link key={linkIdx} to={link.url}>
+                      <Button
+                        variant="ghost"
+                        className="w-full justify-start text-slate-300 hover:text-white hover:bg-slate-800/50 h-9 text-sm"
+                      >
+                        {link.name}
+                      </Button>
+                    </Link>
+                  ))}
                 </div>
-                <h3 className="text-xs text-slate-400 mb-1 font-medium">{stat.title}</h3>
-                <p className="text-2xl font-bold text-white">{stat.value}</p>
               </CardContent>
             </Card>
-          </Link>
-        ))}
-      </div>
+          ))}
+        </div>
+      </EnterpriseCard>
 
-      {/* Quick Links */}
-      <div className="grid lg:grid-cols-4 gap-4">
-        {quickLinks.map((section, idx) => (
-          <Card key={idx} className="bg-[#1a1f3a] border-slate-700">
-            <CardHeader className="border-b border-slate-700 pb-3">
-              <CardTitle className="text-white font-bold text-sm flex items-center gap-2">
-                <div className={`w-8 h-8 rounded-lg ${section.color} flex items-center justify-center`}>
-                  <section.icon className="w-4 h-4 text-white" />
-                </div>
-                {section.title}
-              </CardTitle>
-            </CardHeader>
-            <CardContent className="p-3">
-              <div className="space-y-1">
-                {section.links.map((link, linkIdx) => (
-                  <Link key={linkIdx} to={link.url}>
-                    <Button 
-                      variant="ghost" 
-                      className="w-full justify-start text-slate-300 hover:text-white hover:bg-slate-800/50 h-9 text-sm"
-                    >
-                      {link.name}
-                    </Button>
-                  </Link>
-                ))}
-              </div>
-            </CardContent>
-          </Card>
-        ))}
-      </div>
-
-      {/* Charts and Activity Feed */}
       <div className="grid lg:grid-cols-3 gap-6">
-        <Card className="bg-[#1a1f3a] border-0 lg:col-span-2">
-          <CardHeader className="border-b border-white/5 pb-4">
-            <CardTitle className="text-white flex items-center gap-2 text-base font-bold">
-              <Activity className="w-5 h-5 text-cyan-400" />
-              Platform Activity
-            </CardTitle>
-          </CardHeader>
-          <CardContent className="pt-6">
-            <ResponsiveContainer width="100%" height={300}>
-              <LineChart data={monthlyData}>
-                <CartesianGrid strokeDasharray="3 3" stroke="rgba(255,255,255,0.05)" />
-                <XAxis dataKey="month" stroke="#94a3b8" style={{ fontSize: '12px' }} />
-                <YAxis stroke="#94a3b8" style={{ fontSize: '12px' }} />
-                <Tooltip
-                  contentStyle={{ backgroundColor: '#1a1f3a', border: '1px solid rgba(255,255,255,0.1)', borderRadius: '8px' }}
-                  labelStyle={{ color: '#f8fafc', fontWeight: '600' }}
-                />
-                <Legend wrapperStyle={{ fontSize: '12px' }} />
-                <Line type="monotone" dataKey="streams" stroke="#22d3ee" strokeWidth={2} name="Live Streams" dot={{ fill: '#22d3ee', r: 4 }} />
-                <Line type="monotone" dataKey="orders" stroke="#a855f7" strokeWidth={2} name="Orders" dot={{ fill: '#a855f7', r: 4 }} />
-              </LineChart>
-            </ResponsiveContainer>
-          </CardContent>
-        </Card>
+        {/* Activity Feed Widget - Wrapped in EnterpriseCard */}
+        <EnterpriseCard
+          title="Recent Activity"
+          icon={MessageSquare}
+          subtitle="Latest user and system events"
+          className="lg:col-span-1"
+        >
+          <ActivityFeedWidget limit={8} />
+        </EnterpriseCard>
 
-        {/* Activity Feed Widget */}
-        <ActivityFeedWidget limit={8} />
+        {/* Content Distribution (Pie Chart) - Wrapped in EnterpriseCard */}
+        <EnterpriseCard
+          title="Content Distribution"
+          icon={FileText}
+          subtitle="Breakdown of content types"
+          className="lg:col-span-2"
+        >
+          <ResponsiveContainer width="100%" height={300}>
+            <PieChart>
+              <Pie
+                data={contentStats}
+                cx="50%"
+                cy="50%"
+                labelLine={false}
+                label={({ name, percent }) => `${name} ${(percent * 100).toFixed(0)}%`}
+                outerRadius={90}
+                fill="#8884d8"
+                dataKey="value"
+              >
+                {contentStats.map((entry, index) => (
+                  <Cell key={`cell-${index}`} fill={entry.color} />
+                ))}
+              </Pie>
+              <Tooltip
+                contentStyle={{ backgroundColor: '#1a1f3a', border: '1px solid rgba(255,255,255,0.1)', borderRadius: '8px' }}
+              />
+            </PieChart>
+          </ResponsiveContainer>
+        </EnterpriseCard>
       </div>
 
       <div className="grid lg:grid-cols-2 gap-6">
-        <Card className="bg-[#1a1f3a] border-0">
-          <CardHeader className="border-b border-white/5 pb-4">
-            <CardTitle className="text-white flex items-center gap-2 text-base font-bold">
-              <FileText className="w-5 h-5 text-purple-400" />
-              Content Distribution
-            </CardTitle>
-          </CardHeader>
-          <CardContent className="pt-6">
-            <ResponsiveContainer width="100%" height={300}>
-              <PieChart>
-                <Pie
-                  data={contentStats}
-                  cx="50%"
-                  cy="50%"
-                  labelLine={false}
-                  label={({ name, percent }) => `${name} ${(percent * 100).toFixed(0)}%`}
-                  outerRadius={90}
-                  fill="#8884d8"
-                  dataKey="value"
-                >
-                  {contentStats.map((entry, index) => (
-                    <Cell key={`cell-${index}`} fill={entry.color} />
-                  ))}
-                </Pie>
-                <Tooltip
-                  contentStyle={{ backgroundColor: '#1a1f3a', border: '1px solid rgba(255,255,255,0.1)', borderRadius: '8px' }}
-                />
-              </PieChart>
-            </ResponsiveContainer>
-          </CardContent>
-        </Card>
-
-        <Card className="bg-[#1a1f3a] border-0">
-          <CardHeader className="border-b border-white/5 pb-4">
-            <CardTitle className="text-white flex items-center gap-2 text-base font-bold">
-              <DollarSign className="w-5 h-5 text-green-400" />
-              Revenue Overview
-            </CardTitle>
-          </CardHeader>
-          <CardContent className="pt-6">
-            <ResponsiveContainer width="100%" height={300}>
-              <BarChart data={monthlyData}>
-                <CartesianGrid strokeDasharray="3 3" stroke="rgba(255,255,255,0.05)" />
-                <XAxis dataKey="month" stroke="#94a3b8" style={{ fontSize: '12px' }} />
-                <YAxis stroke="#94a3b8" style={{ fontSize: '12px' }} />
-                <Tooltip
-                  contentStyle={{ backgroundColor: '#1a1f3a', border: '1px solid rgba(255,255,255,0.1)', borderRadius: '8px' }}
-                  labelStyle={{ color: '#f8fafc', fontWeight: '600' }}
-                />
-                <Legend wrapperStyle={{ fontSize: '12px' }} />
-                <Bar dataKey="donations" fill="#10b981" name="Donations ($)" radius={[8, 8, 0, 0]} />
-                <Bar dataKey="orders" fill="#a855f7" name="Orders ($)" radius={[8, 8, 0, 0]} />
-              </BarChart>
-            </ResponsiveContainer>
-          </CardContent>
-        </Card>
-      </div>
-
-      <div className="grid lg:grid-cols-2 gap-6">
-        <Card className="bg-[#1a1f3a] border-0">
-          <CardHeader className="border-b border-white/5 pb-4">
-            <CardTitle className="text-white flex items-center gap-2 text-base font-bold">
-              <Video className="w-5 h-5 text-red-400" />
-              Recent Live Streams
-            </CardTitle>
-          </CardHeader>
-          <CardContent className="pt-4">
-            <div className="space-y-2">
-              {liveStreams.slice(0, 5).map((stream) => (
-                <div key={stream.id} className="flex items-center justify-between p-3 bg-white/5 rounded-lg hover:bg-white/10 transition-colors">
-                  <div className="flex-1">
-                    <h4 className="text-white font-medium text-sm line-clamp-1">{stream.title}</h4>
-                    <p className="text-xs text-slate-400">{stream.host_name}</p>
-                  </div>
-                  <div className="flex items-center gap-3">
-                    <span className="text-xs px-2 py-1 rounded-full bg-indigo-500/20 text-indigo-300 font-medium">
-                      {stream.status}
-                    </span>
-                    <div className="flex items-center gap-1 text-xs text-slate-400">
-                      <Eye className="w-3 h-3" />
-                      {stream.viewer_count}
-                    </div>
+        {/* Recent Live Streams - Wrapped in EnterpriseCard */}
+        <EnterpriseCard
+          title="Recent Live Streams"
+          icon={Video}
+          subtitle="Latest live broadcasts"
+        >
+          <div className="space-y-2">
+            {liveStreams.slice(0, 5).map((stream) => (
+              <div key={stream.id} className="flex items-center justify-between p-3 bg-white/5 rounded-lg hover:bg-white/10 transition-colors">
+                <div className="flex-1">
+                  <h4 className="text-white font-medium text-sm line-clamp-1">{stream.title}</h4>
+                  <p className="text-xs text-slate-400">{stream.host_name}</p>
+                </div>
+                <div className="flex items-center gap-3">
+                  <span className="text-xs px-2 py-1 rounded-full bg-indigo-500/20 text-indigo-300 font-medium">
+                    {stream.status}
+                  </span>
+                  <div className="flex items-center gap-1 text-xs text-slate-400">
+                    <Eye className="w-3 h-3" />
+                    {stream.viewer_count}
                   </div>
                 </div>
-              ))}
-            </div>
-          </CardContent>
-        </Card>
+              </div>
+            ))}
+          </div>
+        </EnterpriseCard>
 
-        <Card className="bg-[#1a1f3a] border-0">
-          <CardHeader className="border-b border-white/5 pb-4">
-            <CardTitle className="text-white flex items-center gap-2 text-base font-bold">
-              <ShoppingBag className="w-5 h-5 text-cyan-400" />
-              Recent Orders
-            </CardTitle>
-          </CardHeader>
-          <CardContent className="pt-4">
-            <div className="space-y-2">
-              {orders.slice(0, 5).map((order) => (
-                <div key={order.id} className="flex items-center justify-between p-3 bg-white/5 rounded-lg hover:bg-white/10 transition-colors">
-                  <div className="flex-1">
-                    <h4 className="text-white font-medium text-sm">{order.order_number || order.id.slice(0, 8)}</h4>
-                    <p className="text-xs text-slate-400">{order.customer_name}</p>
-                  </div>
-                  <div className="flex items-center gap-3">
-                    <span className="text-sm font-bold text-green-400">${order.total_amount?.toFixed(2)}</span>
-                    <span className={`text-xs px-2 py-1 rounded-full font-medium ${
-                      order.status === 'delivered' ? 'bg-green-500/20 text-green-300' :
-                      order.status === 'shipped' ? 'bg-blue-500/20 text-blue-300' :
-                      'bg-yellow-500/20 text-yellow-300'
-                    }`}>
-                      {order.status}
-                    </span>
-                  </div>
+        {/* Recent Orders - Wrapped in EnterpriseCard */}
+        <EnterpriseCard
+          title="Recent Orders"
+          icon={ShoppingBag}
+          subtitle="Latest customer purchases"
+        >
+          <div className="space-y-2">
+            {orders.slice(0, 5).map((order) => (
+              <div key={order.id} className="flex items-center justify-between p-3 bg-white/5 rounded-lg hover:bg-white/10 transition-colors">
+                <div className="flex-1">
+                  <h4 className="text-white font-medium text-sm">{order.order_number || order.id.slice(0, 8)}</h4>
+                  <p className="text-xs text-slate-400">{order.customer_name}</p>
                 </div>
-              ))}
-            </div>
-          </CardContent>
-        </Card>
+                <div className="flex items-center gap-3">
+                  <span className="text-sm font-bold text-green-400">${order.total_amount?.toFixed(2)}</span>
+                  <span className={`text-xs px-2 py-1 rounded-full font-medium ${
+                    order.status === 'delivered' ? 'bg-green-500/20 text-green-300' :
+                    order.status === 'shipped' ? 'bg-blue-500/20 text-blue-300' :
+                    'bg-yellow-500/20 text-yellow-300'
+                  }`}>
+                    {order.status}
+                  </span>
+                </div>
+              </div>
+            ))}
+          </div>
+        </EnterpriseCard>
       </div>
     </div>
   );

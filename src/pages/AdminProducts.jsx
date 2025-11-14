@@ -1,3 +1,4 @@
+
 import React, { useState } from "react";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { base44 } from "@/api/base44Client";
@@ -9,7 +10,8 @@ import { Textarea } from "@/components/ui/textarea";
 import { Badge } from "@/components/ui/badge";
 import {
   Store, Plus, Search, TrendingUp, Eye, Edit, Trash2,
-  DollarSign, Package, Star, AlertCircle, Upload
+  DollarSign, Package, Star, AlertCircle, Upload,
+  CheckCircle, AlertTriangle, XCircle // New icons added
 } from "lucide-react";
 import {
   Dialog,
@@ -17,8 +19,12 @@ import {
   DialogFooter,
   DialogHeader,
   DialogTitle,
-  DialogTrigger,
-} from "@/components/ui/dialog";
+} from "@/components/ui/dialog"; // DialogTrigger removed as it's now controlled by actions
+
+// New imports for Enterprise components
+import EnterpriseHeader from '../components/admin/EnterpriseHeader';
+import EnterpriseStats from '../components/admin/EnterpriseStats';
+import EnterpriseTable from '../components/admin/EnterpriseTable';
 
 export default function AdminProducts() {
   const [searchQuery, setSearchQuery] = useState("");
@@ -94,7 +100,13 @@ export default function AdminProducts() {
 
   const handleEdit = (product) => {
     setEditingProduct(product);
-    setProductForm(product);
+    setProductForm({
+      ...product,
+      price: product.price || 0, // Ensure price is a number
+      stock_quantity: product.stock_quantity || 0, // Ensure stock_quantity is a number
+      images: product.images || [], // Ensure images is an array
+      status: product.status || 'active' // Ensure status has a default
+    });
     setDialogOpen(true);
   };
 
@@ -118,15 +130,6 @@ export default function AdminProducts() {
     setEditingProduct(null);
   };
 
-  const filteredProducts = products.filter(p =>
-    p.name?.toLowerCase().includes(searchQuery.toLowerCase()) ||
-    p.category?.toLowerCase().includes(searchQuery.toLowerCase())
-  );
-
-  const totalValue = products.reduce((sum, p) => sum + (p.price * p.stock_quantity || 0), 0);
-  const activeProducts = products.filter(p => p.status === 'active').length;
-  const outOfStock = products.filter(p => p.stock_quantity === 0).length;
-
   const getStatusColor = (status) => {
     const colors = {
       active: 'bg-green-500',
@@ -136,20 +139,102 @@ export default function AdminProducts() {
     return colors[status] || 'bg-slate-500';
   };
 
+  // The filteredProducts is still useful for the EnterpriseTable to handle search
+  const filteredProducts = products.filter(p =>
+    p.name?.toLowerCase().includes(searchQuery.toLowerCase()) ||
+    p.category?.toLowerCase().includes(searchQuery.toLowerCase()) ||
+    p.sku?.toLowerCase().includes(searchQuery.toLowerCase()) ||
+    p.description?.toLowerCase().includes(searchQuery.toLowerCase())
+  );
+
+  // New stats array for EnterpriseStats component
+  const stats = [
+    { title: 'Total Products', value: products.length, icon: Package, color: 'cyan', trend: 'up', trendValue: '+8%' },
+    { title: 'In Stock', value: products.filter(p => p.stock_quantity > 0).length, icon: CheckCircle, color: 'green' },
+    { title: 'Low Stock', value: products.filter(p => p.stock_quantity > 0 && p.stock_quantity < 10).length, icon: AlertTriangle, color: 'amber' },
+    { title: 'Out of Stock', value: products.filter(p => p.stock_quantity === 0).length, icon: XCircle, color: 'red' },
+  ];
+
+  // New columns array for EnterpriseTable component
+  const columns = [
+    {
+      header: 'Product',
+      key: 'name',
+      render: (val, row) => (
+        <div className="flex items-center gap-3">
+          <div className="w-12 h-12 rounded-lg bg-slate-800 border border-slate-700 overflow-hidden flex-shrink-0">
+            {row.images && row.images[0] ? (
+              <img src={row.images[0]} alt={val} className="w-full h-full object-cover" />
+            ) : (
+              <div className="w-full h-full flex items-center justify-center text-slate-600">
+                <Package className="w-6 h-6" />
+              </div>
+            )}
+          </div>
+          <div className="flex flex-col">
+            <p className="font-bold text-white">{val}</p>
+            <p className="text-slate-400 text-xs">{row.category}</p>
+          </div>
+        </div>
+      )
+    },
+    {
+      header: 'Price',
+      key: 'price',
+      render: (val) => <span className="font-bold text-green-400">${val?.toFixed(2)}</span>
+    },
+    {
+      header: 'Stock',
+      key: 'stock_quantity',
+      render: (val) => (
+        <Badge className={val === 0 ? 'bg-red-500' : val < 10 ? 'bg-amber-500' : 'bg-green-500'}>
+          {val} units
+        </Badge>
+      )
+    },
+    {
+      header: 'Status',
+      key: 'status',
+      render: (val) => (
+        <Badge className={`${getStatusColor(val)} capitalize`}>
+          {val.replace(/_/g, ' ')}
+        </Badge>
+      )
+    },
+    {
+      header: 'Added',
+      key: 'created_date',
+      render: (val) => new Date(val).toLocaleDateString()
+    },
+  ];
+
   return (
     <div className="space-y-6">
-      <div className="flex items-center justify-between">
-        <div>
-          <h2 className="text-3xl font-black text-white mb-2">Product Management</h2>
-          <p className="text-slate-400 font-semibold">Manage your product catalog</p>
-        </div>
-        <Dialog open={dialogOpen} onOpenChange={setDialogOpen}>
-          <DialogTrigger asChild>
-            <Button className="bg-cyan-500 hover:bg-cyan-600 font-bold">
-              <Plus className="w-4 h-4 mr-2" />
-              Add Product
-            </Button>
-          </DialogTrigger>
+      <EnterpriseHeader
+        title="Products"
+        subtitle={`${products.length} products in catalog`}
+        icon={Package}
+        actions={[
+          { label: 'Add Product', icon: Plus, onClick: () => { setDialogOpen(true); resetForm(); } },
+          { label: 'Import CSV', icon: Upload, onClick: () => alert('Import CSV functionality not yet implemented.') }
+        ]}
+        searchQuery={searchQuery}
+        setSearchQuery={setSearchQuery}
+      />
+
+      <EnterpriseStats stats={stats} />
+
+      <EnterpriseTable
+        columns={columns}
+        data={filteredProducts} // Use filteredProducts to apply the search functionality
+        onRowClick={(row) => console.log('Product clicked:', row.name)} // Example click handler
+        actions={[
+          { label: 'Edit', icon: Edit, onClick: (row) => handleEdit(row) },
+          { label: 'Delete', icon: Trash2, onClick: (row) => handleDelete(row.id) }
+        ]}
+      />
+
+      <Dialog open={dialogOpen} onOpenChange={setDialogOpen}>
           <DialogContent className="bg-[#1a1f3a] border-slate-700 max-w-3xl max-h-[90vh] overflow-y-auto">
             <DialogHeader>
               <DialogTitle className="text-white font-black text-xl">
@@ -259,123 +344,6 @@ export default function AdminProducts() {
             </DialogFooter>
           </DialogContent>
         </Dialog>
-      </div>
-
-      <div className="grid md:grid-cols-4 gap-4">
-        <Card className="bg-[#1a1f3a] border-0">
-          <CardContent className="p-6">
-            <div className="flex items-center justify-between mb-2">
-              <Store className="w-8 h-8 text-purple-400" />
-              <Badge className="bg-purple-500">{products.length}</Badge>
-            </div>
-            <p className="text-2xl font-black text-white mb-1">{products.length}</p>
-            <p className="text-slate-400 text-sm font-semibold">Total Products</p>
-          </CardContent>
-        </Card>
-
-        <Card className="bg-[#1a1f3a] border-0">
-          <CardContent className="p-6">
-            <div className="flex items-center justify-between mb-2">
-              <DollarSign className="w-8 h-8 text-green-400" />
-              <TrendingUp className="w-5 h-5 text-green-400" />
-            </div>
-            <p className="text-2xl font-black text-white mb-1">${totalValue.toLocaleString()}</p>
-            <p className="text-slate-400 text-sm font-semibold">Inventory Value</p>
-          </CardContent>
-        </Card>
-
-        <Card className="bg-[#1a1f3a] border-0">
-          <CardContent className="p-6">
-            <div className="flex items-center justify-between mb-2">
-              <Package className="w-8 h-8 text-cyan-400" />
-              <Badge className="bg-cyan-500">{activeProducts}</Badge>
-            </div>
-            <p className="text-2xl font-black text-white mb-1">{activeProducts}</p>
-            <p className="text-slate-400 text-sm font-semibold">Active</p>
-          </CardContent>
-        </Card>
-
-        <Card className="bg-[#1a1f3a] border-0">
-          <CardContent className="p-6">
-            <div className="flex items-center justify-between mb-2">
-              <AlertCircle className="w-8 h-8 text-red-400" />
-              <Badge className="bg-red-500">{outOfStock}</Badge>
-            </div>
-            <p className="text-2xl font-black text-white mb-1">{outOfStock}</p>
-            <p className="text-slate-400 text-sm font-semibold">Out of Stock</p>
-          </CardContent>
-        </Card>
-      </div>
-
-      <div className="relative max-w-md">
-        <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-slate-400 w-5 h-5" />
-        <Input
-          placeholder="Search products..."
-          value={searchQuery}
-          onChange={(e) => setSearchQuery(e.target.value)}
-          className="pl-10 bg-[#1a1f3a] border-slate-700 text-white"
-        />
-      </div>
-
-      <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-4">
-        {filteredProducts.map((product) => (
-          <Card key={product.id} className="bg-[#1a1f3a] border-slate-700">
-            <div className="relative aspect-square bg-slate-800">
-              {product.images && product.images[0] ? (
-                <img src={product.images[0]} alt={product.name} className="w-full h-full object-cover" />
-              ) : (
-                <div className="w-full h-full flex items-center justify-center">
-                  <Package className="w-16 h-16 text-slate-600" />
-                </div>
-              )}
-              <Badge className={`absolute top-3 right-3 ${getStatusColor(product.status)}`}>
-                {product.status}
-              </Badge>
-            </div>
-            <CardContent className="p-5">
-              <h3 className="text-white font-bold text-lg mb-2">{product.name}</h3>
-              <p className="text-slate-400 text-sm mb-3 line-clamp-2">{product.description}</p>
-              <div className="flex items-center justify-between mb-4">
-                <p className="text-green-400 font-black text-xl">${product.price?.toFixed(2)}</p>
-                <div className="text-slate-400 text-sm">
-                  Stock: <span className={product.stock_quantity > 0 ? 'text-green-400' : 'text-red-400'}>{product.stock_quantity}</span>
-                </div>
-              </div>
-              {product.category && (
-                <Badge className="bg-purple-500 mb-3">{product.category}</Badge>
-              )}
-              <div className="flex gap-2">
-                <Button size="sm" onClick={() => handleEdit(product)} className="flex-1 bg-cyan-500 hover:bg-cyan-600">
-                  <Edit className="w-3 h-3 mr-1" />
-                  Edit
-                </Button>
-                <Button
-                  size="sm"
-                  variant="outline"
-                  onClick={() => handleDelete(product.id)}
-                  className="border-red-500/30 text-red-400"
-                >
-                  <Trash2 className="w-3 h-3" />
-                </Button>
-              </div>
-            </CardContent>
-          </Card>
-        ))}
-      </div>
-
-      {filteredProducts.length === 0 && (
-        <Card className="bg-[#1a1f3a] border-slate-700">
-          <CardContent className="p-12 text-center">
-            <Store className="w-16 h-16 text-slate-600 mx-auto mb-4" />
-            <h3 className="text-white font-bold text-lg mb-2">No Products</h3>
-            <p className="text-slate-400 mb-6">Add your first product to get started</p>
-            <Button onClick={() => setDialogOpen(true)} className="bg-cyan-500 hover:bg-cyan-600">
-              <Plus className="w-4 h-4 mr-2" />
-              Add First Product
-            </Button>
-          </CardContent>
-        </Card>
-      )}
     </div>
   );
 }
