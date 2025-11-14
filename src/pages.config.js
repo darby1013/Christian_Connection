@@ -151,6 +151,20 @@ import CollaborativeBlogEditor from './pages/CollaborativeBlogEditor';
 import AdminRolesEnhanced from './pages/AdminRolesEnhanced';
 import AdminWebsiteFilesManager from './pages/AdminWebsiteFilesManager';
 import AdminSystemHealth from './pages/AdminSystemHealth';
+import AdminAISuite from './pages/AdminAISuite';
+import AdminAICourseCreator from './pages/AdminAICourseCreator';
+import AdminAILessonGenerator from './pages/AdminAILessonGenerator';
+import AdminAIQuizGenerator from './pages/AdminAIQuizGenerator';
+import AdminAITranscriptionManager from './pages/AdminAITranscriptionManager';
+import AdminAIBlogGenerator from './pages/AdminAIBlogGenerator';
+import AdminAIToneEditor from './pages/AdminAIToneEditor';
+import AdminAIDiscussionGenerator from './pages/AdminAIDiscussionGenerator';
+import AdminAILearningPathOptimizer from './pages/AdminAILearningPathOptimizer';
+import AdminAITrailerGenerator from './pages/AdminAITrailerGenerator';
+import AdminAISocialMediaGenerator from './pages/AdminAISocialMediaGenerator';
+import AdminAIChapterGenerator from './pages/AdminAIChapterGenerator';
+import AdminAIPodcastRepurposing from './pages/AdminAIPodcastRepurposing';
+import AdminAITagGenerator from './pages/AdminAITagGenerator';
 import Layout from './Layout.jsx';
 
 
@@ -308,6 +322,20 @@ export const PAGES = {
     "AdminRolesEnhanced": AdminRolesEnhanced,
     "AdminWebsiteFilesManager": AdminWebsiteFilesManager,
     "AdminSystemHealth": AdminSystemHealth,
+    "AdminAISuite": AdminAISuite,
+    "AdminAICourseCreator": AdminAICourseCreator,
+    "AdminAILessonGenerator": AdminAILessonGenerator,
+    "AdminAIQuizGenerator": AdminAIQuizGenerator,
+    "AdminAITranscriptionManager": AdminAITranscriptionManager,
+    "AdminAIBlogGenerator": AdminAIBlogGenerator,
+    "AdminAIToneEditor": AdminAIToneEditor,
+    "AdminAIDiscussionGenerator": AdminAIDiscussionGenerator,
+    "AdminAILearningPathOptimizer": AdminAILearningPathOptimizer,
+    "AdminAITrailerGenerator": AdminAITrailerGenerator,
+    "AdminAISocialMediaGenerator": AdminAISocialMediaGenerator,
+    "AdminAIChapterGenerator": AdminAIChapterGenerator,
+    "AdminAIPodcastRepurposing": AdminAIPodcastRepurposing,
+    "AdminAITagGenerator": AdminAITagGenerator,
 }
 
 export const pagesConfig = {
