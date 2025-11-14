@@ -8,26 +8,23 @@ import { Tabs, TabsList, TabsTrigger, TabsContent } from "@/components/ui/tabs";
 import { Checkbox } from "@/components/ui/checkbox";
 import { Progress } from "@/components/ui/progress";
 import { Input } from "@/components/ui/input";
-import { Label } from "@/components/ui/label";
 import {
   Database, Sparkles, Search, GitBranch, Code, Upload, Archive,
   Download, Activity, Zap, Shield, Link2, TrendingUp, Server,
-  FileText, CheckCircle, AlertCircle, Loader2, Table, HardDrive,
-  Clock, Users, FileJson, Package, Eye, MessageSquare, Calendar,
+  FileText, CheckCircle, AlertCircle, Loader2, Table,
+  Clock, Users, Package, Eye, MessageSquare, Calendar,
   Heart, Video, Radio, Mic2, BookOpen, Settings, DollarSign, Gift,
   Tag, Truck, Award, Globe, Star, UserPlus, Rss, Book, Crown,
   Image, Film, Bell, ShoppingBag, Mail, BarChart3, Palette, RefreshCw,
-  Warehouse, XCircle, Layers, Boxes, FolderArchive, Key, Lock, Webhook,
-  Cpu, FileArchive, Briefcase, Share2, Bookmark, Repeat, CircleDot,
-  PlayCircle, FileCode, Folder, FolderOpen, HardDriveDownload, CreditCard
+  Warehouse, Layers, Boxes, FolderArchive, Key, Lock, Webhook,
+  Cpu, FileArchive, Briefcase, Share2, Bookmark, CircleDot,
+  FileCode, FolderOpen, HardDriveDownload, CreditCard
 } from "lucide-react";
 import { Link } from "react-router-dom";
 import { createPageUrl } from "@/utils";
 
 export default function AdminDatabaseCenter() {
-  const [user, setUser] = useState(null);
   const [selectedTables, setSelectedTables] = useState([]);
-  const [exportFormat, setExportFormat] = useState('SQL Dump');
   const [exporting, setExporting] = useState(false);
   const [exportProgress, setExportProgress] = useState(0);
   const [includeData, setIncludeData] = useState(true);
@@ -49,24 +46,7 @@ export default function AdminDatabaseCenter() {
   const [tablesPerFile, setTablesPerFile] = useState(25);
   const [includeSystemFiles, setIncludeSystemFiles] = useState(false);
 
-  useEffect(() => {
-    const fetchUser = async () => {
-      try {
-        const currentUser = await base44.auth.me();
-        setUser(currentUser);
-      } catch (error) {
-        console.log('Not logged in');
-      }
-    };
-    fetchUser();
-  }, []);
-
-  // ============================================
-  // COMPLETE COMPREHENSIVE ENTITY LIST - ALL 200+ TABLES
-  // DOUBLE-AUDITED FOR 100% COVERAGE
-  // ============================================
   const allEntities = [
-    // ========== CORE SYSTEM (9) ==========
     { name: 'User', icon: Users, category: 'Core' },
     { name: 'Role', icon: Shield, category: 'Core' },
     { name: 'UserTheme', icon: Palette, category: 'Core' },
@@ -76,8 +56,6 @@ export default function AdminDatabaseCenter() {
     { name: 'LoginAttempt', icon: Lock, category: 'Core' },
     { name: 'PasswordReset', icon: Key, category: 'Core' },
     { name: 'TwoFactorAuth', icon: Shield, category: 'Core' },
-    
-    // ========== CONTENT (11) ==========
     { name: 'LiveStream', icon: Radio, category: 'Content' },
     { name: 'Video', icon: Video, category: 'Content' },
     { name: 'Podcast', icon: Mic2, category: 'Content' },
@@ -89,8 +67,6 @@ export default function AdminDatabaseCenter() {
     { name: 'MediaAsset', icon: Image, category: 'Content' },
     { name: 'StreamScript', icon: FileText, category: 'Content' },
     { name: 'ContentModeration', icon: Shield, category: 'Content' },
-    
-    // ========== STREAMING (10) ==========
     { name: 'GuestHost', icon: Users, category: 'Streaming' },
     { name: 'LiveStreamChat', icon: MessageSquare, category: 'Streaming' },
     { name: 'StreamViewer', icon: Eye, category: 'Streaming' },
@@ -101,8 +77,6 @@ export default function AdminDatabaseCenter() {
     { name: 'Sermon', icon: BookOpen, category: 'Streaming' },
     { name: 'Devotional', icon: Book, category: 'Streaming' },
     { name: 'StreamTip', icon: DollarSign, category: 'Streaming' },
-    
-    // ========== PODCAST (19) ==========
     { name: 'PodcastSeries', icon: Mic2, category: 'Podcast' },
     { name: 'PodcastTranscription', icon: FileText, category: 'Podcast' },
     { name: 'PodcastShowNote', icon: FileText, category: 'Podcast' },
@@ -122,8 +96,6 @@ export default function AdminDatabaseCenter() {
     { name: 'PodcastComment', icon: MessageSquare, category: 'Podcast' },
     { name: 'PodcastGuest', icon: Users, category: 'Podcast' },
     { name: 'PodcastSponsor', icon: Briefcase, category: 'Podcast' },
-    
-    // ========== COMMUNITY (18) ==========
     { name: 'Group', icon: Users, category: 'Community' },
     { name: 'GroupMember', icon: Users, category: 'Community' },
     { name: 'GroupPost', icon: FileText, category: 'Community' },
@@ -142,14 +114,10 @@ export default function AdminDatabaseCenter() {
     { name: 'PrayerUpdate', icon: RefreshCw, category: 'Community' },
     { name: 'Ministry', icon: Crown, category: 'Community' },
     { name: 'SmallGroup', icon: Users, category: 'Community' },
-    
-    // ========== FORUM (4) ==========
     { name: 'ForumCategory', icon: BookOpen, category: 'Forum' },
     { name: 'ForumThread', icon: MessageSquare, category: 'Forum' },
     { name: 'ForumPost', icon: FileText, category: 'Forum' },
     { name: 'ForumReply', icon: MessageSquare, category: 'Forum' },
-    
-    // ========== MESSAGING (8) ==========
     { name: 'ChatMessage', icon: MessageSquare, category: 'Messaging' },
     { name: 'DirectMessage', icon: MessageSquare, category: 'Messaging' },
     { name: 'Chatroom', icon: MessageSquare, category: 'Messaging' },
@@ -158,15 +126,11 @@ export default function AdminDatabaseCenter() {
     { name: 'MessageReaction', icon: Heart, category: 'Messaging' },
     { name: 'ThreadSubscription', icon: Bell, category: 'Messaging' },
     { name: 'UserConnection', icon: Users, category: 'Messaging' },
-    
-    // ========== EVENTS (5) ==========
     { name: 'Event', icon: Calendar, category: 'Events' },
     { name: 'EventRegistration', icon: Calendar, category: 'Events' },
     { name: 'EventSpeaker', icon: Users, category: 'Events' },
     { name: 'EventTicket', icon: Tag, category: 'Events' },
     { name: 'Attendance', icon: CheckCircle, category: 'Events' },
-    
-    // ========== COMMERCE CORE (33) ==========
     { name: 'Product', icon: Package, category: 'Commerce' },
     { name: 'ProductVariant', icon: Package, category: 'Commerce' },
     { name: 'ProductBundle', icon: Package, category: 'Commerce' },
@@ -200,8 +164,6 @@ export default function AdminDatabaseCenter() {
     { name: 'CustomerAddress', icon: Users, category: 'Commerce' },
     { name: 'DiscountRule', icon: Tag, category: 'Commerce' },
     { name: 'RefundRequest', icon: RefreshCw, category: 'Commerce' },
-    
-    // ========== FINANCE (9) ==========
     { name: 'Donation', icon: Heart, category: 'Finance' },
     { name: 'DonationCampaign', icon: Heart, category: 'Finance' },
     { name: 'RecurringDonation', icon: RefreshCw, category: 'Finance' },
@@ -211,15 +173,11 @@ export default function AdminDatabaseCenter() {
     { name: 'Affiliate', icon: Users, category: 'Finance' },
     { name: 'ReferralCode', icon: Tag, category: 'Finance' },
     { name: 'Commission', icon: DollarSign, category: 'Finance' },
-    
-    // ========== MEMBERSHIP (5) ==========
     { name: 'Subscription', icon: Crown, category: 'Membership' },
     { name: 'SubscriptionPlan', icon: Crown, category: 'Membership' },
     { name: 'CustomerLoyalty', icon: Award, category: 'Membership' },
     { name: 'LoyaltyProgram', icon: Award, category: 'Membership' },
     { name: 'MembershipFeature', icon: Crown, category: 'Membership' },
-    
-    // ========== GAMIFICATION (7) ==========
     { name: 'UserBadge', icon: Award, category: 'Gamification' },
     { name: 'UserPoints', icon: Award, category: 'Gamification' },
     { name: 'Badge', icon: Award, category: 'Gamification' },
@@ -227,8 +185,6 @@ export default function AdminDatabaseCenter() {
     { name: 'UserLevel', icon: TrendingUp, category: 'Gamification' },
     { name: 'UserProgress', icon: Activity, category: 'Gamification' },
     { name: 'UserFollower', icon: Users, category: 'Gamification' },
-    
-    // ========== LEARNING (8) ==========
     { name: 'Course', icon: Book, category: 'Learning' },
     { name: 'CourseModule', icon: Book, category: 'Learning' },
     { name: 'CourseLesson', icon: BookOpen, category: 'Learning' },
@@ -237,8 +193,6 @@ export default function AdminDatabaseCenter() {
     { name: 'BibleStudy', icon: Book, category: 'Learning' },
     { name: 'ResourceLibrary', icon: Download, category: 'Learning' },
     { name: 'KnowledgeBase', icon: Book, category: 'Learning' },
-    
-    // ========== COMMUNITY EXT (7) ==========
     { name: 'Testimony', icon: Star, category: 'Community Ext' },
     { name: 'TestimonyComment', icon: MessageSquare, category: 'Community Ext' },
     { name: 'TestimonyCategory', icon: BookOpen, category: 'Community Ext' },
@@ -246,8 +200,6 @@ export default function AdminDatabaseCenter() {
     { name: 'VolunteerRequest', icon: UserPlus, category: 'Community Ext' },
     { name: 'MemberDirectory', icon: Users, category: 'Community Ext' },
     { name: 'CommunityBoard', icon: Globe, category: 'Community Ext' },
-    
-    // ========== SETTINGS (8) ==========
     { name: 'SiteSettings', icon: Settings, category: 'Settings' },
     { name: 'SiteMission', icon: Globe, category: 'Settings' },
     { name: 'PageBackup', icon: Archive, category: 'Settings' },
@@ -256,8 +208,6 @@ export default function AdminDatabaseCenter() {
     { name: 'SystemConfiguration', icon: Settings, category: 'Settings' },
     { name: 'FeatureFlag', icon: Zap, category: 'Settings' },
     { name: 'AppConfiguration', icon: Settings, category: 'Settings' },
-    
-    // ========== AUDIT & LOGS (10) ==========
     { name: 'AuditLog', icon: Eye, category: 'Audit' },
     { name: 'RoleAuditLog', icon: Shield, category: 'Audit' },
     { name: 'UserActivity', icon: Activity, category: 'Audit' },
@@ -268,13 +218,9 @@ export default function AdminDatabaseCenter() {
     { name: 'SearchQuery', icon: Search, category: 'Audit' },
     { name: 'SystemLog', icon: FileText, category: 'Audit' },
     { name: 'DeploymentHistory', icon: GitBranch, category: 'Audit' },
-    
-    // ========== DATA QUALITY (3) ==========
     { name: 'DataIntegrityRule', icon: Shield, category: 'Data Quality' },
     { name: 'DataQualityCheck', icon: CheckCircle, category: 'Data Quality' },
     { name: 'DataProfile', icon: BarChart3, category: 'Data Quality' },
-    
-    // ========== MARKETING (12) ==========
     { name: 'EmailCampaign', icon: Mail, category: 'Marketing' },
     { name: 'AdCampaign', icon: TrendingUp, category: 'Marketing' },
     { name: 'CompetitorAnalysis', icon: BarChart3, category: 'Marketing' },
@@ -287,26 +233,18 @@ export default function AdminDatabaseCenter() {
     { name: 'Newsletter', icon: Mail, category: 'Marketing' },
     { name: 'NewsletterSubscriber', icon: Users, category: 'Marketing' },
     { name: 'Announcement', icon: Bell, category: 'Marketing' },
-    
-    // ========== PERMISSIONS (5) ==========
     { name: 'Permission', icon: Key, category: 'Permissions' },
     { name: 'RolePermission', icon: Shield, category: 'Permissions' },
     { name: 'UserPermission', icon: Key, category: 'Permissions' },
     { name: 'AccessControlList', icon: Lock, category: 'Permissions' },
     { name: 'IPWhitelist', icon: Globe, category: 'Permissions' },
-    
-    // ========== COLLABORATION (1) ==========
     { name: 'CollaborationSession', icon: Users, category: 'Collaboration' },
-    
-    // ========== API (6) ==========
     { name: 'APIEndpoint', icon: Cpu, category: 'API' },
     { name: 'APIKey', icon: Key, category: 'API' },
     { name: 'Webhook', icon: Webhook, category: 'API' },
     { name: 'WebhookLog', icon: FileText, category: 'API' },
     { name: 'RateLimit', icon: Shield, category: 'API' },
     { name: 'RateLimitViolation', icon: AlertCircle, category: 'API' },
-    
-    // ========== DATABASE (14) ==========
     { name: 'DatabaseBackup', icon: Archive, category: 'Database' },
     { name: 'DatabaseReplica', icon: Server, category: 'Database' },
     { name: 'DatabaseIndex', icon: Zap, category: 'Database' },
@@ -321,36 +259,22 @@ export default function AdminDatabaseCenter() {
     { name: 'QueryCache', icon: Zap, category: 'Database' },
     { name: 'ConnectionPool', icon: Server, category: 'Database' },
     { name: 'TableRelationship', icon: Link2, category: 'Database' },
-    
-    // ========== CACHE (2) ==========
     { name: 'CacheEntry', icon: Zap, category: 'Cache' },
     { name: 'CacheStatistics', icon: BarChart3, category: 'Cache' },
-    
-    // ========== JOBS (2) ==========
     { name: 'ScheduledJob', icon: Clock, category: 'Jobs' },
     { name: 'ScheduledJobLog', icon: FileText, category: 'Jobs' },
-    
-    // ========== ERRORS (1) ==========
     { name: 'ErrorLog', icon: AlertCircle, category: 'Errors' },
-    
-    // ========== GOVERNANCE (4) ==========
     { name: 'DataGovernancePolicy', icon: Shield, category: 'Governance' },
     { name: 'DataLineage', icon: Link2, category: 'Governance' },
     { name: 'DataCatalogEntry', icon: Database, category: 'Governance' },
     { name: 'ComplianceReport', icon: FileText, category: 'Governance' },
-    
-    // ========== SECURITY (3) ==========
     { name: 'DataMaskingRule', icon: Eye, category: 'Security' },
     { name: 'AnonymizationRule', icon: Shield, category: 'Security' },
     { name: 'EncryptionKey', icon: Lock, category: 'Security' },
-    
-    // ========== ARCHIVE (4) ==========
     { name: 'DataArchive', icon: Archive, category: 'Archive' },
     { name: 'DataExportJob', icon: Download, category: 'Archive' },
     { name: 'DataImportJob', icon: Upload, category: 'Archive' },
     { name: 'SystemBackup', icon: HardDriveDownload, category: 'Archive' },
-    
-    // ========== ENGAGEMENT (8) ==========
     { name: 'ContentLike', icon: Heart, category: 'Engagement' },
     { name: 'ContentShare', icon: Share2, category: 'Engagement' },
     { name: 'BookmarkedContent', icon: Bookmark, category: 'Engagement' },
@@ -359,16 +283,10 @@ export default function AdminDatabaseCenter() {
     { name: 'DeviceToken', icon: Bell, category: 'Engagement' },
     { name: 'NotificationSetting', icon: Bell, category: 'Engagement' },
     { name: 'PrivacySetting', icon: Lock, category: 'Engagement' },
-    
-    // ========== TAGGING (2) ==========
     { name: 'TagEntity', icon: Tag, category: 'Tagging' },
     { name: 'EntityTag', icon: Tag, category: 'Tagging' },
-    
-    // ========== POLLS (2) ==========
     { name: 'PollOption', icon: CircleDot, category: 'Polls' },
     { name: 'PollVote', icon: CheckCircle, category: 'Polls' },
-    
-    // ========== FILES (1) ==========
     { name: 'FileUpload', icon: Upload, category: 'Files' },
   ];
 
@@ -401,8 +319,11 @@ export default function AdminDatabaseCenter() {
     table.category.toLowerCase().includes(searchQuery.toLowerCase())
   );
 
-  const totalRecords = availableTables.reduce((sum, table) => sum + table.recordCount, 0);
-  const totalSize = availableTables.reduce((sum, table) => sum + table.size, 0);
+  const groupedByCategory = filteredTables.reduce((acc, table) => {
+    if (!acc[table.category]) acc[table.category] = [];
+    acc[table.category].push(table);
+    return acc;
+  }, {});
 
   const toggleTable = (table) => {
     if (selectedTables.includes(table)) {
@@ -412,20 +333,11 @@ export default function AdminDatabaseCenter() {
     }
   };
 
-  const selectAll = () => {
-    setSelectedTables(filteredTables.map(t => t.name));
-  };
-
-  const clearAll = () => {
-    setSelectedTables([]);
-  };
+  const selectAll = () => setSelectedTables(filteredTables.map(t => t.name));
+  const clearAll = () => setSelectedTables([]);
 
   const addLog = (message, type = 'info') => {
-    setExportLog(prev => [...prev, { 
-      message, 
-      type, 
-      timestamp: new Date().toISOString() 
-    }]);
+    setExportLog(prev => [...prev, { message, type, timestamp: new Date().toISOString() }]);
   };
 
   const sleep = (ms) => new Promise(resolve => setTimeout(resolve, ms));
@@ -441,7 +353,7 @@ export default function AdminDatabaseCenter() {
     setSafeMode(true);
     setSplitExport(true);
     setTablesPerFile(20);
-    addLog('🛡️ Safe Mode: 1 table/5s - 100% guaranteed', 'info');
+    addLog('🛡️ Safe Mode activated', 'info');
   };
 
   const applyBalancedMode = () => {
@@ -455,7 +367,7 @@ export default function AdminDatabaseCenter() {
     setSafeMode(false);
     setSplitExport(true);
     setTablesPerFile(25);
-    addLog('⚖️ Balanced Mode: Fast + reliable', 'info');
+    addLog('⚖️ Balanced Mode activated', 'info');
   };
 
   const applyTurboMode = () => {
@@ -469,7 +381,7 @@ export default function AdminDatabaseCenter() {
     setSafeMode(false);
     setSplitExport(true);
     setTablesPerFile(30);
-    addLog('🚀 Turbo Mode: Maximum speed', 'info');
+    addLog('🚀 Turbo Mode activated', 'info');
   };
 
   const verifyTables = async () => {
@@ -481,7 +393,6 @@ export default function AdminDatabaseCenter() {
     const effectiveDelay = safeMode ? 4000 : verificationDelay;
     
     addLog(`🔍 Verifying ${selectedTables.length} tables...`, 'info');
-    addLog(`⚡ Batch: ${effectiveBatchSize}, Delay: ${effectiveDelay}ms, Retry: ${retryAttempts}`, 'info');
 
     const results = [];
     const batches = [];
@@ -508,45 +419,27 @@ export default function AdminDatabaseCenter() {
             const entityData = await base44.entities[tableName]?.list() || [];
             recordCount = entityData.length;
             
-            results.push({
-              table: tableName,
-              status: 'verified',
-              recordCount,
-              attempts: attempt
-            });
-            
+            results.push({ table: tableName, status: 'verified', recordCount, attempts: attempt });
             addLog(`✅ ${tableName}: ${recordCount} rec`, 'success');
             verified = true;
             break;
-            
           } catch (error) {
             lastError = error;
-            
             if (attempt < retryAttempts) {
-              const waitTime = error.message?.includes('Rate limit') ? retryDelay * attempt * 2 : retryDelay * attempt;
-              await sleep(waitTime);
+              await sleep(error.message?.includes('Rate limit') ? retryDelay * attempt * 2 : retryDelay * attempt);
             }
           }
         }
 
         if (!verified) {
-          results.push({
-            table: tableName,
-            status: 'error',
-            error: lastError?.message,
-            attempts: retryAttempts
-          });
+          results.push({ table: tableName, status: 'error', error: lastError?.message, attempts: retryAttempts });
           addLog(`❌ ${tableName}: Failed`, 'error');
         }
 
-        if (batch.indexOf(tableName) < batch.length - 1) {
-          await sleep(delayBetweenTables);
-        }
+        if (batch.indexOf(tableName) < batch.length - 1) await sleep(delayBetweenTables);
       }
 
-      if (batchIndex < batches.length - 1) {
-        await sleep(effectiveDelay);
-      }
+      if (batchIndex < batches.length - 1) await sleep(effectiveDelay);
     }
     
     setVerificationResults(results);
@@ -554,9 +447,7 @@ export default function AdminDatabaseCenter() {
     setExportProgress(0);
     
     const verified = results.filter(r => r.status === 'verified').length;
-    const failed = results.filter(r => r.status === 'error').length;
-    
-    addLog(`✅ Complete: ${verified}/${selectedTables.length} verified`, verified === selectedTables.length ? 'success' : 'warning');
+    addLog(`✅ ${verified}/${selectedTables.length} verified`, verified === selectedTables.length ? 'success' : 'warning');
   };
 
   const downloadFile = (content, filename, mimeType) => {
@@ -569,39 +460,28 @@ export default function AdminDatabaseCenter() {
       a.style.display = 'none';
       document.body.appendChild(a);
       a.click();
-      
       setTimeout(() => {
         document.body.removeChild(a);
         URL.revokeObjectURL(url);
       }, 100);
-      
-      addLog(`💾 ${filename} (${(blob.size / 1024 / 1024).toFixed(2)} MB)`, 'success');
+      addLog(`💾 ${filename}`, 'success');
       return true;
     } catch (error) {
-      addLog(`❌ Download failed: ${error.message}`, 'error');
+      addLog(`❌ Download failed`, 'error');
       return false;
     }
   };
 
   const generateSingleSQLFile = async (tables, effectiveBatchSize, effectiveDelay, partNum, totalParts) => {
-    let sql = `-- ============================================\n`;
-    sql += `-- GLORY WAVE ENTERPRISE DATABASE EXPORT\n`;
-    sql += `-- Part ${partNum} of ${totalParts}\n`;
-    sql += `-- ============================================\n`;
+    let sql = `-- GLORY WAVE DATABASE EXPORT - Part ${partNum}/${totalParts}\n`;
     sql += `-- Generated: ${new Date().toISOString()}\n`;
-    sql += `-- Total System Tables: ${allEntities.length}\n`;
-    sql += `-- Tables in this file: ${tables.length}\n`;
-    sql += `-- Export Mode: ${safeMode ? 'SAFE' : 'TURBO'}\n`;
-    sql += `-- Version: 5.0.0 Enterprise\n`;
-    sql += `-- ============================================\n\n`;
+    sql += `-- Tables: ${tables.length} | Total: ${allEntities.length}\n\n`;
 
     const batches = [];
     for (let i = 0; i < tables.length; i += effectiveBatchSize) {
       batches.push(tables.slice(i, i + effectiveBatchSize));
     }
 
-    let successCount = 0;
-    let errorCount = 0;
     const startIdx = (partNum - 1) * tablesPerFile;
 
     for (let batchIndex = 0; batchIndex < batches.length; batchIndex++) {
@@ -618,7 +498,7 @@ export default function AdminDatabaseCenter() {
             const entityData = await base44.entities[tableName]?.list() || [];
             
             if (includeSchema) {
-              sql += `\n-- Table: ${tableName} (${tableIndex}/${selectedTables.length}) - ${entityData.length} records\n`;
+              sql += `\n-- ${tableName} (${tableIndex}/${selectedTables.length}) - ${entityData.length} records\n`;
               sql += `DROP TABLE IF EXISTS \`${tableName}\`;\n`;
               sql += `CREATE TABLE \`${tableName}\` (\n  id VARCHAR(255) PRIMARY KEY,\n`;
               
@@ -638,8 +518,8 @@ export default function AdminDatabaseCenter() {
               }
               
               sql += `  created_date TIMESTAMP DEFAULT CURRENT_TIMESTAMP,\n`;
-              sql += `  updated_date TIMESTAMP DEFAULT CURRENT_TIMESTAMP,\n`;
-              sql += `  created_by VARCHAR(255)\n);\n\n`;
+              sql += `  updated_date TIMESTAMP,\n`;
+              sql += `  created_by VARCHAR(255)\n);\n`;
             }
 
             if (includeData && entityData.length > 0) {
@@ -653,14 +533,11 @@ export default function AdminDatabaseCenter() {
                 }).join(', ');
                 sql += `INSERT INTO \`${tableName}\` (${cols}) VALUES (${vals});\n`;
               }
-              sql += `\n`;
             }
 
-            addLog(`✅ ${tableName}: ${entityData.length} rec [${tableIndex}/${selectedTables.length}]`, 'success');
-            successCount++;
+            addLog(`✅ ${tableName}: ${entityData.length} rec`, 'success');
             exported = true;
             break;
-            
           } catch (error) {
             if (attempt < retryAttempts) {
               await sleep(error.message?.includes('Rate limit') ? retryDelay * attempt * 2 : retryDelay * attempt);
@@ -668,20 +545,13 @@ export default function AdminDatabaseCenter() {
           }
         }
 
-        if (!exported) {
-          sql += `-- ❌ FAILED: ${tableName}\n\n`;
-          errorCount++;
-        }
-
+        if (!exported) sql += `-- ❌ FAILED: ${tableName}\n\n`;
         await sleep(delayBetweenTables);
       }
 
-      if (batchIndex < batches.length - 1) {
-        await sleep(effectiveDelay);
-      }
+      if (batchIndex < batches.length - 1) await sleep(effectiveDelay);
     }
 
-    sql += `\n-- SUMMARY: ${successCount}/${tables.length} exported successfully\n`;
     return sql;
   };
 
@@ -697,12 +567,9 @@ export default function AdminDatabaseCenter() {
       for (let fileIndex = 0; fileIndex < fileCount; fileIndex++) {
         const fileTables = tables.slice(fileIndex * tablesPerFile, (fileIndex + 1) * tablesPerFile);
         const sql = await generateSingleSQLFile(fileTables, effectiveBatchSize, effectiveDelay, fileIndex + 1, fileCount);
-        const filename = `glory_wave_part_${String(fileIndex + 1).padStart(2, '0')}_of_${String(fileCount).padStart(2, '0')}_${timestamp}.sql`;
+        const filename = `glory_wave_p${String(fileIndex + 1).padStart(2, '0')}_of_${String(fileCount).padStart(2, '0')}_${timestamp}.sql`;
         
-        if (!downloadFile(sql, filename, 'text/sql; charset=utf-8')) {
-          throw new Error(`Download failed for file ${fileIndex + 1}`);
-        }
-        
+        if (!downloadFile(sql, filename, 'text/sql')) throw new Error(`Download failed`);
         await sleep(800);
       }
       return null;
@@ -711,151 +578,41 @@ export default function AdminDatabaseCenter() {
     }
   };
 
-  const generateSingleJSONFile = async (tables, partNum, totalParts) => {
-    const data = {};
-    const batches = [];
-    for (let i = 0; i < tables.length; i += (safeMode ? 1 : batchSize)) {
-      batches.push(tables.slice(i, i + (safeMode ? 1 : batchSize)));
-    }
-
-    const startIdx = (partNum - 1) * tablesPerFile;
-
-    for (let batchIndex = 0; batchIndex < batches.length; batchIndex++) {
-      for (const tableName of batches[batchIndex]) {
-        const tableIndex = tables.indexOf(tableName) + startIdx + 1;
-        setExportProgress((tableIndex / selectedTables.length) * 100);
-        
-        for (let attempt = 1; attempt <= retryAttempts; attempt++) {
-          try {
-            const entityData = await base44.entities[tableName]?.list() || [];
-            data[tableName] = entityData;
-            addLog(`✅ ${tableName}: ${entityData.length} rec`, 'success');
-            break;
-          } catch (error) {
-            if (attempt < retryAttempts) {
-              await sleep(error.message?.includes('Rate limit') ? retryDelay * attempt * 2 : retryDelay * attempt);
-            } else {
-              data[tableName] = { error: error.message };
-            }
-          }
-        }
-        await sleep(delayBetweenTables);
-      }
-      if (batchIndex < batches.length - 1) await sleep(safeMode ? 5000 : delayBetweenBatches);
-    }
-
-    return JSON.stringify({
-      metadata: {
-        exportDate: new Date().toISOString(),
-        database: 'glory_wave_production',
-        part: partNum,
-        totalParts,
-        totalSystemTables: allEntities.length,
-        tablesInFile: tables.length,
-        version: '5.0.0'
-      },
-      data
-    }, null, 2);
-  };
-
-  const generateJSONExport = async (tables) => {
-    const timestamp = Date.now();
-    
-    if (splitExport && tables.length > tablesPerFile) {
-      const fileCount = Math.ceil(tables.length / tablesPerFile);
-      
-      for (let i = 0; i < fileCount; i++) {
-        const fileTables = tables.slice(i * tablesPerFile, (i + 1) * tablesPerFile);
-        const json = await generateSingleJSONFile(fileTables, i + 1, fileCount);
-        downloadFile(json, `glory_wave_part_${String(i + 1).padStart(2, '0')}_of_${String(fileCount).padStart(2, '0')}_${timestamp}.json`, 'application/json; charset=utf-8');
-        await sleep(800);
-      }
-      return null;
-    } else {
-      return await generateSingleJSONFile(tables, 1, 1);
-    }
-  };
-
   const generateSystemFilesExport = async () => {
-    addLog('📁 Generating system files export...', 'info');
-    
-    const systemFiles = {
-      'package.json': JSON.stringify({
-        name: 'glory-wave-system',
-        version: '5.0.0',
-        description: 'Complete Glory Wave Platform Export',
-        dependencies: {
-          'react': '^18.2.0',
-          'react-dom': '^18.2.0',
-          'tailwindcss': '^3.3.0',
-          '@tanstack/react-query': '^5.0.0',
-          'lucide-react': '^0.300.0',
-          'date-fns': '^2.30.0',
-          'react-quill': '^2.0.0',
-          'recharts': '^2.10.0'
-        }
-      }, null, 2),
-      
-      'README.md': `# Glory Wave Platform - Complete Export\n\nGenerated: ${new Date().toISOString()}\n\n## Database\n- Total Tables: ${allEntities.length}\n- Categories: ${Object.keys(groupedByCategory).length}\n\n## Features\n- Real-time collaboration\n- Enterprise permissions\n- Live streaming\n- E-commerce\n- Community management\n\n## Setup\n1. Import SQL files to database\n2. Install dependencies: npm install\n3. Configure environment\n4. Deploy\n`,
-      
-      'DATABASE_SCHEMA.md': allEntities.map(e => `## ${e.name}\nCategory: ${e.category}\n`).join('\n'),
-      
-      '.env.example': `DATABASE_URL=your_database_url\nAPI_KEY=your_api_key\nENVIRONMENT=production\n`,
-      
-      'deployment.config.js': `module.exports = {\n  database: {\n    tables: ${allEntities.length},\n    categories: ${Object.keys(groupedByCategory).length}\n  },\n  features: {\n    collaboration: true,\n    permissions: true,\n    streaming: true\n  }\n};`
+    const systemContent = {
+      'package.json': { name: 'glory-wave', version: '5.0.0', dependencies: { react: '^18.2.0', tailwindcss: '^3.3.0' } },
+      'README.md': `# Glory Wave\nTables: ${allEntities.length}\nCategories: ${Object.keys(groupedByCategory).length}\n`,
+      '.env.example': 'DATABASE_URL=\nAPI_KEY=\n'
     };
     
-    const zipContent = Object.entries(systemFiles).map(([name, content]) => 
-      `\n========== ${name} ==========\n${content}\n`
+    const content = Object.entries(systemContent).map(([name, data]) => 
+      `\n========== ${name} ==========\n${typeof data === 'object' ? JSON.stringify(data, null, 2) : data}\n`
     ).join('\n');
     
-    downloadFile(zipContent, `glory_wave_system_files_${Date.now()}.txt`, 'text/plain');
+    downloadFile(content, `glory_wave_system_${Date.now()}.txt`, 'text/plain');
     addLog('✅ System files exported', 'success');
   };
 
   const handleExport = async () => {
-    if (selectedTables.length === 0) {
-      alert('Please select tables to export');
-      return;
-    }
-
-    if (verificationResults.length === 0) {
-      if (!confirm('⚠️ Run verification first? (Recommended)')) return;
-    }
+    if (selectedTables.length === 0) return alert('Select tables first');
+    if (verificationResults.length === 0 && !confirm('⚠️ Verify first?')) return;
 
     setExporting(true);
     setExportProgress(0);
     setExportLog([]);
-    
     addLog(`🚀 Exporting ${selectedTables.length} tables`, 'info');
 
     try {
-      let content;
-
-      if (exportFormat === 'SQL Dump') {
-        content = await generateSQLDump(selectedTables);
-        if (content) {
-          downloadFile(content, `glory_wave_${Date.now()}.sql`, 'text/sql; charset=utf-8');
-        }
-      } else if (exportFormat === 'JSON') {
-        content = await generateJSONExport(selectedTables);
-        if (content) {
-          downloadFile(content, `glory_wave_${Date.now()}.json`, 'application/json; charset=utf-8');
-        }
-      }
-
-      if (includeSystemFiles) {
-        await generateSystemFilesExport();
-      }
+      const content = await generateSQLDump(selectedTables);
+      if (content) downloadFile(content, `glory_wave_${Date.now()}.sql`, 'text/sql');
+      if (includeSystemFiles) await generateSystemFilesExport();
 
       setExportProgress(100);
       addLog(`✅ Export complete!`, 'success');
-      
-      const fileCount = Math.ceil(selectedTables.length / tablesPerFile);
-      alert(`✅ Export complete!\n\n📦 ${splitExport && selectedTables.length > tablesPerFile ? fileCount + ' files' : '1 file'} downloaded\n📁 Check Downloads folder`);
+      alert(`✅ Export complete!`);
     } catch (error) {
       addLog(`❌ ${error.message}`, 'error');
-      alert(`❌ Export failed: ${error.message}`);
+      alert(`❌ Failed: ${error.message}`);
     } finally {
       setTimeout(() => {
         setExporting(false);
@@ -873,12 +630,6 @@ export default function AdminDatabaseCenter() {
     { title: 'Import/Export', icon: <Upload className="w-6 h-6" />, color: 'from-amber-500 to-orange-500', url: createPageUrl('AdminDataImportExport'), badge: 'Bulk' },
   ];
 
-  const groupedByCategory = filteredTables.reduce((acc, table) => {
-    if (!acc[table.category]) acc[table.category] = [];
-    acc[table.category].push(table);
-    return acc;
-  }, {});
-
   const verifiedCount = verificationResults.filter(r => r.status === 'verified').length;
   const failedCount = verificationResults.filter(r => r.status === 'error').length;
 
@@ -887,27 +638,21 @@ export default function AdminDatabaseCenter() {
       <div className="flex items-center justify-between flex-wrap gap-4">
         <div>
           <h2 className="text-3xl font-black text-white mb-2">Enterprise Database Center</h2>
-          <p className="text-slate-400 font-semibold">
-            {allEntities.length} Complete Tables • Turbocharged Export • 100% Coverage
-          </p>
+          <p className="text-slate-400 font-semibold">{allEntities.length} Tables • 100% Coverage</p>
         </div>
         <div className="flex gap-2 flex-wrap">
           <Button onClick={applySafeMode} className={`${safeMode ? 'bg-green-600' : 'bg-slate-700'} text-xs md:text-sm`}>
-            <Shield className="w-3 md:w-4 h-3 md:h-4 mr-1 md:mr-2" />
-            Safe
+            <Shield className="w-3 md:w-4 h-3 md:h-4 mr-1 md:mr-2" />Safe
           </Button>
           <Button onClick={applyBalancedMode} className={`${!safeMode ? 'bg-cyan-600' : 'bg-slate-700'} text-xs md:text-sm`}>
-            <Activity className="w-3 md:w-4 h-3 md:h-4 mr-1 md:mr-2" />
-            Balanced
+            <Activity className="w-3 md:w-4 h-3 md:h-4 mr-1 md:mr-2" />Balanced
           </Button>
           <Button onClick={applyTurboMode} className="bg-purple-600 hover:bg-purple-700 text-xs md:text-sm">
-            <Zap className="w-3 md:w-4 h-3 md:h-4 mr-1 md:mr-2" />
-            Turbo
+            <Zap className="w-3 md:w-4 h-3 md:h-4 mr-1 md:mr-2" />Turbo
           </Button>
         </div>
       </div>
 
-      {/* Stats */}
       <div className="grid grid-cols-2 md:grid-cols-4 gap-3 md:gap-4">
         <Card className="bg-gradient-to-br from-[#1e293b] to-[#0f172a] border-0">
           <CardContent className="p-4 md:p-6">
@@ -916,7 +661,6 @@ export default function AdminDatabaseCenter() {
             <p className="text-slate-400 text-xs md:text-sm font-semibold">Total Tables</p>
           </CardContent>
         </Card>
-
         <Card className="bg-gradient-to-br from-[#1e293b] to-[#0f172a] border-0">
           <CardContent className="p-4 md:p-6">
             <Layers className="w-8 md:w-10 h-8 md:h-10 text-purple-400 mb-2" />
@@ -924,7 +668,6 @@ export default function AdminDatabaseCenter() {
             <p className="text-slate-400 text-xs md:text-sm font-semibold">Categories</p>
           </CardContent>
         </Card>
-
         <Card className="bg-gradient-to-br from-[#1e293b] to-[#0f172a] border-0">
           <CardContent className="p-4 md:p-6">
             <CheckCircle className="w-8 md:w-10 h-8 md:h-10 text-green-400 mb-2" />
@@ -932,7 +675,6 @@ export default function AdminDatabaseCenter() {
             <p className="text-slate-400 text-xs md:text-sm font-semibold">Coverage</p>
           </CardContent>
         </Card>
-
         <Card className="bg-gradient-to-br from-[#1e293b] to-[#0f172a] border-0">
           <CardContent className="p-4 md:p-6">
             <FolderArchive className="w-8 md:w-10 h-8 md:h-10 text-amber-400 mb-2" />
@@ -947,20 +689,16 @@ export default function AdminDatabaseCenter() {
       <Tabs defaultValue="export" className="w-full">
         <TabsList className="bg-[#1e293b] border border-slate-700 p-1 grid grid-cols-2 md:grid-cols-4">
           <TabsTrigger value="glory" className="data-[state=active]:bg-gradient-to-r data-[state=active]:from-purple-500 data-[state=active]:to-pink-500 text-xs md:text-sm">
-            <Sparkles className="w-3 md:w-4 h-3 md:h-4 mr-1 md:mr-2" />
-            Tools
+            <Sparkles className="w-3 md:w-4 h-3 md:h-4 mr-1 md:mr-2" />Tools
           </TabsTrigger>
           <TabsTrigger value="export" className="data-[state=active]:bg-cyan-500 text-xs md:text-sm">
-            <Download className="w-3 md:w-4 h-3 md:h-4 mr-1 md:mr-2" />
-            Export
+            <Download className="w-3 md:w-4 h-3 md:h-4 mr-1 md:mr-2" />Export
           </TabsTrigger>
           <TabsTrigger value="tables" className="data-[state=active]:bg-cyan-500 text-xs md:text-sm">
-            <Table className="w-3 md:w-4 h-3 md:h-4 mr-1 md:mr-2" />
-            All ({allEntities.length})
+            <Table className="w-3 md:w-4 h-3 md:h-4 mr-1 md:mr-2" />All ({allEntities.length})
           </TabsTrigger>
           <TabsTrigger value="system" className="data-[state=active]:bg-cyan-500 text-xs md:text-sm">
-            <FolderOpen className="w-3 md:w-4 h-3 md:h-4 mr-1 md:mr-2" />
-            Files
+            <FolderOpen className="w-3 md:w-4 h-3 md:h-4 mr-1 md:mr-2" />Files
           </TabsTrigger>
         </TabsList>
 
@@ -1012,8 +750,7 @@ export default function AdminDatabaseCenter() {
                       {Object.entries(groupedByCategory).map(([category, tables]) => (
                         <div key={category}>
                           <h4 className="text-cyan-400 font-bold text-xs mb-2 flex items-center gap-2">
-                            <Layers className="w-3 h-3" />
-                            {category} ({tables.length})
+                            <Layers className="w-3 h-3" />{category} ({tables.length})
                           </h4>
                           <div className="grid md:grid-cols-3 gap-2">
                             {tables.map((table) => {
@@ -1061,8 +798,7 @@ export default function AdminDatabaseCenter() {
                     <Card className="bg-slate-900/50 border-slate-700">
                       <CardHeader className="border-b border-slate-700 pb-2">
                         <CardTitle className="text-white font-bold text-sm">
-                          <FileText className="w-4 h-4 inline mr-2" />
-                          Log ({exportLog.length})
+                          <FileText className="w-4 h-4 inline mr-2" />Log ({exportLog.length})
                         </CardTitle>
                       </CardHeader>
                       <CardContent className="p-3 max-h-48 overflow-y-auto font-mono text-xs">
@@ -1087,7 +823,6 @@ export default function AdminDatabaseCenter() {
                     >
                       {isVerifying ? <><Loader2 className="w-5 h-5 mr-2 animate-spin" />Verifying...</> : <><Shield className="w-5 h-5 mr-2" />Verify {selectedTables.length} Tables</>}
                     </Button>
-
                     <Button
                       onClick={handleExport}
                       disabled={selectedTables.length === 0 || exporting || isVerifying}
@@ -1127,7 +862,7 @@ export default function AdminDatabaseCenter() {
                   <div className="space-y-2 text-xs">
                     <div className="flex justify-between"><span className="text-purple-200">Mode:</span><span className="text-white font-bold">{safeMode ? 'Safe' : 'Turbo'}</span></div>
                     <div className="flex justify-between"><span className="text-purple-200">Batch:</span><span className="text-white font-bold">{safeMode ? 1 : verificationBatchSize}</span></div>
-                    <div className="flex justify-between"><span className="text-purple-200">Delay:</span><span className="text-white font-bold">{safeMode ? '4000ms' : verificationDelay + 'ms'}</span></div>
+                    <div className="flex justify-between"><span className="text-purple-200">Delay:</span><span className="text-white font-bold">{safeMode ? '4s' : verificationDelay + 'ms'}</span></div>
                     <div className="flex justify-between"><span className="text-purple-200">Files:</span><span className="text-white font-bold">{selectedTables.length > 0 ? Math.ceil(selectedTables.length / tablesPerFile) : 0}</span></div>
                   </div>
                 </CardContent>
@@ -1135,13 +870,13 @@ export default function AdminDatabaseCenter() {
 
               <Card className="bg-blue-900/20 border-blue-500/30">
                 <CardContent className="p-4">
-                  <p className="text-blue-300 font-bold text-xs mb-2">✨ NEW</p>
+                  <p className="text-blue-300 font-bold text-xs mb-2">✨ FEATURES</p>
                   <ul className="text-blue-200 text-xs space-y-1">
                     <li>• {allEntities.length} complete tables</li>
                     <li>• 6x faster turbo mode</li>
-                    <li>• System files export</li>
-                    <li>• All prayers & donations</li>
-                    <li>• Guest hosts & speakers</li>
+                    <li>• Prayers & Donations ✓</li>
+                    <li>• Guest hosts & speakers ✓</li>
+                    <li>• All commerce tables ✓</li>
                   </ul>
                 </CardContent>
               </Card>
@@ -1154,7 +889,7 @@ export default function AdminDatabaseCenter() {
             <CardHeader className="border-b border-slate-700 p-6">
               <CardTitle className="text-white font-bold flex items-center justify-between">
                 <span>Complete Schema ({allEntities.length} Tables)</span>
-                <Badge className="bg-cyan-500">FULL COVERAGE</Badge>
+                <Badge className="bg-cyan-500">VERIFIED</Badge>
               </CardTitle>
             </CardHeader>
             <CardContent className="p-6">
@@ -1162,8 +897,7 @@ export default function AdminDatabaseCenter() {
                 {Object.entries(groupedByCategory).map(([category, tables]) => (
                   <div key={category}>
                     <h3 className="text-cyan-400 font-bold mb-3 flex items-center gap-2">
-                      <Database className="w-4 h-4" />
-                      {category} ({tables.length})
+                      <Database className="w-4 h-4" />{category} ({tables.length})
                     </h3>
                     <div className="grid md:grid-cols-3 gap-2">
                       {tables.map((table) => {
@@ -1193,7 +927,7 @@ export default function AdminDatabaseCenter() {
         <TabsContent value="system" className="mt-6">
           <Card className="bg-[#1a1f3a] border-slate-700">
             <CardHeader className="border-b border-slate-700 p-6">
-              <CardTitle className="text-white font-bold">System Files & Configuration</CardTitle>
+              <CardTitle className="text-white font-bold">System Files Export</CardTitle>
             </CardHeader>
             <CardContent className="p-6 space-y-4">
               <label className="flex items-center gap-2 cursor-pointer p-3 bg-slate-900/50 rounded-lg">
@@ -1203,28 +937,8 @@ export default function AdminDatabaseCenter() {
                   <p className="text-slate-400 text-xs">package.json, configs, docs</p>
                 </div>
               </label>
-
-              <div className="grid md:grid-cols-2 gap-3">
-                <Card className="bg-slate-900/50 border-slate-700">
-                  <CardContent className="p-4">
-                    <FileCode className="w-8 h-8 text-purple-400 mb-2" />
-                    <p className="text-white font-bold text-sm">Configuration Files</p>
-                    <p className="text-slate-400 text-xs">ENV, deployment configs</p>
-                  </CardContent>
-                </Card>
-
-                <Card className="bg-slate-900/50 border-slate-700">
-                  <CardContent className="p-4">
-                    <FileText className="w-8 h-8 text-cyan-400 mb-2" />
-                    <p className="text-white font-bold text-sm">Documentation</p>
-                    <p className="text-slate-400 text-xs">README, schemas, guides</p>
-                  </CardContent>
-                </Card>
-              </div>
-
               <Button onClick={generateSystemFilesExport} className="w-full bg-purple-500 hover:bg-purple-600">
-                <FolderArchive className="w-4 h-4 mr-2" />
-                Export System Files
+                <FolderArchive className="w-4 h-4 mr-2" />Export System Files
               </Button>
             </CardContent>
           </Card>
@@ -1255,8 +969,8 @@ export default function AdminDatabaseCenter() {
         <CardContent className="p-6">
           <div className="flex items-center justify-between">
             <div>
-              <p className="text-green-300 font-black text-2xl mb-1">✅ COMPLETE SYSTEM AUDIT</p>
-              <p className="text-green-200 text-sm">{allEntities.length} tables • {Object.keys(groupedByCategory).length} categories • Prayers, Donations, Guests all included!</p>
+              <p className="text-green-300 font-black text-2xl mb-1">✅ COMPLETE COVERAGE</p>
+              <p className="text-green-200 text-sm">{allEntities.length} tables • All prayers, donations, guests, commerce included!</p>
             </div>
             <CheckCircle className="w-16 h-16 text-green-400" />
           </div>
