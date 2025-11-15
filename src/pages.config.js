@@ -172,11 +172,6 @@ import AdminShippingConfig from './pages/AdminShippingConfig';
 import AdminOrderManagement from './pages/AdminOrderManagement';
 import AdminCouponManagement from './pages/AdminCouponManagement';
 import OrderTracking from './pages/OrderTracking';
-import AdminAbandonedCarts from './pages/AdminAbandonedCarts';
-import AdminReviewManagement from './pages/AdminReviewManagement';
-import AdminBulkProductManager from './pages/AdminBulkProductManager';
-import AdminGiftCardManager from './pages/AdminGiftCardManager';
-import AdminSalesAnalytics from './pages/AdminSalesAnalytics';
 import Layout from './Layout.jsx';
 
 
@@ -355,11 +350,6 @@ export const PAGES = {
     "AdminOrderManagement": AdminOrderManagement,
     "AdminCouponManagement": AdminCouponManagement,
     "OrderTracking": OrderTracking,
-    "AdminAbandonedCarts": AdminAbandonedCarts,
-    "AdminReviewManagement": AdminReviewManagement,
-    "AdminBulkProductManager": AdminBulkProductManager,
-    "AdminGiftCardManager": AdminGiftCardManager,
-    "AdminSalesAnalytics": AdminSalesAnalytics,
 }
 
 export const pagesConfig = {
