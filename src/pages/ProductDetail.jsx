@@ -82,6 +82,9 @@ export default function ProductDetail() {
 
   if (!product) return <div className="min-h-screen bg-[#0a0e27] flex items-center justify-center"><p className="text-white">Loading...</p></div>;
 
+  const images = Array.isArray(product.images) 
+    ? product.images 
+    : (product.images ? (typeof product.images === 'string' ? JSON.parse(product.images) : []) : []);
   const averageRating = reviews.length > 0 ? reviews.reduce((sum, r) => sum + r.rating, 0) / reviews.length : 0;
   const inStock = (product.stock_quantity || 0) > 0;
 
@@ -92,13 +95,13 @@ export default function ProductDetail() {
           <div>
             <div className="aspect-square rounded-2xl overflow-hidden mb-4 bg-slate-900">
               <img 
-                src={product.images?.[selectedImage] || '/placeholder.jpg'} 
+                src={images[selectedImage] || '/placeholder.jpg'} 
                 alt={product.name}
                 className="w-full h-full object-cover"
               />
             </div>
             <div className="grid grid-cols-4 gap-4">
-              {product.images?.map((img, i) => (
+              {images.map((img, i) => (
                 <button
                   key={i}
                   onClick={() => setSelectedImage(i)}
@@ -267,15 +270,20 @@ export default function ProductDetail() {
         <div>
           <h2 className="text-3xl font-black text-white mb-6">Related Products</h2>
           <div className="grid md:grid-cols-4 gap-6">
-            {relatedProducts.slice(0, 4).map(p => (
-              <Card key={p.id} className="bg-slate-900 border-slate-700 hover:border-cyan-500 transition-all">
-                <CardContent className="p-4">
-                  <img src={p.images?.[0]} alt={p.name} className="w-full aspect-square object-cover rounded-lg mb-3" />
-                  <h4 className="text-white font-bold mb-2">{p.name}</h4>
-                  <p className="text-cyan-400 font-black text-xl">${p.price?.toFixed(2)}</p>
-                </CardContent>
-              </Card>
-            ))}
+            {relatedProducts.slice(0, 4).map(p => {
+              const relImages = Array.isArray(p.images) 
+                ? p.images 
+                : (p.images ? (typeof p.images === 'string' ? JSON.parse(p.images) : []) : []);
+              return (
+                <Card key={p.id} className="bg-slate-900 border-slate-700 hover:border-cyan-500 transition-all">
+                  <CardContent className="p-4">
+                    <img src={relImages[0] || '/placeholder.jpg'} alt={p.name} className="w-full aspect-square object-cover rounded-lg mb-3" />
+                    <h4 className="text-white font-bold mb-2">{p.name}</h4>
+                    <p className="text-cyan-400 font-black text-xl">${p.price?.toFixed(2)}</p>
+                  </CardContent>
+                </Card>
+              );
+            })}
           </div>
         </div>
       </div>

@@ -234,7 +234,9 @@ export default function Store() {
             ) : (
               <div className={viewMode === 'grid' ? 'grid md:grid-cols-2 lg:grid-cols-3 gap-6' : 'space-y-4'}>
                 {filteredProducts.map(product => {
-                  const images = product.images ? JSON.parse(product.images) : [];
+                  const images = Array.isArray(product.images) 
+                    ? product.images 
+                    : (product.images ? (typeof product.images === 'string' ? JSON.parse(product.images) : []) : []);
                   const inStock = (product.stock_quantity || 0) > 0;
                   const isFeatured = product.tags?.includes('featured');
 
