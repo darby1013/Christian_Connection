@@ -172,6 +172,8 @@ import AdminShippingConfig from './pages/AdminShippingConfig';
 import AdminOrderManagement from './pages/AdminOrderManagement';
 import AdminCouponManagement from './pages/AdminCouponManagement';
 import OrderTracking from './pages/OrderTracking';
+import AdminAbandonedCarts from './pages/AdminAbandonedCarts';
+import AdminProductAnalytics from './pages/AdminProductAnalytics';
 import Layout from './Layout.jsx';
 
 
@@ -350,6 +352,8 @@ export const PAGES = {
     "AdminOrderManagement": AdminOrderManagement,
     "AdminCouponManagement": AdminCouponManagement,
     "OrderTracking": OrderTracking,
+    "AdminAbandonedCarts": AdminAbandonedCarts,
+    "AdminProductAnalytics": AdminProductAnalytics,
 }
 
 export const pagesConfig = {
