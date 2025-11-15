@@ -14,7 +14,8 @@ import {
   Gift, Percent, Clock, Award,
   Database, Code, GitBranch, Upload, Archive, Link2,
   Activity, Zap, RefreshCw, Server, Sun, Moon, Eye, Lock,
-  Webhook, Key, AlertCircle, GitCompare, UserX, Copy, CheckCircle, FolderOpen, Cpu
+  Webhook, Key, AlertCircle, GitCompare, UserX, Copy, CheckCircle, FolderOpen, Cpu,
+  CreditCard as CreditCardIcon, FolderTree, Mail, MessageSquare as MessageIcon
 } from "lucide-react";
 import {
   Sidebar,
@@ -186,8 +187,21 @@ function LayoutContent({ children, currentPageName }) {
     { title: "Videos", url: createPageUrl("AdminVideos"), icon: PlayCircle, section: "CONTENT" },
     { title: "Blog Posts", url: createPageUrl("AdminBlog"), icon: FileText, section: "CONTENT" },
     
-    { title: "Products", url: createPageUrl("AdminProducts"), icon: Store, section: "COMMERCE" },
-    { title: "Orders", url: createPageUrl("AdminOrders"), icon: ShoppingBag, section: "COMMERCE" },
+    { title: "Products", url: createPageUrl("AdminProductsEnhanced"), icon: Store, section: "COMMERCE" },
+    { title: "Orders", url: createPageUrl("AdminOrderManagement"), icon: ShoppingBag, section: "COMMERCE" },
+    { title: "Categories", url: createPageUrl("AdminCategoryManagement"), icon: FolderTree, section: "COMMERCE" },
+    { title: "Inventory", url: createPageUrl("AdminInventoryManagement"), icon: Warehouse, section: "COMMERCE" },
+    { title: "Coupons", url: createPageUrl("AdminCouponManagement"), icon: Tag, section: "COMMERCE" },
+    { title: "Gift Cards", url: createPageUrl("AdminGiftCards"), icon: Gift, section: "COMMERCE" },
+    { title: "Shipping", url: createPageUrl("AdminShippingConfig"), icon: Truck, section: "COMMERCE" },
+    { title: "Payment Gateways", url: createPageUrl("AdminPaymentGateways"), icon: CreditCardIcon, section: "COMMERCE" },
+    { title: "Abandoned Carts", url: createPageUrl("AdminAbandonedCarts"), icon: Mail, section: "COMMERCE" },
+    { title: "Loyalty Program", url: createPageUrl("AdminLoyaltyProgram"), icon: Award, section: "COMMERCE" },
+    { title: "Pre-Orders", url: createPageUrl("AdminPreOrders"), icon: Clock, section: "COMMERCE" },
+    { title: "Product Analytics", url: createPageUrl("AdminProductAnalytics"), icon: BarChart3, section: "COMMERCE" },
+    { title: "Bundles", url: createPageUrl("AdminProductBundles"), icon: Package, section: "COMMERCE" },
+    { title: "Bulk Pricing", url: createPageUrl("AdminBulkPricing"), icon: Percent, section: "COMMERCE" },
+    { title: "Reviews", url: createPageUrl("AdminReviewsManagement"), icon: MessageIcon, section: "COMMERCE" },
     
     { title: "Users", url: createPageUrl("AdminUsers"), icon: UserIcon, section: "MANAGEMENT" },
     { title: "Roles & Permissions", url: createPageUrl("AdminRoles"), icon: Shield, section: "MANAGEMENT" },
