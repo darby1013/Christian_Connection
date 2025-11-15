@@ -167,6 +167,11 @@ import AdminAIPodcastRepurposing from './pages/AdminAIPodcastRepurposing';
 import AdminAITagGenerator from './pages/AdminAITagGenerator';
 import AdminAIContentEnhancer from './pages/AdminAIContentEnhancer';
 import AdminProductsEnhanced from './pages/AdminProductsEnhanced';
+import StoreEnhanced from './pages/StoreEnhanced';
+import AdminCategoryManager from './pages/AdminCategoryManager';
+import AdminOrdersEnhanced from './pages/AdminOrdersEnhanced';
+import AdminShippingConfig from './pages/AdminShippingConfig';
+import AdminPaymentConfig from './pages/AdminPaymentConfig';
 import Layout from './Layout.jsx';
 
 
@@ -340,6 +345,11 @@ export const PAGES = {
     "AdminAITagGenerator": AdminAITagGenerator,
     "AdminAIContentEnhancer": AdminAIContentEnhancer,
     "AdminProductsEnhanced": AdminProductsEnhanced,
+    "StoreEnhanced": StoreEnhanced,
+    "AdminCategoryManager": AdminCategoryManager,
+    "AdminOrdersEnhanced": AdminOrdersEnhanced,
+    "AdminShippingConfig": AdminShippingConfig,
+    "AdminPaymentConfig": AdminPaymentConfig,
 }
 
 export const pagesConfig = {
