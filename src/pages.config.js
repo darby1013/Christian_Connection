@@ -169,6 +169,9 @@ import AdminAIContentEnhancer from './pages/AdminAIContentEnhancer';
 import AdminProductsEnhanced from './pages/AdminProductsEnhanced';
 import AdminCategoryManagement from './pages/AdminCategoryManagement';
 import AdminShippingConfig from './pages/AdminShippingConfig';
+import AdminOrderManagement from './pages/AdminOrderManagement';
+import AdminCouponManagement from './pages/AdminCouponManagement';
+import OrderTracking from './pages/OrderTracking';
 import Layout from './Layout.jsx';
 
 
@@ -344,6 +347,9 @@ export const PAGES = {
     "AdminProductsEnhanced": AdminProductsEnhanced,
     "AdminCategoryManagement": AdminCategoryManagement,
     "AdminShippingConfig": AdminShippingConfig,
+    "AdminOrderManagement": AdminOrderManagement,
+    "AdminCouponManagement": AdminCouponManagement,
+    "OrderTracking": OrderTracking,
 }
 
 export const pagesConfig = {
