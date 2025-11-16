@@ -15,7 +15,9 @@ import {
   Database, Code, GitBranch, Upload, Archive, Link2,
   Activity, Zap, RefreshCw, Server, Sun, Moon, Eye, Lock,
   Webhook, Key, AlertCircle, GitCompare, UserX, Copy, CheckCircle, FolderOpen, Cpu,
-  CreditCard as CreditCardIcon, FolderTree, Mail, MessageSquare as MessageIcon
+  CreditCard as CreditCardIcon, FolderTree, Mail, MessageSquare as MessageIcon,
+  ChevronDown, ChevronRight, Menu, X as CloseIcon, Layers, Ruler, FileSpreadsheet,
+  Target, Video as VideoIcon, ShoppingCart
 } from "lucide-react";
 import {
   Sidebar,
@@ -37,6 +39,11 @@ import {
   DropdownMenuItem,
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
+import {
+  Collapsible,
+  CollapsibleContent,
+  CollapsibleTrigger,
+} from "@/components/ui/collapsible";
 import { Button } from "@/components/ui/button";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { Badge } from "@/components/ui/badge";
@@ -49,6 +56,8 @@ function LayoutContent({ children, currentPageName }) {
   const [user, setUser] = useState(null);
   const [isAdmin, setIsAdmin] = useState(false);
   const [searchOpen, setSearchOpen] = useState(false);
+  const [sidebarOpen, setSidebarOpen] = useState(true);
+  const [expandedSections, setExpandedSections] = useState(new Set(['OVERVIEW', 'COMMERCE']));
   const isAdminPage = currentPageName?.startsWith('Admin');
   const isBroadcastPage = currentPageName === 'BroadcastStream';
   const { theme, toggleMode } = useTheme();
@@ -159,88 +168,117 @@ function LayoutContent({ children, currentPageName }) {
   const isCommunityPage = communityItems.some(item => location.pathname === item.url) || 
                          location.pathname === createPageUrl("Community");
 
-  const adminNavItems = [
-    { title: "Dashboard", url: createPageUrl("AdminDashboard"), icon: LayoutDashboard, section: "OVERVIEW" },
-    { title: "Analytics", url: createPageUrl("AdminAnalytics"), icon: BarChart3, section: "OVERVIEW" },
-    { title: "Site Settings", url: createPageUrl("AdminSiteSettings"), icon: SettingsIcon, section: "OVERVIEW" },
-    { title: "Activity Feed", url: createPageUrl("AdminActivityFeed"), icon: Activity, section: "OVERVIEW" },
-    { title: "System Health", url: createPageUrl("AdminSystemHealth"), icon: Cpu, section: "OVERVIEW" },
-    
-    { title: "Database Center", url: createPageUrl("AdminDatabaseCenter"), icon: Database, section: "DATABASE" },
-    { title: "Audit Log", url: createPageUrl("AdminAuditLog"), icon: Eye, section: "DATABASE" },
-    { title: "Data Integrity", url: createPageUrl("AdminDataIntegrity"), icon: Shield, section: "DATABASE" },
-    { title: "SQL Generator", url: createPageUrl("AdminSQLScriptGenerator"), icon: Sparkles, section: "DATABASE" },
-    { title: "Query Builder", url: createPageUrl("AdminAdvancedQueryBuilder"), icon: Search, section: "DATABASE" },
-    { title: "Schema Generator", url: createPageUrl("AdminSchemaGenerator"), icon: GitBranch, section: "DATABASE" },
-    { title: "SQL Editor", url: createPageUrl("AdminSQLEditor"), icon: Code, section: "DATABASE" },
-    { title: "Schema Viewer", url: createPageUrl("AdminSchemaViewer"), icon: Database, section: "DATABASE" },
-    { title: "Import/Export", url: createPageUrl("AdminDataImportExport"), icon: Upload, section: "DATABASE" },
-    { title: "Backup Manager", url: createPageUrl("AdminBackupManager"), icon: Archive, section: "DATABASE" },
-    { title: "Performance Monitor", url: createPageUrl("AdminPerformanceMonitor"), icon: Activity, section: "DATABASE" },
-    { title: "Migration Studio", url: createPageUrl("AdminMigrationStudio"), icon: Zap, section: "DATABASE" },
-    { title: "Security Audit", url: createPageUrl("AdminSecurityAudit"), icon: Shield, section: "DATABASE" },
-    { title: "Relationship Mapper", url: createPageUrl("AdminRelationshipMapper"), icon: Link2, section: "DATABASE" },
-    
-    { title: "Go Live Studio", url: createPageUrl("AdminBroadcastStudio"), icon: Radio, section: "CONTENT" },
-    { title: "Live Streams", url: createPageUrl("AdminLiveStreams"), icon: Video, section: "CONTENT" },
-    { title: "Podcasts", url: createPageUrl("AdminPodcasts"), icon: Mic2, section: "CONTENT" },
-    { title: "Videos", url: createPageUrl("AdminVideos"), icon: PlayCircle, section: "CONTENT" },
-    { title: "Blog Posts", url: createPageUrl("AdminBlog"), icon: FileText, section: "CONTENT" },
-    
-    { title: "Products", url: createPageUrl("AdminProductsEnhanced"), icon: Store, section: "COMMERCE" },
-    { title: "Orders", url: createPageUrl("AdminOrderManagement"), icon: ShoppingBag, section: "COMMERCE" },
-    { title: "Categories", url: createPageUrl("AdminCategoryManagement"), icon: FolderTree, section: "COMMERCE" },
-    { title: "Inventory", url: createPageUrl("AdminInventoryManagement"), icon: Warehouse, section: "COMMERCE" },
-    { title: "Coupons", url: createPageUrl("AdminCouponManagement"), icon: Tag, section: "COMMERCE" },
-    { title: "Gift Cards", url: createPageUrl("AdminGiftCards"), icon: Gift, section: "COMMERCE" },
-    { title: "Shipping", url: createPageUrl("AdminShippingConfig"), icon: Truck, section: "COMMERCE" },
-    { title: "Payment Gateways", url: createPageUrl("AdminPaymentGateways"), icon: CreditCardIcon, section: "COMMERCE" },
-    { title: "Abandoned Carts", url: createPageUrl("AdminAbandonedCarts"), icon: Mail, section: "COMMERCE" },
-    { title: "Loyalty Program", url: createPageUrl("AdminLoyaltyProgram"), icon: Award, section: "COMMERCE" },
-    { title: "Pre-Orders", url: createPageUrl("AdminPreOrders"), icon: Clock, section: "COMMERCE" },
-    { title: "Product Analytics", url: createPageUrl("AdminProductAnalytics"), icon: BarChart3, section: "COMMERCE" },
-    { title: "Bundles", url: createPageUrl("AdminProductBundles"), icon: Package, section: "COMMERCE" },
-    { title: "Bulk Pricing", url: createPageUrl("AdminBulkPricing"), icon: Percent, section: "COMMERCE" },
-    { title: "Reviews", url: createPageUrl("AdminReviewsManagement"), icon: MessageIcon, section: "COMMERCE" },
-    
-    { title: "Users", url: createPageUrl("AdminUsers"), icon: UserIcon, section: "MANAGEMENT" },
-    { title: "Roles & Permissions", url: createPageUrl("AdminRoles"), icon: Shield, section: "MANAGEMENT" },
+  const adminNavSections = {
+    "OVERVIEW": [
+      { title: "Dashboard", url: createPageUrl("AdminDashboard"), icon: LayoutDashboard },
+      { title: "Analytics", url: createPageUrl("AdminAnalytics"), icon: BarChart3 },
+      { title: "Site Settings", url: createPageUrl("AdminSiteSettings"), icon: SettingsIcon },
+      { title: "Activity Feed", url: createPageUrl("AdminActivityFeed"), icon: Activity },
+      { title: "System Health", url: createPageUrl("AdminSystemHealth"), icon: Cpu }
+    ],
+    "PRODUCTS": [
+      { title: "All Products", url: createPageUrl("AdminProductsEnhanced"), icon: Store },
+      { title: "Categories", url: createPageUrl("AdminCategoryManagement"), icon: FolderTree },
+      { title: "Category Hierarchy", url: createPageUrl("AdminCategoryHierarchy"), icon: FolderTree },
+      { title: "Attributes", url: createPageUrl("AdminProductAttributes"), icon: Tag },
+      { title: "Collections", url: createPageUrl("AdminCollectionManager"), icon: Layers },
+      { title: "Size Guides", url: createPageUrl("AdminSizeGuideManager"), icon: Ruler },
+      { title: "Bulk Operations", url: createPageUrl("AdminBulkProductOperations"), icon: Zap },
+      { title: "Import/Export", url: createPageUrl("AdminProductImportExport"), icon: FileSpreadsheet },
+      { title: "Product Search", url: createPageUrl("AdminProductSearch"), icon: Search },
+      { title: "Performance", url: createPageUrl("AdminProductPerformance"), icon: TrendingUp },
+      { title: "Price Optimization", url: createPageUrl("AdminPriceOptimization"), icon: DollarSign },
+      { title: "Inventory Forecast", url: createPageUrl("AdminInventoryForecasting"), icon: Target },
+      { title: "Cross-Sell Rules", url: createPageUrl("AdminCrossSellManager"), icon: ShoppingCart },
+      { title: "Lifecycle", url: createPageUrl("AdminProductLifecycle"), icon: Calendar },
+      { title: "Product Badges", url: createPageUrl("AdminProductBadges"), icon: Award },
+      { title: "Product Videos", url: createPageUrl("AdminProductVideos"), icon: VideoIcon },
+      { title: "SEO Optimizer", url: createPageUrl("AdminProductSEO"), icon: Globe },
+      { title: "Quick Actions", url: createPageUrl("AdminProductQuickActions"), icon: Zap }
+    ],
+    "COMMERCE": [
+      { title: "Orders", url: createPageUrl("AdminOrderManagement"), icon: ShoppingBag },
+      { title: "Inventory", url: createPageUrl("AdminInventoryManagement"), icon: Warehouse },
+      { title: "Coupons", url: createPageUrl("AdminCouponManagement"), icon: Tag },
+      { title: "Gift Cards", url: createPageUrl("AdminGiftCards"), icon: Gift },
+      { title: "Shipping", url: createPageUrl("AdminShippingConfig"), icon: Truck },
+      { title: "Payment Gateways", url: createPageUrl("AdminPaymentGateways"), icon: CreditCardIcon },
+      { title: "Abandoned Carts", url: createPageUrl("AdminAbandonedCarts"), icon: Mail },
+      { title: "Loyalty Program", url: createPageUrl("AdminLoyaltyProgram"), icon: Award },
+      { title: "Pre-Orders", url: createPageUrl("AdminPreOrders"), icon: Clock },
+      { title: "Product Analytics", url: createPageUrl("AdminProductAnalytics"), icon: BarChart3 },
+      { title: "Bundles", url: createPageUrl("AdminProductBundles"), icon: Package },
+      { title: "Bulk Pricing", url: createPageUrl("AdminBulkPricing"), icon: Percent },
+      { title: "Reviews", url: createPageUrl("AdminReviewsManagement"), icon: MessageIcon }
+    ],
+    "CONTENT": [
+      { title: "Go Live Studio", url: createPageUrl("AdminBroadcastStudio"), icon: Radio },
+      { title: "Live Streams", url: createPageUrl("AdminLiveStreams"), icon: Video },
+      { title: "Podcasts", url: createPageUrl("AdminPodcasts"), icon: Mic2 },
+      { title: "Videos", url: createPageUrl("AdminVideos"), icon: PlayCircle },
+      { title: "Blog Posts", url: createPageUrl("AdminBlog"), icon: FileText }
+    ],
+    "DATABASE": [
+      { title: "Database Center", url: createPageUrl("AdminDatabaseCenter"), icon: Database },
+      { title: "Audit Log", url: createPageUrl("AdminAuditLog"), icon: Eye },
+      { title: "Data Integrity", url: createPageUrl("AdminDataIntegrity"), icon: Shield },
+      { title: "SQL Generator", url: createPageUrl("AdminSQLScriptGenerator"), icon: Sparkles },
+      { title: "Query Builder", url: createPageUrl("AdminAdvancedQueryBuilder"), icon: Search },
+      { title: "Schema Generator", url: createPageUrl("AdminSchemaGenerator"), icon: GitBranch },
+      { title: "SQL Editor", url: createPageUrl("AdminSQLEditor"), icon: Code },
+      { title: "Schema Viewer", url: createPageUrl("AdminSchemaViewer"), icon: Database },
+      { title: "Import/Export", url: createPageUrl("AdminDataImportExport"), icon: Upload },
+      { title: "Backup Manager", url: createPageUrl("AdminBackupManager"), icon: Archive },
+      { title: "Performance Monitor", url: createPageUrl("AdminPerformanceMonitor"), icon: Activity },
+      { title: "Migration Studio", url: createPageUrl("AdminMigrationStudio"), icon: Zap },
+      { title: "Security Audit", url: createPageUrl("AdminSecurityAudit"), icon: Shield },
+      { title: "Relationship Mapper", url: createPageUrl("AdminRelationshipMapper"), icon: Link2 },
+    ],
+    "MANAGEMENT": [
+      { title: "Users", url: createPageUrl("AdminUsers"), icon: UserIcon },
+      { title: "Roles & Permissions", url: createPageUrl("AdminRoles"), icon: Shield }
+    ],
+    "SYSTEM": [
+      { title: "Website Files", url: createPageUrl("AdminWebsiteFilesManager"), icon: FolderOpen },
+      { title: "API Management", url: createPageUrl("AdminAPIManagement"), icon: Key },
+      { title: "Webhooks", url: createPageUrl("AdminWebhooks"), icon: Webhook },
+      { title: "Notifications", url: createPageUrl("AdminNotificationCenter"), icon: Bell },
+      { title: "Cache Manager", url: createPageUrl("AdminCacheManager"), icon: Zap },
+      { title: "Rate Limiting", url: createPageUrl("AdminRateLimiting"), icon: Shield },
+      { title: "Scheduled Jobs", url: createPageUrl("AdminScheduledJobs"), icon: Clock },
+      { title: "Error Tracking", url: createPageUrl("AdminErrorTracking"), icon: AlertCircle },
+      { title: "DB Replication", url: createPageUrl("AdminDatabaseReplication"), icon: Copy },
+      { title: "Access Control", url: createPageUrl("AdminAccessControl"), icon: Lock },
+      { title: "Data Governance", url: createPageUrl("AdminDataGovernance"), icon: Shield },
+      { title: "Index Optimizer", url: createPageUrl("AdminDatabaseIndexOptimizer"), icon: Zap },
+      { title: "Query Optimizer", url: createPageUrl("AdminQueryOptimizer"), icon: TrendingUp },
+      { title: "Data Masking", url: createPageUrl("AdminDataMasking"), icon: Eye },
+      { title: "Transactions", url: createPageUrl("AdminDatabaseTransactions"), icon: Activity },
+      { title: "DB Versioning", url: createPageUrl("AdminDatabaseVersioning"), icon: GitBranch },
+      { title: "Data Lineage", url: createPageUrl("AdminDataLineage"), icon: Link2 },
+      { title: "Data Catalog", url: createPageUrl("AdminDataCatalog"), icon: Database },
+      { title: "Data Quality", url: createPageUrl("AdminDataQuality"), icon: CheckCircle },
+      { title: "Data Encryption", url: createPageUrl("AdminDataEncryption"), icon: Lock },
+      { title: "DB Monitoring", url: createPageUrl("AdminDatabaseMonitoring"), icon: Activity },
+      { title: "Data Archiving", url: createPageUrl("AdminDataArchiving"), icon: Archive },
+      { title: "Anonymization", url: createPageUrl("AdminDataAnonymization"), icon: UserX },
+      { title: "DB Cloning", url: createPageUrl("AdminDatabaseCloning"), icon: Copy },
+      { title: "Compliance Reports", url: createPageUrl("AdminComplianceReporting"), icon: FileText },
+      { title: "DB Comparison", url: createPageUrl("AdminDatabaseComparison"), icon: GitCompare },
+      { title: "Data Profiling", url: createPageUrl("AdminDataProfiling"), icon: BarChart3 },
+      { title: "Cost Optimizer", url: createPageUrl("AdminDatabaseCostOptimizer"), icon: DollarSign },
+    ]
+  };
 
-    { title: "Website Files", url: createPageUrl("AdminWebsiteFilesManager"), icon: FolderOpen, section: "SYSTEM" },
-    { title: "API Management", url: createPageUrl("AdminAPIManagement"), icon: Key, section: "SYSTEM" },
-    { title: "Webhooks", url: createPageUrl("AdminWebhooks"), icon: Webhook, section: "SYSTEM" },
-    { title: "Notifications", url: createPageUrl("AdminNotificationCenter"), icon: Bell, section: "SYSTEM" },
-    { title: "Cache Manager", url: createPageUrl("AdminCacheManager"), icon: Zap, section: "SYSTEM" },
-    { title: "Rate Limiting", url: createPageUrl("AdminRateLimiting"), icon: Shield, section: "SYSTEM" },
-    { title: "Scheduled Jobs", url: createPageUrl("AdminScheduledJobs"), icon: Clock, section: "SYSTEM" },
-    { title: "Error Tracking", url: createPageUrl("AdminErrorTracking"), icon: AlertCircle, section: "SYSTEM" },
-    { title: "DB Replication", url: createPageUrl("AdminDatabaseReplication"), icon: Copy, section: "SYSTEM" },
-    { title: "Access Control", url: createPageUrl("AdminAccessControl"), icon: Lock, section: "SYSTEM" },
-    { title: "Data Governance", url: createPageUrl("AdminDataGovernance"), icon: Shield, section: "SYSTEM" },
-    { title: "Index Optimizer", url: createPageUrl("AdminDatabaseIndexOptimizer"), icon: Zap, section: "SYSTEM" },
-    { title: "Query Optimizer", url: createPageUrl("AdminQueryOptimizer"), icon: TrendingUp, section: "SYSTEM" },
-    { title: "Data Masking", url: createPageUrl("AdminDataMasking"), icon: Eye, section: "SYSTEM" },
-    { title: "Transactions", url: createPageUrl("AdminDatabaseTransactions"), icon: Activity, section: "SYSTEM" },
-    { title: "DB Versioning", url: createPageUrl("AdminDatabaseVersioning"), icon: GitBranch, section: "SYSTEM" },
-    { title: "Data Lineage", url: createPageUrl("AdminDataLineage"), icon: Link2, section: "SYSTEM" },
-    { title: "Data Catalog", url: createPageUrl("AdminDataCatalog"), icon: Database, section: "SYSTEM" },
-    { title: "Data Quality", url: createPageUrl("AdminDataQuality"), icon: CheckCircle, section: "SYSTEM" },
-    { title: "Data Encryption", url: createPageUrl("AdminDataEncryption"), icon: Lock, section: "SYSTEM" },
-    { title: "DB Monitoring", url: createPageUrl("AdminDatabaseMonitoring"), icon: Activity, section: "SYSTEM" },
-    { title: "Data Archiving", url: createPageUrl("AdminDataArchiving"), icon: Archive, section: "SYSTEM" },
-    { title: "Anonymization", url: createPageUrl("AdminDataAnonymization"), icon: UserX, section: "SYSTEM" },
-    { title: "DB Cloning", url: createPageUrl("AdminDatabaseCloning"), icon: Copy, section: "SYSTEM" },
-    { title: "Compliance Reports", url: createPageUrl("AdminComplianceReporting"), icon: FileText, section: "SYSTEM" },
-    { title: "DB Comparison", url: createPageUrl("AdminDatabaseComparison"), icon: GitCompare, section: "SYSTEM" },
-    { title: "Data Profiling", url: createPageUrl("AdminDataProfiling"), icon: BarChart3, section: "SYSTEM" },
-    { title: "Cost Optimizer", url: createPageUrl("AdminDatabaseCostOptimizer"), icon: DollarSign, section: "SYSTEM" },
-  ];
-
-  const groupedAdminItems = adminNavItems.reduce((acc, item) => {
-    if (!acc[item.section]) acc[item.section] = [];
-    acc[item.section].push(item);
-    return acc;
-  }, {});
+  const toggleSection = (section) => {
+    const newExpanded = new Set(expandedSections);
+    if (newExpanded.has(section)) {
+      newExpanded.delete(section);
+    } else {
+      newExpanded.add(section);
+    }
+    setExpandedSections(newExpanded);
+  };
 
   const handleLogout = () => {
     base44.auth.logout();
@@ -252,7 +290,7 @@ function LayoutContent({ children, currentPageName }) {
 
   if (isAdminPage) {
     return (
-      <SidebarProvider>
+      <SidebarProvider open={sidebarOpen} onOpenChange={setSidebarOpen}>
         <style>{`
           :root {
             --sidebar-background: #0a0f1e !important;
@@ -269,58 +307,10 @@ function LayoutContent({ children, currentPageName }) {
             border-right: 1px solid rgba(71, 85, 105, 0.3) !important;
           }
           
-          [data-sidebar-header],
-          [data-sidebar-content],
-          [data-sidebar-footer] {
-            background-color: transparent !important;
-          }
-          
           .admin-layout {
             background: linear-gradient(135deg, #0a0e27 0%, #050911 100%) !important;
             min-height: 100vh;
             width: 100%;
-          }
-          
-          .admin-main {
-            background: transparent !important;
-            flex: 1;
-            width: 100%;
-            max-width: 100%;
-          }
-          
-          .admin-header {
-            background: linear-gradient(90deg, rgba(15, 23, 42, 0.8) 0%, rgba(15, 23, 42, 0.6) 100%) !important;
-            backdrop-filter: blur(20px);
-            border-bottom: 1px solid rgba(71, 85, 105, 0.3) !important;
-            width: 100%;
-            box-shadow: 0 4px 20px rgba(0, 0, 0, 0.3);
-          }
-          
-          .admin-content {
-            width: 100%;
-            max-width: 100%;
-            padding: 2rem;
-            background: linear-gradient(180deg, rgba(10, 14, 39, 0) 0%, rgba(10, 14, 39, 0.5) 100%);
-          }
-          
-          .sidebar-label {
-            color: #06b6d4 !important;
-            font-size: 10px !important;
-            font-weight: 800 !important;
-            letter-spacing: 0.1em !important;
-            text-transform: uppercase !important;
-            padding: 12px 12px 8px 12px !important;
-            position: relative;
-          }
-          
-          .sidebar-label::before {
-            content: '';
-            position: absolute;
-            left: 12px;
-            right: 12px;
-            top: 0;
-            height: 1px;
-            background: linear-gradient(90deg, transparent 0%, rgba(6, 182, 212, 0.3) 50%, transparent 100%);
           }
           
           .sidebar-menu-item {
@@ -342,111 +332,74 @@ function LayoutContent({ children, currentPageName }) {
           .sidebar-menu-item.active {
             background: linear-gradient(135deg, #06b6d4 0%, #0891b2 100%) !important;
             color: #ffffff !important;
-            box-shadow: 0 4px 12px rgba(6, 182, 212, 0.3), inset 0 1px 0 rgba(255, 255, 255, 0.1);
+            box-shadow: 0 4px 12px rgba(6, 182, 212, 0.3);
             font-weight: 700 !important;
-          }
-          
-          .sidebar-menu-item.active::before {
-            content: '';
-            position: absolute;
-            left: 0;
-            top: 50%;
-            transform: translateY(-50%);
-            width: 3px;
-            height: 20px;
-            background: linear-gradient(180deg, #fff 0%, rgba(255,255,255,0.5) 100%);
-            border-radius: 0 2px 2px 0;
-          }
-          
-          .sidebar-menu-item svg {
-            color: inherit !important;
-          }
-
-          .enterprise-header-glow {
-            box-shadow: 0 0 40px rgba(6, 182, 212, 0.1);
-          }
-
-          .admin-card {
-            background: linear-gradient(135deg, rgba(30, 41, 59, 0.4) 0%, rgba(15, 23, 42, 0.6) 100%) !important;
-            border: 1px solid rgba(71, 85, 105, 0.3) !important;
-            border-radius: 16px;
-            backdrop-filter: blur(10px);
-          }
-
-          .admin-card:hover {
-            border-color: rgba(6, 182, 212, 0.4) !important;
-            box-shadow: 0 8px 24px rgba(0, 0, 0, 0.2);
-          }
-
-          @keyframes shimmer {
-            0% { background-position: -1000px 0; }
-            100% { background-position: 1000px 0; }
-          }
-
-          .enterprise-shimmer {
-            background: linear-gradient(90deg, transparent 0%, rgba(6, 182, 212, 0.1) 50%, transparent 100%);
-            background-size: 1000px 100%;
-            animation: shimmer 3s infinite;
           }
         `}</style>
         <div className="flex min-h-screen w-full admin-layout">
-          <Sidebar className="border-r-0" style={{ background: 'linear-gradient(180deg, #0a0f1e 0%, #050911 100%)' }}>
-            <SidebarHeader className="border-b border-slate-700/30 p-5" style={{ backgroundColor: 'transparent' }}>
+          <Sidebar collapsible="icon" className="border-r-0">
+            <SidebarHeader className="border-b border-slate-700/30 p-5">
               <div className="flex items-center gap-3">
-                <div className="w-10 h-10 bg-gradient-to-br from-cyan-500 via-blue-600 to-cyan-700 rounded-xl flex items-center justify-center shadow-lg shadow-cyan-500/30 relative overflow-hidden">
-                  <div className="absolute inset-0 bg-gradient-to-tr from-transparent via-white/20 to-transparent enterprise-shimmer"></div>
-                  <Shield className="w-6 h-6 text-white relative z-10" />
+                <div className="w-10 h-10 bg-gradient-to-br from-cyan-500 to-blue-600 rounded-xl flex items-center justify-center">
+                  <Shield className="w-6 h-6 text-white" />
                 </div>
-                <div>
-                  <span className="text-white font-black text-base tracking-tight">Admin Panel</span>
-                  <p className="text-cyan-400 text-xs font-bold">Enterprise Edition</p>
+                <div className="group-data-[collapsible=icon]:hidden">
+                  <span className="text-white font-black text-base">Admin Panel</span>
+                  <p className="text-cyan-400 text-xs font-bold">Enterprise</p>
                 </div>
               </div>
             </SidebarHeader>
   
-            <SidebarContent className="p-3 overflow-y-auto max-h-[calc(100vh-180px)]" style={{ backgroundColor: 'transparent' }}>
-              {Object.entries(groupedAdminItems).map(([section, items]) => (
-                <SidebarGroup key={section}>
-                  <SidebarGroupLabel className="sidebar-label">
-                    {section}
-                  </SidebarGroupLabel>
-                  <SidebarGroupContent>
-                    <SidebarMenu>
-                      {items.map((item) => {
-                        const isActive = location.pathname === item.url;
-                        return (
-                          <SidebarMenuItem key={item.title}>
-                            <SidebarMenuButton asChild>
-                              <Link 
-                                to={item.url} 
-                                className={`flex items-center gap-3 text-sm font-semibold rounded-lg transition-all sidebar-menu-item ${isActive ? 'active' : ''}`}
-                                style={isActive ? { 
-                                  background: 'linear-gradient(135deg, #06b6d4 0%, #0891b2 100%)', 
-                                  color: '#ffffff' 
-                                } : { color: '#94a3b8' }}
-                              >
-                                <item.icon className="w-4 h-4" />
-                                <span>{item.title}</span>
-                              </Link>
-                            </SidebarMenuButton>
-                          </SidebarMenuItem>
-                        );
-                      })}
-                    </SidebarMenu>
-                  </SidebarGroupContent>
-                </SidebarGroup>
+            <SidebarContent className="p-3 overflow-y-auto">
+              {Object.entries(adminNavSections).map(([section, items]) => (
+                <Collapsible
+                  key={section}
+                  open={expandedSections.has(section)}
+                  onOpenChange={() => toggleSection(section)}
+                >
+                  <SidebarGroup>
+                    <CollapsibleTrigger asChild>
+                      <SidebarGroupLabel className="cursor-pointer hover:bg-slate-800/30 rounded-lg p-3 flex items-center justify-between group">
+                        <span className="text-cyan-400 font-black text-xs">{section}</span>
+                        <ChevronDown className={`w-4 h-4 text-cyan-400 transition-transform ${expandedSections.has(section) ? 'rotate-180' : ''}`} />
+                      </SidebarGroupLabel>
+                    </CollapsibleTrigger>
+                    <CollapsibleContent>
+                      <SidebarGroupContent>
+                        <SidebarMenu>
+                          {items.map((item) => {
+                            const isActive = location.pathname === item.url;
+                            return (
+                              <SidebarMenuItem key={item.title}>
+                                <SidebarMenuButton asChild>
+                                  <Link 
+                                    to={item.url} 
+                                    className={`flex items-center gap-3 text-sm sidebar-menu-item ${isActive ? 'active' : ''}`}
+                                  >
+                                    <item.icon className="w-4 h-4" />
+                                    <span className="group-data-[collapsible=icon]:hidden">{item.title}</span>
+                                  </Link>
+                                </SidebarMenuButton>
+                              </SidebarMenuItem>
+                            );
+                          })}
+                        </SidebarMenu>
+                      </SidebarGroupContent>
+                    </CollapsibleContent>
+                  </SidebarGroup>
+                </Collapsible>
               ))}
             </SidebarContent>
   
-            <SidebarFooter className="border-t border-slate-700/30 p-4" style={{ backgroundColor: 'transparent' }}>
+            <SidebarFooter className="border-t border-slate-700/30 p-4">
               <div className="flex items-center gap-3 mb-3 px-2 p-3 rounded-lg bg-gradient-to-br from-slate-800/40 to-slate-900/40 border border-slate-700/30">
-                <Avatar className="w-10 h-10 border-2 border-cyan-500/40 shadow-lg shadow-cyan-500/20">
+                <Avatar className="w-10 h-10 border-2 border-cyan-500/40">
                   <AvatarImage src={user?.profile_image} />
                   <AvatarFallback className="bg-gradient-to-br from-purple-600 to-cyan-500 text-white font-bold">
                     {user?.full_name?.[0] || 'A'}
                   </AvatarFallback>
                 </Avatar>
-                <div className="flex-1 min-w-0">
+                <div className="flex-1 min-w-0 group-data-[collapsible=icon]:hidden">
                   <p className="font-bold text-white text-sm truncate">{user?.full_name || 'Admin'}</p>
                   <p className="text-xs text-cyan-400 truncate font-semibold">{user?.role || 'Administrator'}</p>
                 </div>
@@ -459,13 +412,13 @@ function LayoutContent({ children, currentPageName }) {
                   className="flex-1 bg-slate-800/50 hover:bg-slate-700/50 text-slate-300 hover:text-white text-xs h-9 font-semibold border border-slate-700/30"
                 >
                   <Home className="w-3 h-3 mr-1.5" />
-                  Site
+                  <span className="group-data-[collapsible=icon]:hidden">Site</span>
                 </Button>
                 <Button
                   variant="ghost"
                   size="sm"
                   onClick={handleLogout}
-                  className="bg-slate-800/50 hover:bg-red-500/20 hover:border-red-500/50 text-slate-300 hover:text-red-400 h-9 px-3 border border-slate-700/30"
+                  className="bg-slate-800/50 hover:bg-red-500/20 text-slate-300 hover:text-red-400 h-9 px-3 border border-slate-700/30"
                 >
                   <LogOut className="w-3 h-3" />
                 </Button>
@@ -473,29 +426,27 @@ function LayoutContent({ children, currentPageName }) {
             </SidebarFooter>
           </Sidebar>
   
-          <main className="flex-1 flex flex-col overflow-hidden admin-main w-full">
-            <header className="admin-header px-8 py-5 w-full enterprise-header-glow">
-              <div className="flex items-center justify-between w-full">
+          <main className="flex-1 flex flex-col overflow-hidden w-full">
+            <header className="bg-[#0f1629]/80 backdrop-blur-xl border-b border-slate-800/50 px-8 py-5">
+              <div className="flex items-center justify-between">
                 <div className="flex items-center gap-4">
-                  <SidebarTrigger className="lg:hidden text-white hover:bg-white/10 p-2 rounded-lg" />
+                  <SidebarTrigger className="text-white hover:bg-white/10 p-2 rounded-lg" />
                   <div>
-                    <h1 className="text-2xl font-black text-white tracking-tight">{currentPageName?.replace('Admin', '')}</h1>
-                    <p className="text-cyan-400 text-xs font-semibold mt-0.5">Enterprise Administration</p>
+                    <h1 className="text-2xl font-black text-white">{currentPageName?.replace('Admin', '')}</h1>
+                    <p className="text-cyan-400 text-xs font-semibold">Enterprise Administration</p>
                   </div>
                 </div>
                 <div className="flex items-center gap-3">
                   <NotificationBell user={user} />
-                  <Button variant="ghost" size="icon" className="text-slate-400 hover:text-white hover:bg-slate-800/50 rounded-xl border border-transparent hover:border-slate-700/50">
+                  <Button variant="ghost" size="icon" className="text-slate-400 hover:text-white">
                     <Settings className="w-5 h-5" />
                   </Button>
                 </div>
               </div>
             </header>
   
-            <div className="flex-1 overflow-auto admin-content w-full">
-              <div className="w-full max-width-full">
-                {children}
-              </div>
+            <div className="flex-1 overflow-auto p-8">
+              {children}
             </div>
           </main>
         </div>

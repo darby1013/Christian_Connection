@@ -1,3 +1,4 @@
+
 import React, { useState, useEffect } from 'react';
 import { useLocation } from 'react-router-dom';
 import { base44 } from '@/api/base44Client';
@@ -9,6 +10,9 @@ import { Tabs, TabsList, TabsTrigger, TabsContent } from '@/components/ui/tabs';
 import { Star, ShoppingCart, Heart, Share2, Truck, Shield, RefreshCcw } from 'lucide-react';
 import AIRecommendations from '../components/store/AIRecommendations';
 import FrequentlyBoughtTogether from '../components/store/FrequentlyBoughtTogether';
+import ProductQA from '../components/store/ProductQA';
+import RecentlyViewedCarousel from '../components/store/RecentlyViewedCarousel';
+import SocialShare from '../components/store/SocialShare';
 
 export default function ProductDetail() {
   const location = useLocation();
@@ -26,10 +30,25 @@ export default function ProductDetail() {
       try {
         const currentUser = await base44.auth.me();
         setUser(currentUser);
+        
+        if (currentUser && productId) {
+          const product = await base44.entities.Product.filter({ id: productId }).then(res => res[0]);
+          if (product) {
+            const images = parseImages(product.images);
+            await base44.entities.RecentlyViewed.create({
+              user_id: currentUser.id,
+              product_id: productId,
+              product_name: product.name,
+              product_image: images[0],
+              product_price: product.price,
+              viewed_at: new Date().toISOString()
+            });
+          }
+        }
       } catch {}
     };
     fetchUser();
-  }, []);
+  }, [productId]);
 
   const { data: product } = useQuery({
     queryKey: ['product', productId],
@@ -43,13 +62,6 @@ export default function ProductDetail() {
   const { data: reviews = [] } = useQuery({
     queryKey: ['productReviews', productId],
     queryFn: () => base44.entities.ProductReview.filter({ product_id: productId }),
-    initialData: []
-  });
-
-  const { data: relatedProducts = [] } = useQuery({
-    queryKey: ['relatedProducts', product?.category],
-    queryFn: () => base44.entities.Product.filter({ category: product?.category }),
-    enabled: !!product?.category,
     initialData: []
   });
 
@@ -130,10 +142,10 @@ export default function ProductDetail() {
           </div>
 
           <div>
-            <Badge className={inStock ? 'bg-green-500' : 'bg-red-500'} mb={2}>
+            <Badge className={inStock ? 'bg-green-500' : 'bg-red-500'}>
               {inStock ? 'In Stock' : 'Out of Stock'}
             </Badge>
-            <h1 className="text-4xl font-black text-white mb-4">{product.name}</h1>
+            <h1 className="text-4xl font-black text-white mb-4 mt-2">{product.name}</h1>
             
             <div className="flex items-center gap-4 mb-6">
               <div className="flex items-center gap-1">
@@ -197,16 +209,25 @@ export default function ProductDetail() {
                 Add to Cart
               </Button>
               <Button 
-                onClick={() => addToWishlistMutation.mutate({ user_id: user?.id, product_id: product.id })}
+                onClick={() => addToWishlistMutation.mutate({ 
+                  user_id: user?.id, 
+                  product_id: product.id,
+                  product_name: product.name,
+                  product_price: product.price,
+                  product_image: images[0]
+                })}
                 variant="outline" 
                 className="border-slate-600 h-14 px-6"
               >
                 <Heart className="w-5 h-5" />
               </Button>
-              <Button variant="outline" className="border-slate-600 h-14 px-6">
-                <Share2 className="w-5 h-5" />
-              </Button>
             </div>
+
+            <Card className="bg-slate-900 border-slate-700 mb-6">
+              <CardContent className="p-4">
+                <SocialShare product={product} />
+              </CardContent>
+            </Card>
 
             <div className="grid grid-cols-3 gap-4">
               <Card className="bg-slate-900 border-slate-700">
@@ -239,6 +260,7 @@ export default function ProductDetail() {
         <Tabs defaultValue="reviews" className="mb-12">
           <TabsList className="bg-slate-900 border-slate-700">
             <TabsTrigger value="reviews">Reviews ({reviews.length})</TabsTrigger>
+            <TabsTrigger value="qa">Questions & Answers</TabsTrigger>
             <TabsTrigger value="specs">Specifications</TabsTrigger>
             <TabsTrigger value="shipping">Shipping Info</TabsTrigger>
           </TabsList>
@@ -266,10 +288,39 @@ export default function ProductDetail() {
             </div>
           </TabsContent>
 
+          <TabsContent value="qa" className="mt-6">
+            <ProductQA productId={productId} />
+          </TabsContent>
+
           <TabsContent value="specs" className="mt-6">
             <Card className="bg-slate-900 border-slate-700">
               <CardContent className="p-6">
-                <p className="text-slate-300">Product specifications and details will be displayed here.</p>
+                <div className="grid md:grid-cols-2 gap-4">
+                  {product.brand && (
+                    <div>
+                      <p className="text-slate-400 text-sm">Brand</p>
+                      <p className="text-white font-bold">{product.brand}</p>
+                    </div>
+                  )}
+                  {product.material && (
+                    <div>
+                      <p className="text-slate-400 text-sm">Material</p>
+                      <p className="text-white font-bold">{product.material}</p>
+                    </div>
+                  )}
+                  {product.weight && (
+                    <div>
+                      <p className="text-slate-400 text-sm">Weight</p>
+                      <p className="text-white font-bold">{product.weight} lbs</p>
+                    </div>
+                  )}
+                  {product.dimensions && (
+                    <div>
+                      <p className="text-slate-400 text-sm">Dimensions</p>
+                      <p className="text-white font-bold">{product.dimensions}</p>
+                    </div>
+                  )}
+                </div>
               </CardContent>
             </Card>
           </TabsContent>
@@ -277,11 +328,13 @@ export default function ProductDetail() {
           <TabsContent value="shipping" className="mt-6">
             <Card className="bg-slate-900 border-slate-700">
               <CardContent className="p-6">
-                <p className="text-slate-300">Shipping information and delivery options.</p>
+                <p className="text-slate-300">Free standard shipping on orders over $50. Expedited shipping available at checkout.</p>
               </CardContent>
             </Card>
           </TabsContent>
         </Tabs>
+
+        <RecentlyViewedCarousel userId={user?.id} currentProductId={productId} />
 
         <AIRecommendations userId={user?.id} currentProductId={productId} type="similar" />
       </div>

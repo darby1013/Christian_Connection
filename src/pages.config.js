@@ -190,6 +190,15 @@ import AdminInventoryForecasting from './pages/AdminInventoryForecasting';
 import AdminCollectionManager from './pages/AdminCollectionManager';
 import AdminSizeGuideManager from './pages/AdminSizeGuideManager';
 import CategoryBrowse from './pages/CategoryBrowse';
+import AdminProductImportExport from './pages/AdminProductImportExport';
+import AdminProductSearch from './pages/AdminProductSearch';
+import AdminProductPerformance from './pages/AdminProductPerformance';
+import AdminCrossSellManager from './pages/AdminCrossSellManager';
+import AdminProductLifecycle from './pages/AdminProductLifecycle';
+import AdminProductBadges from './pages/AdminProductBadges';
+import AdminProductVideos from './pages/AdminProductVideos';
+import AdminProductSEO from './pages/AdminProductSEO';
+import AdminProductQuickActions from './pages/AdminProductQuickActions';
 import Layout from './Layout.jsx';
 
 
@@ -386,6 +395,15 @@ export const PAGES = {
     "AdminCollectionManager": AdminCollectionManager,
     "AdminSizeGuideManager": AdminSizeGuideManager,
     "CategoryBrowse": CategoryBrowse,
+    "AdminProductImportExport": AdminProductImportExport,
+    "AdminProductSearch": AdminProductSearch,
+    "AdminProductPerformance": AdminProductPerformance,
+    "AdminCrossSellManager": AdminCrossSellManager,
+    "AdminProductLifecycle": AdminProductLifecycle,
+    "AdminProductBadges": AdminProductBadges,
+    "AdminProductVideos": AdminProductVideos,
+    "AdminProductSEO": AdminProductSEO,
+    "AdminProductQuickActions": AdminProductQuickActions,
 }
 
 export const pagesConfig = {
