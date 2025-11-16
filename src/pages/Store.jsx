@@ -6,11 +6,12 @@ import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Badge } from '@/components/ui/badge';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
-import { ShoppingCart, Search, Star, Heart, Eye, Filter, Grid, List, GitCompare } from 'lucide-react';
+import { ShoppingCart, Search, Star, Heart, Eye, Filter, Grid, List, GitCompare, X } from 'lucide-react';
 import { Link, useNavigate } from 'react-router-dom';
 import { createPageUrl } from '@/utils';
 import RealtimeCart from '../components/store/RealtimeCart';
 import AIRecommendations from '../components/store/AIRecommendations';
+import ProductQuickView from '../components/store/ProductQuickView';
 
 export default function Store() {
   const [user, setUser] = useState(null);
@@ -21,6 +22,14 @@ export default function Store() {
   const [viewMode, setViewMode] = useState('grid');
   const [showCart, setShowCart] = useState(false);
   const [compareList, setCompareList] = useState([]);
+  const [quickViewProduct, setQuickViewProduct] = useState(null);
+  const [filters, setFilters] = useState({
+    colors: [],
+    sizes: [],
+    brands: [],
+    materials: [],
+    rating: 0
+  });
   const queryClient = useQueryClient();
   const navigate = useNavigate();
 
@@ -95,9 +104,27 @@ export default function Store() {
     );
   };
 
-  const goToComparison = () => {
-    navigate(createPageUrl('ProductComparison') + `?ids=${compareList.join(',')}`);
+  const toggleFilter = (type, value) => {
+    setFilters(prev => ({
+      ...prev,
+      [type]: prev[type].includes(value) 
+        ? prev[type].filter(v => v !== value)
+        : [...prev[type], value]
+    }));
   };
+
+  const clearFilters = () => {
+    setSearchQuery('');
+    setSelectedCategory('all');
+    setSortBy('featured');
+    setPriceRange([0, 1000]);
+    setFilters({ colors: [], sizes: [], brands: [], materials: [], rating: 0 });
+  };
+
+  const availableColors = [...new Set(products.flatMap(p => p.colors || []).filter(Boolean))];
+  const availableSizes = [...new Set(products.flatMap(p => p.sizes || []).filter(Boolean))];
+  const availableBrands = [...new Set(products.map(p => p.brand).filter(Boolean))];
+  const availableMaterials = [...new Set(products.map(p => p.material).filter(Boolean))];
 
   const filteredProducts = products
     .filter(p => {
@@ -105,14 +132,24 @@ export default function Store() {
                            p.description?.toLowerCase().includes(searchQuery.toLowerCase());
       const matchesCategory = selectedCategory === 'all' || p.category === selectedCategory;
       const matchesPrice = p.price >= priceRange[0] && p.price <= priceRange[1];
-      return matchesSearch && matchesCategory && matchesPrice;
+      const matchesColor = filters.colors.length === 0 || (p.colors && filters.colors.some(c => p.colors.includes(c)));
+      const matchesSize = filters.sizes.length === 0 || (p.sizes && filters.sizes.some(s => p.sizes.includes(s)));
+      const matchesBrand = filters.brands.length === 0 || filters.brands.includes(p.brand);
+      const matchesMaterial = filters.materials.length === 0 || filters.materials.includes(p.material);
+      const matchesRating = filters.rating === 0 || (p.rating || 0) >= filters.rating;
+      
+      return matchesSearch && matchesCategory && matchesPrice && matchesColor && 
+             matchesSize && matchesBrand && matchesMaterial && matchesRating;
     })
     .sort((a, b) => {
       if (sortBy === 'price_low') return (a.price || 0) - (b.price || 0);
       if (sortBy === 'price_high') return (b.price || 0) - (a.price || 0);
       if (sortBy === 'name') return (a.name || '').localeCompare(b.name || '');
+      if (sortBy === 'rating') return (b.rating || 0) - (a.rating || 0);
       return 0;
     });
+
+  const activeFiltersCount = filters.colors.length + filters.sizes.length + filters.brands.length + filters.materials.length + (filters.rating > 0 ? 1 : 0);
 
   return (
     <div className="min-h-screen bg-[#0a0e27] py-12">
@@ -125,7 +162,7 @@ export default function Store() {
           <div className="flex gap-3">
             {compareList.length > 0 && (
               <Button 
-                onClick={goToComparison}
+                onClick={() => navigate(createPageUrl('ProductComparison') + `?ids=${compareList.join(',')}`)}
                 variant="outline"
                 className="border-purple-600 text-purple-400 hover:bg-purple-600/20"
               >
@@ -153,10 +190,15 @@ export default function Store() {
         <div className="grid lg:grid-cols-4 gap-8">
           <Card className="bg-[#1a1f3a] border-slate-700 h-fit sticky top-4">
             <CardContent className="p-6">
-              <h3 className="text-white font-black text-lg mb-4 flex items-center gap-2">
-                <Filter className="w-5 h-5 text-cyan-400" />
-                Filters
-              </h3>
+              <div className="flex items-center justify-between mb-4">
+                <h3 className="text-white font-black text-lg flex items-center gap-2">
+                  <Filter className="w-5 h-5 text-cyan-400" />
+                  Filters
+                </h3>
+                {activeFiltersCount > 0 && (
+                  <Badge className="bg-cyan-500">{activeFiltersCount}</Badge>
+                )}
+              </div>
 
               <div className="space-y-6">
                 <div>
@@ -184,6 +226,101 @@ export default function Store() {
                   </Select>
                 </div>
 
+                {availableColors.length > 0 && (
+                  <div>
+                    <label className="text-white font-bold text-sm mb-2 block">Colors</label>
+                    <div className="flex flex-wrap gap-2">
+                      {availableColors.map(color => (
+                        <button
+                          key={color}
+                          onClick={() => toggleFilter('colors', color)}
+                          className={`px-3 py-1 rounded-full text-xs font-bold transition-all ${
+                            filters.colors.includes(color)
+                              ? 'bg-cyan-500 text-white'
+                              : 'bg-slate-800 text-slate-300 hover:bg-slate-700'
+                          }`}
+                        >
+                          {color}
+                        </button>
+                      ))}
+                    </div>
+                  </div>
+                )}
+
+                {availableSizes.length > 0 && (
+                  <div>
+                    <label className="text-white font-bold text-sm mb-2 block">Sizes</label>
+                    <div className="flex flex-wrap gap-2">
+                      {availableSizes.map(size => (
+                        <button
+                          key={size}
+                          onClick={() => toggleFilter('sizes', size)}
+                          className={`px-3 py-1 rounded-full text-xs font-bold transition-all ${
+                            filters.sizes.includes(size)
+                              ? 'bg-cyan-500 text-white'
+                              : 'bg-slate-800 text-slate-300 hover:bg-slate-700'
+                          }`}
+                        >
+                          {size}
+                        </button>
+                      ))}
+                    </div>
+                  </div>
+                )}
+
+                {availableBrands.length > 0 && (
+                  <div>
+                    <label className="text-white font-bold text-sm mb-2 block">Brands</label>
+                    <div className="space-y-2">
+                      {availableBrands.slice(0, 5).map(brand => (
+                        <label key={brand} className="flex items-center gap-2 cursor-pointer">
+                          <input
+                            type="checkbox"
+                            checked={filters.brands.includes(brand)}
+                            onChange={() => toggleFilter('brands', brand)}
+                            className="w-4 h-4"
+                          />
+                          <span className="text-slate-300 text-sm">{brand}</span>
+                        </label>
+                      ))}
+                    </div>
+                  </div>
+                )}
+
+                {availableMaterials.length > 0 && (
+                  <div>
+                    <label className="text-white font-bold text-sm mb-2 block">Materials</label>
+                    <div className="space-y-2">
+                      {availableMaterials.slice(0, 5).map(material => (
+                        <label key={material} className="flex items-center gap-2 cursor-pointer">
+                          <input
+                            type="checkbox"
+                            checked={filters.materials.includes(material)}
+                            onChange={() => toggleFilter('materials', material)}
+                            className="w-4 h-4"
+                          />
+                          <span className="text-slate-300 text-sm">{material}</span>
+                        </label>
+                      ))}
+                    </div>
+                  </div>
+                )}
+
+                <div>
+                  <label className="text-white font-bold text-sm mb-2 block">Min Rating</label>
+                  <div className="flex gap-1">
+                    {[1, 2, 3, 4, 5].map(rating => (
+                      <button
+                        key={rating}
+                        onClick={() => setFilters({...filters, rating: filters.rating === rating ? 0 : rating})}
+                        className={`p-1 ${filters.rating >= rating ? 'text-yellow-400' : 'text-slate-600'}`}
+                      >
+                        <Star className="w-5 h-5 fill-current" />
+                      </button>
+                    ))}
+                  </div>
+                </div>
+
                 <div>
                   <label className="text-white font-bold text-sm mb-2 block">Sort By</label>
                   <Select value={sortBy} onValueChange={setSortBy}>
@@ -195,6 +332,7 @@ export default function Store() {
                       <SelectItem value="price_low">Price: Low to High</SelectItem>
                       <SelectItem value="price_high">Price: High to Low</SelectItem>
                       <SelectItem value="name">Name: A to Z</SelectItem>
+                      <SelectItem value="rating">Rating: High to Low</SelectItem>
                     </SelectContent>
                   </Select>
                 </div>
@@ -216,14 +354,9 @@ export default function Store() {
                 <Button 
                   variant="outline" 
                   className="w-full border-slate-600"
-                  onClick={() => {
-                    setSearchQuery('');
-                    setSelectedCategory('all');
-                    setSortBy('featured');
-                    setPriceRange([0, 1000]);
-                  }}
+                  onClick={clearFilters}
                 >
-                  Clear Filters
+                  Clear All Filters
                 </Button>
               </div>
             </CardContent>
@@ -316,11 +449,13 @@ export default function Store() {
                             >
                               <Heart className="w-4 h-4" />
                             </Button>
-                            <Link to={createPageUrl('ProductDetail') + `?id=${product.id}`}>
-                              <Button size="icon" className="bg-white text-slate-900 hover:bg-slate-100">
-                                <Eye className="w-4 h-4" />
-                              </Button>
-                            </Link>
+                            <Button
+                              size="icon"
+                              className="bg-white text-slate-900 hover:bg-slate-100"
+                              onClick={() => setQuickViewProduct(product)}
+                            >
+                              <Eye className="w-4 h-4" />
+                            </Button>
                           </div>
                         </div>
                         <div className="p-4">
@@ -336,10 +471,10 @@ export default function Store() {
                           <div className="flex items-center gap-2 mb-3">
                             <div className="flex items-center gap-1">
                               {[...Array(5)].map((_, i) => (
-                                <Star key={i} className="w-4 h-4 text-yellow-400 fill-yellow-400" />
+                                <Star key={i} className={`w-4 h-4 ${i < (product.rating || 4) ? 'text-yellow-400 fill-yellow-400' : 'text-slate-600'}`} />
                               ))}
                             </div>
-                            <span className="text-slate-400 text-sm">(89)</span>
+                            <span className="text-slate-400 text-sm">({product.rating || 4.8})</span>
                           </div>
                           <div className="flex items-center justify-between">
                             <div>
@@ -371,6 +506,13 @@ export default function Store() {
       </div>
 
       {showCart && <RealtimeCart userId={user?.id} onClose={() => setShowCart(false)} />}
+      {quickViewProduct && (
+        <ProductQuickView 
+          product={quickViewProduct} 
+          onClose={() => setQuickViewProduct(null)}
+          user={user}
+        />
+      )}
     </div>
   );
 }

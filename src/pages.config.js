@@ -181,6 +181,7 @@ import SavedAddresses from './pages/SavedAddresses';
 import AccountSettings from './pages/AccountSettings';
 import AdminSalesReports from './pages/AdminSalesReports';
 import AdminInventoryReports from './pages/AdminInventoryReports';
+import DigitalLibrary from './pages/DigitalLibrary';
 import Layout from './Layout.jsx';
 
 
@@ -368,6 +369,7 @@ export const PAGES = {
     "AccountSettings": AccountSettings,
     "AdminSalesReports": AdminSalesReports,
     "AdminInventoryReports": AdminInventoryReports,
+    "DigitalLibrary": DigitalLibrary,
 }
 
 export const pagesConfig = {

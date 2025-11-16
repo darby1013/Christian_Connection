@@ -1,3 +1,4 @@
+
 import React, { useState, useEffect } from 'react';
 import { base44 } from '@/api/base44Client';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
@@ -60,6 +61,12 @@ export default function Checkout() {
     queryKey: ['savedAddresses', user?.id],
     queryFn: () => base44.entities.CustomerAddress.filter({ user_id: user?.id }),
     enabled: !!user,
+    initialData: []
+  });
+
+  const { data: paymentGateways = [] } = useQuery({
+    queryKey: ['enabledPaymentGateways'],
+    queryFn: () => base44.entities.PaymentGatewayConfig.filter({ is_enabled: true }),
     initialData: []
   });
 
@@ -126,6 +133,18 @@ export default function Checkout() {
       </div>
     );
   }
+
+  const getPaymentIcon = (gateway) => {
+    const icons = {
+      stripe: '💳',
+      paypal: '🅿️',
+      square: '🔲',
+      apple_pay: '',
+      google_pay: 'G',
+      cashapp: '$'
+    };
+    return icons[gateway.gateway_name] || '💳';
+  };
 
   return (
     <div className="min-h-screen bg-[#0a0e27] py-12">
@@ -300,35 +319,22 @@ export default function Checkout() {
                   
                   <RadioGroup value={paymentMethod} onValueChange={setPaymentMethod}>
                     <div className="space-y-3">
-                      <div className="flex items-center space-x-2 p-4 bg-slate-900 rounded-lg border border-slate-700">
-                        <RadioGroupItem value="stripe" id="stripe" />
-                        <Label htmlFor="stripe" className="flex-1 cursor-pointer flex items-center gap-3">
-                          <div className="w-12 h-8 bg-white rounded flex items-center justify-center">
-                            <CreditCard className="w-6 h-6 text-slate-900" />
-                          </div>
-                          <span className="text-white font-bold">Credit/Debit Card (Stripe)</span>
-                        </Label>
-                      </div>
-                      
-                      <div className="flex items-center space-x-2 p-4 bg-slate-900 rounded-lg border border-slate-700">
-                        <RadioGroupItem value="paypal" id="paypal" />
-                        <Label htmlFor="paypal" className="flex-1 cursor-pointer flex items-center gap-3">
-                          <div className="w-12 h-8 bg-blue-500 rounded flex items-center justify-center">
-                            <span className="text-white font-bold text-xs">PayPal</span>
-                          </div>
-                          <span className="text-white font-bold">PayPal</span>
-                        </Label>
-                      </div>
-                      
-                      <div className="flex items-center space-x-2 p-4 bg-slate-900 rounded-lg border border-slate-700">
-                        <RadioGroupItem value="apple_pay" id="apple_pay" />
-                        <Label htmlFor="apple_pay" className="flex-1 cursor-pointer flex items-center gap-3">
-                          <div className="w-12 h-8 bg-black rounded flex items-center justify-center">
-                            <span className="text-white font-bold text-xs">🍎 Pay</span>
-                          </div>
-                          <span className="text-white font-bold">Apple Pay</span>
-                        </Label>
-                      </div>
+                      {paymentGateways.map(gateway => (
+                        <div key={gateway.id} className="flex items-center space-x-2 p-4 bg-slate-900 rounded-lg border border-slate-700">
+                          <RadioGroupItem value={gateway.gateway_name} id={gateway.gateway_name} />
+                          <Label htmlFor={gateway.gateway_name} className="flex-1 cursor-pointer flex items-center gap-3">
+                            <div className="w-12 h-8 bg-white rounded flex items-center justify-center">
+                              <span className="text-2xl">{getPaymentIcon(gateway)}</span>
+                            </div>
+                            <div>
+                              <p className="text-white font-bold">{gateway.display_name}</p>
+                              {gateway.is_test_mode && (
+                                <Badge className="bg-yellow-500 text-xs">Test Mode</Badge>
+                              )}
+                            </div>
+                          </Label>
+                        </div>
+                      ))}
                     </div>
                   </RadioGroup>
 

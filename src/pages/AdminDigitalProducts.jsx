@@ -1,404 +1,244 @@
-import React, { useState } from "react";
-import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
-import { base44 } from "@/api/base44Client";
-import { Card, CardContent } from "@/components/ui/card";
-import { Button } from "@/components/ui/button";
-import { Input } from "@/components/ui/input";
-import { Label } from "@/components/ui/label";
-import { Textarea } from "@/components/ui/textarea";
-import { Badge } from "@/components/ui/badge";
-import {
-  Download, Plus, Search, TrendingUp, Eye, Edit, Trash2,
-  DollarSign, FileText, Star, Upload, File
-} from "lucide-react";
-import {
-  Dialog,
-  DialogContent,
-  DialogFooter,
-  DialogHeader,
-  DialogTitle,
-  DialogTrigger,
-} from "@/components/ui/dialog";
+import React, { useState } from 'react';
+import { base44 } from '@/api/base44Client';
+import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
+import { Card, CardContent } from '@/components/ui/card';
+import { Button } from '@/components/ui/button';
+import { Input } from '@/components/ui/input';
+import { Label } from '@/components/ui/label';
+import { Textarea } from '@/components/ui/textarea';
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
+import { Dialog, DialogContent, DialogHeader, DialogTitle } from '@/components/ui/dialog';
+import { Badge } from '@/components/ui/badge';
+import EnterpriseHeader from '../components/admin/EnterpriseHeader';
+import EnterpriseTable from '../components/admin/EnterpriseTable';
+import EnterpriseStats from '../components/admin/EnterpriseStats';
+import { FileText, Plus, Upload, Download, DollarSign, TrendingUp, Package } from 'lucide-react';
 
 export default function AdminDigitalProducts() {
-  const [searchQuery, setSearchQuery] = useState("");
-  const [dialogOpen, setDialogOpen] = useState(false);
+  const [showDialog, setShowDialog] = useState(false);
   const [editingProduct, setEditingProduct] = useState(null);
-  const [uploadingFile, setUploadingFile] = useState(false);
-
-  const [productForm, setProductForm] = useState({
+  const [formData, setFormData] = useState({
     name: '',
     description: '',
-    price: 0,
     category: 'ebook',
+    price: 0,
     file_url: '',
     thumbnail_url: '',
     file_size: '',
-    format: '',
-    is_published: false
+    file_format: '',
+    source_type: 'manual',
+    tags: []
   });
-
   const queryClient = useQueryClient();
 
-  const { data: products = [] } = useQuery({
+  const { data: digitalProducts = [] } = useQuery({
     queryKey: ['digitalProducts'],
     queryFn: () => base44.entities.DigitalProduct.list('-created_date'),
-    initialData: [],
+    initialData: []
   });
 
-  const createProductMutation = useMutation({
+  const { data: purchases = [] } = useQuery({
+    queryKey: ['digitalPurchases'],
+    queryFn: () => base44.entities.DigitalPurchase.list(),
+    initialData: []
+  });
+
+  const createMutation = useMutation({
     mutationFn: (data) => base44.entities.DigitalProduct.create(data),
     onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ['digitalProducts'] });
-      setDialogOpen(false);
+      queryClient.invalidateQueries(['digitalProducts']);
+      setShowDialog(false);
       resetForm();
-    },
+    }
   });
 
-  const updateProductMutation = useMutation({
+  const updateMutation = useMutation({
     mutationFn: ({ id, data }) => base44.entities.DigitalProduct.update(id, data),
     onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ['digitalProducts'] });
-      setDialogOpen(false);
+      queryClient.invalidateQueries(['digitalProducts']);
+      setShowDialog(false);
       resetForm();
-    },
+    }
   });
 
-  const deleteProductMutation = useMutation({
+  const deleteMutation = useMutation({
     mutationFn: (id) => base44.entities.DigitalProduct.delete(id),
-    onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ['digitalProducts'] });
-    },
+    onSuccess: () => queryClient.invalidateQueries(['digitalProducts'])
   });
 
-  const handleFileUpload = async (e) => {
-    const file = e.target.files?.[0];
-    if (!file) return;
-
-    setUploadingFile(true);
-    try {
-      const { file_url } = await base44.integrations.Core.UploadFile({ file });
-      const fileSize = (file.size / 1024 / 1024).toFixed(2) + ' MB';
-      const fileFormat = file.name.split('.').pop().toUpperCase();
-      
-      setProductForm(prev => ({
-        ...prev,
-        file_url,
-        file_size: fileSize,
-        format: fileFormat
-      }));
-    } catch (error) {
-      alert('Error uploading file: ' + error.message);
-    } finally {
-      setUploadingFile(false);
+  const uploadFileMutation = useMutation({
+    mutationFn: async (file) => {
+      const result = await base44.integrations.Core.UploadFile({ file });
+      return result.file_url;
     }
-  };
-
-  const handleThumbnailUpload = async (e) => {
-    const file = e.target.files?.[0];
-    if (!file) return;
-
-    try {
-      const { file_url } = await base44.integrations.Core.UploadFile({ file });
-      setProductForm(prev => ({ ...prev, thumbnail_url: file_url }));
-    } catch (error) {
-      alert('Error uploading thumbnail: ' + error.message);
-    }
-  };
-
-  const handleSubmit = () => {
-    if (editingProduct) {
-      updateProductMutation.mutate({ id: editingProduct.id, data: productForm });
-    } else {
-      createProductMutation.mutate({ ...productForm, downloads_count: 0 });
-    }
-  };
-
-  const handleEdit = (product) => {
-    setEditingProduct(product);
-    setProductForm(product);
-    setDialogOpen(true);
-  };
-
-  const handleDelete = (id) => {
-    if (confirm('Are you sure you want to delete this digital product?')) {
-      deleteProductMutation.mutate(id);
-    }
-  };
+  });
 
   const resetForm = () => {
-    setProductForm({
+    setFormData({
       name: '',
       description: '',
-      price: 0,
       category: 'ebook',
+      price: 0,
       file_url: '',
       thumbnail_url: '',
       file_size: '',
-      format: '',
-      is_published: false
+      file_format: '',
+      source_type: 'manual',
+      tags: []
     });
     setEditingProduct(null);
   };
 
-  const filteredProducts = products.filter(p =>
-    p.name?.toLowerCase().includes(searchQuery.toLowerCase()) ||
-    p.category?.toLowerCase().includes(searchQuery.toLowerCase())
-  );
-
-  const totalRevenue = products.reduce((sum, p) => sum + (p.price * (p.downloads_count || 0)), 0);
-  const publishedProducts = products.filter(p => p.is_published).length;
-  const totalDownloads = products.reduce((sum, p) => sum + (p.downloads_count || 0), 0);
-
-  const getCategoryIcon = (category) => {
-    const icons = {
-      ebook: FileText,
-      course: Star,
-      audio: File,
-      video: Eye,
-      template: Edit,
-      software: Download
-    };
-    return icons[category] || Download;
+  const handleSubmit = () => {
+    if (editingProduct) {
+      updateMutation.mutate({ id: editingProduct.id, data: formData });
+    } else {
+      createMutation.mutate(formData);
+    }
   };
+
+  const handleFileUpload = async (e, field) => {
+    const file = e.target.files?.[0];
+    if (file) {
+      const url = await uploadFileMutation.mutateAsync(file);
+      setFormData({ ...formData, [field]: url });
+    }
+  };
+
+  const totalRevenue = purchases.reduce((sum, p) => sum + (p.amount_paid || 0), 0);
+  const totalDownloads = digitalProducts.reduce((sum, p) => sum + (p.download_count || 0), 0);
+
+  const stats = [
+    { title: 'Total Products', value: digitalProducts.length, icon: Package, color: 'cyan' },
+    { title: 'Total Revenue', value: `$${totalRevenue.toFixed(0)}`, icon: DollarSign, trend: 'up', trendValue: '+12%', color: 'green' },
+    { title: 'Total Downloads', value: totalDownloads, icon: Download, color: 'purple' },
+    { title: 'Active Products', value: digitalProducts.filter(p => p.is_active).length, icon: TrendingUp, color: 'blue' }
+  ];
+
+  const columns = [
+    { header: 'Product', key: 'name', render: (val) => <span className="text-white font-bold">{val}</span> },
+    { header: 'Category', key: 'category', render: (val) => <Badge className="bg-purple-500">{val}</Badge> },
+    { header: 'Price', key: 'price', render: (val) => <span className="text-cyan-400 font-bold">${val?.toFixed(2)}</span> },
+    { header: 'Downloads', key: 'download_count', render: (val) => <span className="text-green-400">{val || 0}</span> },
+    { header: 'Status', key: 'is_active', render: (val) => <Badge className={val ? 'bg-green-500' : 'bg-red-500'}>{val ? 'Active' : 'Inactive'}</Badge> }
+  ];
+
+  const actions = [
+    { label: 'Edit', icon: FileText, onClick: (product) => { setEditingProduct(product); setFormData(product); setShowDialog(true); } },
+    { label: 'Delete', icon: FileText, onClick: (product) => { if (confirm('Delete this product?')) deleteMutation.mutate(product.id); } }
+  ];
 
   return (
     <div className="space-y-6">
-      <div className="flex items-center justify-between">
-        <div>
-          <h2 className="text-3xl font-black text-white mb-2">Digital Products</h2>
-          <p className="text-slate-400 font-semibold">Manage downloadable products</p>
-        </div>
-        <Dialog open={dialogOpen} onOpenChange={setDialogOpen}>
-          <DialogTrigger asChild>
-            <Button className="bg-cyan-500 hover:bg-cyan-600 font-bold">
-              <Plus className="w-4 h-4 mr-2" />
-              Add Product
-            </Button>
-          </DialogTrigger>
-          <DialogContent className="bg-[#1a1f3a] border-slate-700 max-w-3xl max-h-[90vh] overflow-y-auto">
-            <DialogHeader>
-              <DialogTitle className="text-white font-black text-xl">
-                {editingProduct ? 'Edit Digital Product' : 'Add New Digital Product'}
-              </DialogTitle>
-            </DialogHeader>
-            <div className="grid gap-4 py-4">
+      <EnterpriseHeader
+        title="Digital Products"
+        subtitle="Manage ebooks, courses, transcripts, and more"
+        icon={FileText}
+        badge="DIGITAL"
+        actions={[
+          { label: 'Add Product', icon: Plus, onClick: () => setShowDialog(true) }
+        ]}
+      />
+
+      <EnterpriseStats stats={stats} />
+
+      <EnterpriseTable columns={columns} data={digitalProducts} actions={actions} />
+
+      <Dialog open={showDialog} onOpenChange={setShowDialog}>
+        <DialogContent className="bg-[#1a1f3a] border-slate-700 max-w-3xl max-h-[90vh] overflow-y-auto">
+          <DialogHeader>
+            <DialogTitle className="text-white text-2xl font-black">
+              {editingProduct ? 'Edit Digital Product' : 'Add Digital Product'}
+            </DialogTitle>
+          </DialogHeader>
+          <div className="space-y-4">
+            <div className="grid md:grid-cols-2 gap-4">
               <div>
-                <Label className="text-white mb-2 block">Product Name *</Label>
+                <Label className="text-white">Product Name *</Label>
                 <Input
-                  placeholder="Product name"
-                  value={productForm.name}
-                  onChange={(e) => setProductForm({...productForm, name: e.target.value})}
-                  className="bg-slate-900/50 border-slate-700 text-white"
+                  value={formData.name}
+                  onChange={(e) => setFormData({...formData, name: e.target.value})}
+                  className="bg-slate-900 border-slate-700 text-white"
                 />
               </div>
-
               <div>
-                <Label className="text-white mb-2 block">Description</Label>
-                <Textarea
-                  placeholder="Product description"
-                  value={productForm.description}
-                  onChange={(e) => setProductForm({...productForm, description: e.target.value})}
-                  className="bg-slate-900/50 border-slate-700 text-white h-24"
-                />
-              </div>
-
-              <div className="grid grid-cols-2 gap-4">
-                <div>
-                  <Label className="text-white mb-2 block">Price *</Label>
-                  <Input
-                    type="number"
-                    step="0.01"
-                    value={productForm.price}
-                    onChange={(e) => setProductForm({...productForm, price: parseFloat(e.target.value)})}
-                    className="bg-slate-900/50 border-slate-700 text-white"
-                  />
-                </div>
-                <div>
-                  <Label className="text-white mb-2 block">Category</Label>
-                  <select
-                    value={productForm.category}
-                    onChange={(e) => setProductForm({...productForm, category: e.target.value})}
-                    className="w-full h-10 px-3 rounded-md bg-slate-900/50 border border-slate-700 text-white"
-                  >
-                    <option value="ebook">E-book</option>
-                    <option value="course">Course</option>
-                    <option value="audio">Audio</option>
-                    <option value="video">Video</option>
-                    <option value="template">Template</option>
-                    <option value="software">Software</option>
-                  </select>
-                </div>
-              </div>
-
-              <div>
-                <Label className="text-white mb-2 block">Product File *</Label>
-                <Input
-                  type="file"
-                  onChange={handleFileUpload}
-                  disabled={uploadingFile}
-                  className="bg-slate-900/50 border-slate-700 text-white"
-                />
-                {uploadingFile && <Badge className="bg-amber-500 mt-2">Uploading...</Badge>}
-                {productForm.file_url && (
-                  <p className="text-green-400 text-sm mt-2">
-                    ✓ File uploaded ({productForm.file_size}) - {productForm.format}
-                  </p>
-                )}
-              </div>
-
-              <div>
-                <Label className="text-white mb-2 block">Thumbnail</Label>
-                <Input
-                  type="file"
-                  accept="image/*"
-                  onChange={handleThumbnailUpload}
-                  className="bg-slate-900/50 border-slate-700 text-white"
-                />
-                {productForm.thumbnail_url && (
-                  <img src={productForm.thumbnail_url} alt="Thumbnail" className="mt-2 w-full h-40 object-cover rounded" />
-                )}
-              </div>
-
-              <div className="flex items-center gap-2">
-                <input
-                  type="checkbox"
-                  checked={productForm.is_published}
-                  onChange={(e) => setProductForm({...productForm, is_published: e.target.checked})}
-                  className="w-4 h-4"
-                />
-                <Label className="text-white">Publish immediately</Label>
+                <Label className="text-white">Category *</Label>
+                <Select value={formData.category} onValueChange={(val) => setFormData({...formData, category: val})}>
+                  <SelectTrigger className="bg-slate-900 border-slate-700 text-white">
+                    <SelectValue />
+                  </SelectTrigger>
+                  <SelectContent className="bg-slate-800 border-slate-700">
+                    <SelectItem value="ebook">eBook</SelectItem>
+                    <SelectItem value="course">Course</SelectItem>
+                    <SelectItem value="transcript">Transcript</SelectItem>
+                    <SelectItem value="artwork">Artwork</SelectItem>
+                    <SelectItem value="music">Music</SelectItem>
+                    <SelectItem value="podcast">Podcast</SelectItem>
+                    <SelectItem value="flyer">Flyer/Template</SelectItem>
+                    <SelectItem value="other">Other</SelectItem>
+                  </SelectContent>
+                </Select>
               </div>
             </div>
-            <DialogFooter>
-              <Button variant="outline" onClick={() => { setDialogOpen(false); resetForm(); }} className="border-slate-700">
+            <div>
+              <Label className="text-white">Description</Label>
+              <Textarea
+                value={formData.description}
+                onChange={(e) => setFormData({...formData, description: e.target.value})}
+                className="bg-slate-900 border-slate-700 text-white h-24"
+              />
+            </div>
+            <div className="grid md:grid-cols-2 gap-4">
+              <div>
+                <Label className="text-white">Price *</Label>
+                <Input
+                  type="number"
+                  step="0.01"
+                  value={formData.price}
+                  onChange={(e) => setFormData({...formData, price: parseFloat(e.target.value)})}
+                  className="bg-slate-900 border-slate-700 text-white"
+                />
+              </div>
+              <div>
+                <Label className="text-white">File Format</Label>
+                <Input
+                  value={formData.file_format}
+                  onChange={(e) => setFormData({...formData, file_format: e.target.value})}
+                  placeholder="PDF, MP3, MP4, etc"
+                  className="bg-slate-900 border-slate-700 text-white"
+                />
+              </div>
+            </div>
+            <div>
+              <Label className="text-white">Upload Digital File *</Label>
+              <Input
+                type="file"
+                onChange={(e) => handleFileUpload(e, 'file_url')}
+                className="bg-slate-900 border-slate-700 text-white"
+              />
+              {formData.file_url && <p className="text-green-400 text-sm mt-1">✓ File uploaded</p>}
+            </div>
+            <div>
+              <Label className="text-white">Upload Thumbnail</Label>
+              <Input
+                type="file"
+                accept="image/*"
+                onChange={(e) => handleFileUpload(e, 'thumbnail_url')}
+                className="bg-slate-900 border-slate-700 text-white"
+              />
+              {formData.thumbnail_url && <p className="text-green-400 text-sm mt-1">✓ Thumbnail uploaded</p>}
+            </div>
+            <div className="flex gap-3 pt-4">
+              <Button variant="outline" onClick={() => {setShowDialog(false); resetForm();}} className="flex-1 border-slate-600">
                 Cancel
               </Button>
-              <Button onClick={handleSubmit} disabled={!productForm.name || !productForm.file_url} className="bg-cyan-500 hover:bg-cyan-600">
+              <Button onClick={handleSubmit} className="flex-1 bg-gradient-to-r from-cyan-600 to-blue-600 font-bold">
                 {editingProduct ? 'Update' : 'Create'} Product
               </Button>
-            </DialogFooter>
-          </DialogContent>
-        </Dialog>
-      </div>
-
-      <div className="grid md:grid-cols-4 gap-4">
-        <Card className="bg-[#1a1f3a] border-0">
-          <CardContent className="p-6">
-            <div className="flex items-center justify-between mb-2">
-              <Download className="w-8 h-8 text-blue-400" />
-              <Badge className="bg-blue-500">{products.length}</Badge>
             </div>
-            <p className="text-2xl font-black text-white mb-1">{products.length}</p>
-            <p className="text-slate-400 text-sm font-semibold">Total Products</p>
-          </CardContent>
-        </Card>
-
-        <Card className="bg-[#1a1f3a] border-0">
-          <CardContent className="p-6">
-            <div className="flex items-center justify-between mb-2">
-              <DollarSign className="w-8 h-8 text-green-400" />
-              <TrendingUp className="w-5 h-5 text-green-400" />
-            </div>
-            <p className="text-2xl font-black text-white mb-1">${totalRevenue.toLocaleString()}</p>
-            <p className="text-slate-400 text-sm font-semibold">Total Revenue</p>
-          </CardContent>
-        </Card>
-
-        <Card className="bg-[#1a1f3a] border-0">
-          <CardContent className="p-6">
-            <div className="flex items-center justify-between mb-2">
-              <Eye className="w-8 h-8 text-cyan-400" />
-            </div>
-            <p className="text-2xl font-black text-white mb-1">{totalDownloads}</p>
-            <p className="text-slate-400 text-sm font-semibold">Downloads</p>
-          </CardContent>
-        </Card>
-
-        <Card className="bg-[#1a1f3a] border-0">
-          <CardContent className="p-6">
-            <div className="flex items-center justify-between mb-2">
-              <Star className="w-8 h-8 text-amber-400" />
-              <Badge className="bg-amber-500">{publishedProducts}</Badge>
-            </div>
-            <p className="text-2xl font-black text-white mb-1">{publishedProducts}</p>
-            <p className="text-slate-400 text-sm font-semibold">Published</p>
-          </CardContent>
-        </Card>
-      </div>
-
-      <div className="relative max-w-md">
-        <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-slate-400 w-5 h-5" />
-        <Input
-          placeholder="Search products..."
-          value={searchQuery}
-          onChange={(e) => setSearchQuery(e.target.value)}
-          className="pl-10 bg-[#1a1f3a] border-slate-700 text-white"
-        />
-      </div>
-
-      <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-4">
-        {filteredProducts.map((product) => {
-          const CategoryIcon = getCategoryIcon(product.category);
-          
-          return (
-            <Card key={product.id} className="bg-[#1a1f3a] border-slate-700">
-              <div className="relative aspect-video bg-slate-800">
-                {product.thumbnail_url ? (
-                  <img src={product.thumbnail_url} alt={product.name} className="w-full h-full object-cover" />
-                ) : (
-                  <div className="w-full h-full flex items-center justify-center">
-                    <CategoryIcon className="w-16 h-16 text-slate-600" />
-                  </div>
-                )}
-                <Badge className={`absolute top-3 right-3 ${product.is_published ? 'bg-green-500' : 'bg-slate-500'}`}>
-                  {product.is_published ? 'Published' : 'Draft'}
-                </Badge>
-              </div>
-              <CardContent className="p-5">
-                <h3 className="text-white font-bold text-lg mb-2">{product.name}</h3>
-                <p className="text-slate-400 text-sm mb-3 line-clamp-2">{product.description}</p>
-                <div className="flex items-center justify-between mb-3">
-                  <p className="text-green-400 font-black text-xl">${product.price?.toFixed(2)}</p>
-                  <Badge className="bg-blue-500 capitalize">{product.category}</Badge>
-                </div>
-                <div className="flex items-center justify-between mb-4 text-sm">
-                  <span className="text-slate-400">{product.file_size}</span>
-                  <span className="text-cyan-400">{product.downloads_count || 0} downloads</span>
-                </div>
-                <div className="flex gap-2">
-                  <Button size="sm" onClick={() => handleEdit(product)} className="flex-1 bg-cyan-500 hover:bg-cyan-600">
-                    <Edit className="w-3 h-3 mr-1" />
-                    Edit
-                  </Button>
-                  <Button
-                    size="sm"
-                    variant="outline"
-                    onClick={() => handleDelete(product.id)}
-                    className="border-red-500/30 text-red-400"
-                  >
-                    <Trash2 className="w-3 h-3" />
-                  </Button>
-                </div>
-              </CardContent>
-            </Card>
-          );
-        })}
-      </div>
-
-      {filteredProducts.length === 0 && (
-        <Card className="bg-[#1a1f3a] border-slate-700">
-          <CardContent className="p-12 text-center">
-            <Download className="w-16 h-16 text-slate-600 mx-auto mb-4" />
-            <h3 className="text-white font-bold text-lg mb-2">No Digital Products</h3>
-            <p className="text-slate-400 mb-6">Add your first digital product</p>
-            <Button onClick={() => setDialogOpen(true)} className="bg-cyan-500 hover:bg-cyan-600">
-              <Plus className="w-4 h-4 mr-2" />
-              Add First Product
-            </Button>
-          </CardContent>
-        </Card>
-      )}
+          </div>
+        </DialogContent>
+      </Dialog>
     </div>
   );
 }
