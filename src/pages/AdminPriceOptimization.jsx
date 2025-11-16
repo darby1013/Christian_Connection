@@ -118,14 +118,14 @@ export default function AdminPriceOptimization() {
                 <TrendingUp className="w-6 h-6 text-green-400 flex-shrink-0 mt-1" />
                 <div>
                   <p className="text-white font-bold">High Performers</p>
-                  <p className="text-slate-300 text-sm">Products with conversion rate > 5% can support 10-15% price increase</p>
+                  <p className="text-slate-300 text-sm">Products with conversion rate {'>'} 5% can support 10-15% price increase</p>
                 </div>
               </div>
               <div className="flex items-start gap-3 p-4 bg-amber-900/20 rounded-lg border border-amber-500/30">
                 <Target className="w-6 h-6 text-amber-400 flex-shrink-0 mt-1" />
                 <div>
                   <p className="text-white font-bold">Low Performers</p>
-                  <p className="text-slate-300 text-sm">Products with conversion < 1% need 10% price reduction to boost sales</p>
+                  <p className="text-slate-300 text-sm">Products with conversion {'<'} 1% need 10% price reduction to boost sales</p>
                 </div>
               </div>
               <div className="flex items-start gap-3 p-4 bg-cyan-900/20 rounded-lg border border-cyan-500/30">
