@@ -6,7 +6,7 @@ import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Badge } from '@/components/ui/badge';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
-import { ShoppingCart, Search, Star, Heart, Eye, Filter, Grid, List, GitCompare, X } from 'lucide-react';
+import { ShoppingCart, Search, Star, Heart, Eye, Filter, Grid, List, GitCompare } from 'lucide-react';
 import { Link, useNavigate } from 'react-router-dom';
 import { createPageUrl } from '@/utils';
 import RealtimeCart from '../components/store/RealtimeCart';
@@ -30,6 +30,9 @@ export default function Store() {
     sizes: [],
     brands: [],
     materials: [],
+    styles: [],
+    weights: [],
+    special: [],
     rating: 0
   });
   const queryClient = useQueryClient();
@@ -45,7 +48,7 @@ export default function Store() {
     fetchUser();
   }, []);
 
-  const { data: products = [], refetch } = useQuery({
+  const { data: products = [] } = useQuery({
     queryKey: ['storeProducts'],
     queryFn: () => base44.entities.Product.list('-created_date'),
     refetchInterval: 3000,
@@ -55,6 +58,12 @@ export default function Store() {
   const { data: categories = [] } = useQuery({
     queryKey: ['productCategories'],
     queryFn: () => base44.entities.ProductCategory.list(),
+    initialData: []
+  });
+
+  const { data: attributes = [] } = useQuery({
+    queryKey: ['productAttributes'],
+    queryFn: () => base44.entities.ProductAttribute.list(),
     initialData: []
   });
 
@@ -130,7 +139,7 @@ export default function Store() {
     setSelectedCategory('all');
     setSortBy('featured');
     setPriceRange([0, 1000]);
-    setFilters({ colors: [], sizes: [], brands: [], materials: [], rating: 0 });
+    setFilters({ colors: [], sizes: [], brands: [], materials: [], styles: [], weights: [], special: [], rating: 0 });
   };
 
   const parseImages = (images) => {
@@ -147,10 +156,14 @@ export default function Store() {
     return [];
   };
 
-  const availableColors = [...new Set(products.flatMap(p => p.colors || []).filter(Boolean))];
-  const availableSizes = [...new Set(products.flatMap(p => p.sizes || []).filter(Boolean))];
+  const styleAttrs = attributes.filter(a => a.attribute_type === 'style');
+  const materialAttrs = attributes.filter(a => a.attribute_type === 'fabric_material');
+  const weightAttrs = attributes.filter(a => a.attribute_type === 'fabric_weight');
+  const colorAttrs = attributes.filter(a => a.attribute_type === 'color');
+  const sizeAttrs = attributes.filter(a => a.attribute_type === 'size');
+  const specialAttrs = attributes.filter(a => a.attribute_type === 'special');
+  
   const availableBrands = [...new Set(products.map(p => p.brand).filter(Boolean))];
-  const availableMaterials = [...new Set(products.map(p => p.material).filter(Boolean))];
 
   const applyPersonalizedSorting = (prods) => {
     if (!personalization) return prods;
@@ -180,10 +193,14 @@ export default function Store() {
     const matchesSize = filters.sizes.length === 0 || (p.sizes && filters.sizes.some(s => p.sizes.includes(s)));
     const matchesBrand = filters.brands.length === 0 || filters.brands.includes(p.brand);
     const matchesMaterial = filters.materials.length === 0 || filters.materials.includes(p.material);
+    const matchesStyle = filters.styles.length === 0 || (p.style_attributes && filters.styles.some(s => p.style_attributes.includes(s)));
+    const matchesWeight = filters.weights.length === 0 || filters.weights.includes(p.fabric_weight);
+    const matchesSpecial = filters.special.length === 0 || (p.tags && filters.special.some(s => p.tags.includes(s.toLowerCase())));
     const matchesRating = filters.rating === 0 || (p.rating || 0) >= filters.rating;
     
     return matchesSearch && matchesCategory && matchesPrice && matchesColor && 
-           matchesSize && matchesBrand && matchesMaterial && matchesRating;
+           matchesSize && matchesBrand && matchesMaterial && matchesStyle && 
+           matchesWeight && matchesSpecial && matchesRating;
   });
 
   filteredProducts = applyPersonalizedSorting(filteredProducts);
@@ -193,7 +210,7 @@ export default function Store() {
   else if (sortBy === 'name') filteredProducts.sort((a, b) => (a.name || '').localeCompare(b.name || ''));
   else if (sortBy === 'rating') filteredProducts.sort((a, b) => (b.rating || 0) - (a.rating || 0));
 
-  const activeFiltersCount = filters.colors.length + filters.sizes.length + filters.brands.length + filters.materials.length + (filters.rating > 0 ? 1 : 0);
+  const activeFiltersCount = filters.colors.length + filters.sizes.length + filters.brands.length + filters.materials.length + filters.styles.length + filters.weights.length + filters.special.length + (filters.rating > 0 ? 1 : 0);
 
   const applyPersonalizedPrice = (price) => {
     if (!personalization?.personalized_discount) return price;
@@ -272,7 +289,7 @@ export default function Store() {
                       <SelectTrigger className="bg-slate-900 border-slate-700 text-white">
                         <SelectValue />
                       </SelectTrigger>
-                      <SelectContent className="bg-slate-800 border-slate-700">
+                      <SelectContent className="bg-slate-800 border-slate-700 max-h-60">
                         <SelectItem value="all">All Categories</SelectItem>
                         {categories.map(cat => (
                           <SelectItem key={cat.id} value={cat.name}>{cat.name}</SelectItem>
@@ -281,62 +298,145 @@ export default function Store() {
                     </Select>
                   </div>
 
-                  {availableColors.length > 0 && (
-                    <div>
-                      <label className="text-white font-bold text-sm mb-2 block">Colors</label>
-                      <div className="flex flex-wrap gap-2">
-                        {availableColors.map(color => (
-                          <button
-                            key={color}
-                            onClick={() => toggleFilter('colors', color)}
-                            className={`px-3 py-1 rounded-full text-xs font-bold transition-all ${
-                              filters.colors.includes(color)
-                                ? 'bg-cyan-500 text-white'
-                                : 'bg-slate-800 text-slate-300 hover:bg-slate-700'
-                            }`}
-                          >
-                            {color}
-                          </button>
-                        ))}
-                      </div>
-                    </div>
-                  )}
-
-                  {availableSizes.length > 0 && (
-                    <div>
-                      <label className="text-white font-bold text-sm mb-2 block">Sizes</label>
-                      <div className="flex flex-wrap gap-2">
-                        {availableSizes.map(size => (
-                          <button
-                            key={size}
-                            onClick={() => toggleFilter('sizes', size)}
-                            className={`px-3 py-1 rounded-full text-xs font-bold transition-all ${
-                              filters.sizes.includes(size)
-                                ? 'bg-cyan-500 text-white'
-                                : 'bg-slate-800 text-slate-300 hover:bg-slate-700'
-                            }`}
-                          >
-                            {size}
-                          </button>
-                        ))}
-                      </div>
-                    </div>
-                  )}
-
                   {availableBrands.length > 0 && (
                     <div>
                       <label className="text-white font-bold text-sm mb-2 block">Brands</label>
-                      <div className="space-y-2 max-h-40 overflow-y-auto">
-                        {availableBrands.slice(0, 10).map(brand => (
-                          <label key={brand} className="flex items-center gap-2 cursor-pointer">
+                      <Select 
+                        value={filters.brands[0] || 'all'} 
+                        onValueChange={(val) => setFilters({...filters, brands: val === 'all' ? [] : [val]})}
+                      >
+                        <SelectTrigger className="bg-slate-900 border-slate-700 text-white">
+                          <SelectValue placeholder="All Brands" />
+                        </SelectTrigger>
+                        <SelectContent className="bg-slate-800 border-slate-700 max-h-60">
+                          <SelectItem value="all">All Brands</SelectItem>
+                          {availableBrands.map(brand => (
+                            <SelectItem key={brand} value={brand}>{brand}</SelectItem>
+                          ))}
+                        </SelectContent>
+                      </Select>
+                    </div>
+                  )}
+
+                  {colorAttrs.length > 0 && (
+                    <div>
+                      <label className="text-white font-bold text-sm mb-2 block">Colors</label>
+                      <div className="grid grid-cols-4 gap-2 max-h-48 overflow-y-auto">
+                        {colorAttrs.map(attr => {
+                          const hexColor = attr.metadata?.hex || '#808080';
+                          return (
+                            <button
+                              key={attr.id}
+                              onClick={() => toggleFilter('colors', attr.name)}
+                              className={`w-10 h-10 rounded-lg border-2 transition-all ${
+                                filters.colors.includes(attr.name)
+                                  ? 'border-cyan-400 scale-110 shadow-lg'
+                                  : 'border-slate-600 hover:border-slate-500'
+                              }`}
+                              style={{ backgroundColor: hexColor }}
+                              title={attr.name}
+                            />
+                          );
+                        })}
+                      </div>
+                    </div>
+                  )}
+
+                  {sizeAttrs.length > 0 && (
+                    <div>
+                      <label className="text-white font-bold text-sm mb-2 block">Sizes</label>
+                      <div className="flex flex-wrap gap-2">
+                        {sizeAttrs.map(size => (
+                          <button
+                            key={size.id}
+                            onClick={() => toggleFilter('sizes', size.name)}
+                            className={`px-3 py-1 rounded-lg text-xs font-bold transition-all ${
+                              filters.sizes.includes(size.name)
+                                ? 'bg-cyan-500 text-white'
+                                : 'bg-slate-800 text-slate-300 hover:bg-slate-700'
+                            }`}
+                          >
+                            {size.name}
+                          </button>
+                        ))}
+                      </div>
+                    </div>
+                  )}
+
+                  {materialAttrs.length > 0 && (
+                    <div>
+                      <label className="text-white font-bold text-sm mb-2 block">Materials</label>
+                      <Select 
+                        value={filters.materials[0] || 'all'} 
+                        onValueChange={(val) => setFilters({...filters, materials: val === 'all' ? [] : [val]})}
+                      >
+                        <SelectTrigger className="bg-slate-900 border-slate-700 text-white">
+                          <SelectValue placeholder="All Materials" />
+                        </SelectTrigger>
+                        <SelectContent className="bg-slate-800 border-slate-700 max-h-60">
+                          <SelectItem value="all">All Materials</SelectItem>
+                          {materialAttrs.map(attr => (
+                            <SelectItem key={attr.id} value={attr.name}>{attr.name}</SelectItem>
+                          ))}
+                        </SelectContent>
+                      </Select>
+                    </div>
+                  )}
+
+                  {weightAttrs.length > 0 && (
+                    <div>
+                      <label className="text-white font-bold text-sm mb-2 block">Weight</label>
+                      <Select 
+                        value={filters.weights[0] || 'all'} 
+                        onValueChange={(val) => setFilters({...filters, weights: val === 'all' ? [] : [val]})}
+                      >
+                        <SelectTrigger className="bg-slate-900 border-slate-700 text-white">
+                          <SelectValue placeholder="All Weights" />
+                        </SelectTrigger>
+                        <SelectContent className="bg-slate-800 border-slate-700">
+                          {weightAttrs.map(attr => (
+                            <SelectItem key={attr.id} value={attr.name}>{attr.name}</SelectItem>
+                          ))}
+                        </SelectContent>
+                      </Select>
+                    </div>
+                  )}
+
+                  {styleAttrs.length > 0 && (
+                    <div>
+                      <label className="text-white font-bold text-sm mb-2 block">Style</label>
+                      <div className="space-y-1 max-h-48 overflow-y-auto bg-slate-900 p-3 rounded-lg border border-slate-700">
+                        {styleAttrs.slice(0, 15).map(attr => (
+                          <label key={attr.id} className="flex items-center gap-2 cursor-pointer hover:bg-slate-800 p-1 rounded">
                             <input
                               type="checkbox"
-                              checked={filters.brands.includes(brand)}
-                              onChange={() => toggleFilter('brands', brand)}
+                              checked={filters.styles.includes(attr.name)}
+                              onChange={() => toggleFilter('styles', attr.name)}
                               className="w-4 h-4"
                             />
-                            <span className="text-slate-300 text-sm">{brand}</span>
+                            <span className="text-slate-300 text-xs">{attr.name}</span>
                           </label>
+                        ))}
+                      </div>
+                    </div>
+                  )}
+
+                  {specialAttrs.length > 0 && (
+                    <div>
+                      <label className="text-white font-bold text-sm mb-2 block">Special</label>
+                      <div className="flex flex-wrap gap-2">
+                        {specialAttrs.map(attr => (
+                          <button
+                            key={attr.id}
+                            onClick={() => toggleFilter('special', attr.slug)}
+                            className={`px-3 py-1 rounded-lg text-xs font-bold transition-all ${
+                              filters.special.includes(attr.slug)
+                                ? 'bg-red-500 text-white'
+                                : 'bg-slate-800 text-slate-300 hover:bg-slate-700'
+                            }`}
+                          >
+                            {attr.name}
+                          </button>
                         ))}
                       </div>
                     </div>
@@ -383,7 +483,7 @@ export default function Store() {
                       max="1000"
                       value={priceRange[1]}
                       onChange={(e) => setPriceRange([0, parseInt(e.target.value)])}
-                      className="w-full"
+                      className="w-full accent-cyan-500"
                     />
                   </div>
 
@@ -451,12 +551,12 @@ export default function Store() {
                             {!inStock && (
                               <Badge className="absolute top-3 right-3 bg-red-500 z-10">Out of Stock</Badge>
                             )}
-                            {product.compare_at_price && (
+                            {product.compare_at_price && inStock && (
                               <Badge className="absolute top-3 right-3 bg-red-500 z-10">
                                 {Math.round((1 - product.price / product.compare_at_price) * 100)}% OFF
                               </Badge>
                             )}
-                            {personalization?.personalized_discount > 0 && (
+                            {personalization?.personalized_discount > 0 && inStock && (
                               <Badge className="absolute top-10 right-3 bg-purple-500 z-10 text-xs">
                                 Your +{personalization.personalized_discount}%
                               </Badge>
@@ -471,14 +571,14 @@ export default function Store() {
                             <div className="absolute bottom-3 right-3 flex gap-2 opacity-0 group-hover:opacity-100 transition-opacity">
                               <Button
                                 size="icon"
-                                className={`${isInCompare ? 'bg-purple-500' : 'bg-white'} text-slate-900 hover:bg-slate-100`}
+                                className={`${isInCompare ? 'bg-purple-500' : 'bg-white'} text-slate-900 hover:bg-slate-100 h-8 w-8`}
                                 onClick={() => toggleCompare(product.id)}
                               >
                                 <GitCompare className="w-4 h-4" />
                               </Button>
                               <Button
                                 size="icon"
-                                className="bg-white text-slate-900 hover:bg-slate-100"
+                                className="bg-white text-slate-900 hover:bg-slate-100 h-8 w-8"
                                 onClick={() => addToWishlistMutation.mutate({ 
                                   user_id: user?.id, 
                                   product_id: product.id,
@@ -491,7 +591,7 @@ export default function Store() {
                               </Button>
                               <Button
                                 size="icon"
-                                className="bg-white text-slate-900 hover:bg-slate-100"
+                                className="bg-white text-slate-900 hover:bg-slate-100 h-8 w-8"
                                 onClick={() => setQuickViewProduct(product)}
                               >
                                 <Eye className="w-4 h-4" />
@@ -499,9 +599,14 @@ export default function Store() {
                             </div>
                           </div>
                           <div className="p-4">
-                            {product.category && (
-                              <Badge className="bg-purple-500 mb-2">{product.category}</Badge>
-                            )}
+                            <div className="flex items-center gap-2 mb-2">
+                              {product.brand && (
+                                <Badge className="bg-blue-500 text-xs">{product.brand}</Badge>
+                              )}
+                              {product.category && (
+                                <Badge className="bg-purple-500 text-xs">{product.category}</Badge>
+                              )}
+                            </div>
                             <Link to={createPageUrl('ProductDetail') + `?id=${product.id}`}>
                               <h3 className="text-white font-bold text-lg mb-2 hover:text-cyan-400 transition-colors">
                                 {product.name}

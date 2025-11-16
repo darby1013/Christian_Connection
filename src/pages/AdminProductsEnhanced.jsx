@@ -1,4 +1,3 @@
-
 import React, { useState } from 'react';
 import { base44 } from '@/api/base44Client';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
@@ -28,6 +27,12 @@ export default function AdminProductsEnhanced() {
     category: '',
     stock_quantity: '',
     sku: '',
+    brand: '',
+    material: '',
+    fabric_weight: '',
+    style_attributes: [],
+    colors: [],
+    sizes: [],
     weight: '',
     dimensions: '',
     variants: '[]',
@@ -46,6 +51,12 @@ export default function AdminProductsEnhanced() {
   const { data: categories = [] } = useQuery({
     queryKey: ['productCategories'],
     queryFn: () => base44.entities.ProductCategory.list(),
+    initialData: []
+  });
+
+  const { data: attributes = [] } = useQuery({
+    queryKey: ['productAttributes'],
+    queryFn: () => base44.entities.ProductAttribute.list(),
     initialData: []
   });
 
@@ -82,7 +93,7 @@ export default function AdminProductsEnhanced() {
         const parsed = JSON.parse(images);
         return Array.isArray(parsed) ? parsed : [images];
       } catch {
-        return [images]; // If parsing fails, treat the string as a single image URL
+        return [images];
       }
     }
     return [];
@@ -97,6 +108,12 @@ export default function AdminProductsEnhanced() {
       category: '',
       stock_quantity: '',
       sku: '',
+      brand: '',
+      material: '',
+      fabric_weight: '',
+      style_attributes: [],
+      colors: [],
+      sizes: [],
       weight: '',
       dimensions: '',
       variants: '[]',
@@ -133,7 +150,7 @@ export default function AdminProductsEnhanced() {
       price: parseFloat(productForm.price),
       compare_at_price: productForm.compare_at_price ? parseFloat(productForm.compare_at_price) : null,
       stock_quantity: parseInt(productForm.stock_quantity) || 0,
-      images: productForm.images // Pass as array of strings, not JSON string
+      images: productForm.images
     };
 
     if (editingProduct) {
@@ -142,6 +159,13 @@ export default function AdminProductsEnhanced() {
       createProductMutation.mutate(data);
     }
   };
+
+  const styleAttrs = attributes.filter(a => a.attribute_type === 'style');
+  const materialAttrs = attributes.filter(a => a.attribute_type === 'fabric_material');
+  const weightAttrs = attributes.filter(a => a.attribute_type === 'fabric_weight');
+  const colorAttrs = attributes.filter(a => a.attribute_type === 'color');
+  const sizeAttrs = attributes.filter(a => a.attribute_type === 'size');
+  const brandAttrs = [...new Set(attributes.filter(a => a.attribute_type === 'brand').map(a => a.name))];
 
   const columns = [
     { 
@@ -170,7 +194,7 @@ export default function AdminProductsEnhanced() {
     <div className="space-y-6">
       <EnterpriseHeader
         title="Products Management"
-        subtitle="Enhanced product catalog with image uploads & digital downloads"
+        subtitle="Enhanced product catalog with attributes & customization"
         icon={Package}
         badge="ENTERPRISE"
         actions={[
@@ -214,10 +238,13 @@ export default function AdminProductsEnhanced() {
             setEditingProduct(product);
             setProductForm({
               ...product,
-              images: images, // Use the parsed images array
+              images: images,
               price: product.price?.toString() || '',
               compare_at_price: product.compare_at_price?.toString() || '',
-              stock_quantity: product.stock_quantity?.toString() || ''
+              stock_quantity: product.stock_quantity?.toString() || '',
+              style_attributes: product.style_attributes || [],
+              colors: product.colors || [],
+              sizes: product.sizes || []
             });
             setShowDialog(true);
           }},
@@ -228,14 +255,14 @@ export default function AdminProductsEnhanced() {
       />
 
       <Dialog open={showDialog} onOpenChange={setShowDialog}>
-        <DialogContent className="bg-[#1a1f3a] border-slate-700 max-w-4xl max-h-[90vh] overflow-y-auto">
+        <DialogContent className="bg-[#1a1f3a] border-slate-700 max-w-6xl max-h-[90vh] overflow-y-auto">
           <DialogHeader>
             <DialogTitle className="text-white text-2xl font-black">
               {editingProduct ? 'Edit Product' : 'Add New Product'}
             </DialogTitle>
           </DialogHeader>
 
-          <div className="space-y-4">
+          <div className="space-y-6">
             <div className="grid md:grid-cols-2 gap-4">
               <div>
                 <Label className="text-white">Product Name *</Label>
@@ -264,7 +291,7 @@ export default function AdminProductsEnhanced() {
               />
             </div>
 
-            <div className="grid md:grid-cols-3 gap-4">
+            <div className="grid md:grid-cols-4 gap-4">
               <div>
                 <Label className="text-white">Price *</Label>
                 <Input 
@@ -294,31 +321,138 @@ export default function AdminProductsEnhanced() {
                   className="bg-slate-900 border-slate-700 text-white"
                 />
               </div>
-            </div>
-
-            <div className="grid md:grid-cols-2 gap-4">
               <div>
                 <Label className="text-white">Category</Label>
                 <Select value={productForm.category} onValueChange={(val) => setProductForm({...productForm, category: val})}>
                   <SelectTrigger className="bg-slate-900 border-slate-700 text-white">
                     <SelectValue placeholder="Select category" />
                   </SelectTrigger>
-                  <SelectContent className="bg-slate-800 border-slate-700">
+                  <SelectContent className="bg-slate-800 border-slate-700 max-h-60">
                     {categories.map(cat => (
                       <SelectItem key={cat.id} value={cat.name}>{cat.name}</SelectItem>
                     ))}
                   </SelectContent>
                 </Select>
               </div>
+            </div>
+
+            <div className="grid md:grid-cols-3 gap-4">
               <div>
-                <Label className="text-white">Tags (comma-separated)</Label>
+                <Label className="text-white">Brand</Label>
                 <Input 
-                  value={productForm.tags}
-                  onChange={(e) => setProductForm({...productForm, tags: e.target.value})}
-                  placeholder="sale, featured, new"
+                  value={productForm.brand}
+                  onChange={(e) => setProductForm({...productForm, brand: e.target.value})}
+                  placeholder="e.g. Gildan, Hanes"
                   className="bg-slate-900 border-slate-700 text-white"
                 />
               </div>
+              <div>
+                <Label className="text-white">Material</Label>
+                <Select value={productForm.material} onValueChange={(val) => setProductForm({...productForm, material: val})}>
+                  <SelectTrigger className="bg-slate-900 border-slate-700 text-white">
+                    <SelectValue placeholder="Select material" />
+                  </SelectTrigger>
+                  <SelectContent className="bg-slate-800 border-slate-700 max-h-60">
+                    {materialAttrs.map(attr => (
+                      <SelectItem key={attr.id} value={attr.name}>{attr.name}</SelectItem>
+                    ))}
+                  </SelectContent>
+                </Select>
+              </div>
+              <div>
+                <Label className="text-white">Fabric Weight</Label>
+                <Select value={productForm.fabric_weight} onValueChange={(val) => setProductForm({...productForm, fabric_weight: val})}>
+                  <SelectTrigger className="bg-slate-900 border-slate-700 text-white">
+                    <SelectValue placeholder="Select weight" />
+                  </SelectTrigger>
+                  <SelectContent className="bg-slate-800 border-slate-700">
+                    {weightAttrs.map(attr => (
+                      <SelectItem key={attr.id} value={attr.name}>{attr.name}</SelectItem>
+                    ))}
+                  </SelectContent>
+                </Select>
+              </div>
+            </div>
+
+            <div>
+              <Label className="text-white mb-2 block">Style Attributes</Label>
+              <div className="grid grid-cols-3 gap-2 max-h-60 overflow-y-auto bg-slate-900 p-4 rounded-lg border border-slate-700">
+                {styleAttrs.map(attr => (
+                  <label key={attr.id} className="flex items-center gap-2 cursor-pointer hover:bg-slate-800 p-2 rounded">
+                    <input
+                      type="checkbox"
+                      checked={productForm.style_attributes?.includes(attr.name)}
+                      onChange={(e) => {
+                        const newStyles = e.target.checked
+                          ? [...(productForm.style_attributes || []), attr.name]
+                          : (productForm.style_attributes || []).filter(s => s !== attr.name);
+                        setProductForm({...productForm, style_attributes: newStyles});
+                      }}
+                      className="w-4 h-4"
+                    />
+                    <span className="text-white text-sm">{attr.name}</span>
+                  </label>
+                ))}
+              </div>
+            </div>
+
+            <div className="grid md:grid-cols-2 gap-4">
+              <div>
+                <Label className="text-white mb-2 block">Colors</Label>
+                <div className="grid grid-cols-4 gap-2 max-h-48 overflow-y-auto bg-slate-900 p-4 rounded-lg border border-slate-700">
+                  {colorAttrs.map(attr => {
+                    const hexColor = attr.metadata?.hex || '#808080';
+                    return (
+                      <label key={attr.id} className="flex items-center gap-2 cursor-pointer hover:bg-slate-800 p-2 rounded">
+                        <input
+                          type="checkbox"
+                          checked={productForm.colors?.includes(attr.name)}
+                          onChange={(e) => {
+                            const newColors = e.target.checked
+                              ? [...(productForm.colors || []), attr.name]
+                              : (productForm.colors || []).filter(c => c !== attr.name);
+                            setProductForm({...productForm, colors: newColors});
+                          }}
+                          className="w-4 h-4"
+                        />
+                        <div className="w-5 h-5 rounded border border-slate-600" style={{ backgroundColor: hexColor }}></div>
+                        <span className="text-white text-xs">{attr.name}</span>
+                      </label>
+                    );
+                  })}
+                </div>
+              </div>
+              <div>
+                <Label className="text-white mb-2 block">Sizes</Label>
+                <div className="grid grid-cols-3 gap-2 max-h-48 overflow-y-auto bg-slate-900 p-4 rounded-lg border border-slate-700">
+                  {sizeAttrs.map(attr => (
+                    <label key={attr.id} className="flex items-center gap-2 cursor-pointer hover:bg-slate-800 p-2 rounded">
+                      <input
+                        type="checkbox"
+                        checked={productForm.sizes?.includes(attr.name)}
+                        onChange={(e) => {
+                          const newSizes = e.target.checked
+                            ? [...(productForm.sizes || []), attr.name]
+                            : (productForm.sizes || []).filter(s => s !== attr.name);
+                          setProductForm({...productForm, sizes: newSizes});
+                        }}
+                        className="w-4 h-4"
+                      />
+                      <span className="text-white text-sm">{attr.name}</span>
+                    </label>
+                  ))}
+                </div>
+              </div>
+            </div>
+
+            <div>
+              <Label className="text-white">Tags (comma-separated)</Label>
+              <Input 
+                value={productForm.tags}
+                onChange={(e) => setProductForm({...productForm, tags: e.target.value})}
+                placeholder="sale, featured, new-arrivals"
+                className="bg-slate-900 border-slate-700 text-white"
+              />
             </div>
 
             <div>
@@ -326,14 +460,14 @@ export default function AdminProductsEnhanced() {
                 <ImageIcon className="w-4 h-4" />
                 Product Images
               </Label>
-              <div className="grid grid-cols-4 gap-4 mb-3">
+              <div className="grid grid-cols-6 gap-4 mb-3">
                 {productForm.images.map((img, i) => (
                   <div key={i} className="relative group">
                     <img src={img} alt="" className="w-full aspect-square object-cover rounded-lg" />
                     <Button
                       size="icon"
                       variant="destructive"
-                      className="absolute top-1 right-1 opacity-0 group-hover:opacity-100"
+                      className="absolute top-1 right-1 opacity-0 group-hover:opacity-100 h-6 w-6"
                       onClick={() => setProductForm({...productForm, images: productForm.images.filter((_, idx) => idx !== i)})}
                     >
                       <Trash2 className="w-3 h-3" />
@@ -356,7 +490,7 @@ export default function AdminProductsEnhanced() {
                 type="checkbox"
                 checked={productForm.is_digital}
                 onChange={(e) => setProductForm({...productForm, is_digital: e.target.checked})}
-                className="w-4 h-4 text-blue-600 bg-gray-700 border-gray-600 focus:ring-blue-500 focus:ring-2"
+                className="w-4 h-4"
               />
               <Label className="text-white">Digital Product (downloadable)</Label>
             </div>
@@ -373,7 +507,7 @@ export default function AdminProductsEnhanced() {
               </div>
             )}
 
-            <div className="flex gap-3 pt-4">
+            <div className="flex gap-3 pt-4 border-t border-slate-700">
               <Button variant="outline" onClick={() => {setShowDialog(false); resetForm();}} className="flex-1 border-slate-600">
                 Cancel
               </Button>

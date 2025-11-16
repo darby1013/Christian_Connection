@@ -199,6 +199,7 @@ import AdminProductBadges from './pages/AdminProductBadges';
 import AdminProductVideos from './pages/AdminProductVideos';
 import AdminProductSEO from './pages/AdminProductSEO';
 import AdminProductQuickActions from './pages/AdminProductQuickActions';
+import BrandShowcase from './pages/BrandShowcase';
 import Layout from './Layout.jsx';
 
 
@@ -404,6 +405,7 @@ export const PAGES = {
     "AdminProductVideos": AdminProductVideos,
     "AdminProductSEO": AdminProductSEO,
     "AdminProductQuickActions": AdminProductQuickActions,
+    "BrandShowcase": BrandShowcase,
 }
 
 export const pagesConfig = {
