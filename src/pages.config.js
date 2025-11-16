@@ -175,6 +175,10 @@ import OrderTracking from './pages/OrderTracking';
 import AdminAbandonedCarts from './pages/AdminAbandonedCarts';
 import AdminProductAnalytics from './pages/AdminProductAnalytics';
 import AdminReviewsManagement from './pages/AdminReviewsManagement';
+import CustomerAccount from './pages/CustomerAccount';
+import OrderHistory from './pages/OrderHistory';
+import SavedAddresses from './pages/SavedAddresses';
+import AccountSettings from './pages/AccountSettings';
 import Layout from './Layout.jsx';
 
 
@@ -356,6 +360,10 @@ export const PAGES = {
     "AdminAbandonedCarts": AdminAbandonedCarts,
     "AdminProductAnalytics": AdminProductAnalytics,
     "AdminReviewsManagement": AdminReviewsManagement,
+    "CustomerAccount": CustomerAccount,
+    "OrderHistory": OrderHistory,
+    "SavedAddresses": SavedAddresses,
+    "AccountSettings": AccountSettings,
 }
 
 export const pagesConfig = {
