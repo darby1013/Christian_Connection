@@ -51,6 +51,20 @@ export default function FrequentlyBoughtTogether({ productId, userId }) {
     }
   });
 
+  const parseImages = (images) => {
+    if (Array.isArray(images)) return images;
+    if (!images) return [];
+    if (typeof images === 'string') {
+      try {
+        const parsed = JSON.parse(images);
+        return Array.isArray(parsed) ? parsed : [images];
+      } catch {
+        return [images];
+      }
+    }
+    return [];
+  };
+
   const toggleProduct = (id) => {
     setSelectedProducts(prev => 
       prev.includes(id) ? prev.filter(p => p !== id) : [...prev, id]
@@ -82,7 +96,7 @@ export default function FrequentlyBoughtTogether({ productId, userId }) {
                 className="w-5 h-5"
               />
               <img 
-                src={(Array.isArray(currentProduct.images) ? currentProduct.images : JSON.parse(currentProduct.images || '[]'))[0] || '/placeholder.jpg'} 
+                src={parseImages(currentProduct.images)[0] || '/placeholder.jpg'} 
                 alt="" 
                 className="w-16 h-16 object-cover rounded"
               />
@@ -96,9 +110,7 @@ export default function FrequentlyBoughtTogether({ productId, userId }) {
 
             {/* Related Products */}
             {relatedProducts.map((product, idx) => {
-              const images = Array.isArray(product.images) 
-                ? product.images 
-                : (product.images ? JSON.parse(product.images || '[]') : []);
+              const images = parseImages(product.images);
               
               return (
                 <React.Fragment key={product.id}>

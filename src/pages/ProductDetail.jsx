@@ -82,11 +82,23 @@ export default function ProductDetail() {
     });
   };
 
+  const parseImages = (images) => {
+    if (Array.isArray(images)) return images;
+    if (!images) return [];
+    if (typeof images === 'string') {
+      try {
+        const parsed = JSON.parse(images);
+        return Array.isArray(parsed) ? parsed : [images];
+      } catch {
+        return [images];
+      }
+    }
+    return [];
+  };
+
   if (!product) return <div className="min-h-screen bg-[#0a0e27] flex items-center justify-center"><p className="text-white">Loading...</p></div>;
 
-  const images = Array.isArray(product.images) 
-    ? product.images 
-    : (product.images ? (typeof product.images === 'string' ? JSON.parse(product.images) : []) : []);
+  const images = parseImages(product.images);
   const averageRating = reviews.length > 0 ? reviews.reduce((sum, r) => sum + r.rating, 0) / reviews.length : 0;
   const inStock = (product.stock_quantity || 0) > 0;
 
