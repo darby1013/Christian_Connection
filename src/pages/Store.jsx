@@ -1,3 +1,4 @@
+
 import React, { useState, useEffect } from 'react';
 import { base44 } from '@/api/base44Client';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
@@ -14,6 +15,7 @@ import ProductQuickView from '../components/store/ProductQuickView';
 import AIChatbot from '../components/ai/AIChatbot';
 import AIPersonalization from '../components/ai/AIPersonalization';
 import SmartProductRecommendations from '../components/ai/SmartProductRecommendations';
+import DynamicPromotionBanner from '../components/personalization/DynamicPromotionBanner';
 
 export default function Store() {
   const [user, setUser] = useState(null);
@@ -83,6 +85,16 @@ export default function Store() {
     queryFn: async () => {
       if (!user) return null;
       const existing = await base44.entities.UserPersonalization.filter({ user_id: user.id });
+      return existing[0] || null;
+    },
+    enabled: !!user
+  });
+
+  const { data: userPreferences } = useQuery({
+    queryKey: ['userPreferences', user?.id],
+    queryFn: async () => {
+      if (!user) return null;
+      const existing = await base44.entities.UserPreferenceCenter.filter({ user_id: user.id });
       return existing[0] || null;
     },
     enabled: !!user
@@ -165,23 +177,37 @@ export default function Store() {
   
   const availableBrands = [...new Set(products.map(p => p.brand).filter(Boolean))];
 
-  const applyPersonalizedSorting = (prods) => {
-    if (!personalization) return prods;
+  const applyAIPersonalization = (prods) => {
+    let scoredProducts = prods.map(p => {
+      let score = 0;
 
-    return prods.sort((a, b) => {
-      let scoreA = 0, scoreB = 0;
-
-      if (personalization.favorite_categories?.includes(a.category)) scoreA += 10;
-      if (personalization.favorite_categories?.includes(b.category)) scoreB += 10;
+      // From personalization (AI segment based)
+      if (personalization?.favorite_categories?.includes(p.category)) score += 15;
+      if (personalization?.favorite_brands?.includes(p.brand)) score += 10;
       
-      if (personalization.favorite_brands?.includes(a.brand)) scoreA += 5;
-      if (personalization.favorite_brands?.includes(b.brand)) scoreB += 5;
+      // From userPreferences (explicit user choices)
+      if (userPreferences?.favorite_categories?.includes(p.category)) score += 20;
+      if (userPreferences?.favorite_brands?.includes(p.brand)) score += 15;
       
-      if (a.is_featured) scoreA += 3;
-      if (b.is_featured) scoreB += 3;
+      if (userPreferences?.preferred_colors?.some(c => p.colors?.includes(c))) score += 8;
+      if (userPreferences?.preferred_sizes?.some(s => p.sizes?.includes(s))) score += 8;
       
-      return scoreB - scoreA;
+      if (userPreferences?.price_range_min !== undefined && userPreferences?.price_range_max !== undefined) {
+        if (p.price >= userPreferences.price_range_min && p.price <= userPreferences.price_range_max) score += 5;
+      } else if (userPreferences?.price_range_min !== undefined) {
+        if (p.price >= userPreferences.price_range_min) score += 5;
+      } else if (userPreferences?.price_range_max !== undefined) {
+        if (p.price <= userPreferences.price_range_max) score += 5;
+      }
+      
+      // General product attributes
+      if (p.is_featured) score += 5;
+      if (p.rating >= 4.5) score += 3;
+      
+      return { ...p, ai_score: score };
     });
+
+    return scoredProducts.sort((a, b) => (b.ai_score || 0) - (a.ai_score || 0));
   };
 
   let filteredProducts = products.filter(p => {
@@ -203,12 +229,15 @@ export default function Store() {
            matchesWeight && matchesSpecial && matchesRating;
   });
 
-  filteredProducts = applyPersonalizedSorting(filteredProducts);
+  // Apply AI personalization scoring and default sort (by AI score)
+  filteredProducts = applyAIPersonalization(filteredProducts);
 
+  // Then apply any explicit user sort preference, overriding the AI sort if selected
   if (sortBy === 'price_low') filteredProducts.sort((a, b) => (a.price || 0) - (b.price || 0));
   else if (sortBy === 'price_high') filteredProducts.sort((a, b) => (b.price || 0) - (a.price || 0));
   else if (sortBy === 'name') filteredProducts.sort((a, b) => (a.name || '').localeCompare(b.name || ''));
   else if (sortBy === 'rating') filteredProducts.sort((a, b) => (b.rating || 0) - (a.rating || 0));
+  // If sortBy === 'featured' (AI Recommended), the sort from applyAIPersonalization persists.
 
   const activeFiltersCount = filters.colors.length + filters.sizes.length + filters.brands.length + filters.materials.length + filters.styles.length + filters.weights.length + filters.special.length + (filters.rating > 0 ? 1 : 0);
 
@@ -220,6 +249,8 @@ export default function Store() {
   return (
     <AIPersonalization userId={user?.id}>
       <div className="min-h-screen bg-[#0a0e27] py-12">
+        <DynamicPromotionBanner userId={user?.id} cartItems={cartItems} />
+        
         <div className="max-w-7xl mx-auto px-4">
           <div className="flex items-center justify-between mb-8">
             <div>
@@ -464,7 +495,7 @@ export default function Store() {
                         <SelectValue />
                       </SelectTrigger>
                       <SelectContent className="bg-slate-800 border-slate-700">
-                        <SelectItem value="featured">Recommended for You</SelectItem>
+                        <SelectItem value="featured">AI Recommended</SelectItem>
                         <SelectItem value="price_low">Price: Low to High</SelectItem>
                         <SelectItem value="price_high">Price: High to Low</SelectItem>
                         <SelectItem value="name">Name: A to Z</SelectItem>
