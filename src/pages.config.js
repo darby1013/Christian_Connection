@@ -200,6 +200,8 @@ import AdminProductVideos from './pages/AdminProductVideos';
 import AdminProductSEO from './pages/AdminProductSEO';
 import AdminProductQuickActions from './pages/AdminProductQuickActions';
 import BrandShowcase from './pages/BrandShowcase';
+import DigitalStore from './pages/DigitalStore';
+import MyDigitalLibrary from './pages/MyDigitalLibrary';
 import Layout from './Layout.jsx';
 
 
@@ -406,6 +408,8 @@ export const PAGES = {
     "AdminProductSEO": AdminProductSEO,
     "AdminProductQuickActions": AdminProductQuickActions,
     "BrandShowcase": BrandShowcase,
+    "DigitalStore": DigitalStore,
+    "MyDigitalLibrary": MyDigitalLibrary,
 }
 
 export const pagesConfig = {
