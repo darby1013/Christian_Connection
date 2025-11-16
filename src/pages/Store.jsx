@@ -6,12 +6,11 @@ import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Badge } from '@/components/ui/badge';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
-import { ShoppingCart, Search, Star, Heart, Eye, Filter, Grid, List, GitCompare, X } from 'lucide-react';
+import { ShoppingCart, Search, Star, Heart, Eye, Filter, Grid, List, GitCompare } from 'lucide-react';
 import { Link, useNavigate } from 'react-router-dom';
 import { createPageUrl } from '@/utils';
 import RealtimeCart from '../components/store/RealtimeCart';
 import AIRecommendations from '../components/store/AIRecommendations';
-import ProductQuickView from '../components/store/ProductQuickView';
 
 export default function Store() {
   const [user, setUser] = useState(null);
@@ -22,15 +21,6 @@ export default function Store() {
   const [viewMode, setViewMode] = useState('grid');
   const [showCart, setShowCart] = useState(false);
   const [compareList, setCompareList] = useState([]);
-  const [quickViewProduct, setQuickViewProduct] = useState(null);
-  
-  // Advanced filters
-  const [selectedBrands, setSelectedBrands] = useState([]);
-  const [selectedColors, setSelectedColors] = useState([]);
-  const [selectedSizes, setSelectedSizes] = useState([]);
-  const [selectedMaterials, setSelectedMaterials] = useState([]);
-  const [minRating, setMinRating] = useState(0);
-  
   const queryClient = useQueryClient();
   const navigate = useNavigate();
 
@@ -44,7 +34,7 @@ export default function Store() {
     fetchUser();
   }, []);
 
-  const { data: products = [] } = useQuery({
+  const { data: products = [], refetch } = useQuery({
     queryKey: ['storeProducts'],
     queryFn: () => base44.entities.Product.list('-created_date'),
     refetchInterval: 3000,
@@ -109,41 +99,13 @@ export default function Store() {
     navigate(createPageUrl('ProductComparison') + `?ids=${compareList.join(',')}`);
   };
 
-  // Extract unique values for faceted filters
-  const allBrands = [...new Set(products.map(p => p.brand).filter(Boolean))];
-  const allColors = [...new Set(products.flatMap(p => p.tags || []).filter(c => ['Red', 'Blue', 'Green', 'Black', 'White', 'Gray', 'Brown'].includes(c)))];
-  const allSizes = ['XS', 'S', 'M', 'L', 'XL', 'XXL'];
-  const allMaterials = ['Cotton', 'Polyester', 'Leather', 'Wool', 'Silk', 'Denim'];
-
-  const toggleFilter = (value, setFunction, currentArray) => {
-    setFunction(prev => 
-      prev.includes(value) ? prev.filter(v => v !== value) : [...prev, value]
-    );
-  };
-
-  const clearAllFilters = () => {
-    setSearchQuery('');
-    setSelectedCategory('all');
-    setSortBy('featured');
-    setPriceRange([0, 1000]);
-    setSelectedBrands([]);
-    setSelectedColors([]);
-    setSelectedSizes([]);
-    setSelectedMaterials([]);
-    setMinRating(0);
-  };
-
   const filteredProducts = products
     .filter(p => {
       const matchesSearch = p.name?.toLowerCase().includes(searchQuery.toLowerCase()) || 
                            p.description?.toLowerCase().includes(searchQuery.toLowerCase());
       const matchesCategory = selectedCategory === 'all' || p.category === selectedCategory;
       const matchesPrice = p.price >= priceRange[0] && p.price <= priceRange[1];
-      const matchesBrand = selectedBrands.length === 0 || selectedBrands.includes(p.brand);
-      const matchesColor = selectedColors.length === 0 || selectedColors.some(c => p.tags?.includes(c));
-      const matchesRating = (p.rating || 4.5) >= minRating;
-      
-      return matchesSearch && matchesCategory && matchesPrice && matchesBrand && matchesColor && matchesRating;
+      return matchesSearch && matchesCategory && matchesPrice;
     })
     .sort((a, b) => {
       if (sortBy === 'price_low') return (a.price || 0) - (b.price || 0);
@@ -151,8 +113,6 @@ export default function Store() {
       if (sortBy === 'name') return (a.name || '').localeCompare(b.name || '');
       return 0;
     });
-
-  const activeFiltersCount = selectedBrands.length + selectedColors.length + selectedSizes.length + selectedMaterials.length + (minRating > 0 ? 1 : 0);
 
   return (
     <div className="min-h-screen bg-[#0a0e27] py-12">
@@ -193,15 +153,10 @@ export default function Store() {
         <div className="grid lg:grid-cols-4 gap-8">
           <Card className="bg-[#1a1f3a] border-slate-700 h-fit sticky top-4">
             <CardContent className="p-6">
-              <div className="flex items-center justify-between mb-4">
-                <h3 className="text-white font-black text-lg flex items-center gap-2">
-                  <Filter className="w-5 h-5 text-cyan-400" />
-                  Filters
-                </h3>
-                {activeFiltersCount > 0 && (
-                  <Badge className="bg-cyan-500">{activeFiltersCount}</Badge>
-                )}
-              </div>
+              <h3 className="text-white font-black text-lg mb-4 flex items-center gap-2">
+                <Filter className="w-5 h-5 text-cyan-400" />
+                Filters
+              </h3>
 
               <div className="space-y-6">
                 <div>
@@ -227,97 +182,6 @@ export default function Store() {
                       ))}
                     </SelectContent>
                   </Select>
-                </div>
-
-                {allBrands.length > 0 && (
-                  <div>
-                    <label className="text-white font-bold text-sm mb-2 block">Brand</label>
-                    <div className="space-y-2 max-h-40 overflow-y-auto">
-                      {allBrands.map(brand => (
-                        <div key={brand} className="flex items-center gap-2">
-                          <input
-                            type="checkbox"
-                            checked={selectedBrands.includes(brand)}
-                            onChange={() => toggleFilter(brand, setSelectedBrands, selectedBrands)}
-                            className="w-4 h-4"
-                          />
-                          <label className="text-slate-300 text-sm">{brand}</label>
-                        </div>
-                      ))}
-                    </div>
-                  </div>
-                )}
-
-                {allColors.length > 0 && (
-                  <div>
-                    <label className="text-white font-bold text-sm mb-2 block">Color</label>
-                    <div className="flex flex-wrap gap-2">
-                      {allColors.map(color => (
-                        <button
-                          key={color}
-                          onClick={() => toggleFilter(color, setSelectedColors, selectedColors)}
-                          className={`px-3 py-1 rounded-full text-xs font-bold transition-all ${
-                            selectedColors.includes(color)
-                              ? 'bg-cyan-500 text-white'
-                              : 'bg-slate-800 text-slate-300 hover:bg-slate-700'
-                          }`}
-                        >
-                          {color}
-                        </button>
-                      ))}
-                    </div>
-                  </div>
-                )}
-
-                <div>
-                  <label className="text-white font-bold text-sm mb-2 block">Size</label>
-                  <div className="flex flex-wrap gap-2">
-                    {allSizes.map(size => (
-                      <button
-                        key={size}
-                        onClick={() => toggleFilter(size, setSelectedSizes, selectedSizes)}
-                        className={`px-3 py-1 rounded text-xs font-bold transition-all ${
-                          selectedSizes.includes(size)
-                            ? 'bg-cyan-500 text-white'
-                            : 'bg-slate-800 text-slate-300 hover:bg-slate-700'
-                        }`}
-                      >
-                        {size}
-                      </button>
-                    ))}
-                  </div>
-                </div>
-
-                <div>
-                  <label className="text-white font-bold text-sm mb-2 block">Material</label>
-                  <div className="space-y-2 max-h-32 overflow-y-auto">
-                    {allMaterials.map(material => (
-                      <div key={material} className="flex items-center gap-2">
-                        <input
-                          type="checkbox"
-                          checked={selectedMaterials.includes(material)}
-                          onChange={() => toggleFilter(material, setSelectedMaterials, selectedMaterials)}
-                          className="w-4 h-4"
-                        />
-                        <label className="text-slate-300 text-sm">{material}</label>
-                      </div>
-                    ))}
-                  </div>
-                </div>
-
-                <div>
-                  <label className="text-white font-bold text-sm mb-2 block">Min Rating</label>
-                  <div className="flex gap-1">
-                    {[1, 2, 3, 4, 5].map(rating => (
-                      <button
-                        key={rating}
-                        onClick={() => setMinRating(rating === minRating ? 0 : rating)}
-                        className={`p-1 ${rating <= minRating ? 'text-yellow-400' : 'text-slate-600'}`}
-                      >
-                        <Star className="w-5 h-5 fill-current" />
-                      </button>
-                    ))}
-                  </div>
                 </div>
 
                 <div>
@@ -352,9 +216,14 @@ export default function Store() {
                 <Button 
                   variant="outline" 
                   className="w-full border-slate-600"
-                  onClick={clearAllFilters}
+                  onClick={() => {
+                    setSearchQuery('');
+                    setSelectedCategory('all');
+                    setSortBy('featured');
+                    setPriceRange([0, 1000]);
+                  }}
                 >
-                  Clear All Filters
+                  Clear Filters
                 </Button>
               </div>
             </CardContent>
@@ -447,13 +316,11 @@ export default function Store() {
                             >
                               <Heart className="w-4 h-4" />
                             </Button>
-                            <Button
-                              size="icon"
-                              className="bg-white text-slate-900 hover:bg-slate-100"
-                              onClick={() => setQuickViewProduct(product)}
-                            >
-                              <Eye className="w-4 h-4" />
-                            </Button>
+                            <Link to={createPageUrl('ProductDetail') + `?id=${product.id}`}>
+                              <Button size="icon" className="bg-white text-slate-900 hover:bg-slate-100">
+                                <Eye className="w-4 h-4" />
+                              </Button>
+                            </Link>
                           </div>
                         </div>
                         <div className="p-4">
@@ -504,7 +371,6 @@ export default function Store() {
       </div>
 
       {showCart && <RealtimeCart userId={user?.id} onClose={() => setShowCart(false)} />}
-      {quickViewProduct && <ProductQuickView product={quickViewProduct} onClose={() => setQuickViewProduct(null)} user={user} />}
     </div>
   );
 }
