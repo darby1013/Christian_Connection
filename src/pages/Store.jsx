@@ -1,3 +1,4 @@
+
 import React, { useState, useEffect } from 'react';
 import { base44 } from '@/api/base44Client';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
@@ -121,6 +122,20 @@ export default function Store() {
     setFilters({ colors: [], sizes: [], brands: [], materials: [], rating: 0 });
   };
 
+  const parseImages = (images) => {
+    if (Array.isArray(images)) return images;
+    if (!images) return [];
+    if (typeof images === 'string') {
+      try {
+        const parsed = JSON.parse(images);
+        return Array.isArray(parsed) ? parsed : [images];
+      } catch {
+        return [images];
+      }
+    }
+    return [];
+  };
+
   const availableColors = [...new Set(products.flatMap(p => p.colors || []).filter(Boolean))];
   const availableSizes = [...new Set(products.flatMap(p => p.sizes || []).filter(Boolean))];
   const availableBrands = [...new Set(products.map(p => p.brand).filter(Boolean))];
@@ -188,6 +203,7 @@ export default function Store() {
         <AIRecommendations userId={user?.id} type="personalized" />
 
         <div className="grid lg:grid-cols-4 gap-8">
+          
           <Card className="bg-[#1a1f3a] border-slate-700 h-fit sticky top-4">
             <CardContent className="p-6">
               <div className="flex items-center justify-between mb-4">
@@ -396,9 +412,7 @@ export default function Store() {
             ) : (
               <div className={viewMode === 'grid' ? 'grid md:grid-cols-2 lg:grid-cols-3 gap-6' : 'space-y-4'}>
                 {filteredProducts.map(product => {
-                  const images = Array.isArray(product.images) 
-                    ? product.images 
-                    : (product.images ? (typeof product.images === 'string' ? JSON.parse(product.images) : []) : []);
+                  const images = parseImages(product.images);
                   const inStock = (product.stock_quantity || 0) > 0;
                   const isFeatured = product.tags?.includes('featured');
                   const isInCompare = compareList.includes(product.id);

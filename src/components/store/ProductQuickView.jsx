@@ -24,9 +24,21 @@ export default function ProductQuickView({ product, onClose, user }) {
 
   if (!product) return null;
 
-  const images = Array.isArray(product.images) 
-    ? product.images 
-    : (product.images ? JSON.parse(product.images) : []);
+  const parseImages = (images) => {
+    if (Array.isArray(images)) return images;
+    if (!images) return [];
+    if (typeof images === 'string') {
+      try {
+        const parsed = JSON.parse(images);
+        return Array.isArray(parsed) ? parsed : [images];
+      } catch {
+        return [images];
+      }
+    }
+    return [];
+  };
+
+  const images = parseImages(product.images);
   const inStock = (product.stock_quantity || 0) > 0;
 
   return (

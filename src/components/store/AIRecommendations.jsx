@@ -19,6 +19,20 @@ export default function AIRecommendations({ userId, currentProductId, type = 'pe
     initialData: []
   });
 
+  const parseImages = (images) => {
+    if (Array.isArray(images)) return images;
+    if (!images) return [];
+    if (typeof images === 'string') {
+      try {
+        const parsed = JSON.parse(images);
+        return Array.isArray(parsed) ? parsed : [images];
+      } catch {
+        return [images];
+      }
+    }
+    return [];
+  };
+
   if (recommendations.length === 0) return null;
 
   return (
@@ -32,9 +46,7 @@ export default function AIRecommendations({ userId, currentProductId, type = 'pe
       </div>
       <div className="grid md:grid-cols-2 lg:grid-cols-4 gap-6">
         {recommendations.map(product => {
-          const images = Array.isArray(product.images) 
-            ? product.images 
-            : (product.images ? JSON.parse(product.images) : []);
+          const images = parseImages(product.images);
           
           return (
             <Card key={product.id} className="bg-[#1a1f3a] border-slate-700 hover:border-cyan-500 transition-all group">
