@@ -186,6 +186,10 @@ import AdminCategoryHierarchy from './pages/AdminCategoryHierarchy';
 import AdminProductAttributes from './pages/AdminProductAttributes';
 import AdminBulkProductOperations from './pages/AdminBulkProductOperations';
 import AdminPriceOptimization from './pages/AdminPriceOptimization';
+import AdminInventoryForecasting from './pages/AdminInventoryForecasting';
+import AdminCollectionManager from './pages/AdminCollectionManager';
+import AdminSizeGuideManager from './pages/AdminSizeGuideManager';
+import CategoryBrowse from './pages/CategoryBrowse';
 import Layout from './Layout.jsx';
 
 
@@ -378,6 +382,10 @@ export const PAGES = {
     "AdminProductAttributes": AdminProductAttributes,
     "AdminBulkProductOperations": AdminBulkProductOperations,
     "AdminPriceOptimization": AdminPriceOptimization,
+    "AdminInventoryForecasting": AdminInventoryForecasting,
+    "AdminCollectionManager": AdminCollectionManager,
+    "AdminSizeGuideManager": AdminSizeGuideManager,
+    "CategoryBrowse": CategoryBrowse,
 }
 
 export const pagesConfig = {
