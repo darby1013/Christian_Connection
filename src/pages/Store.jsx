@@ -6,10 +6,11 @@ import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Badge } from '@/components/ui/badge';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
-import { ShoppingCart, Search, Star, Heart, Eye, Filter, Grid, List } from 'lucide-react';
-import { Link } from 'react-router-dom';
+import { ShoppingCart, Search, Star, Heart, Eye, Filter, Grid, List, GitCompare } from 'lucide-react';
+import { Link, useNavigate } from 'react-router-dom';
 import { createPageUrl } from '@/utils';
 import RealtimeCart from '../components/store/RealtimeCart';
+import AIRecommendations from '../components/store/AIRecommendations';
 
 export default function Store() {
   const [user, setUser] = useState(null);
@@ -19,7 +20,9 @@ export default function Store() {
   const [priceRange, setPriceRange] = useState([0, 1000]);
   const [viewMode, setViewMode] = useState('grid');
   const [showCart, setShowCart] = useState(false);
+  const [compareList, setCompareList] = useState([]);
   const queryClient = useQueryClient();
+  const navigate = useNavigate();
 
   useEffect(() => {
     const fetchUser = async () => {
@@ -84,6 +87,18 @@ export default function Store() {
     });
   };
 
+  const toggleCompare = (productId) => {
+    setCompareList(prev => 
+      prev.includes(productId) 
+        ? prev.filter(id => id !== productId)
+        : prev.length < 4 ? [...prev, productId] : prev
+    );
+  };
+
+  const goToComparison = () => {
+    navigate(createPageUrl('ProductComparison') + `?ids=${compareList.join(',')}`);
+  };
+
   const filteredProducts = products
     .filter(p => {
       const matchesSearch = p.name?.toLowerCase().includes(searchQuery.toLowerCase()) || 
@@ -107,19 +122,33 @@ export default function Store() {
             <h1 className="text-4xl font-black text-white mb-2">Church Store</h1>
             <p className="text-slate-400 font-semibold">Quality products to support your faith journey</p>
           </div>
-          <Button 
-            onClick={() => setShowCart(true)}
-            className="bg-gradient-to-r from-cyan-600 to-blue-600 h-12 px-6 font-bold relative"
-          >
-            <ShoppingCart className="w-5 h-5 mr-2" />
-            Cart
-            {cartItems.length > 0 && (
-              <Badge className="absolute -top-2 -right-2 bg-red-500 h-6 w-6 flex items-center justify-center p-0">
-                {cartItems.length}
-              </Badge>
+          <div className="flex gap-3">
+            {compareList.length > 0 && (
+              <Button 
+                onClick={goToComparison}
+                variant="outline"
+                className="border-purple-600 text-purple-400 hover:bg-purple-600/20"
+              >
+                <GitCompare className="w-4 h-4 mr-2" />
+                Compare ({compareList.length})
+              </Button>
             )}
-          </Button>
+            <Button 
+              onClick={() => setShowCart(true)}
+              className="bg-gradient-to-r from-cyan-600 to-blue-600 h-12 px-6 font-bold relative"
+            >
+              <ShoppingCart className="w-5 h-5 mr-2" />
+              Cart
+              {cartItems.length > 0 && (
+                <Badge className="absolute -top-2 -right-2 bg-red-500 h-6 w-6 flex items-center justify-center p-0">
+                  {cartItems.length}
+                </Badge>
+              )}
+            </Button>
+          </div>
         </div>
+
+        <AIRecommendations userId={user?.id} type="personalized" />
 
         <div className="grid lg:grid-cols-4 gap-8">
           <Card className="bg-[#1a1f3a] border-slate-700 h-fit sticky top-4">
@@ -239,11 +268,12 @@ export default function Store() {
                     : (product.images ? (typeof product.images === 'string' ? JSON.parse(product.images) : []) : []);
                   const inStock = (product.stock_quantity || 0) > 0;
                   const isFeatured = product.tags?.includes('featured');
+                  const isInCompare = compareList.includes(product.id);
 
                   return (
                     <Card 
                       key={product.id} 
-                      className="bg-[#1a1f3a] border-slate-700 hover:border-cyan-500 transition-all group overflow-hidden"
+                      className={`bg-[#1a1f3a] border-slate-700 hover:border-cyan-500 transition-all group overflow-hidden ${isInCompare ? 'ring-2 ring-purple-500' : ''}`}
                     >
                       <CardContent className="p-0">
                         <div className="relative">
@@ -266,6 +296,13 @@ export default function Store() {
                             />
                           </Link>
                           <div className="absolute bottom-3 right-3 flex gap-2 opacity-0 group-hover:opacity-100 transition-opacity">
+                            <Button
+                              size="icon"
+                              className={`${isInCompare ? 'bg-purple-500' : 'bg-white'} text-slate-900 hover:bg-slate-100`}
+                              onClick={() => toggleCompare(product.id)}
+                            >
+                              <GitCompare className="w-4 h-4" />
+                            </Button>
                             <Button
                               size="icon"
                               className="bg-white text-slate-900 hover:bg-slate-100"

@@ -6,7 +6,9 @@ import { Card, CardContent } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
 import { Tabs, TabsList, TabsTrigger, TabsContent } from '@/components/ui/tabs';
-import { Star, ShoppingCart, Heart, Share2, Check, Truck, Shield, RefreshCcw, Tag } from 'lucide-react';
+import { Star, ShoppingCart, Heart, Share2, Truck, Shield, RefreshCcw } from 'lucide-react';
+import AIRecommendations from '../components/store/AIRecommendations';
+import FrequentlyBoughtTogether from '../components/store/FrequentlyBoughtTogether';
 
 export default function ProductDetail() {
   const location = useLocation();
@@ -220,6 +222,8 @@ export default function ProductDetail() {
           </div>
         </div>
 
+        <FrequentlyBoughtTogether productId={productId} userId={user?.id} />
+
         <Tabs defaultValue="reviews" className="mb-12">
           <TabsList className="bg-slate-900 border-slate-700">
             <TabsTrigger value="reviews">Reviews ({reviews.length})</TabsTrigger>
@@ -267,25 +271,7 @@ export default function ProductDetail() {
           </TabsContent>
         </Tabs>
 
-        <div>
-          <h2 className="text-3xl font-black text-white mb-6">Related Products</h2>
-          <div className="grid md:grid-cols-4 gap-6">
-            {relatedProducts.slice(0, 4).map(p => {
-              const relImages = Array.isArray(p.images) 
-                ? p.images 
-                : (p.images ? (typeof p.images === 'string' ? JSON.parse(p.images) : []) : []);
-              return (
-                <Card key={p.id} className="bg-slate-900 border-slate-700 hover:border-cyan-500 transition-all">
-                  <CardContent className="p-4">
-                    <img src={relImages[0] || '/placeholder.jpg'} alt={p.name} className="w-full aspect-square object-cover rounded-lg mb-3" />
-                    <h4 className="text-white font-bold mb-2">{p.name}</h4>
-                    <p className="text-cyan-400 font-black text-xl">${p.price?.toFixed(2)}</p>
-                  </CardContent>
-                </Card>
-              );
-            })}
-          </div>
-        </div>
+        <AIRecommendations userId={user?.id} currentProductId={productId} type="similar" />
       </div>
     </div>
   );
