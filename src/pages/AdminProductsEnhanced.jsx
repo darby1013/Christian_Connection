@@ -1,3 +1,4 @@
+
 import React, { useState } from 'react';
 import { base44 } from '@/api/base44Client';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
@@ -73,6 +74,20 @@ export default function AdminProductsEnhanced() {
     }
   });
 
+  const parseImages = (images) => {
+    if (Array.isArray(images)) return images;
+    if (!images) return [];
+    if (typeof images === 'string') {
+      try {
+        const parsed = JSON.parse(images);
+        return Array.isArray(parsed) ? parsed : [images];
+      } catch {
+        return [images]; // If parsing fails, treat the string as a single image URL
+      }
+    }
+    return [];
+  };
+
   const resetForm = () => {
     setProductForm({
       name: '',
@@ -118,7 +133,7 @@ export default function AdminProductsEnhanced() {
       price: parseFloat(productForm.price),
       compare_at_price: productForm.compare_at_price ? parseFloat(productForm.compare_at_price) : null,
       stock_quantity: parseInt(productForm.stock_quantity) || 0,
-      images: JSON.stringify(productForm.images)
+      images: productForm.images // Pass as array of strings, not JSON string
     };
 
     if (editingProduct) {
@@ -132,15 +147,18 @@ export default function AdminProductsEnhanced() {
     { 
       header: 'Product', 
       key: 'name',
-      render: (_, product) => (
-        <div className="flex items-center gap-3">
-          <img src={product.images?.[0] || '/placeholder.jpg'} alt="" className="w-12 h-12 object-cover rounded" />
-          <div>
-            <p className="text-white font-bold">{product.name}</p>
-            <p className="text-slate-400 text-xs">{product.sku}</p>
+      render: (_, product) => {
+        const images = parseImages(product.images);
+        return (
+          <div className="flex items-center gap-3">
+            <img src={images[0] || '/placeholder.jpg'} alt="" className="w-12 h-12 object-cover rounded" />
+            <div>
+              <p className="text-white font-bold">{product.name}</p>
+              <p className="text-slate-400 text-xs">{product.sku}</p>
+            </div>
           </div>
-        </div>
-      )
+        );
+      }
     },
     { header: 'Category', key: 'category', render: (val) => <Badge className="bg-purple-500">{val || 'Uncategorized'}</Badge> },
     { header: 'Price', key: 'price', render: (val) => <span className="text-green-400 font-bold">${val?.toFixed(2)}</span> },
@@ -156,7 +174,7 @@ export default function AdminProductsEnhanced() {
         icon={Package}
         badge="ENTERPRISE"
         actions={[
-          { label: 'Add Product', icon: Plus, onClick: () => setShowDialog(true) }
+          { label: 'Add Product', icon: Plus, onClick: () => { setShowDialog(true); resetForm(); }}
         ]}
       />
 
@@ -192,10 +210,11 @@ export default function AdminProductsEnhanced() {
         data={products}
         actions={[
           { label: 'Edit', icon: Edit, onClick: (product) => {
+            const images = parseImages(product.images);
             setEditingProduct(product);
             setProductForm({
               ...product,
-              images: product.images ? JSON.parse(product.images) : [],
+              images: images, // Use the parsed images array
               price: product.price?.toString() || '',
               compare_at_price: product.compare_at_price?.toString() || '',
               stock_quantity: product.stock_quantity?.toString() || ''
@@ -337,6 +356,7 @@ export default function AdminProductsEnhanced() {
                 type="checkbox"
                 checked={productForm.is_digital}
                 onChange={(e) => setProductForm({...productForm, is_digital: e.target.checked})}
+                className="w-4 h-4 text-blue-600 bg-gray-700 border-gray-600 focus:ring-blue-500 focus:ring-2"
               />
               <Label className="text-white">Digital Product (downloadable)</Label>
             </div>

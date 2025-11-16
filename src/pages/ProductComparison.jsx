@@ -14,6 +14,20 @@ export default function ProductComparison() {
   const searchParams = new URLSearchParams(location.search);
   const productIds = searchParams.get('ids')?.split(',') || [];
 
+  const parseImages = (images) => {
+    if (Array.isArray(images)) return images;
+    if (!images) return [];
+    if (typeof images === 'string') {
+      try {
+        const parsed = JSON.parse(images);
+        return Array.isArray(parsed) ? parsed : [images];
+      } catch {
+        return [images];
+      }
+    }
+    return [];
+  };
+
   const { data: products = [] } = useQuery({
     queryKey: ['compareProducts', productIds],
     queryFn: async () => {
@@ -60,9 +74,7 @@ export default function ProductComparison() {
                 <tr>
                   <th className="text-left p-4 text-white font-black bg-[#1a1f3a]">Feature</th>
                   {products.map(product => {
-                    const images = Array.isArray(product.images) 
-                      ? product.images 
-                      : (product.images ? JSON.parse(product.images) : []);
+                    const images = parseImages(product.images);
                     return (
                       <th key={product.id} className="p-4 bg-[#1a1f3a]">
                         <Card className="bg-slate-900 border-slate-700">
