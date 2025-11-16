@@ -182,6 +182,10 @@ import AccountSettings from './pages/AccountSettings';
 import AdminSalesReports from './pages/AdminSalesReports';
 import AdminInventoryReports from './pages/AdminInventoryReports';
 import DigitalLibrary from './pages/DigitalLibrary';
+import AdminCategoryHierarchy from './pages/AdminCategoryHierarchy';
+import AdminProductAttributes from './pages/AdminProductAttributes';
+import AdminBulkProductOperations from './pages/AdminBulkProductOperations';
+import AdminPriceOptimization from './pages/AdminPriceOptimization';
 import Layout from './Layout.jsx';
 
 
@@ -370,6 +374,10 @@ export const PAGES = {
     "AdminSalesReports": AdminSalesReports,
     "AdminInventoryReports": AdminInventoryReports,
     "DigitalLibrary": DigitalLibrary,
+    "AdminCategoryHierarchy": AdminCategoryHierarchy,
+    "AdminProductAttributes": AdminProductAttributes,
+    "AdminBulkProductOperations": AdminBulkProductOperations,
+    "AdminPriceOptimization": AdminPriceOptimization,
 }
 
 export const pagesConfig = {
