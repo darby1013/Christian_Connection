@@ -202,6 +202,12 @@ import AdminProductQuickActions from './pages/AdminProductQuickActions';
 import BrandShowcase from './pages/BrandShowcase';
 import DigitalStore from './pages/DigitalStore';
 import MyDigitalLibrary from './pages/MyDigitalLibrary';
+import UserProfileEditor from './pages/UserProfileEditor';
+import AdminEmailMarketing from './pages/AdminEmailMarketing';
+import AdminLandingPageBuilder from './pages/AdminLandingPageBuilder';
+import AdminAdvancedCoupons from './pages/AdminAdvancedCoupons';
+import UserPreferences from './pages/UserPreferences';
+import AdminSocialMediaManager from './pages/AdminSocialMediaManager';
 import Layout from './Layout.jsx';
 
 
@@ -410,6 +416,12 @@ export const PAGES = {
     "BrandShowcase": BrandShowcase,
     "DigitalStore": DigitalStore,
     "MyDigitalLibrary": MyDigitalLibrary,
+    "UserProfileEditor": UserProfileEditor,
+    "AdminEmailMarketing": AdminEmailMarketing,
+    "AdminLandingPageBuilder": AdminLandingPageBuilder,
+    "AdminAdvancedCoupons": AdminAdvancedCoupons,
+    "UserPreferences": UserPreferences,
+    "AdminSocialMediaManager": AdminSocialMediaManager,
 }
 
 export const pagesConfig = {

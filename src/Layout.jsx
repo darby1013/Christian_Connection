@@ -1,3 +1,4 @@
+
 import React, { useState, useEffect } from "react";
 import { Link, useLocation } from "react-router-dom";
 import { createPageUrl } from "@/utils";
@@ -16,7 +17,7 @@ import {
   Webhook, Key, AlertCircle, GitCompare, UserX, Copy, CheckCircle, FolderOpen, Cpu,
   CreditCard as CreditCardIcon, FolderTree, Mail, MessageSquare as MessageIcon,
   ChevronDown, ChevronRight, Menu, X as CloseIcon, Layers, Ruler, FileSpreadsheet,
-  Target, Video as VideoIcon, ShoppingCart
+  Target, Video as VideoIcon, ShoppingCart, Layout as LayoutIcon, Share2
 } from "lucide-react";
 import {
   Sidebar,
@@ -135,6 +136,8 @@ function LayoutContent({ children, currentPageName }) {
     { title: "Home", url: createPageUrl("Home"), icon: Home },
     { title: "Watch Videos", url: createPageUrl("WatchVideos"), icon: Video },
     { title: "Store", url: createPageUrl("Store"), icon: ShoppingBag },
+    { title: "Digital Store", url: createPageUrl("DigitalStore"), icon: Download },
+    { title: "Brands", url: createPageUrl("BrandShowcase"), icon: Star },
     { title: "Give", url: createPageUrl("Donate"), icon: Heart },
   ];
 
@@ -196,6 +199,7 @@ function LayoutContent({ children, currentPageName }) {
       { title: "Bundles", url: createPageUrl("AdminProductBundles"), icon: Package },
       { title: "Bulk Pricing", url: createPageUrl("AdminBulkPricing"), icon: Percent },
       { title: "Coupons", url: createPageUrl("AdminCouponManagement"), icon: Tag },
+      { title: "Advanced Coupons", url: createPageUrl("AdminAdvancedCoupons"), icon: Gift },
       { title: "Gift Cards", url: createPageUrl("AdminGiftCards"), icon: Gift },
       { title: "Loyalty Program", url: createPageUrl("AdminLoyaltyProgram"), icon: Award }
     ],
@@ -203,6 +207,11 @@ function LayoutContent({ children, currentPageName }) {
       { title: "Inventory", url: createPageUrl("AdminInventoryManagement"), icon: Warehouse },
       { title: "Shipping", url: createPageUrl("AdminShippingConfig"), icon: Truck },
       { title: "Payment Gateways", url: createPageUrl("AdminPaymentGateways"), icon: CreditCardIcon }
+    ],
+    "MARKETING": [
+      { title: "Email Campaigns", url: createPageUrl("AdminEmailMarketing"), icon: Mail },
+      { title: "Landing Pages", url: createPageUrl("AdminLandingPageBuilder"), icon: LayoutIcon },
+      { title: "Social Media", url: createPageUrl("AdminSocialMediaManager"), icon: Share2 }
     ],
     "CONTENT": [
       { title: "Go Live Studio", url: createPageUrl("AdminBroadcastStudio"), icon: Radio },
@@ -609,6 +618,12 @@ function LayoutContent({ children, currentPageName }) {
                 {user ? (
                   <div className="flex items-center gap-3">
                     <NotificationBell user={user} />
+                    <Link to={createPageUrl("MyDigitalLibrary")}>
+                      <Button variant="outline" className="border-purple-600 text-purple-400 hover:bg-purple-600/20">
+                        <Download className="w-4 h-4 mr-2" />
+                        My Downloads
+                      </Button>
+                    </Link>
                     {isAdmin && (
                       <Link to={createPageUrl("AdminDashboard")}>
                         <Button variant="outline" className="border-slate-700 bg-white/5 text-slate-300 hover:bg-white/10">
@@ -634,9 +649,15 @@ function LayoutContent({ children, currentPageName }) {
                           </Link>
                         </DropdownMenuItem>
                         <DropdownMenuItem asChild>
-                          <Link to={createPageUrl("UserProfileCustomization")} className="flex items-center cursor-pointer p-2 hover:bg-slate-800/50 rounded-md">
+                          <Link to={createPageUrl("UserProfileEditor")} className="flex items-center cursor-pointer p-2 hover:bg-slate-800/50 rounded-md">
                             <Palette className="w-4 h-4 mr-2" />
-                            Customize
+                            Edit Profile
+                          </Link>
+                        </DropdownMenuItem>
+                        <DropdownMenuItem asChild>
+                          <Link to={createPageUrl("UserPreferences")} className="flex items-center cursor-pointer p-2 hover:bg-slate-800/50 rounded-md">
+                            <Settings className="w-4 h-4 mr-2" />
+                            Preferences
                           </Link>
                         </DropdownMenuItem>
                         <DropdownMenuItem onClick={handleLogout} className="flex items-center cursor-pointer p-2 hover:bg-slate-800/50 rounded-md">
