@@ -179,6 +179,8 @@ import CustomerAccount from './pages/CustomerAccount';
 import OrderHistory from './pages/OrderHistory';
 import SavedAddresses from './pages/SavedAddresses';
 import AccountSettings from './pages/AccountSettings';
+import AdminSalesReports from './pages/AdminSalesReports';
+import AdminInventoryReports from './pages/AdminInventoryReports';
 import Layout from './Layout.jsx';
 
 
@@ -364,6 +366,8 @@ export const PAGES = {
     "OrderHistory": OrderHistory,
     "SavedAddresses": SavedAddresses,
     "AccountSettings": AccountSettings,
+    "AdminSalesReports": AdminSalesReports,
+    "AdminInventoryReports": AdminInventoryReports,
 }
 
 export const pagesConfig = {

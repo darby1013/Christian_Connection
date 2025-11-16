@@ -1,53 +1,43 @@
 import React, { useState, useEffect } from 'react';
 import { base44 } from '@/api/base44Client';
-import { useQuery, useMutation } from '@tanstack/react-query';
+import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { Card, CardContent } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
-import { RadioGroup, RadioGroupItem } from '@/components/ui/radio-group';
 import { Badge } from '@/components/ui/badge';
-import { CreditCard, Truck, Lock, CheckCircle } from 'lucide-react';
+import { RadioGroup, RadioGroupItem } from '@/components/ui/radio-group';
+import { Check, CreditCard, Truck, ShoppingBag } from 'lucide-react';
 import { useNavigate } from 'react-router-dom';
 import { createPageUrl } from '@/utils';
 
 export default function Checkout() {
   const [user, setUser] = useState(null);
-  const [step, setStep] = useState(1);
-  const [shippingMethod, setShippingMethod] = useState('standard');
-  const [paymentMethod, setPaymentMethod] = useState('credit_card');
-  const navigate = useNavigate();
-
+  const [isGuest, setIsGuest] = useState(false);
+  const [currentStep, setCurrentStep] = useState(1);
   const [shippingInfo, setShippingInfo] = useState({
     full_name: '',
     email: '',
-    phone: '',
     address: '',
     city: '',
     state: '',
     zip: '',
-    country: 'USA'
+    phone: ''
   });
-
-  const [paymentInfo, setPaymentInfo] = useState({
-    card_number: '',
-    card_name: '',
-    expiry: '',
-    cvv: ''
-  });
+  const [selectedShipping, setSelectedShipping] = useState(null);
+  const [shippingCost, setShippingCost] = useState(0);
+  const [paymentMethod, setPaymentMethod] = useState('stripe');
+  const navigate = useNavigate();
+  const queryClient = useQueryClient();
 
   useEffect(() => {
     const fetchUser = async () => {
       try {
         const currentUser = await base44.auth.me();
         setUser(currentUser);
-        setShippingInfo(prev => ({
-          ...prev,
-          full_name: currentUser.full_name,
-          email: currentUser.email
-        }));
+        setShippingInfo(prev => ({ ...prev, full_name: currentUser.full_name, email: currentUser.email }));
       } catch {
-        base44.auth.redirectToLogin();
+        setIsGuest(true);
       }
     };
     fetchUser();
@@ -55,276 +45,298 @@ export default function Checkout() {
 
   const { data: cartItems = [] } = useQuery({
     queryKey: ['cart', user?.id],
-    queryFn: async () => {
-      const items = await base44.entities.CartItem.filter({ user_id: user?.id });
-      return items;
-    },
+    queryFn: () => base44.entities.CartItem.filter({ user_id: user?.id }),
     enabled: !!user,
     initialData: []
   });
 
-  const { data: products = [] } = useQuery({
-    queryKey: ['products'],
-    queryFn: () => base44.entities.Product.list(),
+  const { data: shippingMethods = [] } = useQuery({
+    queryKey: ['shippingMethods'],
+    queryFn: () => base44.entities.ShippingMethod.filter({ is_active: true }),
+    initialData: []
+  });
+
+  const { data: savedAddresses = [] } = useQuery({
+    queryKey: ['savedAddresses', user?.id],
+    queryFn: () => base44.entities.CustomerAddress.filter({ user_id: user?.id }),
+    enabled: !!user,
     initialData: []
   });
 
   const placeOrderMutation = useMutation({
     mutationFn: async (orderData) => {
       const order = await base44.entities.Order.create(orderData);
-      // Clear cart
-      for (const item of cartItems) {
-        await base44.entities.CartItem.delete(item.id);
-      }
+      await Promise.all(cartItems.map(item => base44.entities.CartItem.delete(item.id)));
       return order;
     },
     onSuccess: (order) => {
+      queryClient.invalidateQueries(['cart']);
       navigate(createPageUrl('OrderConfirmation') + `?orderId=${order.id}`);
     }
   });
 
-  const cartWithProducts = cartItems.map(item => {
-    const product = products.find(p => p.id === item.product_id);
-    return { ...item, product };
-  }).filter(item => item.product);
+  useEffect(() => {
+    if (selectedShipping) {
+      const method = shippingMethods.find(m => m.id === selectedShipping);
+      const subtotal = cartItems.reduce((sum, item) => sum + (item.price * item.quantity), 0);
+      
+      if (method?.free_shipping_threshold && subtotal >= method.free_shipping_threshold) {
+        setShippingCost(0);
+      } else {
+        const baseCost = method?.cost || 0;
+        const stateSurcharge = shippingInfo.state === 'HI' || shippingInfo.state === 'AK' ? 10 : 0;
+        setShippingCost(baseCost + stateSurcharge);
+      }
+    }
+  }, [selectedShipping, shippingInfo.state, cartItems, shippingMethods]);
 
-  const subtotal = cartWithProducts.reduce((sum, item) => 
-    sum + (item.product.price * item.quantity), 0
-  );
-
-  const shippingCosts = {
-    standard: 9.99,
-    express: 19.99,
-    overnight: 39.99
-  };
-
-  const shipping = subtotal > 50 && shippingMethod === 'standard' ? 0 : shippingCosts[shippingMethod];
+  const subtotal = cartItems.reduce((sum, item) => sum + (item.price * item.quantity), 0);
   const tax = subtotal * 0.08;
-  const total = subtotal + tax + shipping;
+  const total = subtotal + shippingCost + tax;
 
   const handlePlaceOrder = () => {
     placeOrderMutation.mutate({
-      user_id: user.id,
-      status: 'pending',
+      customer_id: user?.id || 'guest',
+      customer_email: shippingInfo.email,
+      items: cartItems,
+      subtotal,
+      tax_amount: tax,
+      shipping_cost: shippingCost,
       total_amount: total,
-      shipping_address: JSON.stringify(shippingInfo),
+      status: 'pending',
       payment_method: paymentMethod,
-      shipping_method: shippingMethod,
-      items: cartWithProducts.map(item => ({
-        product_id: item.product_id,
-        quantity: item.quantity,
-        price: item.product.price
-      }))
+      payment_status: 'pending',
+      shipping_address: JSON.stringify(shippingInfo),
+      shipping_method: shippingMethods.find(m => m.id === selectedShipping)?.name
     });
   };
+
+  const steps = [
+    { number: 1, title: 'Shipping', icon: Truck },
+    { number: 2, title: 'Payment', icon: CreditCard },
+    { number: 3, title: 'Review', icon: ShoppingBag }
+  ];
+
+  if (cartItems.length === 0) {
+    return (
+      <div className="min-h-screen bg-[#0a0e27] py-12">
+        <div className="max-w-3xl mx-auto px-4 text-center">
+          <p className="text-white text-xl">Your cart is empty</p>
+        </div>
+      </div>
+    );
+  }
 
   return (
     <div className="min-h-screen bg-[#0a0e27] py-12">
       <div className="max-w-6xl mx-auto px-4">
         <h1 className="text-4xl font-black text-white mb-8">Checkout</h1>
 
-        <div className="flex items-center justify-center gap-4 mb-12">
-          {[1, 2, 3].map(s => (
-            <div key={s} className="flex items-center gap-2">
-              <div className={`w-10 h-10 rounded-full flex items-center justify-center font-bold ${
-                step >= s ? 'bg-cyan-500 text-white' : 'bg-slate-700 text-slate-400'
-              }`}>
-                {step > s ? <CheckCircle className="w-5 h-5" /> : s}
+        <div className="flex items-center justify-center mb-12">
+          {steps.map((step, idx) => (
+            <React.Fragment key={step.number}>
+              <div className="flex flex-col items-center">
+                <div className={`w-12 h-12 rounded-full flex items-center justify-center ${
+                  currentStep >= step.number ? 'bg-gradient-to-r from-cyan-500 to-blue-500' : 'bg-slate-700'
+                }`}>
+                  {currentStep > step.number ? (
+                    <Check className="w-6 h-6 text-white" />
+                  ) : (
+                    <step.icon className="w-6 h-6 text-white" />
+                  )}
+                </div>
+                <p className="text-white text-sm mt-2 font-bold">{step.title}</p>
               </div>
-              <span className={`font-semibold ${step >= s ? 'text-white' : 'text-slate-400'}`}>
-                {s === 1 ? 'Shipping' : s === 2 ? 'Payment' : 'Review'}
-              </span>
-              {s < 3 && <div className={`w-16 h-1 ${step > s ? 'bg-cyan-500' : 'bg-slate-700'}`} />}
-            </div>
+              {idx < steps.length - 1 && (
+                <div className={`w-24 h-1 mx-4 ${currentStep > step.number ? 'bg-cyan-500' : 'bg-slate-700'}`} />
+              )}
+            </React.Fragment>
           ))}
         </div>
 
         <div className="grid lg:grid-cols-3 gap-8">
-          <div className="lg:col-span-2 space-y-6">
-            {step === 1 && (
+          <div className="lg:col-span-2">
+            {currentStep === 1 && (
               <Card className="bg-[#1a1f3a] border-slate-700">
                 <CardContent className="p-6">
-                  <h2 className="text-2xl font-black text-white mb-6 flex items-center gap-2">
-                    <Truck className="w-6 h-6 text-cyan-400" />
-                    Shipping Information
-                  </h2>
-                  <div className="grid md:grid-cols-2 gap-4">
-                    <div>
-                      <Label className="text-white">Full Name</Label>
-                      <Input 
-                        value={shippingInfo.full_name}
-                        onChange={(e) => setShippingInfo({...shippingInfo, full_name: e.target.value})}
-                        className="bg-slate-900 border-slate-700 text-white"
-                      />
+                  <h2 className="text-2xl font-black text-white mb-6">Shipping Information</h2>
+                  
+                  {!user && (
+                    <div className="mb-6 p-4 bg-cyan-500/10 border border-cyan-500/30 rounded-lg">
+                      <p className="text-cyan-400 font-bold">Guest Checkout</p>
+                      <p className="text-slate-300 text-sm">Create an account after checkout to track your order</p>
+                    </div>
+                  )}
+
+                  {savedAddresses.length > 0 && (
+                    <div className="mb-6">
+                      <Label className="text-white mb-3 block">Use Saved Address</Label>
+                      <div className="space-y-2">
+                        {savedAddresses.map(addr => (
+                          <button
+                            key={addr.id}
+                            onClick={() => setShippingInfo({
+                              full_name: addr.full_name,
+                              email: shippingInfo.email,
+                              address: addr.address_line_1,
+                              city: addr.city,
+                              state: addr.state,
+                              zip: addr.postal_code,
+                              phone: addr.phone
+                            })}
+                            className="w-full p-4 bg-slate-900 border border-slate-700 rounded-lg text-left hover:border-cyan-500 transition-colors"
+                          >
+                            <p className="text-white font-bold">{addr.full_name}</p>
+                            <p className="text-slate-300 text-sm">{addr.address_line_1}, {addr.city}, {addr.state} {addr.postal_code}</p>
+                          </button>
+                        ))}
+                      </div>
+                    </div>
+                  )}
+
+                  <div className="space-y-4">
+                    <div className="grid md:grid-cols-2 gap-4">
+                      <div>
+                        <Label className="text-white">Full Name *</Label>
+                        <Input
+                          value={shippingInfo.full_name}
+                          onChange={(e) => setShippingInfo({...shippingInfo, full_name: e.target.value})}
+                          className="bg-slate-900 border-slate-700 text-white"
+                        />
+                      </div>
+                      <div>
+                        <Label className="text-white">Email *</Label>
+                        <Input
+                          type="email"
+                          value={shippingInfo.email}
+                          onChange={(e) => setShippingInfo({...shippingInfo, email: e.target.value})}
+                          className="bg-slate-900 border-slate-700 text-white"
+                        />
+                      </div>
                     </div>
                     <div>
-                      <Label className="text-white">Email</Label>
-                      <Input 
-                        type="email"
-                        value={shippingInfo.email}
-                        onChange={(e) => setShippingInfo({...shippingInfo, email: e.target.value})}
-                        className="bg-slate-900 border-slate-700 text-white"
-                      />
-                    </div>
-                    <div>
-                      <Label className="text-white">Phone</Label>
-                      <Input 
-                        value={shippingInfo.phone}
-                        onChange={(e) => setShippingInfo({...shippingInfo, phone: e.target.value})}
-                        className="bg-slate-900 border-slate-700 text-white"
-                      />
-                    </div>
-                    <div>
-                      <Label className="text-white">Address</Label>
-                      <Input 
+                      <Label className="text-white">Address *</Label>
+                      <Input
                         value={shippingInfo.address}
                         onChange={(e) => setShippingInfo({...shippingInfo, address: e.target.value})}
                         className="bg-slate-900 border-slate-700 text-white"
                       />
                     </div>
+                    <div className="grid md:grid-cols-3 gap-4">
+                      <div>
+                        <Label className="text-white">City *</Label>
+                        <Input
+                          value={shippingInfo.city}
+                          onChange={(e) => setShippingInfo({...shippingInfo, city: e.target.value})}
+                          className="bg-slate-900 border-slate-700 text-white"
+                        />
+                      </div>
+                      <div>
+                        <Label className="text-white">State *</Label>
+                        <Input
+                          value={shippingInfo.state}
+                          onChange={(e) => setShippingInfo({...shippingInfo, state: e.target.value})}
+                          className="bg-slate-900 border-slate-700 text-white"
+                        />
+                      </div>
+                      <div>
+                        <Label className="text-white">ZIP *</Label>
+                        <Input
+                          value={shippingInfo.zip}
+                          onChange={(e) => setShippingInfo({...shippingInfo, zip: e.target.value})}
+                          className="bg-slate-900 border-slate-700 text-white"
+                        />
+                      </div>
+                    </div>
                     <div>
-                      <Label className="text-white">City</Label>
-                      <Input 
-                        value={shippingInfo.city}
-                        onChange={(e) => setShippingInfo({...shippingInfo, city: e.target.value})}
+                      <Label className="text-white">Phone *</Label>
+                      <Input
+                        value={shippingInfo.phone}
+                        onChange={(e) => setShippingInfo({...shippingInfo, phone: e.target.value})}
                         className="bg-slate-900 border-slate-700 text-white"
                       />
                     </div>
-                    <div>
-                      <Label className="text-white">State</Label>
-                      <Input 
-                        value={shippingInfo.state}
-                        onChange={(e) => setShippingInfo({...shippingInfo, state: e.target.value})}
-                        className="bg-slate-900 border-slate-700 text-white"
-                      />
+
+                    <div className="pt-4">
+                      <Label className="text-white mb-3 block">Shipping Method</Label>
+                      <RadioGroup value={selectedShipping} onValueChange={setSelectedShipping}>
+                        {shippingMethods.map(method => (
+                          <div key={method.id} className="flex items-center space-x-2 p-4 bg-slate-900 rounded-lg border border-slate-700">
+                            <RadioGroupItem value={method.id} id={method.id} />
+                            <Label htmlFor={method.id} className="flex-1 cursor-pointer">
+                              <div className="flex items-center justify-between">
+                                <div>
+                                  <p className="text-white font-bold">{method.name}</p>
+                                  <p className="text-slate-400 text-sm">{method.estimated_days}</p>
+                                </div>
+                                <p className="text-cyan-400 font-bold">
+                                  {method.free_shipping_threshold && subtotal >= method.free_shipping_threshold 
+                                    ? 'FREE' 
+                                    : `$${method.cost?.toFixed(2)}`}
+                                </p>
+                              </div>
+                            </Label>
+                          </div>
+                        ))}
+                      </RadioGroup>
                     </div>
                   </div>
 
-                  <div className="mt-6">
-                    <Label className="text-white mb-3 block">Shipping Method</Label>
-                    <RadioGroup value={shippingMethod} onValueChange={setShippingMethod}>
-                      <Card className="bg-slate-900/50 border-slate-700 p-4 mb-2 cursor-pointer hover:border-cyan-500">
-                        <div className="flex items-center justify-between">
-                          <div className="flex items-center gap-3">
-                            <RadioGroupItem value="standard" />
-                            <div>
-                              <p className="text-white font-bold">Standard Shipping</p>
-                              <p className="text-slate-400 text-sm">5-7 business days</p>
-                            </div>
-                          </div>
-                          <p className="text-white font-bold">{subtotal > 50 ? 'FREE' : '$9.99'}</p>
-                        </div>
-                      </Card>
-                      <Card className="bg-slate-900/50 border-slate-700 p-4 mb-2 cursor-pointer hover:border-cyan-500">
-                        <div className="flex items-center justify-between">
-                          <div className="flex items-center gap-3">
-                            <RadioGroupItem value="express" />
-                            <div>
-                              <p className="text-white font-bold">Express Shipping</p>
-                              <p className="text-slate-400 text-sm">2-3 business days</p>
-                            </div>
-                          </div>
-                          <p className="text-white font-bold">$19.99</p>
-                        </div>
-                      </Card>
-                      <Card className="bg-slate-900/50 border-slate-700 p-4 cursor-pointer hover:border-cyan-500">
-                        <div className="flex items-center justify-between">
-                          <div className="flex items-center gap-3">
-                            <RadioGroupItem value="overnight" />
-                            <div>
-                              <p className="text-white font-bold">Overnight Shipping</p>
-                              <p className="text-slate-400 text-sm">1 business day</p>
-                            </div>
-                          </div>
-                          <p className="text-white font-bold">$39.99</p>
-                        </div>
-                      </Card>
-                    </RadioGroup>
-                  </div>
-
-                  <Button onClick={() => setStep(2)} className="w-full mt-6 bg-cyan-500 hover:bg-cyan-600 h-12 font-bold">
+                  <Button 
+                    onClick={() => setCurrentStep(2)} 
+                    disabled={!shippingInfo.full_name || !shippingInfo.email || !selectedShipping}
+                    className="w-full mt-6 bg-gradient-to-r from-cyan-600 to-blue-600 h-12 font-bold"
+                  >
                     Continue to Payment
                   </Button>
                 </CardContent>
               </Card>
             )}
 
-            {step === 2 && (
+            {currentStep === 2 && (
               <Card className="bg-[#1a1f3a] border-slate-700">
                 <CardContent className="p-6">
-                  <h2 className="text-2xl font-black text-white mb-6 flex items-center gap-2">
-                    <CreditCard className="w-6 h-6 text-green-400" />
-                    Payment Method
-                  </h2>
+                  <h2 className="text-2xl font-black text-white mb-6">Payment Method</h2>
                   
-                  <RadioGroup value={paymentMethod} onValueChange={setPaymentMethod} className="mb-6">
-                    <Card className="bg-slate-900/50 border-slate-700 p-4 mb-2">
-                      <div className="flex items-center gap-3">
-                        <RadioGroupItem value="credit_card" />
-                        <p className="text-white font-bold">Credit Card</p>
+                  <RadioGroup value={paymentMethod} onValueChange={setPaymentMethod}>
+                    <div className="space-y-3">
+                      <div className="flex items-center space-x-2 p-4 bg-slate-900 rounded-lg border border-slate-700">
+                        <RadioGroupItem value="stripe" id="stripe" />
+                        <Label htmlFor="stripe" className="flex-1 cursor-pointer flex items-center gap-3">
+                          <div className="w-12 h-8 bg-white rounded flex items-center justify-center">
+                            <CreditCard className="w-6 h-6 text-slate-900" />
+                          </div>
+                          <span className="text-white font-bold">Credit/Debit Card (Stripe)</span>
+                        </Label>
                       </div>
-                    </Card>
-                    <Card className="bg-slate-900/50 border-slate-700 p-4 mb-2">
-                      <div className="flex items-center gap-3">
-                        <RadioGroupItem value="paypal" />
-                        <p className="text-white font-bold">PayPal</p>
+                      
+                      <div className="flex items-center space-x-2 p-4 bg-slate-900 rounded-lg border border-slate-700">
+                        <RadioGroupItem value="paypal" id="paypal" />
+                        <Label htmlFor="paypal" className="flex-1 cursor-pointer flex items-center gap-3">
+                          <div className="w-12 h-8 bg-blue-500 rounded flex items-center justify-center">
+                            <span className="text-white font-bold text-xs">PayPal</span>
+                          </div>
+                          <span className="text-white font-bold">PayPal</span>
+                        </Label>
                       </div>
-                    </Card>
-                    <Card className="bg-slate-900/50 border-slate-700 p-4">
-                      <div className="flex items-center gap-3">
-                        <RadioGroupItem value="apple_pay" />
-                        <p className="text-white font-bold">Apple Pay</p>
-                      </div>
-                    </Card>
-                  </RadioGroup>
-
-                  {paymentMethod === 'credit_card' && (
-                    <div className="space-y-4">
-                      <div>
-                        <Label className="text-white">Card Number</Label>
-                        <Input 
-                          placeholder="1234 5678 9012 3456"
-                          value={paymentInfo.card_number}
-                          onChange={(e) => setPaymentInfo({...paymentInfo, card_number: e.target.value})}
-                          className="bg-slate-900 border-slate-700 text-white"
-                        />
-                      </div>
-                      <div>
-                        <Label className="text-white">Cardholder Name</Label>
-                        <Input 
-                          value={paymentInfo.card_name}
-                          onChange={(e) => setPaymentInfo({...paymentInfo, card_name: e.target.value})}
-                          className="bg-slate-900 border-slate-700 text-white"
-                        />
-                      </div>
-                      <div className="grid grid-cols-2 gap-4">
-                        <div>
-                          <Label className="text-white">Expiry Date</Label>
-                          <Input 
-                            placeholder="MM/YY"
-                            value={paymentInfo.expiry}
-                            onChange={(e) => setPaymentInfo({...paymentInfo, expiry: e.target.value})}
-                            className="bg-slate-900 border-slate-700 text-white"
-                          />
-                        </div>
-                        <div>
-                          <Label className="text-white">CVV</Label>
-                          <Input 
-                            placeholder="123"
-                            value={paymentInfo.cvv}
-                            onChange={(e) => setPaymentInfo({...paymentInfo, cvv: e.target.value})}
-                            className="bg-slate-900 border-slate-700 text-white"
-                          />
-                        </div>
+                      
+                      <div className="flex items-center space-x-2 p-4 bg-slate-900 rounded-lg border border-slate-700">
+                        <RadioGroupItem value="apple_pay" id="apple_pay" />
+                        <Label htmlFor="apple_pay" className="flex-1 cursor-pointer flex items-center gap-3">
+                          <div className="w-12 h-8 bg-black rounded flex items-center justify-center">
+                            <span className="text-white font-bold text-xs">🍎 Pay</span>
+                          </div>
+                          <span className="text-white font-bold">Apple Pay</span>
+                        </Label>
                       </div>
                     </div>
-                  )}
+                  </RadioGroup>
 
                   <div className="flex gap-3 mt-6">
-                    <Button onClick={() => setStep(1)} variant="outline" className="flex-1 border-slate-600">
+                    <Button variant="outline" onClick={() => setCurrentStep(1)} className="flex-1 border-slate-600">
                       Back
                     </Button>
-                    <Button onClick={() => setStep(3)} className="flex-1 bg-cyan-500 hover:bg-cyan-600 font-bold">
+                    <Button onClick={() => setCurrentStep(3)} className="flex-1 bg-gradient-to-r from-cyan-600 to-blue-600 font-bold">
                       Review Order
                     </Button>
                   </div>
@@ -332,34 +344,46 @@ export default function Checkout() {
               </Card>
             )}
 
-            {step === 3 && (
+            {currentStep === 3 && (
               <Card className="bg-[#1a1f3a] border-slate-700">
                 <CardContent className="p-6">
-                  <h2 className="text-2xl font-black text-white mb-6">Review Your Order</h2>
+                  <h2 className="text-2xl font-black text-white mb-6">Order Review</h2>
                   
-                  <div className="space-y-4 mb-6">
-                    {cartWithProducts.map(item => (
-                      <div key={item.id} className="flex items-center gap-4 p-4 bg-slate-900/50 rounded-lg">
-                        <img src={item.product.images?.[0]} alt={item.product.name} className="w-20 h-20 object-cover rounded" />
-                        <div className="flex-1">
-                          <p className="text-white font-bold">{item.product.name}</p>
-                          <p className="text-slate-400 text-sm">Qty: {item.quantity}</p>
-                        </div>
-                        <p className="text-white font-bold">${(item.product.price * item.quantity).toFixed(2)}</p>
+                  <div className="space-y-6">
+                    <div>
+                      <h3 className="text-white font-bold mb-2">Shipping Address</h3>
+                      <div className="p-4 bg-slate-900 rounded-lg text-slate-300">
+                        <p className="font-bold text-white">{shippingInfo.full_name}</p>
+                        <p>{shippingInfo.address}</p>
+                        <p>{shippingInfo.city}, {shippingInfo.state} {shippingInfo.zip}</p>
+                        <p>{shippingInfo.phone}</p>
                       </div>
-                    ))}
+                    </div>
+
+                    <div>
+                      <h3 className="text-white font-bold mb-2">Payment Method</h3>
+                      <Badge className="bg-cyan-500">{paymentMethod.toUpperCase()}</Badge>
+                    </div>
+
+                    <div>
+                      <h3 className="text-white font-bold mb-2">Order Items</h3>
+                      <div className="space-y-2">
+                        {cartItems.map(item => (
+                          <div key={item.id} className="flex justify-between p-3 bg-slate-900 rounded-lg">
+                            <span className="text-white">x{item.quantity}</span>
+                            <span className="text-cyan-400 font-bold">${(item.price * item.quantity).toFixed(2)}</span>
+                          </div>
+                        ))}
+                      </div>
+                    </div>
                   </div>
 
-                  <div className="flex gap-3">
-                    <Button onClick={() => setStep(2)} variant="outline" className="flex-1 border-slate-600">
+                  <div className="flex gap-3 mt-6">
+                    <Button variant="outline" onClick={() => setCurrentStep(2)} className="flex-1 border-slate-600">
                       Back
                     </Button>
-                    <Button 
-                      onClick={handlePlaceOrder}
-                      className="flex-1 bg-gradient-to-r from-green-600 to-emerald-600 font-bold h-12"
-                    >
-                      <Lock className="w-4 h-4 mr-2" />
-                      Place Order
+                    <Button onClick={handlePlaceOrder} className="flex-1 bg-gradient-to-r from-green-600 to-emerald-600 font-bold">
+                      Place Order - ${total.toFixed(2)}
                     </Button>
                   </div>
                 </CardContent>
@@ -370,29 +394,25 @@ export default function Checkout() {
           <div>
             <Card className="bg-[#1a1f3a] border-slate-700 sticky top-4">
               <CardContent className="p-6">
-                <h3 className="text-xl font-black text-white mb-4">Order Summary</h3>
+                <h3 className="text-white font-black text-xl mb-4">Order Summary</h3>
                 <div className="space-y-3 mb-4">
                   <div className="flex justify-between text-slate-300">
                     <span>Subtotal</span>
-                    <span>${subtotal.toFixed(2)}</span>
+                    <span className="font-bold">${subtotal.toFixed(2)}</span>
                   </div>
                   <div className="flex justify-between text-slate-300">
                     <span>Shipping</span>
-                    <span>{shipping === 0 ? 'FREE' : `$${shipping.toFixed(2)}`}</span>
+                    <span className="font-bold">${shippingCost.toFixed(2)}</span>
                   </div>
                   <div className="flex justify-between text-slate-300">
                     <span>Tax</span>
-                    <span>${tax.toFixed(2)}</span>
+                    <span className="font-bold">${tax.toFixed(2)}</span>
                   </div>
-                  <div className="flex justify-between text-white font-black text-xl pt-3 border-t border-slate-700">
-                    <span>Total</span>
-                    <span>${total.toFixed(2)}</span>
+                  <div className="border-t border-slate-700 pt-3 flex justify-between">
+                    <span className="text-white font-black text-lg">Total</span>
+                    <span className="text-cyan-400 font-black text-2xl">${total.toFixed(2)}</span>
                   </div>
                 </div>
-                <Badge className="bg-green-500 w-full justify-center py-2">
-                  <Lock className="w-3 h-3 mr-1" />
-                  Secure Checkout
-                </Badge>
               </CardContent>
             </Card>
           </div>
