@@ -737,13 +737,13 @@ Provide predictive analysis with incident probabilities and proactive remediatio
   };
 
   // AI ROOT CAUSE ANALYSIS WITH AUTO-FIX
-  const executeRootCauseAnalysis = async (alert) => {
+  const executeRootCauseAnalysis = async (alertData) => {
     setRcaInProgress(true);
     setRcaAnalysis(null);
 
     try {
       const correlationData = {
-        alert: alert,
+        alert: alertData,
         realtimeMetrics: realtimeMetrics,
         recentLogs: logAnalysis.criticalPatterns,
         apiConnections: apiConnections,
@@ -754,11 +754,11 @@ Provide predictive analysis with incident probabilities and proactive remediatio
       const prompt = `You are an expert software engineer performing Root Cause Analysis. Analyze this production incident:
 
 ALERT DETAILS:
-- Service: ${alert.service}
-- Metric: ${alert.metric}
-- Current Value: ${alert.value}${alert.metric === 'DB Connections' ? '' : '%'}
-- Threshold: ${alert.threshold}${alert.metric === 'DB Connections' ? '' : '%'}
-- Severity: ${alert.severity}
+- Service: ${alertData.service}
+- Metric: ${alertData.metric}
+- Current Value: ${alertData.value}${alertData.metric === 'DB Connections' ? '' : '%'}
+- Threshold: ${alertData.threshold}${alertData.metric === 'DB Connections' ? '' : '%'}
+- Severity: ${alertData.severity}
 
 CORRELATED DATA:
 Active Services: ${realtimeMetrics?.services.map(s => `${s.name} (CPU:${s.cpu.toFixed(0)}%, MEM:${s.memory.toFixed(0)}%)`).join(', ')}
@@ -827,7 +827,7 @@ Provide expert RCA with automatic code fixes and optimizations.`;
       setRcaAnalysis(response);
     } catch (error) {
       console.error('RCA failed:', error);
-      alert('Root cause analysis failed. Please try again.');
+      window.alert('Root cause analysis failed. Please try again.');
     } finally {
       setRcaInProgress(false);
     }
@@ -966,16 +966,16 @@ Provide actionable configuration changes with exact values.`;
         }
       }
 
-      alert(`✅ Successfully applied ${changes.length} configuration changes:\n\n${changes.join('\n')}\n\nChanges will take effect within 60 seconds.`);
+      window.alert(`✅ Successfully applied ${changes.length} configuration changes:\n\n${changes.join('\n')}\n\nChanges will take effect within 60 seconds.`);
     } catch (error) {
-      alert('❌ Failed to apply some changes. Please review logs.');
+      window.alert('❌ Failed to apply some changes. Please review logs.');
     } finally {
       setApplyingChanges(false);
     }
   };
 
   // AUTO-HEALING SYSTEM
-  const executeAutoHealing = async (alert) => {
+  const executeAutoHealing = async (alertData) => {
     setAutoHealingInProgress(true);
     setHealingProgress(0);
 
@@ -994,7 +994,7 @@ Provide actionable configuration changes with exact values.`;
     }
 
     setAutoHealingInProgress(false);
-    alert('Auto-healing completed successfully! System metrics normalized.');
+    window.alert('Auto-healing completed successfully! System metrics normalized.');
   };
 
   // 36. API CONNECTION VIEWER
@@ -1185,7 +1185,7 @@ Provide a structured analysis with:
       setAiInsights(response);
     } catch (error) {
       console.error('AI Analysis failed:', error);
-      alert('AI Analysis failed. Please try again.');
+      window.alert('AI Analysis failed. Please try again.');
     } finally {
       setAiAnalyzing(false);
       setTimeout(() => setAiProgress(0), 1000);
