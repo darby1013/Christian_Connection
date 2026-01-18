@@ -1140,6 +1140,9 @@ CREATE INDEX idx_users_created_date ON users(created_date);
 
     for (const entityName of ALL_ENTITIES) {
       try {
+        if (!base44.entities[entityName] || typeof base44.entities[entityName].schema !== 'function') {
+          continue;
+        }
         const entitySchema = await base44.entities[entityName].schema();
         const tableName = toSnakeCase(entityName);
         
@@ -1416,6 +1419,9 @@ VALUES
 
     // Generate CRUD endpoints for all entities
     for (const entityName of ALL_ENTITIES) {
+      if (!base44.entities[entityName] || typeof base44.entities[entityName].schema !== 'function') {
+        continue;
+      }
       const path = `/entities/${toSnakeCase(entityName)}`;
       const entitySchema = await base44.entities[entityName].schema().catch(() => ({}));
 
