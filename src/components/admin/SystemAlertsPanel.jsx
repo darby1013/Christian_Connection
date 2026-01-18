@@ -16,8 +16,11 @@ const SystemAlertsPanel = React.memo(({
   autoHealingInProgress,
   healingProgress
 }) => {
+  // Use ref to store previous alerts and only update if meaningfully different
+  const prevAlertsRef = React.useRef([]);
+  
   const activeAlerts = useMemo(() => {
-    if (!realtimeMetrics) return [];
+    if (!realtimeMetrics) return prevAlertsRef.current;
     const alerts = [];
     const thresholds = { cpu: 80, memory: 75, network: 85, dbConnections: 250 };
     
@@ -36,7 +39,13 @@ const SystemAlertsPanel = React.memo(({
       }
     });
     
-    return alerts;
+    // Only update if alert count or severity changed
+    if (alerts.length !== prevAlertsRef.current.length || 
+        JSON.stringify(alerts.map(a => a.severity)) !== JSON.stringify(prevAlertsRef.current.map(a => a.severity))) {
+      prevAlertsRef.current = alerts;
+    }
+    
+    return prevAlertsRef.current;
   }, [realtimeMetrics]);
 
   if (!showAlerts || activeAlerts.length === 0) return null;

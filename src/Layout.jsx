@@ -227,7 +227,8 @@ function LayoutContent({ children, currentPageName }) {
       { title: "Query Builder", url: createPageUrl("AdminAdvancedQueryBuilder"), icon: Search }
     ],
     "ARCHITECTURE": [
-      { title: "Backend Examiner", url: createPageUrl("AdminArchitectureExaminer"), icon: Network }
+      { title: "Backend Examiner", url: createPageUrl("AdminArchitectureExaminer"), icon: Network },
+      { title: "Self-Host Export", url: createPageUrl("AdminSelfHostExport"), icon: Download }
     ],
     "MANAGEMENT": [
       { title: "Users", url: createPageUrl("AdminUsers"), icon: UserIcon },

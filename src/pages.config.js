@@ -213,6 +213,7 @@ import UserSubscriptionManagement from './pages/UserSubscriptionManagement';
 import Volunteer from './pages/Volunteer';
 import WatchVideos from './pages/WatchVideos';
 import Wishlist from './pages/Wishlist';
+import AdminSelfHostExport from './pages/AdminSelfHostExport';
 import __Layout from './Layout.jsx';
 
 
@@ -432,6 +433,7 @@ export const PAGES = {
     "Volunteer": Volunteer,
     "WatchVideos": WatchVideos,
     "Wishlist": Wishlist,
+    "AdminSelfHostExport": AdminSelfHostExport,
 }
 
 export const pagesConfig = {
