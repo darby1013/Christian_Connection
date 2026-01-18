@@ -1077,6 +1077,9 @@ CREATE TABLE \`users\` (
 
     for (const entityName of ALL_ENTITIES) {
       try {
+        if (!base44.entities[entityName] || typeof base44.entities[entityName].schema !== 'function') {
+          continue;
+        }
         const entitySchema = await base44.entities[entityName].schema();
         const tableName = toSnakeCase(entityName);
         
@@ -1091,7 +1094,7 @@ CREATE TABLE \`users\` (
             const sqlType = getMySQLType(def);
             const nullable = !entitySchema.required?.includes(field);
             const defaultVal = getDefaultValue(def);
-            schema += `  \`${toSnakeCase(field)}\` ${sqlType}${nullable ? '' : ' NOT NULL'}${defaultVal}\n`;
+            schema += `  \`${toSnakeCase(field)}\` ${sqlType}${nullable ? '' : ' NOT NULL'}${defaultVal},\n`;
           });
         }
 
