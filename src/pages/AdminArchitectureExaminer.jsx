@@ -2059,10 +2059,74 @@ Provide a structured analysis with:
 
         {/* VISUAL TOPOLOGY GRAPH */}
         <TabsContent value="topology">
-          <ArchitectureGraph 
-            dependencyGraph={dependencyGraph} 
-            realtimeMetrics={realtimeMetrics}
-          />
+          <div className="space-y-6">
+            <ArchitectureGraph 
+              dependencyGraph={dependencyGraph} 
+              realtimeMetrics={realtimeMetrics}
+            />
+            
+            <div className="grid md:grid-cols-3 gap-4">
+              <Card className="bg-slate-900 border-slate-700">
+                <CardContent className="p-6">
+                  <h4 className="text-cyan-400 font-bold mb-3">Graph Statistics</h4>
+                  <div className="space-y-2 text-sm">
+                    <div className="flex justify-between">
+                      <span className="text-slate-400">Total Nodes:</span>
+                      <span className="text-white font-bold">{Object.keys(dependencyGraph).length}</span>
+                    </div>
+                    <div className="flex justify-between">
+                      <span className="text-slate-400">Total Edges:</span>
+                      <span className="text-white font-bold">{Object.values(dependencyGraph).flat().length}</span>
+                    </div>
+                    <div className="flex justify-between">
+                      <span className="text-slate-400">Avg Dependencies:</span>
+                      <span className="text-white font-bold">
+                        {(Object.values(dependencyGraph).flat().length / Object.keys(dependencyGraph).length).toFixed(1)}
+                      </span>
+                    </div>
+                  </div>
+                </CardContent>
+              </Card>
+              
+              <Card className="bg-slate-900 border-slate-700">
+                <CardContent className="p-6">
+                  <h4 className="text-purple-400 font-bold mb-3">Health Status</h4>
+                  <div className="space-y-2 text-sm">
+                    <div className="flex justify-between">
+                      <span className="text-slate-400">Healthy:</span>
+                      <Badge className="bg-green-500">
+                        {realtimeMetrics?.services.filter(s => s.cpu < 60 && s.memory < 60).length || 0}
+                      </Badge>
+                    </div>
+                    <div className="flex justify-between">
+                      <span className="text-slate-400">Warning:</span>
+                      <Badge className="bg-yellow-500">
+                        {realtimeMetrics?.services.filter(s => (s.cpu >= 60 && s.cpu < 80) || (s.memory >= 60 && s.memory < 75)).length || 0}
+                      </Badge>
+                    </div>
+                    <div className="flex justify-between">
+                      <span className="text-slate-400">Critical:</span>
+                      <Badge className="bg-red-500">
+                        {realtimeMetrics?.services.filter(s => s.cpu >= 80 || s.memory >= 75).length || 0}
+                      </Badge>
+                    </div>
+                  </div>
+                </CardContent>
+              </Card>
+              
+              <Card className="bg-slate-900 border-slate-700">
+                <CardContent className="p-6">
+                  <h4 className="text-green-400 font-bold mb-3">Interaction Guide</h4>
+                  <div className="space-y-2 text-sm text-slate-300">
+                    <p>🖱️ Click nodes to view details</p>
+                    <p>🔍 Hover to highlight connections</p>
+                    <p>🎨 Colors = real-time health</p>
+                    <p>📊 Node size = dependency count</p>
+                  </div>
+                </CardContent>
+              </Card>
+            </div>
+          </div>
         </TabsContent>
 
         {/* CI/CD INTEGRATION */}

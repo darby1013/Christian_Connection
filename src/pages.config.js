@@ -136,6 +136,7 @@ import AdminScheduledJobs from './pages/AdminScheduledJobs';
 import AdminSchemaGenerator from './pages/AdminSchemaGenerator';
 import AdminSchemaViewer from './pages/AdminSchemaViewer';
 import AdminSecurityAudit from './pages/AdminSecurityAudit';
+import AdminSelfHostExport from './pages/AdminSelfHostExport';
 import AdminShippingConfig from './pages/AdminShippingConfig';
 import AdminShippingMethods from './pages/AdminShippingMethods';
 import AdminSiteSettings from './pages/AdminSiteSettings';
@@ -213,7 +214,6 @@ import UserSubscriptionManagement from './pages/UserSubscriptionManagement';
 import Volunteer from './pages/Volunteer';
 import WatchVideos from './pages/WatchVideos';
 import Wishlist from './pages/Wishlist';
-import AdminSelfHostExport from './pages/AdminSelfHostExport';
 import __Layout from './Layout.jsx';
 
 
@@ -356,6 +356,7 @@ export const PAGES = {
     "AdminSchemaGenerator": AdminSchemaGenerator,
     "AdminSchemaViewer": AdminSchemaViewer,
     "AdminSecurityAudit": AdminSecurityAudit,
+    "AdminSelfHostExport": AdminSelfHostExport,
     "AdminShippingConfig": AdminShippingConfig,
     "AdminShippingMethods": AdminShippingMethods,
     "AdminSiteSettings": AdminSiteSettings,
@@ -433,7 +434,6 @@ export const PAGES = {
     "Volunteer": Volunteer,
     "WatchVideos": WatchVideos,
     "Wishlist": Wishlist,
-    "AdminSelfHostExport": AdminSelfHostExport,
 }
 
 export const pagesConfig = {
