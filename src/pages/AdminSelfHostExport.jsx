@@ -1530,20 +1530,20 @@ VALUES
         seed: 'node scripts/seed.js'
       },
       dependencies: {
-        express: '^4.18.2',
-        mysql2: '^3.6.0',
-        pg: '^8.11.0',
-        bcrypt: '^5.1.1',
-        jsonwebtoken: '^9.0.2',
-        cors: '^2.8.5',
-        helmet: '^7.1.0',
+        'express': '^4.18.2',
+        'mysql2': '^3.6.0',
+        'pg': '^8.11.0',
+        'bcrypt': '^5.1.1',
+        'jsonwebtoken': '^9.0.2',
+        'cors': '^2.8.5',
+        'helmet': '^7.1.0',
         'express-rate-limit': '^7.1.0',
         'express-validator': '^7.0.1',
-        multer: '^1.4.5-lts.1',
-        dotenv: '^16.3.1',
+        'multer': '^1.4.5-lts.1',
+        'dotenv': '^16.3.1',
         'node-cron': '^3.0.3',
-        nodemailer: '^6.9.7',
-        aws-sdk: '^2.1478.0'
+        'nodemailer': '^6.9.7',
+        'aws-sdk': '^2.1478.0'
       },
       devDependencies: {
         nodemon: '^3.0.1'
