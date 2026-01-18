@@ -1,4 +1,3 @@
-
 import React, { useState, useEffect } from "react";
 import { Link, useLocation } from "react-router-dom";
 import { createPageUrl } from "@/utils";
@@ -17,7 +16,7 @@ import {
   Webhook, Key, AlertCircle, GitCompare, UserX, Copy, CheckCircle, FolderOpen, Cpu,
   CreditCard as CreditCardIcon, FolderTree, Mail, MessageSquare as MessageIcon,
   ChevronDown, ChevronRight, Menu, X as CloseIcon, Layers, Ruler, FileSpreadsheet,
-  Target, Video as VideoIcon, ShoppingCart, Layout as LayoutIcon, Share2
+  Target, Video as VideoIcon, ShoppingCart, Layout as LayoutIcon, Share2, Network
 } from "lucide-react";
 import {
   Sidebar,
@@ -226,6 +225,9 @@ function LayoutContent({ children, currentPageName }) {
       { title: "Data Integrity", url: createPageUrl("AdminDataIntegrity"), icon: Shield },
       { title: "SQL Generator", url: createPageUrl("AdminSQLScriptGenerator"), icon: Sparkles },
       { title: "Query Builder", url: createPageUrl("AdminAdvancedQueryBuilder"), icon: Search }
+    ],
+    "ARCHITECTURE": [
+      { title: "Backend Examiner", url: createPageUrl("AdminArchitectureExaminer"), icon: Network }
     ],
     "MANAGEMENT": [
       { title: "Users", url: createPageUrl("AdminUsers"), icon: UserIcon },
