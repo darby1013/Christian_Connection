@@ -28,6 +28,7 @@ import AdminAdvancedQueryBuilder from './pages/AdminAdvancedQueryBuilder';
 import AdminAnalytics from './pages/AdminAnalytics';
 import AdminAudioUpload from './pages/AdminAudioUpload';
 import AdminAuditLog from './pages/AdminAuditLog';
+import AdminBackendDashboard from './pages/AdminBackendDashboard';
 import AdminBackupManager from './pages/AdminBackupManager';
 import AdminBlog from './pages/AdminBlog';
 import AdminBroadcastStudio from './pages/AdminBroadcastStudio';
@@ -211,7 +212,6 @@ import UserSubscriptionManagement from './pages/UserSubscriptionManagement';
 import Volunteer from './pages/Volunteer';
 import WatchVideos from './pages/WatchVideos';
 import Wishlist from './pages/Wishlist';
-import AdminBackendDashboard from './pages/AdminBackendDashboard';
 import __Layout from './Layout.jsx';
 
 
@@ -246,6 +246,7 @@ export const PAGES = {
     "AdminAnalytics": AdminAnalytics,
     "AdminAudioUpload": AdminAudioUpload,
     "AdminAuditLog": AdminAuditLog,
+    "AdminBackendDashboard": AdminBackendDashboard,
     "AdminBackupManager": AdminBackupManager,
     "AdminBlog": AdminBlog,
     "AdminBroadcastStudio": AdminBroadcastStudio,
@@ -429,7 +430,6 @@ export const PAGES = {
     "Volunteer": Volunteer,
     "WatchVideos": WatchVideos,
     "Wishlist": Wishlist,
-    "AdminBackendDashboard": AdminBackendDashboard,
 }
 
 export const pagesConfig = {
