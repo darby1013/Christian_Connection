@@ -10,6 +10,8 @@ import EnterpriseHeader from '../components/admin/EnterpriseHeader';
 import EnterpriseTable from '../components/admin/EnterpriseTable';
 import EnterpriseChart from '../components/admin/EnterpriseChart';
 import SystemAlertsPanel from '../components/admin/SystemAlertsPanel';
+import CICDIntegration from '../components/admin/CICDIntegration';
+import ArchitectureGraph from '../components/admin/ArchitectureGraph';
 import { 
   Network, Download, Database, Layers, GitBranch, Lock, Zap, 
   Activity, Server, CloudCog, FileCode, Shield, Cpu, HardDrive,
@@ -51,11 +53,12 @@ export default function AdminArchitectureExaminer() {
   const [configSuggestions, setConfigSuggestions] = useState(null);
   const [applyingChanges, setApplyingChanges] = useState(false);
 
-  // REAL-TIME MONITORING
+  // REAL-TIME MONITORING - Using ref to prevent re-renders
+  const metricsRef = React.useRef(null);
   const { data: realtimeMetrics = null } = useQuery({
     queryKey: ['realtimeMetrics'],
     queryFn: async () => {
-      return {
+      const newMetrics = {
         timestamp: new Date().toISOString(),
         services: [
           { name: 'API Gateway', cpu: Math.random() * 40 + 30, memory: Math.random() * 30 + 40, network: Math.random() * 50 + 20, dbConnections: Math.floor(Math.random() * 50) + 100 },
@@ -66,9 +69,12 @@ export default function AdminArchitectureExaminer() {
           { name: 'Notification Service', cpu: Math.random() * 25 + 10, memory: Math.random() * 20 + 15, network: Math.random() * 70 + 40, dbConnections: Math.floor(Math.random() * 15) + 20 }
         ]
       };
+      metricsRef.current = newMetrics;
+      return newMetrics;
     },
     refetchInterval: 3000,
-    initialData: null
+    initialData: null,
+    notifyOnChangeProps: ['data']
   });
 
 
@@ -2007,6 +2013,8 @@ Provide a structured analysis with:
 
       <Tabs defaultValue="monitoring" className="space-y-6">
         <TabsList className="bg-slate-800 border border-slate-700 flex-wrap h-auto">
+          <TabsTrigger value="topology">Visual Topology</TabsTrigger>
+          <TabsTrigger value="cicd">CI/CD Integration</TabsTrigger>
           <TabsTrigger value="monitoring">Live Monitoring</TabsTrigger>
           <TabsTrigger value="apiviewer">API Connections</TabsTrigger>
           <TabsTrigger value="autopipeline">Automation Builder</TabsTrigger>
@@ -2048,6 +2056,19 @@ Provide a structured analysis with:
           <TabsTrigger value="deployment">Deployment</TabsTrigger>
           <TabsTrigger value="topology">Topology</TabsTrigger>
         </TabsList>
+
+        {/* VISUAL TOPOLOGY GRAPH */}
+        <TabsContent value="topology">
+          <ArchitectureGraph 
+            dependencyGraph={dependencyGraph} 
+            realtimeMetrics={realtimeMetrics}
+          />
+        </TabsContent>
+
+        {/* CI/CD INTEGRATION */}
+        <TabsContent value="cicd">
+          <CICDIntegration />
+        </TabsContent>
 
         {/* NEW - REAL-TIME MONITORING */}
         <TabsContent value="monitoring">
