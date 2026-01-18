@@ -1,431 +1,439 @@
-import Home from './pages/Home';
-import AdminDashboard from './pages/AdminDashboard';
-import LiveStreams from './pages/LiveStreams';
-import LiveStreamView from './pages/LiveStreamView';
-import Store from './pages/Store';
-import Blog from './pages/Blog';
-import AdminSiteSettings from './pages/AdminSiteSettings';
-import BroadcastStream from './pages/BroadcastStream';
-import AdminLiveStreams from './pages/AdminLiveStreams';
-import AdminSubscriptions from './pages/AdminSubscriptions';
-import AdminProductVariants from './pages/AdminProductVariants';
-import AdminDigitalProducts from './pages/AdminDigitalProducts';
-import AdminPaymentGateways from './pages/AdminPaymentGateways';
-import AdminAnalytics from './pages/AdminAnalytics';
-import UserProfile from './pages/UserProfile';
-import AdminRoles from './pages/AdminRoles';
-import AdminAIScriptGenerator from './pages/AdminAIScriptGenerator';
-import AdminAIPricing from './pages/AdminAIPricing';
-import AdminContentModeration from './pages/AdminContentModeration';
-import AdminBroadcastStudio from './pages/AdminBroadcastStudio';
-import UserSubscriptionManagement from './pages/UserSubscriptionManagement';
-import AdminLivePodcast from './pages/AdminLivePodcast';
-import AdminAudioUpload from './pages/AdminAudioUpload';
-import Community from './pages/Community';
-import Groups from './pages/Groups';
-import Chatrooms from './pages/Chatrooms';
-import CommunityBoard from './pages/CommunityBoard';
-import PrayerWall from './pages/PrayerWall';
-import Volunteer from './pages/Volunteer';
-import Resources from './pages/Resources';
-import GroupDetail from './pages/GroupDetail';
-import Testimonies from './pages/Testimonies';
-import MemberDirectory from './pages/MemberDirectory';
-import KnowledgeBase from './pages/KnowledgeBase';
-import RSSFeeds from './pages/RSSFeeds';
-import AdminPodcastDashboard from './pages/AdminPodcastDashboard';
-import Leaderboard from './pages/Leaderboard';
-import PodcastClipStudio from './pages/PodcastClipStudio';
-import GroupAnalytics from './pages/GroupAnalytics';
-import AdminGroupManagement from './pages/AdminGroupManagement';
-import Forum from './pages/Forum';
-import ForumDetail from './pages/ForumDetail';
-import LiveStreamPlayer from './pages/LiveStreamPlayer';
-import WatchVideos from './pages/WatchVideos';
-import Events from './pages/Events';
-import EventDetail from './pages/EventDetail';
-import Donate from './pages/Donate';
-import BlogDetail from './pages/BlogDetail';
-import AdminPodcasts from './pages/AdminPodcasts';
-import AdminUsers from './pages/AdminUsers';
-import AdminVideos from './pages/AdminVideos';
-import AdminOrders from './pages/AdminOrders';
-import AdminDonations from './pages/AdminDonations';
-import AdminGroups from './pages/AdminGroups';
-import AdminForum from './pages/AdminForum';
-import AdminEvents from './pages/AdminEvents';
-import AdminProducts from './pages/AdminProducts';
-import AdminBlog from './pages/AdminBlog';
-import AdminPodcastLive from './pages/AdminPodcastLive';
-import LivePodcastPlayer from './pages/LivePodcastPlayer';
-import AdminPodcastMonetization from './pages/AdminPodcastMonetization';
-import PodcastPlayer from './pages/PodcastPlayer';
-import MyPodcastLibrary from './pages/MyPodcastLibrary';
-import AdminPodcastMarketing from './pages/AdminPodcastMarketing';
-import AdminPodcastAnalytics from './pages/AdminPodcastAnalytics';
-import AdminCourses from './pages/AdminCourses';
-import AdminCourseBuilder from './pages/AdminCourseBuilder';
-import Courses from './pages/Courses';
-import CourseDetail from './pages/CourseDetail';
-import AdminCourseReviews from './pages/AdminCourseReviews';
-import AdminPodcastAudioEditor from './pages/AdminPodcastAudioEditor';
-import AdminPodcastVideoEditor from './pages/AdminPodcastVideoEditor';
-import AdminAICourseTools from './pages/AdminAICourseTools';
-import AdminPodcastRepurposing from './pages/AdminPodcastRepurposing';
-import AdminInventoryManagement from './pages/AdminInventoryManagement';
-import AdminTaxConfiguration from './pages/AdminTaxConfiguration';
-import AdminShippingMethods from './pages/AdminShippingMethods';
-import AdminCouponManager from './pages/AdminCouponManager';
-import AdminOrderFulfillment from './pages/AdminOrderFulfillment';
-import StoreAdvanced from './pages/StoreAdvanced';
-import ProductDetail from './pages/ProductDetail';
-import Cart from './pages/Cart';
-import Checkout from './pages/Checkout';
-import AdminStoreAnalytics from './pages/AdminStoreAnalytics';
-import Wishlist from './pages/Wishlist';
-import OrderConfirmation from './pages/OrderConfirmation';
-import CustomerDashboard from './pages/CustomerDashboard';
-import AdminLoyaltyProgram from './pages/AdminLoyaltyProgram';
-import AdminBulkPricing from './pages/AdminBulkPricing';
-import AdminProductBundles from './pages/AdminProductBundles';
-import AdminPreOrders from './pages/AdminPreOrders';
-import AdminGiftCards from './pages/AdminGiftCards';
-import ProductComparison from './pages/ProductComparison';
-import LoyaltyDashboard from './pages/LoyaltyDashboard';
-import AdminAIContentSuite from './pages/AdminAIContentSuite';
-import BuildYourBundle from './pages/BuildYourBundle';
-import AdminDatabaseDashboard from './pages/AdminDatabaseDashboard';
-import AdminSQLEditor from './pages/AdminSQLEditor';
-import AdminSchemaViewer from './pages/AdminSchemaViewer';
-import AdminAISEOOptimizer from './pages/AdminAISEOOptimizer';
-import AdminDataImportExport from './pages/AdminDataImportExport';
-import AdminBackupManager from './pages/AdminBackupManager';
-import AdminQueryBuilder from './pages/AdminQueryBuilder';
-import AdminRelationshipMapper from './pages/AdminRelationshipMapper';
-import AdminDatabaseExport from './pages/AdminDatabaseExport';
-import AdminMigrationStudio from './pages/AdminMigrationStudio';
-import AdminPerformanceMonitor from './pages/AdminPerformanceMonitor';
-import AdminDataIntegrity from './pages/AdminDataIntegrity';
-import AdminConnectionPoolMonitor from './pages/AdminConnectionPoolMonitor';
-import AdminIndexOptimizer from './pages/AdminIndexOptimizer';
-import AdminReplicationManager from './pages/AdminReplicationManager';
-import AdminSecurityAudit from './pages/AdminSecurityAudit';
-import Notifications from './pages/Notifications';
-import AdminActivityFeed from './pages/AdminActivityFeed';
-import AdminDatabaseCenter from './pages/AdminDatabaseCenter';
-import AdminAdvancedQueryBuilder from './pages/AdminAdvancedQueryBuilder';
-import AdminSchemaGenerator from './pages/AdminSchemaGenerator';
-import AdminSQLScriptGenerator from './pages/AdminSQLScriptGenerator';
-import UserProfileCustomization from './pages/UserProfileCustomization';
-import AdminAuditLog from './pages/AdminAuditLog';
-import AdminAPIManagement from './pages/AdminAPIManagement';
-import AdminWebhooks from './pages/AdminWebhooks';
-import AdminNotificationCenter from './pages/AdminNotificationCenter';
-import AdminCacheManager from './pages/AdminCacheManager';
-import AdminRateLimiting from './pages/AdminRateLimiting';
-import AdminScheduledJobs from './pages/AdminScheduledJobs';
-import AdminErrorTracking from './pages/AdminErrorTracking';
-import AdminDatabaseReplication from './pages/AdminDatabaseReplication';
-import AdminAccessControl from './pages/AdminAccessControl';
-import AdminDataGovernance from './pages/AdminDataGovernance';
-import AdminDatabaseIndexOptimizer from './pages/AdminDatabaseIndexOptimizer';
-import AdminQueryOptimizer from './pages/AdminQueryOptimizer';
-import AdminDataMasking from './pages/AdminDataMasking';
-import AdminDatabaseTransactions from './pages/AdminDatabaseTransactions';
-import AdminDatabaseVersioning from './pages/AdminDatabaseVersioning';
-import AdminDataLineage from './pages/AdminDataLineage';
-import AdminDataCatalog from './pages/AdminDataCatalog';
-import AdminDataQuality from './pages/AdminDataQuality';
-import AdminDataEncryption from './pages/AdminDataEncryption';
-import AdminDatabaseMonitoring from './pages/AdminDatabaseMonitoring';
-import AdminDataArchiving from './pages/AdminDataArchiving';
-import AdminDataAnonymization from './pages/AdminDataAnonymization';
-import AdminDatabaseCloning from './pages/AdminDatabaseCloning';
-import AdminComplianceReporting from './pages/AdminComplianceReporting';
-import AdminDatabaseComparison from './pages/AdminDatabaseComparison';
-import AdminDataProfiling from './pages/AdminDataProfiling';
-import AdminDatabaseCostOptimizer from './pages/AdminDatabaseCostOptimizer';
-import UserSettings from './pages/UserSettings';
-import AdminPermissionManager from './pages/AdminPermissionManager';
-import CollaborativeBlogEditor from './pages/CollaborativeBlogEditor';
-import AdminRolesEnhanced from './pages/AdminRolesEnhanced';
-import AdminWebsiteFilesManager from './pages/AdminWebsiteFilesManager';
-import AdminSystemHealth from './pages/AdminSystemHealth';
-import AdminAISuite from './pages/AdminAISuite';
-import AdminAICourseCreator from './pages/AdminAICourseCreator';
-import AdminAILessonGenerator from './pages/AdminAILessonGenerator';
-import AdminAIQuizGenerator from './pages/AdminAIQuizGenerator';
-import AdminAITranscriptionManager from './pages/AdminAITranscriptionManager';
+import AccountSettings from './pages/AccountSettings';
 import AdminAIBlogGenerator from './pages/AdminAIBlogGenerator';
-import AdminAIToneEditor from './pages/AdminAIToneEditor';
+import AdminAIChapterGenerator from './pages/AdminAIChapterGenerator';
+import AdminAIContentEnhancer from './pages/AdminAIContentEnhancer';
+import AdminAIContentSuite from './pages/AdminAIContentSuite';
+import AdminAICourseCreator from './pages/AdminAICourseCreator';
+import AdminAICourseTools from './pages/AdminAICourseTools';
 import AdminAIDiscussionGenerator from './pages/AdminAIDiscussionGenerator';
 import AdminAILearningPathOptimizer from './pages/AdminAILearningPathOptimizer';
-import AdminAITrailerGenerator from './pages/AdminAITrailerGenerator';
-import AdminAISocialMediaGenerator from './pages/AdminAISocialMediaGenerator';
-import AdminAIChapterGenerator from './pages/AdminAIChapterGenerator';
+import AdminAILessonGenerator from './pages/AdminAILessonGenerator';
 import AdminAIPodcastRepurposing from './pages/AdminAIPodcastRepurposing';
+import AdminAIPricing from './pages/AdminAIPricing';
+import AdminAIQuizGenerator from './pages/AdminAIQuizGenerator';
+import AdminAISEOOptimizer from './pages/AdminAISEOOptimizer';
+import AdminAIScriptGenerator from './pages/AdminAIScriptGenerator';
+import AdminAISocialMediaGenerator from './pages/AdminAISocialMediaGenerator';
+import AdminAISuite from './pages/AdminAISuite';
 import AdminAITagGenerator from './pages/AdminAITagGenerator';
-import AdminAIContentEnhancer from './pages/AdminAIContentEnhancer';
-import AdminProductsEnhanced from './pages/AdminProductsEnhanced';
-import AdminCategoryManagement from './pages/AdminCategoryManagement';
-import AdminShippingConfig from './pages/AdminShippingConfig';
-import AdminOrderManagement from './pages/AdminOrderManagement';
-import AdminCouponManagement from './pages/AdminCouponManagement';
-import OrderTracking from './pages/OrderTracking';
+import AdminAIToneEditor from './pages/AdminAIToneEditor';
+import AdminAITrailerGenerator from './pages/AdminAITrailerGenerator';
+import AdminAITranscriptionManager from './pages/AdminAITranscriptionManager';
+import AdminAPIManagement from './pages/AdminAPIManagement';
 import AdminAbandonedCarts from './pages/AdminAbandonedCarts';
-import AdminProductAnalytics from './pages/AdminProductAnalytics';
-import AdminReviewsManagement from './pages/AdminReviewsManagement';
-import CustomerAccount from './pages/CustomerAccount';
-import OrderHistory from './pages/OrderHistory';
-import SavedAddresses from './pages/SavedAddresses';
-import AccountSettings from './pages/AccountSettings';
-import AdminSalesReports from './pages/AdminSalesReports';
-import AdminInventoryReports from './pages/AdminInventoryReports';
-import DigitalLibrary from './pages/DigitalLibrary';
-import AdminCategoryHierarchy from './pages/AdminCategoryHierarchy';
-import AdminProductAttributes from './pages/AdminProductAttributes';
-import AdminBulkProductOperations from './pages/AdminBulkProductOperations';
-import AdminPriceOptimization from './pages/AdminPriceOptimization';
-import AdminInventoryForecasting from './pages/AdminInventoryForecasting';
-import AdminCollectionManager from './pages/AdminCollectionManager';
-import AdminSizeGuideManager from './pages/AdminSizeGuideManager';
-import CategoryBrowse from './pages/CategoryBrowse';
-import AdminProductImportExport from './pages/AdminProductImportExport';
-import AdminProductSearch from './pages/AdminProductSearch';
-import AdminProductPerformance from './pages/AdminProductPerformance';
-import AdminCrossSellManager from './pages/AdminCrossSellManager';
-import AdminProductLifecycle from './pages/AdminProductLifecycle';
-import AdminProductBadges from './pages/AdminProductBadges';
-import AdminProductVideos from './pages/AdminProductVideos';
-import AdminProductSEO from './pages/AdminProductSEO';
-import AdminProductQuickActions from './pages/AdminProductQuickActions';
-import BrandShowcase from './pages/BrandShowcase';
-import DigitalStore from './pages/DigitalStore';
-import MyDigitalLibrary from './pages/MyDigitalLibrary';
-import UserProfileEditor from './pages/UserProfileEditor';
-import AdminEmailMarketing from './pages/AdminEmailMarketing';
-import AdminLandingPageBuilder from './pages/AdminLandingPageBuilder';
+import AdminAccessControl from './pages/AdminAccessControl';
+import AdminActivityFeed from './pages/AdminActivityFeed';
 import AdminAdvancedCoupons from './pages/AdminAdvancedCoupons';
-import UserPreferences from './pages/UserPreferences';
+import AdminAdvancedQueryBuilder from './pages/AdminAdvancedQueryBuilder';
+import AdminAnalytics from './pages/AdminAnalytics';
+import AdminAudioUpload from './pages/AdminAudioUpload';
+import AdminAuditLog from './pages/AdminAuditLog';
+import AdminBackupManager from './pages/AdminBackupManager';
+import AdminBlog from './pages/AdminBlog';
+import AdminBroadcastStudio from './pages/AdminBroadcastStudio';
+import AdminBulkPricing from './pages/AdminBulkPricing';
+import AdminBulkProductOperations from './pages/AdminBulkProductOperations';
+import AdminCacheManager from './pages/AdminCacheManager';
+import AdminCategoryHierarchy from './pages/AdminCategoryHierarchy';
+import AdminCategoryManagement from './pages/AdminCategoryManagement';
+import AdminCollectionManager from './pages/AdminCollectionManager';
+import AdminComplianceReporting from './pages/AdminComplianceReporting';
+import AdminConnectionPoolMonitor from './pages/AdminConnectionPoolMonitor';
+import AdminContentModeration from './pages/AdminContentModeration';
+import AdminCouponManagement from './pages/AdminCouponManagement';
+import AdminCouponManager from './pages/AdminCouponManager';
+import AdminCourseBuilder from './pages/AdminCourseBuilder';
+import AdminCourseReviews from './pages/AdminCourseReviews';
+import AdminCourses from './pages/AdminCourses';
+import AdminCrossSellManager from './pages/AdminCrossSellManager';
+import AdminDashboard from './pages/AdminDashboard';
+import AdminDataAnonymization from './pages/AdminDataAnonymization';
+import AdminDataArchiving from './pages/AdminDataArchiving';
+import AdminDataCatalog from './pages/AdminDataCatalog';
+import AdminDataEncryption from './pages/AdminDataEncryption';
+import AdminDataGovernance from './pages/AdminDataGovernance';
+import AdminDataImportExport from './pages/AdminDataImportExport';
+import AdminDataIntegrity from './pages/AdminDataIntegrity';
+import AdminDataLineage from './pages/AdminDataLineage';
+import AdminDataMasking from './pages/AdminDataMasking';
+import AdminDataProfiling from './pages/AdminDataProfiling';
+import AdminDataQuality from './pages/AdminDataQuality';
+import AdminDatabaseCenter from './pages/AdminDatabaseCenter';
+import AdminDatabaseCloning from './pages/AdminDatabaseCloning';
+import AdminDatabaseComparison from './pages/AdminDatabaseComparison';
+import AdminDatabaseCostOptimizer from './pages/AdminDatabaseCostOptimizer';
+import AdminDatabaseDashboard from './pages/AdminDatabaseDashboard';
+import AdminDatabaseExport from './pages/AdminDatabaseExport';
+import AdminDatabaseIndexOptimizer from './pages/AdminDatabaseIndexOptimizer';
+import AdminDatabaseMonitoring from './pages/AdminDatabaseMonitoring';
+import AdminDatabaseReplication from './pages/AdminDatabaseReplication';
+import AdminDatabaseTransactions from './pages/AdminDatabaseTransactions';
+import AdminDatabaseVersioning from './pages/AdminDatabaseVersioning';
+import AdminDigitalProducts from './pages/AdminDigitalProducts';
+import AdminDonations from './pages/AdminDonations';
+import AdminEmailMarketing from './pages/AdminEmailMarketing';
+import AdminErrorTracking from './pages/AdminErrorTracking';
+import AdminEvents from './pages/AdminEvents';
+import AdminForum from './pages/AdminForum';
+import AdminGiftCards from './pages/AdminGiftCards';
+import AdminGroupManagement from './pages/AdminGroupManagement';
+import AdminGroups from './pages/AdminGroups';
+import AdminIndexOptimizer from './pages/AdminIndexOptimizer';
+import AdminInventoryForecasting from './pages/AdminInventoryForecasting';
+import AdminInventoryManagement from './pages/AdminInventoryManagement';
+import AdminInventoryReports from './pages/AdminInventoryReports';
+import AdminLandingPageBuilder from './pages/AdminLandingPageBuilder';
+import AdminLivePodcast from './pages/AdminLivePodcast';
+import AdminLiveStreams from './pages/AdminLiveStreams';
+import AdminLoyaltyProgram from './pages/AdminLoyaltyProgram';
+import AdminMigrationStudio from './pages/AdminMigrationStudio';
+import AdminNotificationCenter from './pages/AdminNotificationCenter';
+import AdminOrderFulfillment from './pages/AdminOrderFulfillment';
+import AdminOrderManagement from './pages/AdminOrderManagement';
+import AdminOrders from './pages/AdminOrders';
+import AdminPaymentGateways from './pages/AdminPaymentGateways';
+import AdminPerformanceMonitor from './pages/AdminPerformanceMonitor';
+import AdminPermissionManager from './pages/AdminPermissionManager';
+import AdminPodcastAnalytics from './pages/AdminPodcastAnalytics';
+import AdminPodcastAudioEditor from './pages/AdminPodcastAudioEditor';
+import AdminPodcastDashboard from './pages/AdminPodcastDashboard';
+import AdminPodcastLive from './pages/AdminPodcastLive';
+import AdminPodcastMarketing from './pages/AdminPodcastMarketing';
+import AdminPodcastMonetization from './pages/AdminPodcastMonetization';
+import AdminPodcastRepurposing from './pages/AdminPodcastRepurposing';
+import AdminPodcastVideoEditor from './pages/AdminPodcastVideoEditor';
+import AdminPodcasts from './pages/AdminPodcasts';
+import AdminPreOrders from './pages/AdminPreOrders';
+import AdminPriceOptimization from './pages/AdminPriceOptimization';
+import AdminProductAnalytics from './pages/AdminProductAnalytics';
+import AdminProductAttributes from './pages/AdminProductAttributes';
+import AdminProductBadges from './pages/AdminProductBadges';
+import AdminProductBundles from './pages/AdminProductBundles';
+import AdminProductImportExport from './pages/AdminProductImportExport';
+import AdminProductLifecycle from './pages/AdminProductLifecycle';
+import AdminProductPerformance from './pages/AdminProductPerformance';
+import AdminProductQuickActions from './pages/AdminProductQuickActions';
+import AdminProductSEO from './pages/AdminProductSEO';
+import AdminProductSearch from './pages/AdminProductSearch';
+import AdminProductVariants from './pages/AdminProductVariants';
+import AdminProductVideos from './pages/AdminProductVideos';
+import AdminProducts from './pages/AdminProducts';
+import AdminProductsEnhanced from './pages/AdminProductsEnhanced';
+import AdminQueryBuilder from './pages/AdminQueryBuilder';
+import AdminQueryOptimizer from './pages/AdminQueryOptimizer';
+import AdminRateLimiting from './pages/AdminRateLimiting';
+import AdminRelationshipMapper from './pages/AdminRelationshipMapper';
+import AdminReplicationManager from './pages/AdminReplicationManager';
+import AdminReviewsManagement from './pages/AdminReviewsManagement';
+import AdminRoles from './pages/AdminRoles';
+import AdminRolesEnhanced from './pages/AdminRolesEnhanced';
+import AdminSQLEditor from './pages/AdminSQLEditor';
+import AdminSQLScriptGenerator from './pages/AdminSQLScriptGenerator';
+import AdminSalesReports from './pages/AdminSalesReports';
+import AdminScheduledJobs from './pages/AdminScheduledJobs';
+import AdminSchemaGenerator from './pages/AdminSchemaGenerator';
+import AdminSchemaViewer from './pages/AdminSchemaViewer';
+import AdminSecurityAudit from './pages/AdminSecurityAudit';
+import AdminShippingConfig from './pages/AdminShippingConfig';
+import AdminShippingMethods from './pages/AdminShippingMethods';
+import AdminSiteSettings from './pages/AdminSiteSettings';
+import AdminSizeGuideManager from './pages/AdminSizeGuideManager';
 import AdminSocialMediaManager from './pages/AdminSocialMediaManager';
-import Layout from './Layout.jsx';
+import AdminStoreAnalytics from './pages/AdminStoreAnalytics';
+import AdminSubscriptions from './pages/AdminSubscriptions';
+import AdminSystemHealth from './pages/AdminSystemHealth';
+import AdminTaxConfiguration from './pages/AdminTaxConfiguration';
+import AdminUsers from './pages/AdminUsers';
+import AdminVideos from './pages/AdminVideos';
+import AdminWebhooks from './pages/AdminWebhooks';
+import AdminWebsiteFilesManager from './pages/AdminWebsiteFilesManager';
+import Blog from './pages/Blog';
+import BlogDetail from './pages/BlogDetail';
+import BlogPost from './pages/BlogPost';
+import BrandShowcase from './pages/BrandShowcase';
+import BroadcastStream from './pages/BroadcastStream';
+import BuildYourBundle from './pages/BuildYourBundle';
+import Cart from './pages/Cart';
+import CategoryBrowse from './pages/CategoryBrowse';
+import Chatrooms from './pages/Chatrooms';
+import Checkout from './pages/Checkout';
+import CollaborativeBlogEditor from './pages/CollaborativeBlogEditor';
+import Community from './pages/Community';
+import CommunityBoard from './pages/CommunityBoard';
+import CourseDetail from './pages/CourseDetail';
+import Courses from './pages/Courses';
+import CustomerAccount from './pages/CustomerAccount';
+import CustomerDashboard from './pages/CustomerDashboard';
+import DigitalLibrary from './pages/DigitalLibrary';
+import DigitalStore from './pages/DigitalStore';
+import Donate from './pages/Donate';
+import EventDetail from './pages/EventDetail';
+import Events from './pages/Events';
+import Forum from './pages/Forum';
+import ForumDetail from './pages/ForumDetail';
+import GroupAnalytics from './pages/GroupAnalytics';
+import GroupDetail from './pages/GroupDetail';
+import Groups from './pages/Groups';
+import Home from './pages/Home';
+import KnowledgeBase from './pages/KnowledgeBase';
+import Leaderboard from './pages/Leaderboard';
+import LivePodcastPlayer from './pages/LivePodcastPlayer';
+import LiveStreamPlayer from './pages/LiveStreamPlayer';
+import LiveStreamView from './pages/LiveStreamView';
+import LiveStreams from './pages/LiveStreams';
+import LoyaltyDashboard from './pages/LoyaltyDashboard';
+import MemberDirectory from './pages/MemberDirectory';
+import MyDigitalLibrary from './pages/MyDigitalLibrary';
+import MyPodcastLibrary from './pages/MyPodcastLibrary';
+import Notifications from './pages/Notifications';
+import OrderConfirmation from './pages/OrderConfirmation';
+import OrderHistory from './pages/OrderHistory';
+import OrderTracking from './pages/OrderTracking';
+import PodcastAudioEditor from './pages/PodcastAudioEditor';
+import PodcastClipStudio from './pages/PodcastClipStudio';
+import PodcastPlayer from './pages/PodcastPlayer';
+import PodcastVideoEditor from './pages/PodcastVideoEditor';
+import PrayerWall from './pages/PrayerWall';
+import ProductComparison from './pages/ProductComparison';
+import ProductDetail from './pages/ProductDetail';
+import RSSFeeds from './pages/RSSFeeds';
+import Resources from './pages/Resources';
+import SavedAddresses from './pages/SavedAddresses';
+import Store from './pages/Store';
+import StoreAdvanced from './pages/StoreAdvanced';
+import Testimonies from './pages/Testimonies';
+import UserPreferences from './pages/UserPreferences';
+import UserProfile from './pages/UserProfile';
+import UserProfileCustomization from './pages/UserProfileCustomization';
+import UserProfileEditor from './pages/UserProfileEditor';
+import UserSettings from './pages/UserSettings';
+import UserSubscriptionManagement from './pages/UserSubscriptionManagement';
+import Volunteer from './pages/Volunteer';
+import WatchVideos from './pages/WatchVideos';
+import Wishlist from './pages/Wishlist';
+import AdminBackendDashboard from './pages/AdminBackendDashboard';
+import __Layout from './Layout.jsx';
 
 
 export const PAGES = {
-    "Home": Home,
-    "AdminDashboard": AdminDashboard,
-    "LiveStreams": LiveStreams,
-    "LiveStreamView": LiveStreamView,
-    "Store": Store,
-    "Blog": Blog,
-    "AdminSiteSettings": AdminSiteSettings,
-    "BroadcastStream": BroadcastStream,
-    "AdminLiveStreams": AdminLiveStreams,
-    "AdminSubscriptions": AdminSubscriptions,
-    "AdminProductVariants": AdminProductVariants,
-    "AdminDigitalProducts": AdminDigitalProducts,
-    "AdminPaymentGateways": AdminPaymentGateways,
-    "AdminAnalytics": AdminAnalytics,
-    "UserProfile": UserProfile,
-    "AdminRoles": AdminRoles,
-    "AdminAIScriptGenerator": AdminAIScriptGenerator,
-    "AdminAIPricing": AdminAIPricing,
-    "AdminContentModeration": AdminContentModeration,
-    "AdminBroadcastStudio": AdminBroadcastStudio,
-    "UserSubscriptionManagement": UserSubscriptionManagement,
-    "AdminLivePodcast": AdminLivePodcast,
-    "AdminAudioUpload": AdminAudioUpload,
-    "Community": Community,
-    "Groups": Groups,
-    "Chatrooms": Chatrooms,
-    "CommunityBoard": CommunityBoard,
-    "PrayerWall": PrayerWall,
-    "Volunteer": Volunteer,
-    "Resources": Resources,
-    "GroupDetail": GroupDetail,
-    "Testimonies": Testimonies,
-    "MemberDirectory": MemberDirectory,
-    "KnowledgeBase": KnowledgeBase,
-    "RSSFeeds": RSSFeeds,
-    "AdminPodcastDashboard": AdminPodcastDashboard,
-    "Leaderboard": Leaderboard,
-    "PodcastClipStudio": PodcastClipStudio,
-    "GroupAnalytics": GroupAnalytics,
-    "AdminGroupManagement": AdminGroupManagement,
-    "Forum": Forum,
-    "ForumDetail": ForumDetail,
-    "LiveStreamPlayer": LiveStreamPlayer,
-    "WatchVideos": WatchVideos,
-    "Events": Events,
-    "EventDetail": EventDetail,
-    "Donate": Donate,
-    "BlogDetail": BlogDetail,
-    "AdminPodcasts": AdminPodcasts,
-    "AdminUsers": AdminUsers,
-    "AdminVideos": AdminVideos,
-    "AdminOrders": AdminOrders,
-    "AdminDonations": AdminDonations,
-    "AdminGroups": AdminGroups,
-    "AdminForum": AdminForum,
-    "AdminEvents": AdminEvents,
-    "AdminProducts": AdminProducts,
-    "AdminBlog": AdminBlog,
-    "AdminPodcastLive": AdminPodcastLive,
-    "LivePodcastPlayer": LivePodcastPlayer,
-    "AdminPodcastMonetization": AdminPodcastMonetization,
-    "PodcastPlayer": PodcastPlayer,
-    "MyPodcastLibrary": MyPodcastLibrary,
-    "AdminPodcastMarketing": AdminPodcastMarketing,
-    "AdminPodcastAnalytics": AdminPodcastAnalytics,
-    "AdminCourses": AdminCourses,
-    "AdminCourseBuilder": AdminCourseBuilder,
-    "Courses": Courses,
-    "CourseDetail": CourseDetail,
-    "AdminCourseReviews": AdminCourseReviews,
-    "AdminPodcastAudioEditor": AdminPodcastAudioEditor,
-    "AdminPodcastVideoEditor": AdminPodcastVideoEditor,
-    "AdminAICourseTools": AdminAICourseTools,
-    "AdminPodcastRepurposing": AdminPodcastRepurposing,
-    "AdminInventoryManagement": AdminInventoryManagement,
-    "AdminTaxConfiguration": AdminTaxConfiguration,
-    "AdminShippingMethods": AdminShippingMethods,
-    "AdminCouponManager": AdminCouponManager,
-    "AdminOrderFulfillment": AdminOrderFulfillment,
-    "StoreAdvanced": StoreAdvanced,
-    "ProductDetail": ProductDetail,
-    "Cart": Cart,
-    "Checkout": Checkout,
-    "AdminStoreAnalytics": AdminStoreAnalytics,
-    "Wishlist": Wishlist,
-    "OrderConfirmation": OrderConfirmation,
-    "CustomerDashboard": CustomerDashboard,
-    "AdminLoyaltyProgram": AdminLoyaltyProgram,
-    "AdminBulkPricing": AdminBulkPricing,
-    "AdminProductBundles": AdminProductBundles,
-    "AdminPreOrders": AdminPreOrders,
-    "AdminGiftCards": AdminGiftCards,
-    "ProductComparison": ProductComparison,
-    "LoyaltyDashboard": LoyaltyDashboard,
-    "AdminAIContentSuite": AdminAIContentSuite,
-    "BuildYourBundle": BuildYourBundle,
-    "AdminDatabaseDashboard": AdminDatabaseDashboard,
-    "AdminSQLEditor": AdminSQLEditor,
-    "AdminSchemaViewer": AdminSchemaViewer,
-    "AdminAISEOOptimizer": AdminAISEOOptimizer,
-    "AdminDataImportExport": AdminDataImportExport,
-    "AdminBackupManager": AdminBackupManager,
-    "AdminQueryBuilder": AdminQueryBuilder,
-    "AdminRelationshipMapper": AdminRelationshipMapper,
-    "AdminDatabaseExport": AdminDatabaseExport,
-    "AdminMigrationStudio": AdminMigrationStudio,
-    "AdminPerformanceMonitor": AdminPerformanceMonitor,
-    "AdminDataIntegrity": AdminDataIntegrity,
-    "AdminConnectionPoolMonitor": AdminConnectionPoolMonitor,
-    "AdminIndexOptimizer": AdminIndexOptimizer,
-    "AdminReplicationManager": AdminReplicationManager,
-    "AdminSecurityAudit": AdminSecurityAudit,
-    "Notifications": Notifications,
-    "AdminActivityFeed": AdminActivityFeed,
-    "AdminDatabaseCenter": AdminDatabaseCenter,
-    "AdminAdvancedQueryBuilder": AdminAdvancedQueryBuilder,
-    "AdminSchemaGenerator": AdminSchemaGenerator,
-    "AdminSQLScriptGenerator": AdminSQLScriptGenerator,
-    "UserProfileCustomization": UserProfileCustomization,
-    "AdminAuditLog": AdminAuditLog,
-    "AdminAPIManagement": AdminAPIManagement,
-    "AdminWebhooks": AdminWebhooks,
-    "AdminNotificationCenter": AdminNotificationCenter,
-    "AdminCacheManager": AdminCacheManager,
-    "AdminRateLimiting": AdminRateLimiting,
-    "AdminScheduledJobs": AdminScheduledJobs,
-    "AdminErrorTracking": AdminErrorTracking,
-    "AdminDatabaseReplication": AdminDatabaseReplication,
-    "AdminAccessControl": AdminAccessControl,
-    "AdminDataGovernance": AdminDataGovernance,
-    "AdminDatabaseIndexOptimizer": AdminDatabaseIndexOptimizer,
-    "AdminQueryOptimizer": AdminQueryOptimizer,
-    "AdminDataMasking": AdminDataMasking,
-    "AdminDatabaseTransactions": AdminDatabaseTransactions,
-    "AdminDatabaseVersioning": AdminDatabaseVersioning,
-    "AdminDataLineage": AdminDataLineage,
-    "AdminDataCatalog": AdminDataCatalog,
-    "AdminDataQuality": AdminDataQuality,
-    "AdminDataEncryption": AdminDataEncryption,
-    "AdminDatabaseMonitoring": AdminDatabaseMonitoring,
-    "AdminDataArchiving": AdminDataArchiving,
-    "AdminDataAnonymization": AdminDataAnonymization,
-    "AdminDatabaseCloning": AdminDatabaseCloning,
-    "AdminComplianceReporting": AdminComplianceReporting,
-    "AdminDatabaseComparison": AdminDatabaseComparison,
-    "AdminDataProfiling": AdminDataProfiling,
-    "AdminDatabaseCostOptimizer": AdminDatabaseCostOptimizer,
-    "UserSettings": UserSettings,
-    "AdminPermissionManager": AdminPermissionManager,
-    "CollaborativeBlogEditor": CollaborativeBlogEditor,
-    "AdminRolesEnhanced": AdminRolesEnhanced,
-    "AdminWebsiteFilesManager": AdminWebsiteFilesManager,
-    "AdminSystemHealth": AdminSystemHealth,
-    "AdminAISuite": AdminAISuite,
-    "AdminAICourseCreator": AdminAICourseCreator,
-    "AdminAILessonGenerator": AdminAILessonGenerator,
-    "AdminAIQuizGenerator": AdminAIQuizGenerator,
-    "AdminAITranscriptionManager": AdminAITranscriptionManager,
+    "AccountSettings": AccountSettings,
     "AdminAIBlogGenerator": AdminAIBlogGenerator,
-    "AdminAIToneEditor": AdminAIToneEditor,
+    "AdminAIChapterGenerator": AdminAIChapterGenerator,
+    "AdminAIContentEnhancer": AdminAIContentEnhancer,
+    "AdminAIContentSuite": AdminAIContentSuite,
+    "AdminAICourseCreator": AdminAICourseCreator,
+    "AdminAICourseTools": AdminAICourseTools,
     "AdminAIDiscussionGenerator": AdminAIDiscussionGenerator,
     "AdminAILearningPathOptimizer": AdminAILearningPathOptimizer,
-    "AdminAITrailerGenerator": AdminAITrailerGenerator,
-    "AdminAISocialMediaGenerator": AdminAISocialMediaGenerator,
-    "AdminAIChapterGenerator": AdminAIChapterGenerator,
+    "AdminAILessonGenerator": AdminAILessonGenerator,
     "AdminAIPodcastRepurposing": AdminAIPodcastRepurposing,
+    "AdminAIPricing": AdminAIPricing,
+    "AdminAIQuizGenerator": AdminAIQuizGenerator,
+    "AdminAISEOOptimizer": AdminAISEOOptimizer,
+    "AdminAIScriptGenerator": AdminAIScriptGenerator,
+    "AdminAISocialMediaGenerator": AdminAISocialMediaGenerator,
+    "AdminAISuite": AdminAISuite,
     "AdminAITagGenerator": AdminAITagGenerator,
-    "AdminAIContentEnhancer": AdminAIContentEnhancer,
-    "AdminProductsEnhanced": AdminProductsEnhanced,
-    "AdminCategoryManagement": AdminCategoryManagement,
-    "AdminShippingConfig": AdminShippingConfig,
-    "AdminOrderManagement": AdminOrderManagement,
-    "AdminCouponManagement": AdminCouponManagement,
-    "OrderTracking": OrderTracking,
+    "AdminAIToneEditor": AdminAIToneEditor,
+    "AdminAITrailerGenerator": AdminAITrailerGenerator,
+    "AdminAITranscriptionManager": AdminAITranscriptionManager,
+    "AdminAPIManagement": AdminAPIManagement,
     "AdminAbandonedCarts": AdminAbandonedCarts,
-    "AdminProductAnalytics": AdminProductAnalytics,
-    "AdminReviewsManagement": AdminReviewsManagement,
-    "CustomerAccount": CustomerAccount,
-    "OrderHistory": OrderHistory,
-    "SavedAddresses": SavedAddresses,
-    "AccountSettings": AccountSettings,
-    "AdminSalesReports": AdminSalesReports,
-    "AdminInventoryReports": AdminInventoryReports,
-    "DigitalLibrary": DigitalLibrary,
-    "AdminCategoryHierarchy": AdminCategoryHierarchy,
-    "AdminProductAttributes": AdminProductAttributes,
-    "AdminBulkProductOperations": AdminBulkProductOperations,
-    "AdminPriceOptimization": AdminPriceOptimization,
-    "AdminInventoryForecasting": AdminInventoryForecasting,
-    "AdminCollectionManager": AdminCollectionManager,
-    "AdminSizeGuideManager": AdminSizeGuideManager,
-    "CategoryBrowse": CategoryBrowse,
-    "AdminProductImportExport": AdminProductImportExport,
-    "AdminProductSearch": AdminProductSearch,
-    "AdminProductPerformance": AdminProductPerformance,
-    "AdminCrossSellManager": AdminCrossSellManager,
-    "AdminProductLifecycle": AdminProductLifecycle,
-    "AdminProductBadges": AdminProductBadges,
-    "AdminProductVideos": AdminProductVideos,
-    "AdminProductSEO": AdminProductSEO,
-    "AdminProductQuickActions": AdminProductQuickActions,
-    "BrandShowcase": BrandShowcase,
-    "DigitalStore": DigitalStore,
-    "MyDigitalLibrary": MyDigitalLibrary,
-    "UserProfileEditor": UserProfileEditor,
-    "AdminEmailMarketing": AdminEmailMarketing,
-    "AdminLandingPageBuilder": AdminLandingPageBuilder,
+    "AdminAccessControl": AdminAccessControl,
+    "AdminActivityFeed": AdminActivityFeed,
     "AdminAdvancedCoupons": AdminAdvancedCoupons,
-    "UserPreferences": UserPreferences,
+    "AdminAdvancedQueryBuilder": AdminAdvancedQueryBuilder,
+    "AdminAnalytics": AdminAnalytics,
+    "AdminAudioUpload": AdminAudioUpload,
+    "AdminAuditLog": AdminAuditLog,
+    "AdminBackupManager": AdminBackupManager,
+    "AdminBlog": AdminBlog,
+    "AdminBroadcastStudio": AdminBroadcastStudio,
+    "AdminBulkPricing": AdminBulkPricing,
+    "AdminBulkProductOperations": AdminBulkProductOperations,
+    "AdminCacheManager": AdminCacheManager,
+    "AdminCategoryHierarchy": AdminCategoryHierarchy,
+    "AdminCategoryManagement": AdminCategoryManagement,
+    "AdminCollectionManager": AdminCollectionManager,
+    "AdminComplianceReporting": AdminComplianceReporting,
+    "AdminConnectionPoolMonitor": AdminConnectionPoolMonitor,
+    "AdminContentModeration": AdminContentModeration,
+    "AdminCouponManagement": AdminCouponManagement,
+    "AdminCouponManager": AdminCouponManager,
+    "AdminCourseBuilder": AdminCourseBuilder,
+    "AdminCourseReviews": AdminCourseReviews,
+    "AdminCourses": AdminCourses,
+    "AdminCrossSellManager": AdminCrossSellManager,
+    "AdminDashboard": AdminDashboard,
+    "AdminDataAnonymization": AdminDataAnonymization,
+    "AdminDataArchiving": AdminDataArchiving,
+    "AdminDataCatalog": AdminDataCatalog,
+    "AdminDataEncryption": AdminDataEncryption,
+    "AdminDataGovernance": AdminDataGovernance,
+    "AdminDataImportExport": AdminDataImportExport,
+    "AdminDataIntegrity": AdminDataIntegrity,
+    "AdminDataLineage": AdminDataLineage,
+    "AdminDataMasking": AdminDataMasking,
+    "AdminDataProfiling": AdminDataProfiling,
+    "AdminDataQuality": AdminDataQuality,
+    "AdminDatabaseCenter": AdminDatabaseCenter,
+    "AdminDatabaseCloning": AdminDatabaseCloning,
+    "AdminDatabaseComparison": AdminDatabaseComparison,
+    "AdminDatabaseCostOptimizer": AdminDatabaseCostOptimizer,
+    "AdminDatabaseDashboard": AdminDatabaseDashboard,
+    "AdminDatabaseExport": AdminDatabaseExport,
+    "AdminDatabaseIndexOptimizer": AdminDatabaseIndexOptimizer,
+    "AdminDatabaseMonitoring": AdminDatabaseMonitoring,
+    "AdminDatabaseReplication": AdminDatabaseReplication,
+    "AdminDatabaseTransactions": AdminDatabaseTransactions,
+    "AdminDatabaseVersioning": AdminDatabaseVersioning,
+    "AdminDigitalProducts": AdminDigitalProducts,
+    "AdminDonations": AdminDonations,
+    "AdminEmailMarketing": AdminEmailMarketing,
+    "AdminErrorTracking": AdminErrorTracking,
+    "AdminEvents": AdminEvents,
+    "AdminForum": AdminForum,
+    "AdminGiftCards": AdminGiftCards,
+    "AdminGroupManagement": AdminGroupManagement,
+    "AdminGroups": AdminGroups,
+    "AdminIndexOptimizer": AdminIndexOptimizer,
+    "AdminInventoryForecasting": AdminInventoryForecasting,
+    "AdminInventoryManagement": AdminInventoryManagement,
+    "AdminInventoryReports": AdminInventoryReports,
+    "AdminLandingPageBuilder": AdminLandingPageBuilder,
+    "AdminLivePodcast": AdminLivePodcast,
+    "AdminLiveStreams": AdminLiveStreams,
+    "AdminLoyaltyProgram": AdminLoyaltyProgram,
+    "AdminMigrationStudio": AdminMigrationStudio,
+    "AdminNotificationCenter": AdminNotificationCenter,
+    "AdminOrderFulfillment": AdminOrderFulfillment,
+    "AdminOrderManagement": AdminOrderManagement,
+    "AdminOrders": AdminOrders,
+    "AdminPaymentGateways": AdminPaymentGateways,
+    "AdminPerformanceMonitor": AdminPerformanceMonitor,
+    "AdminPermissionManager": AdminPermissionManager,
+    "AdminPodcastAnalytics": AdminPodcastAnalytics,
+    "AdminPodcastAudioEditor": AdminPodcastAudioEditor,
+    "AdminPodcastDashboard": AdminPodcastDashboard,
+    "AdminPodcastLive": AdminPodcastLive,
+    "AdminPodcastMarketing": AdminPodcastMarketing,
+    "AdminPodcastMonetization": AdminPodcastMonetization,
+    "AdminPodcastRepurposing": AdminPodcastRepurposing,
+    "AdminPodcastVideoEditor": AdminPodcastVideoEditor,
+    "AdminPodcasts": AdminPodcasts,
+    "AdminPreOrders": AdminPreOrders,
+    "AdminPriceOptimization": AdminPriceOptimization,
+    "AdminProductAnalytics": AdminProductAnalytics,
+    "AdminProductAttributes": AdminProductAttributes,
+    "AdminProductBadges": AdminProductBadges,
+    "AdminProductBundles": AdminProductBundles,
+    "AdminProductImportExport": AdminProductImportExport,
+    "AdminProductLifecycle": AdminProductLifecycle,
+    "AdminProductPerformance": AdminProductPerformance,
+    "AdminProductQuickActions": AdminProductQuickActions,
+    "AdminProductSEO": AdminProductSEO,
+    "AdminProductSearch": AdminProductSearch,
+    "AdminProductVariants": AdminProductVariants,
+    "AdminProductVideos": AdminProductVideos,
+    "AdminProducts": AdminProducts,
+    "AdminProductsEnhanced": AdminProductsEnhanced,
+    "AdminQueryBuilder": AdminQueryBuilder,
+    "AdminQueryOptimizer": AdminQueryOptimizer,
+    "AdminRateLimiting": AdminRateLimiting,
+    "AdminRelationshipMapper": AdminRelationshipMapper,
+    "AdminReplicationManager": AdminReplicationManager,
+    "AdminReviewsManagement": AdminReviewsManagement,
+    "AdminRoles": AdminRoles,
+    "AdminRolesEnhanced": AdminRolesEnhanced,
+    "AdminSQLEditor": AdminSQLEditor,
+    "AdminSQLScriptGenerator": AdminSQLScriptGenerator,
+    "AdminSalesReports": AdminSalesReports,
+    "AdminScheduledJobs": AdminScheduledJobs,
+    "AdminSchemaGenerator": AdminSchemaGenerator,
+    "AdminSchemaViewer": AdminSchemaViewer,
+    "AdminSecurityAudit": AdminSecurityAudit,
+    "AdminShippingConfig": AdminShippingConfig,
+    "AdminShippingMethods": AdminShippingMethods,
+    "AdminSiteSettings": AdminSiteSettings,
+    "AdminSizeGuideManager": AdminSizeGuideManager,
     "AdminSocialMediaManager": AdminSocialMediaManager,
+    "AdminStoreAnalytics": AdminStoreAnalytics,
+    "AdminSubscriptions": AdminSubscriptions,
+    "AdminSystemHealth": AdminSystemHealth,
+    "AdminTaxConfiguration": AdminTaxConfiguration,
+    "AdminUsers": AdminUsers,
+    "AdminVideos": AdminVideos,
+    "AdminWebhooks": AdminWebhooks,
+    "AdminWebsiteFilesManager": AdminWebsiteFilesManager,
+    "Blog": Blog,
+    "BlogDetail": BlogDetail,
+    "BlogPost": BlogPost,
+    "BrandShowcase": BrandShowcase,
+    "BroadcastStream": BroadcastStream,
+    "BuildYourBundle": BuildYourBundle,
+    "Cart": Cart,
+    "CategoryBrowse": CategoryBrowse,
+    "Chatrooms": Chatrooms,
+    "Checkout": Checkout,
+    "CollaborativeBlogEditor": CollaborativeBlogEditor,
+    "Community": Community,
+    "CommunityBoard": CommunityBoard,
+    "CourseDetail": CourseDetail,
+    "Courses": Courses,
+    "CustomerAccount": CustomerAccount,
+    "CustomerDashboard": CustomerDashboard,
+    "DigitalLibrary": DigitalLibrary,
+    "DigitalStore": DigitalStore,
+    "Donate": Donate,
+    "EventDetail": EventDetail,
+    "Events": Events,
+    "Forum": Forum,
+    "ForumDetail": ForumDetail,
+    "GroupAnalytics": GroupAnalytics,
+    "GroupDetail": GroupDetail,
+    "Groups": Groups,
+    "Home": Home,
+    "KnowledgeBase": KnowledgeBase,
+    "Leaderboard": Leaderboard,
+    "LivePodcastPlayer": LivePodcastPlayer,
+    "LiveStreamPlayer": LiveStreamPlayer,
+    "LiveStreamView": LiveStreamView,
+    "LiveStreams": LiveStreams,
+    "LoyaltyDashboard": LoyaltyDashboard,
+    "MemberDirectory": MemberDirectory,
+    "MyDigitalLibrary": MyDigitalLibrary,
+    "MyPodcastLibrary": MyPodcastLibrary,
+    "Notifications": Notifications,
+    "OrderConfirmation": OrderConfirmation,
+    "OrderHistory": OrderHistory,
+    "OrderTracking": OrderTracking,
+    "PodcastAudioEditor": PodcastAudioEditor,
+    "PodcastClipStudio": PodcastClipStudio,
+    "PodcastPlayer": PodcastPlayer,
+    "PodcastVideoEditor": PodcastVideoEditor,
+    "PrayerWall": PrayerWall,
+    "ProductComparison": ProductComparison,
+    "ProductDetail": ProductDetail,
+    "RSSFeeds": RSSFeeds,
+    "Resources": Resources,
+    "SavedAddresses": SavedAddresses,
+    "Store": Store,
+    "StoreAdvanced": StoreAdvanced,
+    "Testimonies": Testimonies,
+    "UserPreferences": UserPreferences,
+    "UserProfile": UserProfile,
+    "UserProfileCustomization": UserProfileCustomization,
+    "UserProfileEditor": UserProfileEditor,
+    "UserSettings": UserSettings,
+    "UserSubscriptionManagement": UserSubscriptionManagement,
+    "Volunteer": Volunteer,
+    "WatchVideos": WatchVideos,
+    "Wishlist": Wishlist,
+    "AdminBackendDashboard": AdminBackendDashboard,
 }
 
 export const pagesConfig = {
     mainPage: "Home",
     Pages: PAGES,
-    Layout: Layout,
+    Layout: __Layout,
 };
