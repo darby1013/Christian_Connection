@@ -26,6 +26,7 @@ import AdminActivityFeed from './pages/AdminActivityFeed';
 import AdminAdvancedCoupons from './pages/AdminAdvancedCoupons';
 import AdminAdvancedQueryBuilder from './pages/AdminAdvancedQueryBuilder';
 import AdminAnalytics from './pages/AdminAnalytics';
+import AdminArchitectureExaminer from './pages/AdminArchitectureExaminer';
 import AdminAudioUpload from './pages/AdminAudioUpload';
 import AdminAuditLog from './pages/AdminAuditLog';
 import AdminBackendDashboard from './pages/AdminBackendDashboard';
@@ -212,7 +213,6 @@ import UserSubscriptionManagement from './pages/UserSubscriptionManagement';
 import Volunteer from './pages/Volunteer';
 import WatchVideos from './pages/WatchVideos';
 import Wishlist from './pages/Wishlist';
-import AdminArchitectureExaminer from './pages/AdminArchitectureExaminer';
 import __Layout from './Layout.jsx';
 
 
@@ -245,6 +245,7 @@ export const PAGES = {
     "AdminAdvancedCoupons": AdminAdvancedCoupons,
     "AdminAdvancedQueryBuilder": AdminAdvancedQueryBuilder,
     "AdminAnalytics": AdminAnalytics,
+    "AdminArchitectureExaminer": AdminArchitectureExaminer,
     "AdminAudioUpload": AdminAudioUpload,
     "AdminAuditLog": AdminAuditLog,
     "AdminBackendDashboard": AdminBackendDashboard,
@@ -431,7 +432,6 @@ export const PAGES = {
     "Volunteer": Volunteer,
     "WatchVideos": WatchVideos,
     "Wishlist": Wishlist,
-    "AdminArchitectureExaminer": AdminArchitectureExaminer,
 }
 
 export const pagesConfig = {

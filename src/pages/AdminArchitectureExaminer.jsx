@@ -15,7 +15,7 @@ import {
   Workflow, Box, Link2, Code2, FileJson, Boxes, Binary, Search,
   AlertTriangle, CheckCircle2, TrendingUp, Users, Clock, BarChart2,
   RefreshCw, Trash2, Play, Pause, Settings, Terminal, Globe,
-  Filter, MessageSquare, DollarSign
+  Filter, MessageSquare, DollarSign, Sparkles
 } from 'lucide-react';
 
 const ALL_ENTITIES = [
@@ -38,6 +38,9 @@ export default function AdminArchitectureExaminer() {
   const [vulnProgress, setVulnProgress] = useState(0);
   const [codeQualityScan, setCodeQualityScan] = useState(false);
   const [qualityProgress, setQualityProgress] = useState(0);
+  const [aiAnalyzing, setAiAnalyzing] = useState(false);
+  const [aiProgress, setAiProgress] = useState(0);
+  const [aiInsights, setAiInsights] = useState(null);
 
   // Fetch all architectural data
   const { data: allEntities = {} } = useQuery({
@@ -485,6 +488,114 @@ export default function AdminArchitectureExaminer() {
     };
   }, []);
 
+  // AI-POWERED ANALYSIS
+  const runAIArchitectureAnalysis = async () => {
+    setAiAnalyzing(true);
+    setAiProgress(0);
+    
+    const progressInterval = setInterval(() => {
+      setAiProgress(prev => Math.min(prev + 5, 95));
+    }, 200);
+
+    try {
+      const analysisPrompt = `You are an expert software architect analyzing a production system. Based on the following data, provide actionable insights:
+
+TECH DEBT:
+- Total: ${techDebtAnalysis.totalDebt}
+- Security Issues: ${techDebtAnalysis.breakdown[1].items} items (${techDebtAnalysis.breakdown[1].hours} hours)
+- Performance Issues: ${techDebtAnalysis.breakdown[2].items} items (${techDebtAnalysis.breakdown[2].hours} hours)
+- Code Smells: ${techDebtAnalysis.breakdown[0].items} items
+- Trend: ${techDebtAnalysis.trendLastMonth} increase
+
+SECURITY VULNERABILITIES:
+${vulnResults.map(v => `- ${v.entity}: ${v.issue} (${v.severity})`).join('\n')}
+
+PERFORMANCE METRICS:
+${performanceMetrics.slice(0, 5).map(m => `- ${m.entity}: ${m.recordCount} records, ${m.queryComplexity} complexity`).join('\n')}
+
+RESOURCE UTILIZATION:
+- Peak CPU: ${Math.max(...resourceUtilization.map(r => r.cpu))}%
+- Peak Memory: ${Math.max(...resourceUtilization.map(r => r.memory))}%
+- Peak Database: ${Math.max(...resourceUtilization.map(r => r.database))}%
+
+LOAD BALANCING:
+- Current Load: ${deploymentArch.scaling.currentLoad}%
+- Instances: ${loadBalancingAnalysis.instances}
+- Active Connections: ${loadBalancingAnalysis.activeConnections}
+
+Provide a structured analysis with:
+1. CRITICAL PRIORITIES (top 3 urgent actions)
+2. PERFORMANCE PREDICTIONS (potential bottlenecks in next 30 days)
+3. SCALING RECOMMENDATIONS (based on current patterns)
+4. REFACTORING ROADMAP (prioritized tasks with timeline)`;
+
+      const response = await base44.integrations.Core.InvokeLLM({
+        prompt: analysisPrompt,
+        response_json_schema: {
+          type: "object",
+          properties: {
+            criticalPriorities: {
+              type: "array",
+              items: {
+                type: "object",
+                properties: {
+                  title: { type: "string" },
+                  description: { type: "string" },
+                  impact: { type: "string" },
+                  effort: { type: "string" }
+                }
+              }
+            },
+            performancePredictions: {
+              type: "array",
+              items: {
+                type: "object",
+                properties: {
+                  component: { type: "string" },
+                  risk: { type: "string" },
+                  timeframe: { type: "string" },
+                  mitigation: { type: "string" }
+                }
+              }
+            },
+            scalingRecommendations: {
+              type: "object",
+              properties: {
+                immediate: { type: "string" },
+                shortTerm: { type: "string" },
+                longTerm: { type: "string" },
+                estimatedCost: { type: "string" }
+              }
+            },
+            refactoringRoadmap: {
+              type: "array",
+              items: {
+                type: "object",
+                properties: {
+                  phase: { type: "string" },
+                  tasks: { type: "array", items: { type: "string" } },
+                  duration: { type: "string" },
+                  businessValue: { type: "string" }
+                }
+              }
+            },
+            executiveSummary: { type: "string" }
+          }
+        }
+      });
+
+      clearInterval(progressInterval);
+      setAiProgress(100);
+      setAiInsights(response);
+    } catch (error) {
+      console.error('AI Analysis failed:', error);
+      alert('AI Analysis failed. Please try again.');
+    } finally {
+      setAiAnalyzing(false);
+      setTimeout(() => setAiProgress(0), 1000);
+    }
+  };
+
   // 15. COMPLETE ARCHITECTURE EXPORT
   const downloadArchitecture = async () => {
     setIsDownloading(true);
@@ -557,21 +668,50 @@ export default function AdminArchitectureExaminer() {
     <div className="space-y-6">
       <EnterpriseHeader
         title="Architecture Backend Examiner"
-        subtitle="Advanced system analysis, visualization, and complete architecture export"
+        subtitle="AI-powered system analysis with predictive insights and strategic recommendations"
         icon={Network}
-        badge="ENTERPRISE"
+        badge="AI ENABLED"
         actions={[
           {
-            label: isDownloading ? 'Downloading...' : 'Download Complete Architecture',
+            label: aiAnalyzing ? 'AI Analyzing...' : 'Run AI Analysis',
+            onClick: runAIArchitectureAnalysis,
+            icon: Sparkles,
+            className: 'bg-gradient-to-r from-purple-600 to-pink-600 hover:from-purple-700 hover:to-pink-700 font-bold tracking-wide shadow-lg shadow-purple-500/50'
+          },
+          {
+            label: isDownloading ? 'Exporting...' : 'Export Architecture',
             onClick: downloadArchitecture,
             icon: Download,
-            className: 'bg-gradient-to-r from-cyan-500 to-blue-600'
+            className: 'bg-gradient-to-r from-slate-700 to-slate-800 hover:from-slate-800 hover:to-slate-900 border border-slate-600'
           }
         ]}
       />
 
+      {aiAnalyzing && (
+        <Card className="bg-gradient-to-br from-purple-900/20 to-pink-900/20 border-purple-500/50 shadow-xl shadow-purple-500/20">
+          <CardContent className="p-8">
+            <div className="space-y-4">
+              <div className="flex items-center justify-between">
+                <div className="flex items-center gap-3">
+                  <div className="relative">
+                    <Sparkles className="w-6 h-6 text-purple-400 animate-pulse" />
+                    <div className="absolute inset-0 bg-purple-400 blur-lg opacity-50 animate-pulse"></div>
+                  </div>
+                  <span className="text-white font-black text-lg">AI Architecture Analysis in Progress...</span>
+                </div>
+                <span className="text-purple-400 font-black text-xl">{aiProgress}%</span>
+              </div>
+              <Progress value={aiProgress} className="h-4 bg-slate-800/50 shadow-inner" />
+              <p className="text-slate-300 text-sm font-medium">
+                Analyzing tech debt, security vulnerabilities, performance patterns, and generating strategic recommendations...
+              </p>
+            </div>
+          </CardContent>
+        </Card>
+      )}
+
       {isDownloading && (
-        <Card className="bg-gradient-to-br from-cyan-900/30 to-blue-900/30 border-cyan-500/30">
+        <Card className="bg-gradient-to-br from-slate-800/50 to-slate-900/50 border-slate-700">
           <CardContent className="p-6">
             <div className="space-y-3">
               <div className="flex items-center justify-between">
@@ -587,36 +727,186 @@ export default function AdminArchitectureExaminer() {
         </Card>
       )}
 
+      {aiInsights && (
+        <Card className="bg-gradient-to-br from-purple-950/30 via-slate-900 to-blue-950/30 border-purple-500/30 shadow-2xl">
+          <CardHeader className="border-b border-purple-500/20 bg-gradient-to-r from-purple-900/20 to-pink-900/20">
+            <CardTitle className="text-white flex items-center gap-3 text-2xl">
+              <Sparkles className="w-7 h-7 text-purple-400" />
+              AI-Powered Strategic Insights
+            </CardTitle>
+          </CardHeader>
+          <CardContent className="p-8 space-y-6">
+            <div className="prose prose-invert max-w-none">
+              <div className="bg-gradient-to-r from-purple-900/30 to-blue-900/30 border border-purple-500/30 rounded-xl p-6">
+                <h3 className="text-purple-300 font-black text-lg mb-3">Executive Summary</h3>
+                <p className="text-slate-200 leading-relaxed">{aiInsights.executiveSummary}</p>
+              </div>
+
+              <div className="grid md:grid-cols-2 gap-6 mt-6">
+                <div>
+                  <h3 className="text-red-400 font-black text-lg mb-4 flex items-center gap-2">
+                    <AlertTriangle className="w-5 h-5" />
+                    Critical Priorities
+                  </h3>
+                  <div className="space-y-3">
+                    {aiInsights.criticalPriorities?.map((priority, idx) => (
+                      <Card key={idx} className="bg-slate-800/50 border-red-500/30">
+                        <CardContent className="p-4">
+                          <h4 className="text-white font-bold mb-2">{priority.title}</h4>
+                          <p className="text-slate-300 text-sm mb-3">{priority.description}</p>
+                          <div className="flex gap-2">
+                            <Badge className="bg-red-500">Impact: {priority.impact}</Badge>
+                            <Badge className="bg-blue-500">Effort: {priority.effort}</Badge>
+                          </div>
+                        </CardContent>
+                      </Card>
+                    ))}
+                  </div>
+                </div>
+
+                <div>
+                  <h3 className="text-yellow-400 font-black text-lg mb-4 flex items-center gap-2">
+                    <TrendingUp className="w-5 h-5" />
+                    Performance Predictions
+                  </h3>
+                  <div className="space-y-3">
+                    {aiInsights.performancePredictions?.map((pred, idx) => (
+                      <Card key={idx} className="bg-slate-800/50 border-yellow-500/30">
+                        <CardContent className="p-4">
+                          <h4 className="text-white font-bold mb-2">{pred.component}</h4>
+                          <p className="text-slate-300 text-sm mb-2">
+                            <span className="text-yellow-400 font-semibold">Risk:</span> {pred.risk}
+                          </p>
+                          <p className="text-slate-300 text-sm mb-2">
+                            <span className="text-cyan-400 font-semibold">Timeframe:</span> {pred.timeframe}
+                          </p>
+                          <p className="text-slate-400 text-xs italic">{pred.mitigation}</p>
+                        </CardContent>
+                      </Card>
+                    ))}
+                  </div>
+                </div>
+              </div>
+
+              <div className="mt-6">
+                <h3 className="text-green-400 font-black text-lg mb-4 flex items-center gap-2">
+                  <Server className="w-5 h-5" />
+                  Scaling Recommendations
+                </h3>
+                <div className="grid md:grid-cols-3 gap-4">
+                  <Card className="bg-gradient-to-br from-green-900/20 to-emerald-900/20 border-green-500/30">
+                    <CardContent className="p-4">
+                      <h4 className="text-green-300 font-bold mb-2">Immediate Action</h4>
+                      <p className="text-slate-300 text-sm">{aiInsights.scalingRecommendations?.immediate}</p>
+                    </CardContent>
+                  </Card>
+                  <Card className="bg-gradient-to-br from-blue-900/20 to-cyan-900/20 border-blue-500/30">
+                    <CardContent className="p-4">
+                      <h4 className="text-blue-300 font-bold mb-2">Short-Term (1-3 months)</h4>
+                      <p className="text-slate-300 text-sm">{aiInsights.scalingRecommendations?.shortTerm}</p>
+                    </CardContent>
+                  </Card>
+                  <Card className="bg-gradient-to-br from-purple-900/20 to-pink-900/20 border-purple-500/30">
+                    <CardContent className="p-4">
+                      <h4 className="text-purple-300 font-bold mb-2">Long-Term (6+ months)</h4>
+                      <p className="text-slate-300 text-sm">{aiInsights.scalingRecommendations?.longTerm}</p>
+                    </CardContent>
+                  </Card>
+                </div>
+                <Card className="bg-slate-800/50 border-slate-700 mt-4">
+                  <CardContent className="p-4 flex items-center justify-between">
+                    <span className="text-slate-400 font-semibold">Estimated Investment:</span>
+                    <span className="text-green-400 font-black text-xl">{aiInsights.scalingRecommendations?.estimatedCost}</span>
+                  </CardContent>
+                </Card>
+              </div>
+
+              <div className="mt-6">
+                <h3 className="text-cyan-400 font-black text-lg mb-4 flex items-center gap-2">
+                  <Workflow className="w-5 h-5" />
+                  Refactoring Roadmap
+                </h3>
+                <div className="space-y-4">
+                  {aiInsights.refactoringRoadmap?.map((phase, idx) => (
+                    <Card key={idx} className="bg-slate-800/50 border-cyan-500/30">
+                      <CardContent className="p-6">
+                        <div className="flex items-start justify-between mb-4">
+                          <div>
+                            <h4 className="text-white font-black text-lg">{phase.phase}</h4>
+                            <p className="text-slate-400 text-sm">Duration: {phase.duration}</p>
+                          </div>
+                          <Badge className="bg-gradient-to-r from-cyan-500 to-blue-600 text-white font-bold px-4 py-1">
+                            {phase.businessValue}
+                          </Badge>
+                        </div>
+                        <div className="space-y-2">
+                          {phase.tasks?.map((task, taskIdx) => (
+                            <div key={taskIdx} className="flex items-start gap-2 text-slate-300">
+                              <CheckCircle2 className="w-4 h-4 text-cyan-400 mt-0.5 flex-shrink-0" />
+                              <span className="text-sm">{task}</span>
+                            </div>
+                          ))}
+                        </div>
+                      </CardContent>
+                    </Card>
+                  ))}
+                </div>
+              </div>
+            </div>
+          </CardContent>
+        </Card>
+      )}
+
       <div className="grid grid-cols-4 gap-4">
-        <Card className="bg-gradient-to-br from-blue-900/30 to-cyan-900/30 border-blue-500/30">
+        <Card className="bg-gradient-to-br from-slate-900 via-blue-950 to-slate-900 border border-blue-500/40 shadow-lg hover:shadow-blue-500/30 transition-all duration-300 group">
           <CardContent className="p-6">
-            <Database className="w-8 h-8 text-blue-400 mb-3" />
-            <p className="text-3xl font-black text-white">{ALL_ENTITIES.length}</p>
-            <p className="text-blue-300 text-sm font-bold">Total Entities</p>
+            <div className="flex items-center justify-between mb-4">
+              <div className="w-14 h-14 rounded-xl bg-gradient-to-br from-blue-500 to-cyan-600 flex items-center justify-center shadow-lg shadow-blue-500/50 group-hover:scale-110 transition-transform">
+                <Database className="w-7 h-7 text-white" />
+              </div>
+              <Badge className="bg-blue-500/20 text-blue-300 border border-blue-500/30 font-bold">CORE</Badge>
+            </div>
+            <p className="text-4xl font-black text-white mb-1 tracking-tight">{ALL_ENTITIES.length}</p>
+            <p className="text-blue-300 text-sm font-bold tracking-wide">Total Entities</p>
           </CardContent>
         </Card>
 
-        <Card className="bg-gradient-to-br from-purple-900/30 to-pink-900/30 border-purple-500/30">
+        <Card className="bg-gradient-to-br from-slate-900 via-purple-950 to-slate-900 border border-purple-500/40 shadow-lg hover:shadow-purple-500/30 transition-all duration-300 group">
           <CardContent className="p-6">
-            <Workflow className="w-8 h-8 text-purple-400 mb-3" />
-            <p className="text-3xl font-black text-white">{automations.length}</p>
-            <p className="text-purple-300 text-sm font-bold">Automation Pipelines</p>
+            <div className="flex items-center justify-between mb-4">
+              <div className="w-14 h-14 rounded-xl bg-gradient-to-br from-purple-500 to-pink-600 flex items-center justify-center shadow-lg shadow-purple-500/50 group-hover:scale-110 transition-transform">
+                <Workflow className="w-7 h-7 text-white" />
+              </div>
+              <Badge className="bg-purple-500/20 text-purple-300 border border-purple-500/30 font-bold">AUTO</Badge>
+            </div>
+            <p className="text-4xl font-black text-white mb-1 tracking-tight">{automations.length}</p>
+            <p className="text-purple-300 text-sm font-bold tracking-wide">Automation Pipelines</p>
           </CardContent>
         </Card>
 
-        <Card className="bg-gradient-to-br from-green-900/30 to-emerald-900/30 border-green-500/30">
+        <Card className="bg-gradient-to-br from-slate-900 via-emerald-950 to-slate-900 border border-emerald-500/40 shadow-lg hover:shadow-emerald-500/30 transition-all duration-300 group">
           <CardContent className="p-6">
-            <Link2 className="w-8 h-8 text-green-400 mb-3" />
-            <p className="text-3xl font-black text-white">{integrations.length}</p>
-            <p className="text-green-300 text-sm font-bold">Active Integrations</p>
+            <div className="flex items-center justify-between mb-4">
+              <div className="w-14 h-14 rounded-xl bg-gradient-to-br from-emerald-500 to-green-600 flex items-center justify-center shadow-lg shadow-emerald-500/50 group-hover:scale-110 transition-transform">
+                <Link2 className="w-7 h-7 text-white" />
+              </div>
+              <Badge className="bg-emerald-500/20 text-emerald-300 border border-emerald-500/30 font-bold">LIVE</Badge>
+            </div>
+            <p className="text-4xl font-black text-white mb-1 tracking-tight">{integrations.length}</p>
+            <p className="text-emerald-300 text-sm font-bold tracking-wide">Active Integrations</p>
           </CardContent>
         </Card>
 
-        <Card className="bg-gradient-to-br from-orange-900/30 to-red-900/30 border-orange-500/30">
+        <Card className="bg-gradient-to-br from-slate-900 via-orange-950 to-slate-900 border border-orange-500/40 shadow-lg hover:shadow-orange-500/30 transition-all duration-300 group">
           <CardContent className="p-6">
-            <Server className="w-8 h-8 text-orange-400 mb-3" />
-            <p className="text-3xl font-black text-white">{apiEndpoints.length}</p>
-            <p className="text-orange-300 text-sm font-bold">API Endpoints</p>
+            <div className="flex items-center justify-between mb-4">
+              <div className="w-14 h-14 rounded-xl bg-gradient-to-br from-orange-500 to-red-600 flex items-center justify-center shadow-lg shadow-orange-500/50 group-hover:scale-110 transition-transform">
+                <Server className="w-7 h-7 text-white" />
+              </div>
+              <Badge className="bg-orange-500/20 text-orange-300 border border-orange-500/30 font-bold">API</Badge>
+            </div>
+            <p className="text-4xl font-black text-white mb-1 tracking-tight">{apiEndpoints.length}</p>
+            <p className="text-orange-300 text-sm font-bold tracking-wide">API Endpoints</p>
           </CardContent>
         </Card>
       </div>
