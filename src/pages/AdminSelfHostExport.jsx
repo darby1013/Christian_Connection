@@ -1049,15 +1049,14 @@ CREATE TABLE sessions (
       files.forEach((file, idx) => {
         setTimeout(() => {
           downloadFile(file.content, file.name.replace(/\\//g, '_'), 'text/plain');
-        }, idx * 300);
-      });
     }, 500);
-
-    setTimeout(() => {
+      
+    } catch (error) {
+      console.error('Export failed:', error);
       setExporting(false);
       setExportProgress(0);
-      window.alert(`✅ Generated ${files.length} files for self-host deployment!\n\nAll files have been downloaded. Check your downloads folder.`);
-    }, files.length * 300 + 1000);
+      window.alert('❌ Export failed. Please try again or contact support.');
+    }
   };
 
   const generateMySQLSchema = async () => {
