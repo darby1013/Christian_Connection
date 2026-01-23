@@ -1038,7 +1038,13 @@ CREATE TABLE sessions (
 
     setExportProgress(100);
     
-    // Download all files as individual downloads (browser doesn't support zip creation natively without library)
+    // Download zip file
+    const url = URL.createObjectURL(zipBlob);
+    const a = document.createElement('a');
+    a.href = url;
+    a.download = `glorywave-selfhost-${new Date().toISOString().split('T')[0]}.zip`;
+    a.click();
+    URL.revokeObjectURL(url);
     setTimeout(() => {
       files.forEach((file, idx) => {
         setTimeout(() => {
