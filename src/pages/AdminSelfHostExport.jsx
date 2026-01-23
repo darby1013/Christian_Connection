@@ -5,6 +5,7 @@ import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
 import { Progress } from '@/components/ui/progress';
 import EnterpriseHeader from '../components/admin/EnterpriseHeader';
+import JSZip from 'jszip';
 import { 
   Download, Database, FileCode, Settings, Package, 
   Shield, FolderOpen, CheckCircle2, AlertTriangle, Code2
