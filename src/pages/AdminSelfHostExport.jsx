@@ -948,7 +948,9 @@ CREATE TABLE sessions (
     setExporting(true);
     setExportType('complete');
     setExportProgress(0);
-    const files = [];
+    
+    try {
+      const files = [];
 
     // Step 1: Generate Database Schema (10%)
     setExportProgress(5);
@@ -1010,13 +1012,29 @@ CREATE TABLE sessions (
     const readme = generateReadme();
     files.push({ name: 'README.md', content: readme });
 
-    // Step 10: Package Everything (100%)
-    setExportProgress(98);
-    setGeneratedFiles(files);
-    
     // Create a manifest
     const manifest = generateManifest(files);
     files.push({ name: 'MANIFEST.md', content: manifest });
+
+    // Step 10: Create ZIP Package (100%)
+    setExportProgress(98);
+    setGeneratedFiles(files);
+    
+    const zip = new JSZip();
+    
+    // Add all files to zip with proper directory structure
+    files.forEach(file => {
+      zip.file(file.name, file.content);
+    });
+
+    setExportProgress(99);
+    
+    // Generate zip file
+    const zipBlob = await zip.generateAsync({ 
+      type: 'blob',
+      compression: 'DEFLATE',
+      compressionOptions: { level: 9 }
+    });
 
     setExportProgress(100);
     
