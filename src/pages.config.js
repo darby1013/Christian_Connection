@@ -214,6 +214,7 @@ import UserSubscriptionManagement from './pages/UserSubscriptionManagement';
 import Volunteer from './pages/Volunteer';
 import WatchVideos from './pages/WatchVideos';
 import Wishlist from './pages/Wishlist';
+import AdminArchitectureDashboard from './pages/AdminArchitectureDashboard';
 import __Layout from './Layout.jsx';
 
 
@@ -434,6 +435,7 @@ export const PAGES = {
     "Volunteer": Volunteer,
     "WatchVideos": WatchVideos,
     "Wishlist": Wishlist,
+    "AdminArchitectureDashboard": AdminArchitectureDashboard,
 }
 
 export const pagesConfig = {
