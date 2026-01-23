@@ -9,7 +9,6 @@ import { Progress } from '@/components/ui/progress';
 import EnterpriseHeader from '../components/admin/EnterpriseHeader';
 import EnterpriseTable from '../components/admin/EnterpriseTable';
 import EnterpriseChart from '../components/admin/EnterpriseChart';
-import SystemAlertsPanel from '../components/admin/SystemAlertsPanel';
 import CICDIntegration from '../components/admin/CICDIntegration';
 import ArchitectureGraph from '../components/admin/ArchitectureGraph';
 import { 
@@ -44,7 +43,6 @@ export default function AdminArchitectureExaminer() {
   const [aiAnalyzing, setAiAnalyzing] = useState(false);
   const [aiProgress, setAiProgress] = useState(0);
   const [aiInsights, setAiInsights] = useState(null);
-  const [showAlerts, setShowAlerts] = useState(true);
   const [predictiveAnalysis, setPredictiveAnalysis] = useState(null);
   const [autoHealingInProgress, setAutoHealingInProgress] = useState(false);
   const [healingProgress, setHealingProgress] = useState(0);
@@ -661,9 +659,6 @@ CURRENT METRICS:
 - Memory Usage: ${avgMemory.toFixed(1)}% (24h average)
 - Error Rate: ${avgErrorRate.toFixed(2)}% (24h average)
 - Recent Incidents: ${recentIncidents.length} in last 10 periods
-
-ACTIVE ALERTS: ${activeAlerts.length}
-${activeAlerts.map(a => `- ${a.service}: ${a.metric} at ${a.value}${a.metric === 'DB Connections' ? '' : '%'}`).join('\n')}
 
 RESOURCE TRENDS:
 ${historicalMetrics.slice(-6).map((m, i) => `T-${6-i}h: CPU ${m.cpu.toFixed(1)}%, MEM ${m.memory.toFixed(1)}%, ERR ${m.errorRate.toFixed(2)}%`).join('\n')}
@@ -1313,19 +1308,6 @@ Provide a structured analysis with:
           </CardContent>
         </Card>
       )}
-
-      {/* AI-POWERED PREDICTIVE ALERTS */}
-      <SystemAlertsPanel
-        realtimeMetrics={realtimeMetrics}
-        showAlerts={showAlerts}
-        setShowAlerts={setShowAlerts}
-        runPredictiveAnalysis={runPredictiveAnalysis}
-        executeRootCauseAnalysis={executeRootCauseAnalysis}
-        executeAutoHealing={executeAutoHealing}
-        rcaInProgress={rcaInProgress}
-        autoHealingInProgress={autoHealingInProgress}
-        healingProgress={healingProgress}
-      />
 
       {/* ROOT CAUSE ANALYSIS RESULTS */}
       {rcaAnalysis && (
