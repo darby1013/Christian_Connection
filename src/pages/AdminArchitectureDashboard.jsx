@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useMemo } from 'react';
 import { base44 } from '@/api/base44Client';
 import { useQuery } from '@tanstack/react-query';
 import { Button } from '@/components/ui/button';
@@ -8,13 +8,15 @@ import { Card, CardContent } from '@/components/ui/card';
 import EnterpriseHeader from '../components/admin/EnterpriseHeader';
 import DashboardWidget from '../components/admin/DashboardWidget';
 import WidgetSelector from '../components/admin/WidgetSelector';
-import EnterpriseTable from '../components/admin/EnterpriseTable';
-import EnterpriseChart from '../components/admin/EnterpriseChart';
+import RealtimeMetricsWidget from '../components/admin/widgets/RealtimeMetricsWidget';
+import TechDebtWidget from '../components/admin/widgets/TechDebtWidget';
+import ComplianceWidget from '../components/admin/widgets/ComplianceWidget';
+import PredictiveAnalysisWidget from '../components/admin/widgets/PredictiveAnalysisWidget';
 import { DragDropContext, Droppable, Draggable } from '@hello-pangea/dnd';
 import { 
   Plus, Save, RotateCcw, Activity, TrendingUp, Shield, 
-  Database, Cpu, AlertTriangle, CheckCircle2, Zap, Clock,
-  DollarSign, Network, Server, BarChart2, Sparkles, Settings
+  Database, AlertTriangle, DollarSign, Network, Server, 
+  BarChart2, Sparkles
 } from 'lucide-react';
 
 const ALL_ENTITIES = [
@@ -55,6 +57,8 @@ export default function AdminArchitectureDashboard() {
         { name: 'API Gateway', cpu: Math.random() * 40 + 30, memory: Math.random() * 30 + 40, network: Math.random() * 50 + 20, dbConnections: Math.floor(Math.random() * 50) + 100 },
         { name: 'Auth Service', cpu: Math.random() * 20 + 15, memory: Math.random() * 25 + 20, network: Math.random() * 30 + 10, dbConnections: Math.floor(Math.random() * 20) + 30 },
         { name: 'Product Service', cpu: Math.random() * 50 + 40, memory: Math.random() * 40 + 35, network: Math.random() * 60 + 30, dbConnections: Math.floor(Math.random() * 80) + 150 },
+        { name: 'Order Service', cpu: Math.random() * 45 + 35, memory: Math.random() * 35 + 30, network: Math.random() * 55 + 25, dbConnections: Math.floor(Math.random() * 60) + 120 },
+        { name: 'Analytics Service', cpu: Math.random() * 60 + 50, memory: Math.random() * 50 + 45, network: Math.random() * 40 + 15, dbConnections: Math.floor(Math.random() * 100) + 200 }
       ]
     }),
     refetchInterval: 5000
@@ -76,13 +80,16 @@ export default function AdminArchitectureDashboard() {
     }
   });
 
-  const performanceMetrics = Object.entries(allEntities).map(([name, { count }]) => ({
-    entity: name,
-    recordCount: count,
-    queryComplexity: count > 1000 ? 'High' : count > 100 ? 'Medium' : 'Low',
-  })).sort((a, b) => b.recordCount - a.recordCount);
+  const performanceMetrics = useMemo(() => 
+    Object.entries(allEntities).map(([name, { count }]) => ({
+      entity: name,
+      recordCount: count,
+      queryComplexity: count > 1000 ? 'High' : count > 100 ? 'Medium' : 'Low',
+    })).sort((a, b) => b.recordCount - a.recordCount),
+    [allEntities]
+  );
 
-  const techDebtAnalysis = {
+  const techDebtAnalysis = useMemo(() => ({
     totalDebt: '287 hours',
     estimatedCost: '$43,050',
     breakdown: [
@@ -91,26 +98,27 @@ export default function AdminArchitectureDashboard() {
       { category: 'Performance', hours: 45, priority: 'High', items: 12 },
       { category: 'Documentation', hours: 26, priority: 'Low', items: 34 }
     ]
-  };
+  }), []);
 
-  const complianceStatus = {
+  const complianceStatus = useMemo(() => ({
     overallCompliance: 94,
     checks: [
       { framework: 'GDPR', passed: 47, failed: 3, score: 94, status: 'Passing' },
       { framework: 'SOX', passed: 28, failed: 1, score: 97, status: 'Passing' },
-      { framework: 'HIPAA', passed: 35, failed: 5, score: 88, status: 'Warning' }
+      { framework: 'HIPAA', passed: 35, failed: 5, score: 88, status: 'Warning' },
+      { framework: 'PCI-DSS', passed: 42, failed: 0, score: 100, status: 'Passing' }
     ]
-  };
+  }), []);
 
-  const trafficMetrics = {
+  const trafficMetrics = useMemo(() => ({
     currentRPS: Math.floor(Math.random() * 500) + 1200,
     peakRPS: 2847,
     avgResponseTime: Math.floor(Math.random() * 100) + 150,
     errorRate: (Math.random() * 0.5).toFixed(2),
     activeUsers: Math.floor(Math.random() * 1000) + 4500
-  };
+  }), []);
 
-  const costAnalysis = {
+  const costAnalysis = useMemo(() => ({
     currentMonthly: '$12,847',
     projectedMonthly: '$15,320',
     breakdown: [
@@ -118,33 +126,45 @@ export default function AdminArchitectureDashboard() {
       { service: 'Compute', cost: 5100, percentage: 40 },
       { service: 'Storage', cost: 1800, percentage: 14 }
     ]
-  };
+  }), []);
 
-  const apiConnections = [
+  const apiConnections = useMemo(() => [
     { endpoint: '/api/products', method: 'GET', activeConnections: 47, successRate: 99.8 },
     { endpoint: '/api/orders', method: 'POST', activeConnections: 23, successRate: 99.5 },
     { endpoint: '/api/auth/login', method: 'POST', activeConnections: 12, successRate: 98.9 }
-  ];
+  ], []);
 
   const getDefaultLayout = () => [
-    { id: 'realtime', type: 'realtime' },
-    { id: 'traffic', type: 'traffic' },
-    { id: 'techdebt', type: 'techdebt' },
-    { id: 'compliance', type: 'compliance' }
+    { id: 'realtime-1', type: 'realtime' },
+    { id: 'traffic-1', type: 'traffic' },
+    { id: 'techdebt-1', type: 'techdebt' },
+    { id: 'compliance-1', type: 'compliance' }
   ];
 
-  const availableWidgets = [
+  const availableWidgets = useMemo(() => [
     { 
       id: 'realtime', 
       type: 'realtime',
       title: 'Real-Time Service Metrics', 
-      description: 'Live CPU, memory, and network monitoring',
+      description: 'Live CPU, memory, and network monitoring with diagnostics',
       icon: Activity,
       iconColor: 'text-cyan-400',
       category: 'Monitoring',
       badgeColor: 'bg-cyan-500',
       size: 'Large',
       color: 'cyan'
+    },
+    { 
+      id: 'predictions', 
+      type: 'predictions',
+      title: 'AI Predictive Analysis', 
+      description: 'Future incident predictions with actionable insights',
+      icon: Sparkles,
+      iconColor: 'text-purple-400',
+      category: 'AI',
+      badgeColor: 'bg-purple-500',
+      size: 'Large',
+      color: 'purple'
     },
     { 
       id: 'traffic', 
@@ -162,7 +182,7 @@ export default function AdminArchitectureDashboard() {
       id: 'techdebt', 
       type: 'techdebt',
       title: 'Tech Debt Analysis', 
-      description: 'Code quality and technical debt metrics',
+      description: 'Drill-down into code smells and vulnerabilities',
       icon: AlertTriangle,
       iconColor: 'text-orange-400',
       category: 'Quality',
@@ -174,7 +194,7 @@ export default function AdminArchitectureDashboard() {
       id: 'compliance', 
       type: 'compliance',
       title: 'Compliance Status', 
-      description: 'GDPR, SOX, HIPAA compliance scores',
+      description: 'Framework scores with evidence links',
       icon: Shield,
       iconColor: 'text-green-400',
       category: 'Security',
@@ -230,46 +250,21 @@ export default function AdminArchitectureDashboard() {
       size: 'Small',
       color: 'purple'
     }
-  ];
+  ], []);
 
   const renderWidgetContent = (type) => {
     switch(type) {
       case 'realtime':
-        return (
-          <div className="space-y-4">
-            {realtimeMetrics?.services.map((service, idx) => (
-              <div key={idx} className="space-y-2">
-                <div className="flex items-center justify-between mb-2">
-                  <span className="text-white font-bold text-sm">{service.name}</span>
-                  <Badge className="bg-slate-700 text-slate-300 text-xs">{service.dbConnections} conn</Badge>
-                </div>
-                <div className="grid grid-cols-3 gap-2">
-                  <div>
-                    <div className="flex items-center justify-between mb-1">
-                      <span className="text-xs text-slate-400">CPU</span>
-                      <span className="text-xs font-bold text-cyan-400">{service.cpu.toFixed(0)}%</span>
-                    </div>
-                    <Progress value={service.cpu} className="h-1.5" />
-                  </div>
-                  <div>
-                    <div className="flex items-center justify-between mb-1">
-                      <span className="text-xs text-slate-400">MEM</span>
-                      <span className="text-xs font-bold text-purple-400">{service.memory.toFixed(0)}%</span>
-                    </div>
-                    <Progress value={service.memory} className="h-1.5" />
-                  </div>
-                  <div>
-                    <div className="flex items-center justify-between mb-1">
-                      <span className="text-xs text-slate-400">NET</span>
-                      <span className="text-xs font-bold text-green-400">{service.network.toFixed(0)}%</span>
-                    </div>
-                    <Progress value={service.network} className="h-1.5" />
-                  </div>
-                </div>
-              </div>
-            ))}
-          </div>
-        );
+        return <RealtimeMetricsWidget services={realtimeMetrics?.services} />;
+
+      case 'predictions':
+        return <PredictiveAnalysisWidget />;
+
+      case 'techdebt':
+        return <TechDebtWidget techDebtAnalysis={techDebtAnalysis} />;
+
+      case 'compliance':
+        return <ComplianceWidget complianceStatus={complianceStatus} />;
 
       case 'traffic':
         return (
@@ -289,58 +284,6 @@ export default function AdminArchitectureDashboard() {
             <div className="p-3 bg-gradient-to-br from-red-900/20 to-orange-900/20 rounded-lg border border-red-500/30">
               <p className="text-red-400 text-xs font-bold mb-1">ERROR RATE</p>
               <p className="text-white font-black text-2xl">{trafficMetrics.errorRate}<span className="text-sm">%</span></p>
-            </div>
-          </div>
-        );
-
-      case 'techdebt':
-        return (
-          <div className="space-y-4">
-            <div className="grid grid-cols-2 gap-3">
-              <div className="p-3 bg-red-900/20 border border-red-500/30 rounded">
-                <p className="text-red-300 text-xs font-bold mb-1">Total Debt</p>
-                <p className="text-white font-black text-xl">{techDebtAnalysis.totalDebt}</p>
-              </div>
-              <div className="p-3 bg-yellow-900/20 border border-yellow-500/30 rounded">
-                <p className="text-yellow-300 text-xs font-bold mb-1">Est. Cost</p>
-                <p className="text-white font-black text-xl">{techDebtAnalysis.estimatedCost}</p>
-              </div>
-            </div>
-            <div className="space-y-2">
-              {techDebtAnalysis.breakdown.slice(0, 4).map((item, idx) => (
-                <div key={idx} className="flex items-center justify-between p-2 bg-slate-800 rounded text-sm">
-                  <span className="text-slate-300">{item.category}</span>
-                  <div className="flex items-center gap-2">
-                    <span className="text-slate-400">{item.hours}h</span>
-                    <Badge className={
-                      item.priority === 'Critical' ? 'bg-red-600' :
-                      item.priority === 'High' ? 'bg-orange-500' :
-                      item.priority === 'Medium' ? 'bg-yellow-500' : 'bg-blue-500'
-                    }>{item.priority}</Badge>
-                  </div>
-                </div>
-              ))}
-            </div>
-          </div>
-        );
-
-      case 'compliance':
-        return (
-          <div className="space-y-4">
-            <div className="text-center p-4 bg-green-900/20 border border-green-500/30 rounded-lg">
-              <div className="text-4xl font-black text-green-400">{complianceStatus.overallCompliance}%</div>
-              <p className="text-green-300 text-sm font-bold">Overall Score</p>
-            </div>
-            <div className="space-y-2">
-              {complianceStatus.checks.map((check, idx) => (
-                <div key={idx} className="flex items-center justify-between p-2 bg-slate-800 rounded text-sm">
-                  <span className="text-slate-300">{check.framework}</span>
-                  <div className="flex items-center gap-2">
-                    <span className="text-white font-bold">{check.score}%</span>
-                    <Badge className={check.status === 'Passing' ? 'bg-green-500' : 'bg-yellow-500'}>{check.status}</Badge>
-                  </div>
-                </div>
-              ))}
             </div>
           </div>
         );
@@ -445,9 +388,8 @@ export default function AdminArchitectureDashboard() {
   };
 
   const handleAddWidget = (widget) => {
-    if (!dashboardWidgets.find(w => w.id === widget.id)) {
-      setDashboardWidgets([...dashboardWidgets, { id: widget.id, type: widget.type }]);
-    }
+    const newId = `${widget.type}-${Date.now()}`;
+    setDashboardWidgets([...dashboardWidgets, { id: newId, type: widget.type }]);
   };
 
   const handleRemoveWidget = (widgetId) => {

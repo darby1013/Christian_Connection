@@ -26,6 +26,7 @@ import AdminActivityFeed from './pages/AdminActivityFeed';
 import AdminAdvancedCoupons from './pages/AdminAdvancedCoupons';
 import AdminAdvancedQueryBuilder from './pages/AdminAdvancedQueryBuilder';
 import AdminAnalytics from './pages/AdminAnalytics';
+import AdminArchitectureDashboard from './pages/AdminArchitectureDashboard';
 import AdminArchitectureExaminer from './pages/AdminArchitectureExaminer';
 import AdminAudioUpload from './pages/AdminAudioUpload';
 import AdminAuditLog from './pages/AdminAuditLog';
@@ -98,6 +99,7 @@ import AdminPerformanceMonitor from './pages/AdminPerformanceMonitor';
 import AdminPermissionManager from './pages/AdminPermissionManager';
 import AdminPodcastAnalytics from './pages/AdminPodcastAnalytics';
 import AdminPodcastAudioEditor from './pages/AdminPodcastAudioEditor';
+import Blog from './pages/Blog';
 import AdminPodcastDashboard from './pages/AdminPodcastDashboard';
 import AdminPodcastLive from './pages/AdminPodcastLive';
 import AdminPodcastMarketing from './pages/AdminPodcastMarketing';
@@ -150,7 +152,6 @@ import AdminUsers from './pages/AdminUsers';
 import AdminVideos from './pages/AdminVideos';
 import AdminWebhooks from './pages/AdminWebhooks';
 import AdminWebsiteFilesManager from './pages/AdminWebsiteFilesManager';
-import Blog from './pages/Blog';
 import BlogDetail from './pages/BlogDetail';
 import BlogPost from './pages/BlogPost';
 import BrandShowcase from './pages/BrandShowcase';
@@ -214,7 +215,6 @@ import UserSubscriptionManagement from './pages/UserSubscriptionManagement';
 import Volunteer from './pages/Volunteer';
 import WatchVideos from './pages/WatchVideos';
 import Wishlist from './pages/Wishlist';
-import AdminArchitectureDashboard from './pages/AdminArchitectureDashboard';
 import __Layout from './Layout.jsx';
 
 
@@ -247,6 +247,7 @@ export const PAGES = {
     "AdminAdvancedCoupons": AdminAdvancedCoupons,
     "AdminAdvancedQueryBuilder": AdminAdvancedQueryBuilder,
     "AdminAnalytics": AdminAnalytics,
+    "AdminArchitectureDashboard": AdminArchitectureDashboard,
     "AdminArchitectureExaminer": AdminArchitectureExaminer,
     "AdminAudioUpload": AdminAudioUpload,
     "AdminAuditLog": AdminAuditLog,
@@ -319,6 +320,7 @@ export const PAGES = {
     "AdminPermissionManager": AdminPermissionManager,
     "AdminPodcastAnalytics": AdminPodcastAnalytics,
     "AdminPodcastAudioEditor": AdminPodcastAudioEditor,
+    "Blog": Blog,
     "AdminPodcastDashboard": AdminPodcastDashboard,
     "AdminPodcastLive": AdminPodcastLive,
     "AdminPodcastMarketing": AdminPodcastMarketing,
@@ -371,7 +373,6 @@ export const PAGES = {
     "AdminVideos": AdminVideos,
     "AdminWebhooks": AdminWebhooks,
     "AdminWebsiteFilesManager": AdminWebsiteFilesManager,
-    "Blog": Blog,
     "BlogDetail": BlogDetail,
     "BlogPost": BlogPost,
     "BrandShowcase": BrandShowcase,
@@ -435,7 +436,6 @@ export const PAGES = {
     "Volunteer": Volunteer,
     "WatchVideos": WatchVideos,
     "Wishlist": Wishlist,
-    "AdminArchitectureDashboard": AdminArchitectureDashboard,
 }
 
 export const pagesConfig = {
