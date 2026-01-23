@@ -1,4 +1,3 @@
-
 import React from "react";
 import { useQuery } from "@tanstack/react-query";
 import { base44 } from "@/api/base44Client";
@@ -216,44 +215,6 @@ export default function AdminDashboard() {
           colors={['success']}
         />
       </div>
-
-      {/* System Alerts */}
-      {(pendingOrders > 0 || lowStockProducts > 0) && (
-        <div className="grid md:grid-cols-2 gap-4">
-          {pendingOrders > 0 && (
-            <Card className="bg-amber-900/20 border-amber-500/30">
-              <CardContent className="p-4 flex items-center justify-between">
-                <div className="flex items-center gap-3">
-                  <AlertCircle className="w-8 h-8 text-amber-400" />
-                  <div>
-                    <p className="text-amber-300 font-bold">{pendingOrders} Pending Orders</p>
-                    <p className="text-amber-200 text-sm">Require attention</p>
-                  </div>
-                </div>
-                <Link to={createPageUrl("AdminOrders")}>
-                  <Button className="bg-amber-500 hover:bg-amber-600">View Orders</Button>
-                </Link>
-              </CardContent>
-            </Card>
-          )}
-          {lowStockProducts > 0 && (
-            <Card className="bg-red-900/20 border-red-500/30">
-              <CardContent className="p-4 flex items-center justify-between">
-                <div className="flex items-center gap-3">
-                  <Package className="w-8 h-8 text-red-400" />
-                  <div>
-                    <p className="text-red-300 font-bold">{lowStockProducts} Low Stock Products</p>
-                    <p className="text-red-200 text-sm">Need restocking</p>
-                  </div>
-                </div>
-                <Link to={createPageUrl("AdminInventoryManagement")}>
-                  <Button className="bg-red-500 hover:bg-red-600">View Inventory</Button>
-                </Link>
-              </CardContent>
-            </Card>
-          )}
-        </div>
-      )}
 
       {/* Real-time Widgets */}
       <div className="grid lg:grid-cols-3 gap-4">
