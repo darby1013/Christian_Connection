@@ -1,0 +1,46 @@
+{
+  "name": "PodcastRevenue",
+  "type": "object",
+  "properties": {
+    "podcast_id": {
+      "type": "string",
+      "description": "Reference to Podcast entity"
+    },
+    "podcast_title": {
+      "type": "string"
+    },
+    "revenue_date": {
+      "type": "string",
+      "format": "date",
+      "description": "Date of revenue"
+    },
+    "revenue_type": {
+      "type": "string",
+      "enum": [
+        "episode_purchase",
+        "subscription",
+        "ad_revenue"
+      ],
+      "description": "Source of revenue"
+    },
+    "amount": {
+      "type": "number",
+      "description": "Revenue amount"
+    },
+    "transaction_count": {
+      "type": "number",
+      "default": 1,
+      "description": "Number of transactions"
+    },
+    "notes": {
+      "type": "string",
+      "description": "Additional notes"
+    }
+  },
+  "required": [
+    "podcast_id",
+    "revenue_date",
+    "revenue_type",
+    "amount"
+  ]
+}

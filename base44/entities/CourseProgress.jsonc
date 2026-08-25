@@ -1,0 +1,62 @@
+{
+  "name": "CourseProgress",
+  "type": "object",
+  "properties": {
+    "user_id": {
+      "type": "string",
+      "description": "Student user ID"
+    },
+    "course_id": {
+      "type": "string",
+      "description": "Reference to Course"
+    },
+    "enrolled_date": {
+      "type": "string",
+      "format": "date-time"
+    },
+    "last_accessed_date": {
+      "type": "string",
+      "format": "date-time"
+    },
+    "completed_lessons": {
+      "type": "array",
+      "items": {
+        "type": "string"
+      },
+      "description": "Array of completed lesson IDs"
+    },
+    "current_module_id": {
+      "type": "string",
+      "description": "Current module being studied"
+    },
+    "current_lesson_id": {
+      "type": "string",
+      "description": "Current lesson"
+    },
+    "progress_percentage": {
+      "type": "number",
+      "default": 0,
+      "description": "Overall course completion %"
+    },
+    "is_completed": {
+      "type": "boolean",
+      "default": false
+    },
+    "completion_date": {
+      "type": "string",
+      "format": "date-time"
+    },
+    "certificate_issued": {
+      "type": "boolean",
+      "default": false
+    },
+    "total_watch_time_minutes": {
+      "type": "number",
+      "default": 0
+    }
+  },
+  "required": [
+    "user_id",
+    "course_id"
+  ]
+}

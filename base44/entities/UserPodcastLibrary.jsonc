@@ -1,0 +1,78 @@
+{
+  "name": "UserPodcastLibrary",
+  "type": "object",
+  "properties": {
+    "user_id": {
+      "type": "string",
+      "description": "User ID"
+    },
+    "user_email": {
+      "type": "string"
+    },
+    "podcast_id": {
+      "type": "string",
+      "description": "Reference to Podcast entity"
+    },
+    "podcast_title": {
+      "type": "string"
+    },
+    "library_type": {
+      "type": "string",
+      "enum": [
+        "subscribed",
+        "purchased",
+        "favorite",
+        "downloaded"
+      ],
+      "description": "Type of library entry"
+    },
+    "access_type": {
+      "type": "string",
+      "enum": [
+        "free",
+        "subscription",
+        "purchased",
+        "premium"
+      ],
+      "description": "How user gained access"
+    },
+    "last_played_position": {
+      "type": "number",
+      "default": 0,
+      "description": "Last playback position in seconds"
+    },
+    "is_completed": {
+      "type": "boolean",
+      "default": false
+    },
+    "play_count": {
+      "type": "number",
+      "default": 0
+    },
+    "download_url": {
+      "type": "string",
+      "description": "Local download URL if downloaded"
+    },
+    "downloaded_at": {
+      "type": "string",
+      "format": "date-time"
+    },
+    "subscription_active": {
+      "type": "boolean",
+      "default": true
+    },
+    "subscription_expires": {
+      "type": "string",
+      "format": "date-time"
+    },
+    "notes": {
+      "type": "string",
+      "description": "User's personal notes"
+    }
+  },
+  "required": [
+    "user_id",
+    "podcast_id",
+    "library_type"
+  ]
+}

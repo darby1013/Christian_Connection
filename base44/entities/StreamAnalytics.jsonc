@@ -1,0 +1,41 @@
+{
+  "name": "StreamAnalytics",
+  "type": "object",
+  "properties": {
+    "stream_id": {
+      "type": "string"
+    },
+    "metric_date": {
+      "type": "string",
+      "format": "date"
+    },
+    "peak_viewers": {
+      "type": "number"
+    },
+    "avg_viewers": {
+      "type": "number"
+    },
+    "total_views": {
+      "type": "number"
+    },
+    "watch_time_hours": {
+      "type": "number"
+    },
+    "chat_messages": {
+      "type": "number"
+    },
+    "donations_received": {
+      "type": "number"
+    },
+    "new_subscribers": {
+      "type": "number"
+    },
+    "engagement_rate": {
+      "type": "number"
+    }
+  },
+  "required": [
+    "stream_id",
+    "metric_date"
+  ]
+}

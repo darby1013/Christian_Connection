@@ -1,0 +1,49 @@
+{
+  "name": "LiveStreamSchedule",
+  "type": "object",
+  "properties": {
+    "title": {
+      "type": "string"
+    },
+    "description": {
+      "type": "string"
+    },
+    "scheduled_time": {
+      "type": "string",
+      "format": "date-time"
+    },
+    "duration_minutes": {
+      "type": "number"
+    },
+    "host_id": {
+      "type": "string"
+    },
+    "host_name": {
+      "type": "string"
+    },
+    "thumbnail": {
+      "type": "string"
+    },
+    "status": {
+      "type": "string",
+      "enum": [
+        "scheduled",
+        "cancelled",
+        "completed"
+      ],
+      "default": "scheduled"
+    },
+    "reminder_sent": {
+      "type": "boolean",
+      "default": false
+    },
+    "subscribers_notified": {
+      "type": "number",
+      "default": 0
+    }
+  },
+  "required": [
+    "title",
+    "scheduled_time"
+  ]
+}

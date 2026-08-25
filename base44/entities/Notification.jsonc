@@ -1,0 +1,62 @@
+{
+  "name": "Notification",
+  "type": "object",
+  "properties": {
+    "user_id": {
+      "type": "string",
+      "description": "Recipient user ID"
+    },
+    "type": {
+      "type": "string",
+      "enum": [
+        "stream_live",
+        "new_video",
+        "new_post",
+        "donation_received",
+        "subscription_active",
+        "order_update",
+        "comment",
+        "like",
+        "follow"
+      ],
+      "description": "Notification type"
+    },
+    "title": {
+      "type": "string"
+    },
+    "message": {
+      "type": "string"
+    },
+    "link": {
+      "type": "string",
+      "description": "Link to related content"
+    },
+    "icon": {
+      "type": "string"
+    },
+    "is_read": {
+      "type": "boolean",
+      "default": false
+    },
+    "priority": {
+      "type": "string",
+      "enum": [
+        "low",
+        "normal",
+        "high",
+        "urgent"
+      ],
+      "default": "normal"
+    },
+    "metadata": {
+      "type": "object",
+      "description": "Additional data"
+    }
+  },
+  "required": [
+    "user_id",
+    "type",
+    "title",
+    "message"
+  ]
+}

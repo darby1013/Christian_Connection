@@ -1,0 +1,62 @@
+{
+  "name": "ScheduledJobLog",
+  "type": "object",
+  "properties": {
+    "job_id": {
+      "type": "string"
+    },
+    "job_name": {
+      "type": "string"
+    },
+    "execution_date": {
+      "type": "string",
+      "format": "date-time"
+    },
+    "started_at": {
+      "type": "string",
+      "format": "date-time"
+    },
+    "completed_at": {
+      "type": "string",
+      "format": "date-time"
+    },
+    "duration_seconds": {
+      "type": "number"
+    },
+    "status": {
+      "type": "string",
+      "enum": [
+        "success",
+        "failed",
+        "timeout",
+        "cancelled"
+      ]
+    },
+    "output": {
+      "type": "string",
+      "description": "Job execution output"
+    },
+    "error_message": {
+      "type": "string"
+    },
+    "records_processed": {
+      "type": "number"
+    },
+    "resource_usage": {
+      "type": "object",
+      "properties": {
+        "cpu_percent": {
+          "type": "number"
+        },
+        "memory_mb": {
+          "type": "number"
+        }
+      }
+    }
+  },
+  "required": [
+    "job_id",
+    "execution_date",
+    "status"
+  ]
+}

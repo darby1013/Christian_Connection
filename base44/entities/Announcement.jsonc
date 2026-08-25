@@ -1,0 +1,51 @@
+{
+  "name": "Announcement",
+  "type": "object",
+  "properties": {
+    "title": {
+      "type": "string"
+    },
+    "content": {
+      "type": "string"
+    },
+    "priority": {
+      "type": "string",
+      "enum": [
+        "low",
+        "normal",
+        "high",
+        "urgent"
+      ],
+      "default": "normal"
+    },
+    "target_audience": {
+      "type": "string",
+      "enum": [
+        "all",
+        "members",
+        "staff",
+        "leaders"
+      ]
+    },
+    "display_start": {
+      "type": "string",
+      "format": "date-time"
+    },
+    "display_end": {
+      "type": "string",
+      "format": "date-time"
+    },
+    "is_active": {
+      "type": "boolean",
+      "default": true
+    },
+    "views": {
+      "type": "number",
+      "default": 0
+    }
+  },
+  "required": [
+    "title",
+    "content"
+  ]
+}

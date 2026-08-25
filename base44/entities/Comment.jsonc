@@ -1,0 +1,41 @@
+{
+  "name": "Comment",
+  "type": "object",
+  "properties": {
+    "content_type": {
+      "type": "string",
+      "enum": [
+        "blog",
+        "video",
+        "podcast"
+      ],
+      "description": "What is being commented on"
+    },
+    "content_id": {
+      "type": "string",
+      "description": "ID of the blog/video/podcast"
+    },
+    "author_id": {
+      "type": "string"
+    },
+    "author_name": {
+      "type": "string"
+    },
+    "comment": {
+      "type": "string"
+    },
+    "parent_id": {
+      "type": "string",
+      "description": "For nested replies"
+    },
+    "likes": {
+      "type": "number",
+      "default": 0
+    }
+  },
+  "required": [
+    "content_type",
+    "content_id",
+    "comment"
+  ]
+}

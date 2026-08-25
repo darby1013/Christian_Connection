@@ -1,0 +1,86 @@
+{
+  "name": "UserTheme",
+  "type": "object",
+  "properties": {
+    "user_id": {
+      "type": "string",
+      "description": "User ID"
+    },
+    "theme_mode": {
+      "type": "string",
+      "enum": [
+        "light",
+        "dark",
+        "auto"
+      ],
+      "default": "dark",
+      "description": "Light or dark mode"
+    },
+    "primary_color": {
+      "type": "string",
+      "default": "#22d3ee",
+      "description": "Primary brand color"
+    },
+    "secondary_color": {
+      "type": "string",
+      "default": "#a855f7",
+      "description": "Secondary accent color"
+    },
+    "accent_color": {
+      "type": "string",
+      "default": "#ec4899",
+      "description": "Accent color"
+    },
+    "background_color": {
+      "type": "string",
+      "default": "#0a0e27",
+      "description": "Background color"
+    },
+    "background_image": {
+      "type": "string",
+      "description": "Custom background image URL"
+    },
+    "background_blur": {
+      "type": "number",
+      "default": 0,
+      "description": "Background blur amount (0-20)"
+    },
+    "background_opacity": {
+      "type": "number",
+      "default": 1,
+      "description": "Background opacity (0-1)"
+    },
+    "custom_css": {
+      "type": "string",
+      "description": "Custom CSS for profile page"
+    },
+    "font_family": {
+      "type": "string",
+      "default": "Inter",
+      "description": "Font family"
+    },
+    "border_radius": {
+      "type": "string",
+      "default": "0.5rem",
+      "description": "Border radius for components"
+    },
+    "card_style": {
+      "type": "string",
+      "enum": [
+        "glass",
+        "solid",
+        "gradient",
+        "neumorphic"
+      ],
+      "default": "glass",
+      "description": "Card design style"
+    },
+    "is_active": {
+      "type": "boolean",
+      "default": true
+    }
+  },
+  "required": [
+    "user_id"
+  ]
+}

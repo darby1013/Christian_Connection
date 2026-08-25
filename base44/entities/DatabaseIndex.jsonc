@@ -1,0 +1,71 @@
+{
+  "name": "DatabaseIndex",
+  "type": "object",
+  "properties": {
+    "index_name": {
+      "type": "string",
+      "description": "Name of the index"
+    },
+    "table_name": {
+      "type": "string",
+      "description": "Table this index belongs to"
+    },
+    "columns": {
+      "type": "array",
+      "items": {
+        "type": "string"
+      },
+      "description": "Indexed columns"
+    },
+    "index_type": {
+      "type": "string",
+      "enum": [
+        "btree",
+        "hash",
+        "gin",
+        "gist",
+        "unique",
+        "composite"
+      ],
+      "default": "btree"
+    },
+    "is_unique": {
+      "type": "boolean",
+      "default": false
+    },
+    "is_primary": {
+      "type": "boolean",
+      "default": false
+    },
+    "size_mb": {
+      "type": "number",
+      "description": "Index size in MB"
+    },
+    "usage_count": {
+      "type": "number",
+      "default": 0
+    },
+    "last_used": {
+      "type": "string",
+      "format": "date-time"
+    },
+    "performance_score": {
+      "type": "number",
+      "description": "Index efficiency score 0-100"
+    },
+    "recommendation": {
+      "type": "string",
+      "enum": [
+        "keep",
+        "optimize",
+        "remove",
+        "rebuild"
+      ],
+      "default": "keep"
+    }
+  },
+  "required": [
+    "index_name",
+    "table_name"
+  ]
+}

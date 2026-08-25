@@ -1,0 +1,56 @@
+{
+  "name": "Transaction",
+  "type": "object",
+  "properties": {
+    "transaction_id": {
+      "type": "string"
+    },
+    "user_id": {
+      "type": "string"
+    },
+    "type": {
+      "type": "string",
+      "enum": [
+        "donation",
+        "purchase",
+        "subscription",
+        "tip"
+      ]
+    },
+    "amount": {
+      "type": "number"
+    },
+    "currency": {
+      "type": "string",
+      "default": "USD"
+    },
+    "status": {
+      "type": "string",
+      "enum": [
+        "pending",
+        "completed",
+        "failed",
+        "refunded"
+      ],
+      "default": "pending"
+    },
+    "payment_method": {
+      "type": "string"
+    },
+    "gateway": {
+      "type": "string"
+    },
+    "gateway_transaction_id": {
+      "type": "string"
+    },
+    "description": {
+      "type": "string"
+    }
+  },
+  "required": [
+    "transaction_id",
+    "user_id",
+    "type",
+    "amount"
+  ]
+}

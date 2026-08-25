@@ -1,0 +1,36 @@
+{
+  "name": "ProductBundle",
+  "type": "object",
+  "properties": {
+    "name": {
+      "type": "string"
+    },
+    "description": {
+      "type": "string"
+    },
+    "product_ids": {
+      "type": "array",
+      "items": {
+        "type": "string"
+      }
+    },
+    "bundle_price": {
+      "type": "number"
+    },
+    "savings_amount": {
+      "type": "number"
+    },
+    "image_url": {
+      "type": "string"
+    },
+    "is_active": {
+      "type": "boolean",
+      "default": true
+    }
+  },
+  "required": [
+    "name",
+    "product_ids",
+    "bundle_price"
+  ]
+}

@@ -1,0 +1,30 @@
+{
+  "name": "BookmarkedContent",
+  "type": "object",
+  "properties": {
+    "user_id": {
+      "type": "string"
+    },
+    "entity_type": {
+      "type": "string"
+    },
+    "entity_id": {
+      "type": "string"
+    },
+    "entity_title": {
+      "type": "string"
+    },
+    "bookmarked_date": {
+      "type": "string",
+      "format": "date-time"
+    },
+    "notes": {
+      "type": "string"
+    }
+  },
+  "required": [
+    "user_id",
+    "entity_type",
+    "entity_id"
+  ]
+}

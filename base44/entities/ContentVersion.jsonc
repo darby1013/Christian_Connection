@@ -1,0 +1,49 @@
+{
+  "name": "ContentVersion",
+  "type": "object",
+  "properties": {
+    "entity_type": {
+      "type": "string",
+      "description": "Type of content (BlogPost, Product, etc.)"
+    },
+    "entity_id": {
+      "type": "string"
+    },
+    "version_number": {
+      "type": "number"
+    },
+    "content_snapshot": {
+      "type": "object",
+      "description": "Complete content at this version"
+    },
+    "changed_fields": {
+      "type": "array",
+      "items": {
+        "type": "string"
+      }
+    },
+    "changed_by": {
+      "type": "string"
+    },
+    "change_summary": {
+      "type": "string"
+    },
+    "created_at": {
+      "type": "string",
+      "format": "date-time"
+    },
+    "is_published": {
+      "type": "boolean",
+      "default": false
+    },
+    "can_restore": {
+      "type": "boolean",
+      "default": true
+    }
+  },
+  "required": [
+    "entity_type",
+    "entity_id",
+    "version_number"
+  ]
+}

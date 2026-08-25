@@ -1,0 +1,38 @@
+{
+  "name": "UserLevel",
+  "type": "object",
+  "properties": {
+    "name": {
+      "type": "string",
+      "description": "Level name (e.g., Bronze, Silver, Gold)"
+    },
+    "level_number": {
+      "type": "number",
+      "description": "Numeric level"
+    },
+    "required_points": {
+      "type": "number",
+      "description": "Points needed to reach this level"
+    },
+    "color": {
+      "type": "string",
+      "description": "Hex color code"
+    },
+    "icon": {
+      "type": "string",
+      "description": "Icon or emoji"
+    },
+    "benefits": {
+      "type": "array",
+      "items": {
+        "type": "string"
+      },
+      "description": "List of benefits at this level"
+    }
+  },
+  "required": [
+    "name",
+    "level_number",
+    "required_points"
+  ]
+}

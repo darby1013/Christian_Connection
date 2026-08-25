@@ -1,0 +1,47 @@
+{
+  "name": "ProductAnalytics",
+  "type": "object",
+  "properties": {
+    "product_id": {
+      "type": "string"
+    },
+    "product_name": {
+      "type": "string"
+    },
+    "views": {
+      "type": "number",
+      "default": 0
+    },
+    "units_sold": {
+      "type": "number",
+      "default": 0
+    },
+    "revenue": {
+      "type": "number",
+      "default": 0
+    },
+    "conversion_rate": {
+      "type": "number",
+      "default": 0,
+      "description": "Percentage"
+    },
+    "avg_rating": {
+      "type": "number"
+    },
+    "review_count": {
+      "type": "number",
+      "default": 0
+    },
+    "cart_adds": {
+      "type": "number",
+      "default": 0
+    },
+    "wishlist_adds": {
+      "type": "number",
+      "default": 0
+    }
+  },
+  "required": [
+    "product_id"
+  ]
+}

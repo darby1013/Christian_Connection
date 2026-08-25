@@ -1,0 +1,30 @@
+{
+  "name": "ForumPost",
+  "type": "object",
+  "properties": {
+    "thread_id": {
+      "type": "string"
+    },
+    "content": {
+      "type": "string"
+    },
+    "author_id": {
+      "type": "string"
+    },
+    "author_name": {
+      "type": "string"
+    },
+    "likes": {
+      "type": "number",
+      "default": 0
+    },
+    "is_solution": {
+      "type": "boolean",
+      "default": false
+    }
+  },
+  "required": [
+    "thread_id",
+    "content"
+  ]
+}

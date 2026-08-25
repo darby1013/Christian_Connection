@@ -1,0 +1,39 @@
+{
+  "name": "CourseModule",
+  "type": "object",
+  "properties": {
+    "course_id": {
+      "type": "string",
+      "description": "Reference to Course"
+    },
+    "title": {
+      "type": "string",
+      "description": "Module title"
+    },
+    "description": {
+      "type": "string"
+    },
+    "order": {
+      "type": "number",
+      "description": "Module order in course"
+    },
+    "duration_minutes": {
+      "type": "number",
+      "description": "Total module duration"
+    },
+    "lesson_count": {
+      "type": "number",
+      "default": 0
+    },
+    "is_locked": {
+      "type": "boolean",
+      "default": false,
+      "description": "Lock until previous modules completed"
+    }
+  },
+  "required": [
+    "course_id",
+    "title",
+    "order"
+  ]
+}

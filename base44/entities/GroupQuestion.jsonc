@@ -1,0 +1,68 @@
+{
+  "name": "GroupQuestion",
+  "type": "object",
+  "properties": {
+    "group_id": {
+      "type": "string"
+    },
+    "question": {
+      "type": "string"
+    },
+    "details": {
+      "type": "string"
+    },
+    "asked_by": {
+      "type": "string"
+    },
+    "asker_name": {
+      "type": "string"
+    },
+    "answers": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "properties": {
+          "answer_text": {
+            "type": "string"
+          },
+          "answered_by": {
+            "type": "string"
+          },
+          "answerer_name": {
+            "type": "string"
+          },
+          "upvotes": {
+            "type": "number",
+            "default": 0
+          },
+          "is_accepted": {
+            "type": "boolean",
+            "default": false
+          },
+          "created_date": {
+            "type": "string",
+            "format": "date-time"
+          }
+        }
+      }
+    },
+    "upvotes": {
+      "type": "number",
+      "default": 0
+    },
+    "is_answered": {
+      "type": "boolean",
+      "default": false
+    },
+    "tags": {
+      "type": "array",
+      "items": {
+        "type": "string"
+      }
+    }
+  },
+  "required": [
+    "group_id",
+    "question"
+  ]
+}

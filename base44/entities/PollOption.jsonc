@@ -1,0 +1,23 @@
+{
+  "name": "PollOption",
+  "type": "object",
+  "properties": {
+    "poll_id": {
+      "type": "string"
+    },
+    "option_text": {
+      "type": "string"
+    },
+    "vote_count": {
+      "type": "number",
+      "default": 0
+    },
+    "display_order": {
+      "type": "number"
+    }
+  },
+  "required": [
+    "poll_id",
+    "option_text"
+  ]
+}

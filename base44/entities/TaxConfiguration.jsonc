@@ -1,0 +1,78 @@
+{
+  "name": "TaxConfiguration",
+  "type": "object",
+  "properties": {
+    "region": {
+      "type": "string",
+      "description": "State/Province/Country code"
+    },
+    "region_name": {
+      "type": "string",
+      "description": "Display name"
+    },
+    "tax_type": {
+      "type": "string",
+      "enum": [
+        "sales_tax",
+        "vat",
+        "gst",
+        "none"
+      ],
+      "default": "sales_tax"
+    },
+    "tax_rate": {
+      "type": "number",
+      "description": "Tax rate as percentage (e.g., 8.5 for 8.5%)"
+    },
+    "compound_tax": {
+      "type": "boolean",
+      "default": false,
+      "description": "Apply tax on top of other taxes"
+    },
+    "tax_shipping": {
+      "type": "boolean",
+      "default": true,
+      "description": "Apply tax to shipping costs"
+    },
+    "tax_exempt_categories": {
+      "type": "array",
+      "items": {
+        "type": "string"
+      },
+      "description": "Product categories exempt from tax"
+    },
+    "minimum_taxable_amount": {
+      "type": "number",
+      "default": 0,
+      "description": "Minimum order value to apply tax"
+    },
+    "nexus_states": {
+      "type": "array",
+      "items": {
+        "type": "string"
+      },
+      "description": "States where business has nexus"
+    },
+    "is_active": {
+      "type": "boolean",
+      "default": true
+    },
+    "priority": {
+      "type": "number",
+      "default": 0,
+      "description": "Rule priority (higher = applied first)"
+    },
+    "effective_date": {
+      "type": "string",
+      "format": "date"
+    },
+    "expiry_date": {
+      "type": "string",
+      "format": "date"
+    }
+  },
+  "required": [
+    "region",
+    "tax_rate"
+  ]
+}

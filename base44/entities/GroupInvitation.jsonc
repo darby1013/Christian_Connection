@@ -1,0 +1,37 @@
+{
+  "name": "GroupInvitation",
+  "type": "object",
+  "properties": {
+    "group_id": {
+      "type": "string"
+    },
+    "invited_email": {
+      "type": "string"
+    },
+    "invited_by": {
+      "type": "string"
+    },
+    "invitation_date": {
+      "type": "string",
+      "format": "date-time"
+    },
+    "status": {
+      "type": "string",
+      "enum": [
+        "pending",
+        "accepted",
+        "declined",
+        "expired"
+      ],
+      "default": "pending"
+    },
+    "expires_at": {
+      "type": "string",
+      "format": "date-time"
+    }
+  },
+  "required": [
+    "group_id",
+    "invited_email"
+  ]
+}

@@ -1,0 +1,40 @@
+{
+  "name": "IntegrationConfig",
+  "type": "object",
+  "properties": {
+    "integration_name": {
+      "type": "string",
+      "enum": [
+        "stripe",
+        "mailchimp",
+        "shopify",
+        "google_analytics",
+        "facebook_pixel",
+        "klaviyo"
+      ]
+    },
+    "api_key": {
+      "type": "string"
+    },
+    "api_secret": {
+      "type": "string"
+    },
+    "webhook_url": {
+      "type": "string"
+    },
+    "settings": {
+      "type": "object"
+    },
+    "is_active": {
+      "type": "boolean",
+      "default": false
+    },
+    "last_synced_at": {
+      "type": "string",
+      "format": "date-time"
+    }
+  },
+  "required": [
+    "integration_name"
+  ]
+}

@@ -1,0 +1,72 @@
+{
+  "name": "User",
+  "type": "object",
+  "properties": {
+    "bio": {
+      "type": "string",
+      "description": "User biography"
+    },
+    "profile_image": {
+      "type": "string",
+      "description": "Profile picture URL"
+    },
+    "cover_image": {
+      "type": "string",
+      "description": "Profile cover/banner image"
+    },
+    "location": {
+      "type": "string"
+    },
+    "website": {
+      "type": "string"
+    },
+    "social_links": {
+      "type": "object",
+      "properties": {
+        "twitter": {
+          "type": "string"
+        },
+        "facebook": {
+          "type": "string"
+        },
+        "instagram": {
+          "type": "string"
+        },
+        "linkedin": {
+          "type": "string"
+        }
+      }
+    },
+    "showcased_badges": {
+      "type": "array",
+      "items": {
+        "type": "string"
+      },
+      "maxItems": 5,
+      "description": "Badge IDs to showcase on profile (max 5)"
+    },
+    "interests": {
+      "type": "array",
+      "items": {
+        "type": "string"
+      }
+    },
+    "ministry_involvement": {
+      "type": "array",
+      "items": {
+        "type": "string"
+      }
+    }
+  },
+  "required": [
+    "bio",
+    "profile_image",
+    "cover_image",
+    "location",
+    "website",
+    "social_links",
+    "showcased_badges",
+    "interests",
+    "ministry_involvement"
+  ]
+}

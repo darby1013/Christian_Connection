@@ -1,0 +1,50 @@
+{
+  "name": "GuestHost",
+  "type": "object",
+  "properties": {
+    "stream_id": {
+      "type": "string"
+    },
+    "guest_name": {
+      "type": "string"
+    },
+    "guest_email": {
+      "type": "string"
+    },
+    "guest_image": {
+      "type": "string"
+    },
+    "guest_bio": {
+      "type": "string"
+    },
+    "role": {
+      "type": "string",
+      "enum": [
+        "co_host",
+        "guest_speaker",
+        "interviewer",
+        "panelist"
+      ],
+      "default": "guest_speaker"
+    },
+    "join_time": {
+      "type": "string",
+      "format": "date-time"
+    },
+    "leave_time": {
+      "type": "string",
+      "format": "date-time"
+    },
+    "speaking_duration": {
+      "type": "number"
+    },
+    "is_active": {
+      "type": "boolean",
+      "default": true
+    }
+  },
+  "required": [
+    "stream_id",
+    "guest_name"
+  ]
+}

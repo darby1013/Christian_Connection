@@ -1,0 +1,30 @@
+{
+  "name": "ProductBadge",
+  "type": "object",
+  "properties": {
+    "name": {
+      "type": "string"
+    },
+    "text": {
+      "type": "string"
+    },
+    "color": {
+      "type": "string"
+    },
+    "icon": {
+      "type": "string"
+    },
+    "conditions": {
+      "type": "object",
+      "description": "Auto-apply conditions"
+    },
+    "is_active": {
+      "type": "boolean",
+      "default": true
+    }
+  },
+  "required": [
+    "name",
+    "text"
+  ]
+}

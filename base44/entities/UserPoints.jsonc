@@ -1,0 +1,70 @@
+{
+  "name": "UserPoints",
+  "type": "object",
+  "properties": {
+    "user_id": {
+      "type": "string",
+      "description": "Unique per user"
+    },
+    "total_points": {
+      "type": "number",
+      "default": 0
+    },
+    "points_breakdown": {
+      "type": "object",
+      "properties": {
+        "posts": {
+          "type": "number",
+          "default": 0
+        },
+        "comments": {
+          "type": "number",
+          "default": 0
+        },
+        "likes": {
+          "type": "number",
+          "default": 0
+        },
+        "groups_joined": {
+          "type": "number",
+          "default": 0
+        },
+        "events_attended": {
+          "type": "number",
+          "default": 0
+        },
+        "content_created": {
+          "type": "number",
+          "default": 0
+        },
+        "badges_earned": {
+          "type": "number",
+          "default": 0
+        }
+      }
+    },
+    "level": {
+      "type": "number",
+      "default": 1,
+      "description": "User level based on points"
+    },
+    "rank": {
+      "type": "string",
+      "enum": [
+        "newcomer",
+        "member",
+        "contributor",
+        "champion",
+        "legend"
+      ],
+      "default": "newcomer"
+    },
+    "next_level_points": {
+      "type": "number",
+      "description": "Points needed for next level"
+    }
+  },
+  "required": [
+    "user_id"
+  ]
+}

@@ -1,0 +1,73 @@
+{
+  "name": "Wishlist",
+  "type": "object",
+  "properties": {
+    "user_id": {
+      "type": "string",
+      "description": "Customer user ID"
+    },
+    "name": {
+      "type": "string",
+      "default": "My Wishlist",
+      "description": "Wishlist name (users can have multiple)"
+    },
+    "items": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "properties": {
+          "product_id": {
+            "type": "string"
+          },
+          "variant_id": {
+            "type": "string"
+          },
+          "product_name": {
+            "type": "string"
+          },
+          "price": {
+            "type": "number"
+          },
+          "image_url": {
+            "type": "string"
+          },
+          "added_date": {
+            "type": "string",
+            "format": "date-time"
+          },
+          "notes": {
+            "type": "string"
+          },
+          "priority": {
+            "type": "string",
+            "enum": [
+              "low",
+              "medium",
+              "high"
+            ]
+          }
+        }
+      }
+    },
+    "is_public": {
+      "type": "boolean",
+      "default": false,
+      "description": "Shareable wishlist"
+    },
+    "share_token": {
+      "type": "string",
+      "description": "Unique token for sharing"
+    },
+    "total_value": {
+      "type": "number",
+      "default": 0
+    },
+    "item_count": {
+      "type": "number",
+      "default": 0
+    }
+  },
+  "required": [
+    "user_id"
+  ]
+}

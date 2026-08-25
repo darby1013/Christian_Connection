@@ -1,0 +1,87 @@
+{
+  "name": "StreamScript",
+  "type": "object",
+  "properties": {
+    "title": {
+      "type": "string"
+    },
+    "topic": {
+      "type": "string",
+      "description": "Main topic/theme"
+    },
+    "script_type": {
+      "type": "string",
+      "enum": [
+        "sermon",
+        "teaching",
+        "worship",
+        "testimony",
+        "announcement",
+        "interview"
+      ],
+      "default": "sermon"
+    },
+    "duration": {
+      "type": "number",
+      "description": "Target duration in minutes"
+    },
+    "content": {
+      "type": "string",
+      "description": "Full script content"
+    },
+    "segments": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "properties": {
+          "title": {
+            "type": "string"
+          },
+          "duration": {
+            "type": "number"
+          },
+          "content": {
+            "type": "string"
+          },
+          "notes": {
+            "type": "string"
+          }
+        }
+      },
+      "description": "Script broken into timed segments"
+    },
+    "bible_references": {
+      "type": "array",
+      "items": {
+        "type": "string"
+      }
+    },
+    "key_points": {
+      "type": "array",
+      "items": {
+        "type": "string"
+      }
+    },
+    "author_id": {
+      "type": "string"
+    },
+    "author_name": {
+      "type": "string"
+    },
+    "is_ai_generated": {
+      "type": "boolean",
+      "default": false
+    },
+    "tags": {
+      "type": "array",
+      "items": {
+        "type": "string"
+      }
+    }
+  },
+  "required": [
+    "title",
+    "content",
+    "duration"
+  ]
+}

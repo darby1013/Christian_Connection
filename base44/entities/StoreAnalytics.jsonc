@@ -1,0 +1,109 @@
+{
+  "name": "StoreAnalytics",
+  "type": "object",
+  "properties": {
+    "date": {
+      "type": "string",
+      "format": "date"
+    },
+    "total_revenue": {
+      "type": "number",
+      "default": 0
+    },
+    "total_orders": {
+      "type": "number",
+      "default": 0
+    },
+    "total_customers": {
+      "type": "number",
+      "default": 0
+    },
+    "new_customers": {
+      "type": "number",
+      "default": 0
+    },
+    "returning_customers": {
+      "type": "number",
+      "default": 0
+    },
+    "average_order_value": {
+      "type": "number",
+      "default": 0
+    },
+    "conversion_rate": {
+      "type": "number",
+      "description": "Overall store conversion rate"
+    },
+    "total_sessions": {
+      "type": "number",
+      "default": 0
+    },
+    "total_page_views": {
+      "type": "number",
+      "default": 0
+    },
+    "cart_abandonment_rate": {
+      "type": "number"
+    },
+    "abandoned_cart_value": {
+      "type": "number",
+      "default": 0
+    },
+    "top_products": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "properties": {
+          "product_id": {
+            "type": "string"
+          },
+          "product_name": {
+            "type": "string"
+          },
+          "revenue": {
+            "type": "number"
+          },
+          "units_sold": {
+            "type": "number"
+          }
+        }
+      }
+    },
+    "revenue_by_category": {
+      "type": "object"
+    },
+    "traffic_sources": {
+      "type": "object",
+      "properties": {
+        "direct": {
+          "type": "number"
+        },
+        "organic_search": {
+          "type": "number"
+        },
+        "social_media": {
+          "type": "number"
+        },
+        "email": {
+          "type": "number"
+        },
+        "paid_ads": {
+          "type": "number"
+        },
+        "referral": {
+          "type": "number"
+        }
+      }
+    },
+    "refund_rate": {
+      "type": "number"
+    },
+    "total_refunds": {
+      "type": "number",
+      "default": 0
+    }
+  },
+  "required": [
+    "date"
+  ]
+}

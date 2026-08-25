@@ -1,0 +1,81 @@
+{
+  "name": "Badge",
+  "type": "object",
+  "properties": {
+    "name": {
+      "type": "string",
+      "description": "Badge name"
+    },
+    "description": {
+      "type": "string",
+      "description": "Badge description"
+    },
+    "icon": {
+      "type": "string",
+      "description": "Badge emoji/icon"
+    },
+    "color": {
+      "type": "string",
+      "enum": [
+        "blue",
+        "purple",
+        "green",
+        "amber",
+        "red",
+        "pink"
+      ],
+      "default": "blue"
+    },
+    "category": {
+      "type": "string",
+      "enum": [
+        "engagement",
+        "content",
+        "social",
+        "milestone",
+        "achievement"
+      ],
+      "default": "achievement"
+    },
+    "requirement_type": {
+      "type": "string",
+      "enum": [
+        "views",
+        "likes",
+        "comments",
+        "streams",
+        "donations",
+        "posts"
+      ],
+      "description": "What action earns this badge"
+    },
+    "requirement_count": {
+      "type": "number",
+      "description": "Number needed to earn badge"
+    },
+    "points_reward": {
+      "type": "number",
+      "default": 0,
+      "description": "Points awarded when earned"
+    },
+    "is_active": {
+      "type": "boolean",
+      "default": true
+    },
+    "rarity": {
+      "type": "string",
+      "enum": [
+        "common",
+        "rare",
+        "epic",
+        "legendary"
+      ],
+      "default": "common"
+    }
+  },
+  "required": [
+    "name",
+    "requirement_type",
+    "requirement_count"
+  ]
+}

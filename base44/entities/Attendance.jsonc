@@ -1,0 +1,43 @@
+{
+  "name": "Attendance",
+  "type": "object",
+  "properties": {
+    "event_id": {
+      "type": "string"
+    },
+    "user_id": {
+      "type": "string"
+    },
+    "user_name": {
+      "type": "string"
+    },
+    "attendance_date": {
+      "type": "string",
+      "format": "date"
+    },
+    "check_in_time": {
+      "type": "string",
+      "format": "date-time"
+    },
+    "check_out_time": {
+      "type": "string",
+      "format": "date-time"
+    },
+    "attendance_type": {
+      "type": "string",
+      "enum": [
+        "service",
+        "event",
+        "group",
+        "class"
+      ]
+    },
+    "notes": {
+      "type": "string"
+    }
+  },
+  "required": [
+    "user_id",
+    "attendance_date"
+  ]
+}

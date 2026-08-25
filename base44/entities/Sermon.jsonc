@@ -1,0 +1,49 @@
+{
+  "name": "Sermon",
+  "type": "object",
+  "properties": {
+    "title": {
+      "type": "string"
+    },
+    "speaker": {
+      "type": "string"
+    },
+    "scripture": {
+      "type": "string"
+    },
+    "series": {
+      "type": "string"
+    },
+    "sermon_date": {
+      "type": "string",
+      "format": "date"
+    },
+    "video_url": {
+      "type": "string"
+    },
+    "audio_url": {
+      "type": "string"
+    },
+    "transcript": {
+      "type": "string"
+    },
+    "notes": {
+      "type": "string"
+    },
+    "duration": {
+      "type": "number"
+    },
+    "views": {
+      "type": "number",
+      "default": 0
+    },
+    "downloads": {
+      "type": "number",
+      "default": 0
+    }
+  },
+  "required": [
+    "title",
+    "speaker"
+  ]
+}

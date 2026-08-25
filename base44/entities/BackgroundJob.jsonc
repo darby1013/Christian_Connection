@@ -1,0 +1,50 @@
+{
+  "name": "BackgroundJob",
+  "type": "object",
+  "properties": {
+    "job_type": {
+      "type": "string",
+      "enum": [
+        "email_batch",
+        "export_data",
+        "import_data",
+        "image_processing",
+        "ai_analysis"
+      ]
+    },
+    "status": {
+      "type": "string",
+      "enum": [
+        "pending",
+        "running",
+        "completed",
+        "failed"
+      ],
+      "default": "pending"
+    },
+    "parameters": {
+      "type": "object"
+    },
+    "progress": {
+      "type": "number",
+      "default": 0
+    },
+    "result": {
+      "type": "object"
+    },
+    "error_message": {
+      "type": "string"
+    },
+    "started_at": {
+      "type": "string",
+      "format": "date-time"
+    },
+    "completed_at": {
+      "type": "string",
+      "format": "date-time"
+    }
+  },
+  "required": [
+    "job_type"
+  ]
+}

@@ -1,0 +1,33 @@
+{
+  "name": "ProductCategory",
+  "type": "object",
+  "properties": {
+    "name": {
+      "type": "string"
+    },
+    "description": {
+      "type": "string"
+    },
+    "slug": {
+      "type": "string"
+    },
+    "parent_category_id": {
+      "type": "string",
+      "description": "For sub-categories"
+    },
+    "image_url": {
+      "type": "string"
+    },
+    "display_order": {
+      "type": "number",
+      "default": 0
+    },
+    "is_active": {
+      "type": "boolean",
+      "default": true
+    }
+  },
+  "required": [
+    "name"
+  ]
+}

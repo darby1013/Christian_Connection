@@ -1,0 +1,82 @@
+{
+  "name": "GroupAnalytics",
+  "type": "object",
+  "properties": {
+    "group_id": {
+      "type": "string",
+      "description": "Unique per group"
+    },
+    "date": {
+      "type": "string",
+      "format": "date",
+      "description": "Analytics date"
+    },
+    "total_members": {
+      "type": "number",
+      "default": 0
+    },
+    "new_members": {
+      "type": "number",
+      "default": 0
+    },
+    "active_members": {
+      "type": "number",
+      "default": 0,
+      "description": "Members who posted/commented this period"
+    },
+    "posts_count": {
+      "type": "number",
+      "default": 0
+    },
+    "comments_count": {
+      "type": "number",
+      "default": 0
+    },
+    "events_created": {
+      "type": "number",
+      "default": 0
+    },
+    "event_attendees": {
+      "type": "number",
+      "default": 0
+    },
+    "files_shared": {
+      "type": "number",
+      "default": 0
+    },
+    "polls_created": {
+      "type": "number",
+      "default": 0
+    },
+    "poll_votes": {
+      "type": "number",
+      "default": 0
+    },
+    "engagement_rate": {
+      "type": "number",
+      "description": "Percentage of active members"
+    },
+    "growth_rate": {
+      "type": "number",
+      "description": "Member growth percentage"
+    },
+    "top_topics": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "properties": {
+          "topic": {
+            "type": "string"
+          },
+          "mentions": {
+            "type": "number"
+          }
+        }
+      }
+    }
+  },
+  "required": [
+    "group_id",
+    "date"
+  ]
+}

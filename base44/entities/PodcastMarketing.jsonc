@@ -1,0 +1,66 @@
+{
+  "name": "PodcastMarketing",
+  "type": "object",
+  "properties": {
+    "podcast_id": {
+      "type": "string",
+      "description": "Reference to Podcast entity"
+    },
+    "podcast_title": {
+      "type": "string"
+    },
+    "content_type": {
+      "type": "string",
+      "enum": [
+        "twitter",
+        "linkedin",
+        "instagram",
+        "facebook",
+        "email",
+        "audiogram"
+      ],
+      "description": "Type of marketing content"
+    },
+    "content_text": {
+      "type": "string",
+      "description": "Generated marketing text"
+    },
+    "hashtags": {
+      "type": "array",
+      "items": {
+        "type": "string"
+      },
+      "description": "Suggested hashtags"
+    },
+    "image_url": {
+      "type": "string",
+      "description": "Generated image or audiogram"
+    },
+    "optimal_post_time": {
+      "type": "string",
+      "format": "date-time",
+      "description": "AI-suggested best posting time"
+    },
+    "engagement_score": {
+      "type": "number",
+      "description": "Predicted engagement score"
+    },
+    "is_used": {
+      "type": "boolean",
+      "default": false,
+      "description": "Whether this content was posted"
+    },
+    "posted_at": {
+      "type": "string",
+      "format": "date-time"
+    },
+    "actual_engagement": {
+      "type": "number",
+      "description": "Actual engagement if tracked"
+    }
+  },
+  "required": [
+    "podcast_id",
+    "content_type"
+  ]
+}

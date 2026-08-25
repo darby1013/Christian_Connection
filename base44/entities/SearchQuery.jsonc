@@ -1,0 +1,31 @@
+{
+  "name": "SearchQuery",
+  "type": "object",
+  "properties": {
+    "query_text": {
+      "type": "string"
+    },
+    "user_id": {
+      "type": "string"
+    },
+    "search_date": {
+      "type": "string",
+      "format": "date-time"
+    },
+    "results_count": {
+      "type": "number"
+    },
+    "clicked_result": {
+      "type": "string"
+    },
+    "search_category": {
+      "type": "string"
+    },
+    "filters_applied": {
+      "type": "object"
+    }
+  },
+  "required": [
+    "query_text"
+  ]
+}

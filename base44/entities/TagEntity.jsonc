@@ -1,0 +1,22 @@
+{
+  "name": "TagEntity",
+  "type": "object",
+  "properties": {
+    "tag_name": {
+      "type": "string"
+    },
+    "tag_category": {
+      "type": "string"
+    },
+    "usage_count": {
+      "type": "number",
+      "default": 0
+    },
+    "color": {
+      "type": "string"
+    }
+  },
+  "required": [
+    "tag_name"
+  ]
+}

@@ -1,0 +1,78 @@
+{
+  "name": "CommunityBoard",
+  "type": "object",
+  "properties": {
+    "title": {
+      "type": "string",
+      "description": "Post title"
+    },
+    "content": {
+      "type": "string",
+      "description": "Post content"
+    },
+    "author_id": {
+      "type": "string"
+    },
+    "author_name": {
+      "type": "string"
+    },
+    "category": {
+      "type": "string",
+      "enum": [
+        "announcement",
+        "question",
+        "discussion",
+        "prayer",
+        "testimony",
+        "event"
+      ],
+      "default": "discussion"
+    },
+    "is_pinned": {
+      "type": "boolean",
+      "default": false
+    },
+    "is_featured": {
+      "type": "boolean",
+      "default": false
+    },
+    "visibility": {
+      "type": "string",
+      "enum": [
+        "public",
+        "members_only",
+        "premium_only"
+      ],
+      "default": "public"
+    },
+    "images": {
+      "type": "array",
+      "items": {
+        "type": "string"
+      }
+    },
+    "likes": {
+      "type": "number",
+      "default": 0
+    },
+    "comments_count": {
+      "type": "number",
+      "default": 0
+    },
+    "views": {
+      "type": "number",
+      "default": 0
+    },
+    "tags": {
+      "type": "array",
+      "items": {
+        "type": "string"
+      }
+    }
+  },
+  "required": [
+    "title",
+    "content",
+    "author_id"
+  ]
+}

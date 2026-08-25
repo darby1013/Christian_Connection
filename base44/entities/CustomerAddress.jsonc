@@ -1,0 +1,55 @@
+{
+  "name": "CustomerAddress",
+  "type": "object",
+  "properties": {
+    "user_id": {
+      "type": "string"
+    },
+    "full_name": {
+      "type": "string"
+    },
+    "address_line_1": {
+      "type": "string"
+    },
+    "address_line_2": {
+      "type": "string"
+    },
+    "city": {
+      "type": "string"
+    },
+    "state": {
+      "type": "string"
+    },
+    "postal_code": {
+      "type": "string"
+    },
+    "country": {
+      "type": "string",
+      "default": "USA"
+    },
+    "phone": {
+      "type": "string"
+    },
+    "is_default": {
+      "type": "boolean",
+      "default": false
+    },
+    "address_type": {
+      "type": "string",
+      "enum": [
+        "shipping",
+        "billing",
+        "both"
+      ],
+      "default": "both"
+    }
+  },
+  "required": [
+    "user_id",
+    "full_name",
+    "address_line_1",
+    "city",
+    "state",
+    "postal_code"
+  ]
+}

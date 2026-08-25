@@ -1,0 +1,42 @@
+{
+  "name": "ProductSEO",
+  "type": "object",
+  "properties": {
+    "product_id": {
+      "type": "string"
+    },
+    "meta_title": {
+      "type": "string"
+    },
+    "meta_description": {
+      "type": "string"
+    },
+    "keywords": {
+      "type": "array",
+      "items": {
+        "type": "string"
+      }
+    },
+    "canonical_url": {
+      "type": "string"
+    },
+    "og_title": {
+      "type": "string"
+    },
+    "og_description": {
+      "type": "string"
+    },
+    "og_image": {
+      "type": "string"
+    },
+    "structured_data": {
+      "type": "object"
+    },
+    "schema_markup": {
+      "type": "string"
+    }
+  },
+  "required": [
+    "product_id"
+  ]
+}

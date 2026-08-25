@@ -1,0 +1,99 @@
+{
+  "name": "AdCampaign",
+  "type": "object",
+  "properties": {
+    "podcast_id": {
+      "type": "string",
+      "description": "Reference to Podcast entity"
+    },
+    "podcast_title": {
+      "type": "string"
+    },
+    "platform": {
+      "type": "string",
+      "enum": [
+        "google_ads",
+        "facebook_ads",
+        "instagram_ads",
+        "youtube_ads",
+        "spotify_ads",
+        "linkedin_ads"
+      ],
+      "description": "Ad platform"
+    },
+    "campaign_name": {
+      "type": "string"
+    },
+    "ad_headline": {
+      "type": "string",
+      "description": "Primary headline"
+    },
+    "ad_copy": {
+      "type": "string",
+      "description": "Ad description/body"
+    },
+    "call_to_action": {
+      "type": "string",
+      "description": "CTA button text"
+    },
+    "target_keywords": {
+      "type": "array",
+      "items": {
+        "type": "string"
+      },
+      "description": "Keywords for targeting"
+    },
+    "target_audience": {
+      "type": "object",
+      "properties": {
+        "age_range": {
+          "type": "string"
+        },
+        "interests": {
+          "type": "array",
+          "items": {
+            "type": "string"
+          }
+        },
+        "demographics": {
+          "type": "string"
+        }
+      }
+    },
+    "budget_recommendation": {
+      "type": "number",
+      "description": "Recommended daily budget"
+    },
+    "status": {
+      "type": "string",
+      "enum": [
+        "draft",
+        "active",
+        "paused",
+        "completed"
+      ],
+      "default": "draft"
+    },
+    "impressions": {
+      "type": "number",
+      "default": 0
+    },
+    "clicks": {
+      "type": "number",
+      "default": 0
+    },
+    "conversions": {
+      "type": "number",
+      "default": 0
+    },
+    "spent": {
+      "type": "number",
+      "default": 0
+    }
+  },
+  "required": [
+    "podcast_id",
+    "platform",
+    "campaign_name"
+  ]
+}

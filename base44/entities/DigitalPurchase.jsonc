@@ -1,0 +1,55 @@
+{
+  "name": "DigitalPurchase",
+  "type": "object",
+  "properties": {
+    "user_id": {
+      "type": "string"
+    },
+    "user_email": {
+      "type": "string"
+    },
+    "digital_product_id": {
+      "type": "string"
+    },
+    "product_name": {
+      "type": "string"
+    },
+    "amount_paid": {
+      "type": "number"
+    },
+    "payment_method": {
+      "type": "string"
+    },
+    "payment_status": {
+      "type": "string",
+      "enum": [
+        "pending",
+        "completed",
+        "failed",
+        "refunded"
+      ],
+      "default": "pending"
+    },
+    "download_url": {
+      "type": "string",
+      "description": "Secure download link"
+    },
+    "download_expires_at": {
+      "type": "string",
+      "format": "date-time"
+    },
+    "download_count": {
+      "type": "number",
+      "default": 0
+    },
+    "max_downloads": {
+      "type": "number",
+      "default": 3
+    }
+  },
+  "required": [
+    "user_id",
+    "digital_product_id",
+    "amount_paid"
+  ]
+}

@@ -1,0 +1,35 @@
+{
+  "name": "PodcastComment",
+  "type": "object",
+  "properties": {
+    "podcast_id": {
+      "type": "string"
+    },
+    "user_id": {
+      "type": "string"
+    },
+    "user_name": {
+      "type": "string"
+    },
+    "comment_text": {
+      "type": "string"
+    },
+    "timestamp": {
+      "type": "number",
+      "description": "Podcast timestamp in seconds"
+    },
+    "likes": {
+      "type": "number",
+      "default": 0
+    },
+    "is_featured": {
+      "type": "boolean",
+      "default": false
+    }
+  },
+  "required": [
+    "podcast_id",
+    "user_id",
+    "comment_text"
+  ]
+}

@@ -1,0 +1,25 @@
+{
+  "name": "AppConfiguration",
+  "type": "object",
+  "properties": {
+    "config_name": {
+      "type": "string"
+    },
+    "config_category": {
+      "type": "string"
+    },
+    "config_data": {
+      "type": "object"
+    },
+    "is_production": {
+      "type": "boolean",
+      "default": false
+    },
+    "last_modified_by": {
+      "type": "string"
+    }
+  },
+  "required": [
+    "config_name"
+  ]
+}

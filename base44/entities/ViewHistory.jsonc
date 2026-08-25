@@ -1,0 +1,30 @@
+{
+  "name": "ViewHistory",
+  "type": "object",
+  "properties": {
+    "user_id": {
+      "type": "string"
+    },
+    "entity_type": {
+      "type": "string"
+    },
+    "entity_id": {
+      "type": "string"
+    },
+    "entity_title": {
+      "type": "string"
+    },
+    "view_date": {
+      "type": "string",
+      "format": "date-time"
+    },
+    "duration": {
+      "type": "number"
+    }
+  },
+  "required": [
+    "user_id",
+    "entity_type",
+    "entity_id"
+  ]
+}

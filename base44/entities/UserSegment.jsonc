@@ -1,0 +1,93 @@
+{
+  "name": "UserSegment",
+  "type": "object",
+  "properties": {
+    "user_id": {
+      "type": "string"
+    },
+    "segment_type": {
+      "type": "string",
+      "enum": [
+        "new_customer",
+        "loyal_customer",
+        "high_value",
+        "bargain_hunter",
+        "premium_member",
+        "at_risk",
+        "vip"
+      ],
+      "description": "Customer segment classification"
+    },
+    "segment_score": {
+      "type": "number",
+      "description": "Confidence in segmentation 0-100"
+    },
+    "characteristics": {
+      "type": "object",
+      "properties": {
+        "avg_order_value": {
+          "type": "number"
+        },
+        "purchase_frequency": {
+          "type": "string"
+        },
+        "preferred_categories": {
+          "type": "array",
+          "items": {
+            "type": "string"
+          }
+        },
+        "price_sensitivity": {
+          "type": "string",
+          "enum": [
+            "low",
+            "medium",
+            "high"
+          ]
+        },
+        "brand_affinity": {
+          "type": "array",
+          "items": {
+            "type": "string"
+          }
+        },
+        "browsing_pattern": {
+          "type": "string"
+        }
+      }
+    },
+    "recommended_promotions": {
+      "type": "array",
+      "items": {
+        "type": "string"
+      },
+      "description": "Best promotion types for this segment"
+    },
+    "content_preferences": {
+      "type": "object",
+      "properties": {
+        "tone": {
+          "type": "string"
+        },
+        "urgency_level": {
+          "type": "string"
+        },
+        "visual_style": {
+          "type": "string"
+        }
+      }
+    },
+    "last_updated": {
+      "type": "string",
+      "format": "date-time"
+    },
+    "ai_insights": {
+      "type": "string",
+      "description": "AI-generated insights about this customer"
+    }
+  },
+  "required": [
+    "user_id",
+    "segment_type"
+  ]
+}

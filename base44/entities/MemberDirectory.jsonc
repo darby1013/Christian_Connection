@@ -1,0 +1,62 @@
+{
+  "name": "MemberDirectory",
+  "type": "object",
+  "properties": {
+    "user_id": {
+      "type": "string",
+      "description": "Reference to User entity"
+    },
+    "display_name": {
+      "type": "string"
+    },
+    "bio": {
+      "type": "string",
+      "description": "Short biography"
+    },
+    "profile_image": {
+      "type": "string"
+    },
+    "location": {
+      "type": "string"
+    },
+    "interests": {
+      "type": "array",
+      "items": {
+        "type": "string"
+      }
+    },
+    "ministry_involvement": {
+      "type": "array",
+      "items": {
+        "type": "string"
+      }
+    },
+    "is_public": {
+      "type": "boolean",
+      "default": true,
+      "description": "Show in member directory"
+    },
+    "allow_messages": {
+      "type": "boolean",
+      "default": true
+    },
+    "social_links": {
+      "type": "object",
+      "properties": {
+        "facebook": {
+          "type": "string"
+        },
+        "twitter": {
+          "type": "string"
+        },
+        "instagram": {
+          "type": "string"
+        }
+      }
+    }
+  },
+  "required": [
+    "user_id",
+    "display_name"
+  ]
+}

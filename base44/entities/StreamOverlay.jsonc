@@ -1,0 +1,46 @@
+{
+  "name": "StreamOverlay",
+  "type": "object",
+  "properties": {
+    "overlay_name": {
+      "type": "string"
+    },
+    "overlay_type": {
+      "type": "string",
+      "enum": [
+        "donation_alert",
+        "subscriber_alert",
+        "chat_overlay",
+        "ticker",
+        "countdown"
+      ]
+    },
+    "content": {
+      "type": "object"
+    },
+    "position": {
+      "type": "string",
+      "enum": [
+        "top_left",
+        "top_right",
+        "bottom_left",
+        "bottom_right",
+        "center"
+      ]
+    },
+    "is_active": {
+      "type": "boolean",
+      "default": true
+    },
+    "animation": {
+      "type": "string"
+    },
+    "duration": {
+      "type": "number"
+    }
+  },
+  "required": [
+    "overlay_name",
+    "overlay_type"
+  ]
+}

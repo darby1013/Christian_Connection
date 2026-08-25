@@ -1,0 +1,67 @@
+{
+  "name": "DataArchive",
+  "type": "object",
+  "properties": {
+    "archive_name": {
+      "type": "string",
+      "description": "Name of the archive"
+    },
+    "table_name": {
+      "type": "string",
+      "description": "Source table"
+    },
+    "archive_date": {
+      "type": "string",
+      "format": "date-time"
+    },
+    "records_archived": {
+      "type": "number"
+    },
+    "archive_criteria": {
+      "type": "string",
+      "description": "Criteria used for archiving"
+    },
+    "storage_location": {
+      "type": "string",
+      "description": "Where archive is stored"
+    },
+    "compression_type": {
+      "type": "string",
+      "enum": [
+        "none",
+        "gzip",
+        "zip",
+        "7z"
+      ],
+      "default": "gzip"
+    },
+    "size_mb": {
+      "type": "number"
+    },
+    "is_encrypted": {
+      "type": "boolean",
+      "default": true
+    },
+    "retention_period": {
+      "type": "number",
+      "description": "Days to keep archive"
+    },
+    "expires_at": {
+      "type": "string",
+      "format": "date-time"
+    },
+    "can_restore": {
+      "type": "boolean",
+      "default": true
+    },
+    "last_accessed": {
+      "type": "string",
+      "format": "date-time"
+    }
+  },
+  "required": [
+    "archive_name",
+    "table_name",
+    "records_archived"
+  ]
+}

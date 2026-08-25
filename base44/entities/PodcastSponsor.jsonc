@@ -1,0 +1,44 @@
+{
+  "name": "PodcastSponsor",
+  "type": "object",
+  "properties": {
+    "podcast_id": {
+      "type": "string"
+    },
+    "sponsor_name": {
+      "type": "string"
+    },
+    "sponsor_logo": {
+      "type": "string"
+    },
+    "sponsor_url": {
+      "type": "string"
+    },
+    "ad_placement": {
+      "type": "string",
+      "enum": [
+        "pre_roll",
+        "mid_roll",
+        "post_roll"
+      ]
+    },
+    "ad_duration": {
+      "type": "number"
+    },
+    "amount_paid": {
+      "type": "number"
+    },
+    "campaign_start": {
+      "type": "string",
+      "format": "date"
+    },
+    "campaign_end": {
+      "type": "string",
+      "format": "date"
+    }
+  },
+  "required": [
+    "podcast_id",
+    "sponsor_name"
+  ]
+}

@@ -1,0 +1,99 @@
+{
+  "name": "DataIntegrityRule",
+  "type": "object",
+  "properties": {
+    "rule_name": {
+      "type": "string",
+      "description": "Name of the integrity rule"
+    },
+    "rule_type": {
+      "type": "string",
+      "enum": [
+        "unique_constraint",
+        "not_null",
+        "foreign_key",
+        "check_constraint",
+        "data_format",
+        "range_validation",
+        "pattern_match",
+        "referential_integrity",
+        "business_rule",
+        "custom_validation"
+      ],
+      "description": "Type of integrity rule"
+    },
+    "entity_name": {
+      "type": "string",
+      "description": "Entity this rule applies to"
+    },
+    "field_name": {
+      "type": "string",
+      "description": "Field this rule applies to"
+    },
+    "rule_definition": {
+      "type": "object",
+      "properties": {
+        "expression": {
+          "type": "string",
+          "description": "Rule expression or SQL"
+        },
+        "error_message": {
+          "type": "string",
+          "description": "Error message when rule fails"
+        },
+        "severity": {
+          "type": "string",
+          "enum": [
+            "error",
+            "warning",
+            "info"
+          ],
+          "default": "error"
+        }
+      }
+    },
+    "validation_params": {
+      "type": "object",
+      "description": "Parameters for validation"
+    },
+    "is_active": {
+      "type": "boolean",
+      "default": true
+    },
+    "auto_check": {
+      "type": "boolean",
+      "default": false,
+      "description": "Run automatically on schedule"
+    },
+    "check_frequency": {
+      "type": "string",
+      "enum": [
+        "hourly",
+        "daily",
+        "weekly",
+        "monthly"
+      ],
+      "default": "daily"
+    },
+    "last_check_date": {
+      "type": "string",
+      "format": "date-time"
+    },
+    "violations_count": {
+      "type": "number",
+      "default": 0
+    },
+    "last_violations": {
+      "type": "array",
+      "items": {
+        "type": "object"
+      },
+      "description": "Recent violations found"
+    }
+  },
+  "required": [
+    "rule_name",
+    "rule_type",
+    "entity_name"
+  ]
+}

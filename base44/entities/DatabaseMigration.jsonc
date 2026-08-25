@@ -1,0 +1,62 @@
+{
+  "name": "DatabaseMigration",
+  "type": "object",
+  "properties": {
+    "migration_name": {
+      "type": "string"
+    },
+    "version": {
+      "type": "string"
+    },
+    "migration_type": {
+      "type": "string",
+      "enum": [
+        "schema_change",
+        "data_migration",
+        "index_creation",
+        "constraint_addition"
+      ],
+      "description": "Type of migration"
+    },
+    "up_script": {
+      "type": "string",
+      "description": "Migration script"
+    },
+    "down_script": {
+      "type": "string",
+      "description": "Rollback script"
+    },
+    "status": {
+      "type": "string",
+      "enum": [
+        "pending",
+        "running",
+        "completed",
+        "failed",
+        "rolled_back"
+      ],
+      "default": "pending"
+    },
+    "applied_at": {
+      "type": "string",
+      "format": "date-time"
+    },
+    "applied_by": {
+      "type": "string"
+    },
+    "duration_seconds": {
+      "type": "number"
+    },
+    "rows_affected": {
+      "type": "number"
+    },
+    "error_message": {
+      "type": "string"
+    }
+  },
+  "required": [
+    "migration_name",
+    "version",
+    "up_script"
+  ]
+}

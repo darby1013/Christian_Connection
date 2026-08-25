@@ -1,0 +1,55 @@
+{
+  "name": "UserProfileLayout",
+  "type": "object",
+  "properties": {
+    "user_id": {
+      "type": "string"
+    },
+    "layout_config": {
+      "type": "object",
+      "description": "Drag and drop layout configuration"
+    },
+    "sections": {
+      "type": "array",
+      "items": {
+        "type": "object"
+      },
+      "description": "Profile sections in order"
+    },
+    "theme": {
+      "type": "string",
+      "enum": [
+        "default",
+        "minimal",
+        "creative",
+        "professional"
+      ],
+      "default": "default"
+    },
+    "color_scheme": {
+      "type": "string"
+    },
+    "banner_image": {
+      "type": "string"
+    },
+    "bio_visible": {
+      "type": "boolean",
+      "default": true
+    },
+    "orders_visible": {
+      "type": "boolean",
+      "default": true
+    },
+    "wishlist_visible": {
+      "type": "boolean",
+      "default": true
+    },
+    "badges_visible": {
+      "type": "boolean",
+      "default": true
+    }
+  },
+  "required": [
+    "user_id"
+  ]
+}

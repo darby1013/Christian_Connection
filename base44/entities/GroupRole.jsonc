@@ -1,0 +1,26 @@
+{
+  "name": "GroupRole",
+  "type": "object",
+  "properties": {
+    "group_id": {
+      "type": "string"
+    },
+    "role_name": {
+      "type": "string"
+    },
+    "permissions": {
+      "type": "array",
+      "items": {
+        "type": "string"
+      }
+    },
+    "member_count": {
+      "type": "number",
+      "default": 0
+    }
+  },
+  "required": [
+    "group_id",
+    "role_name"
+  ]
+}

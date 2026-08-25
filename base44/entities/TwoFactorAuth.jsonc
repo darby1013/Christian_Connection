@@ -1,0 +1,45 @@
+{
+  "name": "TwoFactorAuth",
+  "type": "object",
+  "properties": {
+    "user_id": {
+      "type": "string"
+    },
+    "method": {
+      "type": "string",
+      "enum": [
+        "sms",
+        "email",
+        "authenticator_app",
+        "backup_codes"
+      ],
+      "description": "2FA method"
+    },
+    "secret_key": {
+      "type": "string",
+      "description": "2FA secret (encrypted)"
+    },
+    "backup_codes": {
+      "type": "array",
+      "items": {
+        "type": "string"
+      }
+    },
+    "is_enabled": {
+      "type": "boolean",
+      "default": false
+    },
+    "enabled_at": {
+      "type": "string",
+      "format": "date-time"
+    },
+    "last_verified": {
+      "type": "string",
+      "format": "date-time"
+    }
+  },
+  "required": [
+    "user_id",
+    "method"
+  ]
+}

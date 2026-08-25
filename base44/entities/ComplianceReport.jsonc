@@ -1,0 +1,76 @@
+{
+  "name": "ComplianceReport",
+  "type": "object",
+  "properties": {
+    "report_name": {
+      "type": "string",
+      "description": "Name of compliance report"
+    },
+    "framework": {
+      "type": "string",
+      "enum": [
+        "GDPR",
+        "HIPAA",
+        "SOC2",
+        "PCI-DSS",
+        "CCPA",
+        "ISO27001"
+      ],
+      "description": "Compliance framework"
+    },
+    "report_period": {
+      "type": "string",
+      "description": "Reporting period (e.g., Q1 2025)"
+    },
+    "generated_date": {
+      "type": "string",
+      "format": "date-time"
+    },
+    "generated_by": {
+      "type": "string"
+    },
+    "compliance_score": {
+      "type": "number",
+      "description": "Overall compliance score %"
+    },
+    "checks_performed": {
+      "type": "number"
+    },
+    "checks_passed": {
+      "type": "number"
+    },
+    "checks_failed": {
+      "type": "number"
+    },
+    "findings": {
+      "type": "array",
+      "items": {
+        "type": "object"
+      },
+      "description": "Compliance findings"
+    },
+    "recommendations": {
+      "type": "array",
+      "items": {
+        "type": "string"
+      }
+    },
+    "status": {
+      "type": "string",
+      "enum": [
+        "compliant",
+        "partially_compliant",
+        "non_compliant"
+      ],
+      "default": "compliant"
+    },
+    "file_url": {
+      "type": "string",
+      "description": "URL to full report PDF"
+    }
+  },
+  "required": [
+    "report_name",
+    "framework"
+  ]
+}

@@ -1,0 +1,38 @@
+{
+  "name": "SystemMetrics",
+  "type": "object",
+  "properties": {
+    "metric_type": {
+      "type": "string",
+      "enum": [
+        "cpu_usage",
+        "memory_usage",
+        "disk_usage",
+        "network_traffic",
+        "query_performance",
+        "api_response_time",
+        "active_connections",
+        "error_rate",
+        "request_count",
+        "cache_hit_rate"
+      ]
+    },
+    "metric_value": {
+      "type": "number"
+    },
+    "timestamp": {
+      "type": "string",
+      "format": "date-time"
+    },
+    "unit": {
+      "type": "string"
+    },
+    "metadata": {
+      "type": "object"
+    }
+  },
+  "required": [
+    "metric_type",
+    "metric_value"
+  ]
+}

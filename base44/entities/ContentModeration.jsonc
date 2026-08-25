@@ -1,0 +1,88 @@
+{
+  "name": "ContentModeration",
+  "type": "object",
+  "properties": {
+    "content_type": {
+      "type": "string",
+      "enum": [
+        "forum_thread",
+        "forum_reply",
+        "group_post",
+        "comment",
+        "chat_message"
+      ],
+      "description": "Type of flagged content"
+    },
+    "content_id": {
+      "type": "string",
+      "description": "ID of the flagged content"
+    },
+    "author_id": {
+      "type": "string",
+      "description": "User who created the content"
+    },
+    "author_name": {
+      "type": "string"
+    },
+    "content_text": {
+      "type": "string",
+      "description": "The flagged content text"
+    },
+    "flag_reason": {
+      "type": "string",
+      "enum": [
+        "spam",
+        "hate_speech",
+        "nudity",
+        "harassment",
+        "violence",
+        "misinformation",
+        "other"
+      ],
+      "description": "AI-detected violation type"
+    },
+    "confidence_score": {
+      "type": "number",
+      "description": "AI confidence score (0-1)"
+    },
+    "ai_analysis": {
+      "type": "string",
+      "description": "AI explanation of the flag"
+    },
+    "status": {
+      "type": "string",
+      "enum": [
+        "pending",
+        "approved",
+        "removed",
+        "dismissed"
+      ],
+      "default": "pending",
+      "description": "Moderation status"
+    },
+    "reviewed_by": {
+      "type": "string",
+      "description": "Admin who reviewed"
+    },
+    "reviewed_at": {
+      "type": "string",
+      "format": "date-time"
+    },
+    "action_taken": {
+      "type": "string",
+      "description": "Action taken by moderator"
+    },
+    "is_auto_removed": {
+      "type": "boolean",
+      "default": false,
+      "description": "Auto-removed if confidence > 0.9"
+    }
+  },
+  "required": [
+    "content_type",
+    "content_id",
+    "author_id",
+    "content_text",
+    "flag_reason"
+  ]
+}

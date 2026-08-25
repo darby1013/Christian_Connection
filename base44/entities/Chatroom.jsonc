@@ -1,0 +1,80 @@
+{
+  "name": "Chatroom",
+  "type": "object",
+  "properties": {
+    "name": {
+      "type": "string",
+      "description": "Chatroom name"
+    },
+    "description": {
+      "type": "string"
+    },
+    "creator_id": {
+      "type": "string",
+      "description": "User who created the room"
+    },
+    "creator_name": {
+      "type": "string"
+    },
+    "type": {
+      "type": "string",
+      "enum": [
+        "public",
+        "private",
+        "invite_only"
+      ],
+      "default": "public"
+    },
+    "category": {
+      "type": "string"
+    },
+    "member_count": {
+      "type": "number",
+      "default": 0
+    },
+    "admins": {
+      "type": "array",
+      "items": {
+        "type": "string"
+      },
+      "description": "Admin user IDs"
+    },
+    "moderators": {
+      "type": "array",
+      "items": {
+        "type": "string"
+      },
+      "description": "Moderator user IDs"
+    },
+    "banned_users": {
+      "type": "array",
+      "items": {
+        "type": "string"
+      }
+    },
+    "is_active": {
+      "type": "boolean",
+      "default": true
+    },
+    "rules": {
+      "type": "string"
+    },
+    "max_members": {
+      "type": "number",
+      "default": 1000
+    },
+    "requires_approval": {
+      "type": "boolean",
+      "default": false
+    },
+    "password": {
+      "type": "string",
+      "description": "For private rooms"
+    }
+  },
+  "required": [
+    "name",
+    "creator_id",
+    "type"
+  ]
+}

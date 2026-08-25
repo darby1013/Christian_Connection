@@ -1,0 +1,31 @@
+{
+  "name": "InventoryForecast",
+  "type": "object",
+  "properties": {
+    "product_id": {
+      "type": "string"
+    },
+    "forecast_date": {
+      "type": "string",
+      "format": "date"
+    },
+    "predicted_demand": {
+      "type": "number"
+    },
+    "recommended_stock": {
+      "type": "number"
+    },
+    "confidence_score": {
+      "type": "number",
+      "description": "0-100 confidence in prediction"
+    },
+    "factors": {
+      "type": "object",
+      "description": "Factors influencing forecast"
+    }
+  },
+  "required": [
+    "product_id",
+    "forecast_date"
+  ]
+}

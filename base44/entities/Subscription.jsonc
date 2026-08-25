@@ -1,0 +1,111 @@
+{
+  "name": "Subscription",
+  "type": "object",
+  "properties": {
+    "user_id": {
+      "type": "string",
+      "description": "Subscriber user ID"
+    },
+    "user_name": {
+      "type": "string"
+    },
+    "user_email": {
+      "type": "string"
+    },
+    "plan_type": {
+      "type": "string",
+      "enum": [
+        "basic",
+        "premium",
+        "vip"
+      ],
+      "default": "basic",
+      "description": "Subscription tier"
+    },
+    "plan_name": {
+      "type": "string"
+    },
+    "price": {
+      "type": "number",
+      "description": "Monthly price"
+    },
+    "status": {
+      "type": "string",
+      "enum": [
+        "active",
+        "cancelled",
+        "expired",
+        "pending"
+      ],
+      "default": "pending"
+    },
+    "start_date": {
+      "type": "string",
+      "format": "date-time"
+    },
+    "end_date": {
+      "type": "string",
+      "format": "date-time"
+    },
+    "next_billing_date": {
+      "type": "string",
+      "format": "date-time",
+      "description": "Next payment date"
+    },
+    "auto_renew": {
+      "type": "boolean",
+      "default": true,
+      "description": "Auto-renewal enabled"
+    },
+    "cancel_at_period_end": {
+      "type": "boolean",
+      "default": false,
+      "description": "Cancel after current period"
+    },
+    "cancelled_at": {
+      "type": "string",
+      "format": "date-time",
+      "description": "When cancellation was requested"
+    },
+    "cancellation_reason": {
+      "type": "string",
+      "description": "User provided reason for cancellation"
+    },
+    "payment_method": {
+      "type": "string",
+      "enum": [
+        "stripe",
+        "paypal",
+        "cashapp",
+        "manual"
+      ],
+      "description": "Payment method used"
+    },
+    "payment_id": {
+      "type": "string",
+      "description": "External payment provider ID"
+    },
+    "benefits": {
+      "type": "array",
+      "items": {
+        "type": "string"
+      },
+      "description": "List of subscription benefits"
+    },
+    "billing_cycle": {
+      "type": "string",
+      "enum": [
+        "monthly",
+        "quarterly",
+        "yearly"
+      ],
+      "default": "monthly",
+      "description": "Billing frequency"
+    }
+  },
+  "required": [
+    "user_id",
+    "plan_type",
+    "price"
+  ]
+}

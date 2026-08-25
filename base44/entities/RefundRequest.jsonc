@@ -1,0 +1,45 @@
+{
+  "name": "RefundRequest",
+  "type": "object",
+  "properties": {
+    "order_id": {
+      "type": "string"
+    },
+    "user_id": {
+      "type": "string"
+    },
+    "reason": {
+      "type": "string"
+    },
+    "amount": {
+      "type": "number"
+    },
+    "status": {
+      "type": "string",
+      "enum": [
+        "pending",
+        "approved",
+        "rejected",
+        "processed"
+      ],
+      "default": "pending"
+    },
+    "requested_date": {
+      "type": "string",
+      "format": "date-time"
+    },
+    "processed_date": {
+      "type": "string",
+      "format": "date-time"
+    },
+    "processed_by": {
+      "type": "string"
+    }
+  },
+  "required": [
+    "order_id",
+    "user_id",
+    "reason",
+    "amount"
+  ]
+}

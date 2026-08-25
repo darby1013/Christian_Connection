@@ -1,0 +1,37 @@
+{
+  "name": "SizeGuide",
+  "type": "object",
+  "properties": {
+    "name": {
+      "type": "string"
+    },
+    "category": {
+      "type": "string"
+    },
+    "gender": {
+      "type": "string",
+      "enum": [
+        "mens",
+        "womens",
+        "unisex",
+        "kids",
+        "youth"
+      ]
+    },
+    "measurements": {
+      "type": "object",
+      "description": "Size chart data with measurements"
+    },
+    "image_url": {
+      "type": "string"
+    },
+    "is_active": {
+      "type": "boolean",
+      "default": true
+    }
+  },
+  "required": [
+    "name",
+    "category"
+  ]
+}

@@ -1,0 +1,75 @@
+{
+  "name": "PrayerRequest",
+  "type": "object",
+  "properties": {
+    "title": {
+      "type": "string",
+      "description": "Prayer request title"
+    },
+    "description": {
+      "type": "string",
+      "description": "Detailed request"
+    },
+    "requester_id": {
+      "type": "string"
+    },
+    "requester_name": {
+      "type": "string"
+    },
+    "is_anonymous": {
+      "type": "boolean",
+      "default": false
+    },
+    "category": {
+      "type": "string",
+      "enum": [
+        "health",
+        "family",
+        "financial",
+        "spiritual",
+        "other"
+      ],
+      "default": "other"
+    },
+    "urgency": {
+      "type": "string",
+      "enum": [
+        "low",
+        "medium",
+        "high",
+        "urgent"
+      ],
+      "default": "medium"
+    },
+    "status": {
+      "type": "string",
+      "enum": [
+        "open",
+        "in_progress",
+        "answered",
+        "closed"
+      ],
+      "default": "open"
+    },
+    "prayer_count": {
+      "type": "number",
+      "default": 0,
+      "description": "Number of people praying"
+    },
+    "testimonies": {
+      "type": "array",
+      "items": {
+        "type": "string"
+      },
+      "description": "Updates and answered prayers"
+    },
+    "is_public": {
+      "type": "boolean",
+      "default": true
+    }
+  },
+  "required": [
+    "title",
+    "description"
+  ]
+}

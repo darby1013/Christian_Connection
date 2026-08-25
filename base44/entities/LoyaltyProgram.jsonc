@@ -1,0 +1,30 @@
+{
+  "name": "LoyaltyProgram",
+  "type": "object",
+  "properties": {
+    "name": {
+      "type": "string",
+      "description": "Tier name (Bronze, Silver, Gold, etc.)"
+    },
+    "points_required": {
+      "type": "number",
+      "description": "Points needed to reach this tier"
+    },
+    "discount_percentage": {
+      "type": "number",
+      "description": "Discount percentage for this tier"
+    },
+    "benefits": {
+      "type": "string",
+      "description": "Additional benefits"
+    },
+    "is_active": {
+      "type": "boolean",
+      "default": true
+    }
+  },
+  "required": [
+    "name",
+    "points_required"
+  ]
+}

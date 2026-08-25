@@ -1,0 +1,85 @@
+{
+  "name": "PersonalizedRecommendation",
+  "type": "object",
+  "properties": {
+    "user_id": {
+      "type": "string",
+      "description": "Customer user ID"
+    },
+    "recommendation_type": {
+      "type": "string",
+      "enum": [
+        "browsing_based",
+        "purchase_based",
+        "loyalty_based",
+        "trending",
+        "seasonal",
+        "ai_generated"
+      ],
+      "description": "Type of recommendation"
+    },
+    "recommended_products": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "properties": {
+          "product_id": {
+            "type": "string"
+          },
+          "product_name": {
+            "type": "string"
+          },
+          "confidence_score": {
+            "type": "number",
+            "description": "AI confidence 0-1"
+          },
+          "reason": {
+            "type": "string",
+            "description": "Why recommended"
+          }
+        }
+      }
+    },
+    "ai_reasoning": {
+      "type": "string",
+      "description": "AI explanation for recommendations"
+    },
+    "user_segment": {
+      "type": "string",
+      "enum": [
+        "new_customer",
+        "loyal_customer",
+        "high_value",
+        "bargain_hunter",
+        "premium_member"
+      ],
+      "description": "Customer segment"
+    },
+    "loyalty_tier": {
+      "type": "string"
+    },
+    "generated_at": {
+      "type": "string",
+      "format": "date-time"
+    },
+    "expires_at": {
+      "type": "string",
+      "format": "date-time",
+      "description": "Recommendations refresh after 24h"
+    },
+    "conversion_rate": {
+      "type": "number",
+      "default": 0,
+      "description": "How many were purchased"
+    },
+    "clicks": {
+      "type": "number",
+      "default": 0
+    }
+  },
+  "required": [
+    "user_id",
+    "recommendation_type",
+    "recommended_products"
+  ]
+}

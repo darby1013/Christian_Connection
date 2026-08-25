@@ -1,0 +1,67 @@
+{
+  "name": "GroupEvent",
+  "type": "object",
+  "properties": {
+    "group_id": {
+      "type": "string"
+    },
+    "event_title": {
+      "type": "string"
+    },
+    "description": {
+      "type": "string"
+    },
+    "event_date": {
+      "type": "string",
+      "format": "date-time"
+    },
+    "end_date": {
+      "type": "string",
+      "format": "date-time"
+    },
+    "location": {
+      "type": "string"
+    },
+    "is_online": {
+      "type": "boolean",
+      "default": false
+    },
+    "meeting_link": {
+      "type": "string"
+    },
+    "max_attendees": {
+      "type": "number"
+    },
+    "rsvp_yes": {
+      "type": "array",
+      "items": {
+        "type": "string"
+      },
+      "description": "User IDs who said yes"
+    },
+    "rsvp_maybe": {
+      "type": "array",
+      "items": {
+        "type": "string"
+      }
+    },
+    "rsvp_no": {
+      "type": "array",
+      "items": {
+        "type": "string"
+      }
+    },
+    "created_by": {
+      "type": "string"
+    },
+    "reminder_sent": {
+      "type": "boolean",
+      "default": false
+    }
+  },
+  "required": [
+    "group_id",
+    "event_title",
+    "event_date"
+  ]
+}

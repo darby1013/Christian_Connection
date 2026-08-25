@@ -1,0 +1,39 @@
+{
+  "name": "IPWhitelist",
+  "type": "object",
+  "properties": {
+    "ip_address": {
+      "type": "string"
+    },
+    "description": {
+      "type": "string"
+    },
+    "added_by": {
+      "type": "string"
+    },
+    "added_date": {
+      "type": "string",
+      "format": "date-time"
+    },
+    "expires_at": {
+      "type": "string",
+      "format": "date-time"
+    },
+    "is_active": {
+      "type": "boolean",
+      "default": true
+    },
+    "applies_to": {
+      "type": "string",
+      "enum": [
+        "all",
+        "admin",
+        "api"
+      ],
+      "default": "all"
+    }
+  },
+  "required": [
+    "ip_address"
+  ]
+}

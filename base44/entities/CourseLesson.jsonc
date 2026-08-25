@@ -1,0 +1,67 @@
+{
+  "name": "CourseLesson",
+  "type": "object",
+  "properties": {
+    "course_id": {
+      "type": "string",
+      "description": "Reference to Course"
+    },
+    "module_id": {
+      "type": "string",
+      "description": "Reference to CourseModule"
+    },
+    "title": {
+      "type": "string",
+      "description": "Lesson title"
+    },
+    "description": {
+      "type": "string"
+    },
+    "content_type": {
+      "type": "string",
+      "enum": [
+        "video",
+        "text",
+        "quiz",
+        "assignment",
+        "resource"
+      ],
+      "default": "video"
+    },
+    "video_url": {
+      "type": "string",
+      "description": "Video lecture URL"
+    },
+    "text_content": {
+      "type": "string",
+      "description": "Text lesson content"
+    },
+    "resource_url": {
+      "type": "string",
+      "description": "Downloadable resources"
+    },
+    "duration_minutes": {
+      "type": "number",
+      "description": "Lesson duration"
+    },
+    "order": {
+      "type": "number",
+      "description": "Lesson order in module"
+    },
+    "is_preview": {
+      "type": "boolean",
+      "default": false,
+      "description": "Free preview lesson"
+    },
+    "transcript": {
+      "type": "string",
+      "description": "Video transcript"
+    }
+  },
+  "required": [
+    "course_id",
+    "module_id",
+    "title",
+    "order"
+  ]
+}

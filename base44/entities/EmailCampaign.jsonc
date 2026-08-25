@@ -1,0 +1,65 @@
+{
+  "name": "EmailCampaign",
+  "type": "object",
+  "properties": {
+    "name": {
+      "type": "string"
+    },
+    "subject": {
+      "type": "string"
+    },
+    "body": {
+      "type": "string"
+    },
+    "segment": {
+      "type": "string",
+      "enum": [
+        "all",
+        "vip",
+        "frequent",
+        "occasional",
+        "new",
+        "cart_abandoned"
+      ],
+      "default": "all"
+    },
+    "status": {
+      "type": "string",
+      "enum": [
+        "draft",
+        "scheduled",
+        "sent"
+      ],
+      "default": "draft"
+    },
+    "scheduled_at": {
+      "type": "string",
+      "format": "date-time"
+    },
+    "sent_count": {
+      "type": "number",
+      "default": 0
+    },
+    "opened_count": {
+      "type": "number",
+      "default": 0
+    },
+    "clicked_count": {
+      "type": "number",
+      "default": 0
+    },
+    "conversion_count": {
+      "type": "number",
+      "default": 0
+    },
+    "ai_generated": {
+      "type": "boolean",
+      "default": false
+    }
+  },
+  "required": [
+    "name",
+    "subject",
+    "body"
+  ]
+}

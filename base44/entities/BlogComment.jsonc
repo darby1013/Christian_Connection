@@ -1,0 +1,43 @@
+{
+  "name": "BlogComment",
+  "type": "object",
+  "properties": {
+    "post_id": {
+      "type": "string",
+      "description": "Reference to blog post"
+    },
+    "commenter_id": {
+      "type": "string"
+    },
+    "commenter_name": {
+      "type": "string"
+    },
+    "commenter_image": {
+      "type": "string"
+    },
+    "comment_text": {
+      "type": "string"
+    },
+    "parent_comment_id": {
+      "type": "string",
+      "description": "For nested replies"
+    },
+    "likes": {
+      "type": "number",
+      "default": 0
+    },
+    "is_pinned": {
+      "type": "boolean",
+      "default": false
+    },
+    "is_approved": {
+      "type": "boolean",
+      "default": true
+    }
+  },
+  "required": [
+    "post_id",
+    "commenter_id",
+    "comment_text"
+  ]
+}

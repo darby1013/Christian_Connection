@@ -1,0 +1,72 @@
+{
+  "name": "Webhook",
+  "type": "object",
+  "properties": {
+    "name": {
+      "type": "string",
+      "description": "Webhook name"
+    },
+    "url": {
+      "type": "string",
+      "description": "Target URL for webhook"
+    },
+    "event_type": {
+      "type": "string",
+      "enum": [
+        "order.created",
+        "order.updated",
+        "user.created",
+        "product.created",
+        "payment.received",
+        "content.published"
+      ],
+      "description": "Event that triggers webhook"
+    },
+    "http_method": {
+      "type": "string",
+      "enum": [
+        "POST",
+        "PUT",
+        "PATCH"
+      ],
+      "default": "POST"
+    },
+    "headers": {
+      "type": "object",
+      "description": "Custom headers"
+    },
+    "secret": {
+      "type": "string",
+      "description": "Webhook secret for verification"
+    },
+    "is_active": {
+      "type": "boolean",
+      "default": true
+    },
+    "retry_count": {
+      "type": "number",
+      "default": 3
+    },
+    "timeout": {
+      "type": "number",
+      "default": 30
+    },
+    "last_triggered": {
+      "type": "string",
+      "format": "date-time"
+    },
+    "success_count": {
+      "type": "number",
+      "default": 0
+    },
+    "failure_count": {
+      "type": "number",
+      "default": 0
+    }
+  },
+  "required": [
+    "name",
+    "url",
+    "event_type"
+  ]
+}

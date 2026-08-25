@@ -1,0 +1,47 @@
+{
+  "name": "Ministry",
+  "type": "object",
+  "properties": {
+    "name": {
+      "type": "string"
+    },
+    "description": {
+      "type": "string"
+    },
+    "leader_name": {
+      "type": "string"
+    },
+    "leader_email": {
+      "type": "string"
+    },
+    "ministry_type": {
+      "type": "string",
+      "enum": [
+        "worship",
+        "youth",
+        "children",
+        "outreach",
+        "prayer",
+        "media"
+      ]
+    },
+    "member_count": {
+      "type": "number",
+      "default": 0
+    },
+    "meeting_schedule": {
+      "type": "string"
+    },
+    "contact_info": {
+      "type": "string"
+    },
+    "is_active": {
+      "type": "boolean",
+      "default": true
+    }
+  },
+  "required": [
+    "name",
+    "ministry_type"
+  ]
+}

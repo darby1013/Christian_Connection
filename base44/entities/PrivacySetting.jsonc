@@ -1,0 +1,37 @@
+{
+  "name": "PrivacySetting",
+  "type": "object",
+  "properties": {
+    "user_id": {
+      "type": "string"
+    },
+    "profile_visibility": {
+      "type": "string",
+      "enum": [
+        "public",
+        "members",
+        "private"
+      ],
+      "default": "members"
+    },
+    "show_email": {
+      "type": "boolean",
+      "default": false
+    },
+    "show_phone": {
+      "type": "boolean",
+      "default": false
+    },
+    "allow_messages": {
+      "type": "boolean",
+      "default": true
+    },
+    "show_activity": {
+      "type": "boolean",
+      "default": true
+    }
+  },
+  "required": [
+    "user_id"
+  ]
+}

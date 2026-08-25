@@ -1,0 +1,65 @@
+{
+  "name": "SavedSearch",
+  "type": "object",
+  "properties": {
+    "user_id": {
+      "type": "string"
+    },
+    "search_name": {
+      "type": "string",
+      "description": "Custom name for saved search"
+    },
+    "search_query": {
+      "type": "string"
+    },
+    "filters": {
+      "type": "object",
+      "properties": {
+        "category": {
+          "type": "string"
+        },
+        "price_min": {
+          "type": "number"
+        },
+        "price_max": {
+          "type": "number"
+        },
+        "brands": {
+          "type": "array",
+          "items": {
+            "type": "string"
+          }
+        },
+        "rating": {
+          "type": "number"
+        },
+        "in_stock": {
+          "type": "boolean"
+        },
+        "on_sale": {
+          "type": "boolean"
+        }
+      }
+    },
+    "sort_by": {
+      "type": "string"
+    },
+    "notification_enabled": {
+      "type": "boolean",
+      "default": false,
+      "description": "Notify when new matches found"
+    },
+    "last_checked": {
+      "type": "string",
+      "format": "date-time"
+    },
+    "new_results_count": {
+      "type": "number",
+      "default": 0
+    }
+  },
+  "required": [
+    "user_id",
+    "search_name"
+  ]
+}

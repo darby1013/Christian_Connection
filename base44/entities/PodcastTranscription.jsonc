@@ -1,0 +1,42 @@
+{
+  "name": "PodcastTranscription",
+  "type": "object",
+  "properties": {
+    "podcast_id": {
+      "type": "string",
+      "description": "Reference to Podcast entity"
+    },
+    "transcript_text": {
+      "type": "string",
+      "description": "Full AI-generated transcript"
+    },
+    "transcript_json": {
+      "type": "object",
+      "description": "Timestamped transcript data"
+    },
+    "language": {
+      "type": "string",
+      "default": "en"
+    },
+    "processing_status": {
+      "type": "string",
+      "enum": [
+        "pending",
+        "processing",
+        "completed",
+        "failed"
+      ],
+      "default": "pending"
+    },
+    "confidence_score": {
+      "type": "number",
+      "description": "AI transcription confidence (0-1)"
+    },
+    "word_count": {
+      "type": "number"
+    }
+  },
+  "required": [
+    "podcast_id"
+  ]
+}

@@ -1,0 +1,48 @@
+{
+  "name": "DynamicPromotion",
+  "type": "object",
+  "properties": {
+    "user_id": {
+      "type": "string"
+    },
+    "promotion_type": {
+      "type": "string",
+      "enum": [
+        "banner",
+        "popup",
+        "email",
+        "chatbot"
+      ],
+      "default": "banner"
+    },
+    "message": {
+      "type": "string"
+    },
+    "discount_code": {
+      "type": "string"
+    },
+    "discount_percentage": {
+      "type": "number"
+    },
+    "trigger_behavior": {
+      "type": "string",
+      "description": "cart_abandoned, browsing_time, specific_product"
+    },
+    "is_claimed": {
+      "type": "boolean",
+      "default": false
+    },
+    "expires_at": {
+      "type": "string",
+      "format": "date-time"
+    },
+    "shown_at": {
+      "type": "string",
+      "format": "date-time"
+    }
+  },
+  "required": [
+    "user_id",
+    "message"
+  ]
+}

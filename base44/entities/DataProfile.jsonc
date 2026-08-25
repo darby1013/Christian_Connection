@@ -1,0 +1,62 @@
+{
+  "name": "DataProfile",
+  "type": "object",
+  "properties": {
+    "table_name": {
+      "type": "string"
+    },
+    "column_name": {
+      "type": "string"
+    },
+    "profile_date": {
+      "type": "string",
+      "format": "date-time"
+    },
+    "record_count": {
+      "type": "number"
+    },
+    "null_count": {
+      "type": "number"
+    },
+    "distinct_count": {
+      "type": "number"
+    },
+    "min_value": {
+      "type": "string"
+    },
+    "max_value": {
+      "type": "string"
+    },
+    "avg_value": {
+      "type": "number"
+    },
+    "median_value": {
+      "type": "number"
+    },
+    "std_deviation": {
+      "type": "number"
+    },
+    "data_type": {
+      "type": "string"
+    },
+    "avg_length": {
+      "type": "number"
+    },
+    "pattern_analysis": {
+      "type": "object",
+      "description": "Common patterns found"
+    },
+    "quality_score": {
+      "type": "number",
+      "description": "Data quality score 0-100"
+    },
+    "completeness": {
+      "type": "number",
+      "description": "Percentage of non-null values"
+    }
+  },
+  "required": [
+    "table_name",
+    "column_name"
+  ]
+}

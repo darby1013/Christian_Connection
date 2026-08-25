@@ -1,0 +1,60 @@
+{
+  "name": "PodcastSeries",
+  "type": "object",
+  "properties": {
+    "series_title": {
+      "type": "string",
+      "description": "Name of the podcast series"
+    },
+    "description": {
+      "type": "string"
+    },
+    "cover_image": {
+      "type": "string"
+    },
+    "creator_id": {
+      "type": "string"
+    },
+    "creator_name": {
+      "type": "string"
+    },
+    "category": {
+      "type": "string"
+    },
+    "tags": {
+      "type": "array",
+      "items": {
+        "type": "string"
+      }
+    },
+    "total_seasons": {
+      "type": "number",
+      "default": 1
+    },
+    "total_episodes": {
+      "type": "number",
+      "default": 0
+    },
+    "total_plays": {
+      "type": "number",
+      "default": 0
+    },
+    "subscription_enabled": {
+      "type": "boolean",
+      "default": false,
+      "description": "Can subscribe to entire series"
+    },
+    "series_subscription_price": {
+      "type": "number",
+      "default": 0,
+      "description": "Monthly price for series subscription"
+    },
+    "is_active": {
+      "type": "boolean",
+      "default": true
+    }
+  },
+  "required": [
+    "series_title"
+  ]
+}

@@ -1,0 +1,71 @@
+{
+  "name": "DatabaseTransaction",
+  "type": "object",
+  "properties": {
+    "transaction_id": {
+      "type": "string",
+      "description": "Unique transaction identifier"
+    },
+    "transaction_type": {
+      "type": "string",
+      "enum": [
+        "read",
+        "write",
+        "update",
+        "delete",
+        "bulk"
+      ],
+      "description": "Type of transaction"
+    },
+    "tables_affected": {
+      "type": "array",
+      "items": {
+        "type": "string"
+      },
+      "description": "Tables involved in transaction"
+    },
+    "user_id": {
+      "type": "string"
+    },
+    "status": {
+      "type": "string",
+      "enum": [
+        "pending",
+        "committed",
+        "rolled_back",
+        "failed"
+      ],
+      "default": "pending"
+    },
+    "started_at": {
+      "type": "string",
+      "format": "date-time"
+    },
+    "completed_at": {
+      "type": "string",
+      "format": "date-time"
+    },
+    "duration_ms": {
+      "type": "number"
+    },
+    "rows_affected": {
+      "type": "number"
+    },
+    "isolation_level": {
+      "type": "string",
+      "enum": [
+        "read_uncommitted",
+        "read_committed",
+        "repeatable_read",
+        "serializable"
+      ]
+    },
+    "error_message": {
+      "type": "string"
+    }
+  },
+  "required": [
+    "transaction_id",
+    "transaction_type"
+  ]
+}

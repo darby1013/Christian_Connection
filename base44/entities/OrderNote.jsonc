@@ -1,0 +1,23 @@
+{
+  "name": "OrderNote",
+  "type": "object",
+  "properties": {
+    "order_id": {
+      "type": "string"
+    },
+    "note_text": {
+      "type": "string"
+    },
+    "is_customer_note": {
+      "type": "boolean",
+      "default": false
+    },
+    "added_by": {
+      "type": "string"
+    }
+  },
+  "required": [
+    "order_id",
+    "note_text"
+  ]
+}

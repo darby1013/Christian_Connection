@@ -1,0 +1,37 @@
+{
+  "name": "UserConnection",
+  "type": "object",
+  "properties": {
+    "user_id": {
+      "type": "string"
+    },
+    "connected_user_id": {
+      "type": "string"
+    },
+    "connection_type": {
+      "type": "string",
+      "enum": [
+        "friend",
+        "mentor",
+        "prayer_partner"
+      ]
+    },
+    "status": {
+      "type": "string",
+      "enum": [
+        "pending",
+        "accepted",
+        "blocked"
+      ],
+      "default": "pending"
+    },
+    "connected_date": {
+      "type": "string",
+      "format": "date-time"
+    }
+  },
+  "required": [
+    "user_id",
+    "connected_user_id"
+  ]
+}

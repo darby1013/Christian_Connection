@@ -1,0 +1,34 @@
+{
+  "name": "ContentShare",
+  "type": "object",
+  "properties": {
+    "entity_type": {
+      "type": "string"
+    },
+    "entity_id": {
+      "type": "string"
+    },
+    "user_id": {
+      "type": "string"
+    },
+    "platform": {
+      "type": "string",
+      "enum": [
+        "facebook",
+        "twitter",
+        "instagram",
+        "email",
+        "link"
+      ]
+    },
+    "share_count": {
+      "type": "number",
+      "default": 1
+    }
+  },
+  "required": [
+    "entity_type",
+    "entity_id",
+    "platform"
+  ]
+}

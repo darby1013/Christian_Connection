@@ -1,0 +1,38 @@
+{
+  "name": "ProductVideo",
+  "type": "object",
+  "properties": {
+    "product_id": {
+      "type": "string"
+    },
+    "title": {
+      "type": "string"
+    },
+    "video_url": {
+      "type": "string"
+    },
+    "thumbnail_url": {
+      "type": "string"
+    },
+    "duration": {
+      "type": "number"
+    },
+    "video_type": {
+      "type": "string",
+      "enum": [
+        "demo",
+        "review",
+        "unboxing",
+        "tutorial"
+      ]
+    },
+    "is_featured": {
+      "type": "boolean",
+      "default": false
+    }
+  },
+  "required": [
+    "product_id",
+    "video_url"
+  ]
+}

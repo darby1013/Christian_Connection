@@ -1,0 +1,77 @@
+{
+  "name": "EventRegistration",
+  "type": "object",
+  "properties": {
+    "event_id": {
+      "type": "string"
+    },
+    "attendee_id": {
+      "type": "string"
+    },
+    "attendee_name": {
+      "type": "string"
+    },
+    "attendee_email": {
+      "type": "string"
+    },
+    "attendee_phone": {
+      "type": "string"
+    },
+    "ticket_type": {
+      "type": "string",
+      "description": "e.g., General, VIP, Student"
+    },
+    "ticket_price": {
+      "type": "number",
+      "default": 0
+    },
+    "quantity": {
+      "type": "number",
+      "default": 1
+    },
+    "total_amount": {
+      "type": "number"
+    },
+    "payment_status": {
+      "type": "string",
+      "enum": [
+        "pending",
+        "paid",
+        "refunded",
+        "failed"
+      ],
+      "default": "pending"
+    },
+    "payment_method": {
+      "type": "string"
+    },
+    "registration_status": {
+      "type": "string",
+      "enum": [
+        "confirmed",
+        "cancelled",
+        "waitlist"
+      ],
+      "default": "confirmed"
+    },
+    "check_in_status": {
+      "type": "boolean",
+      "default": false
+    },
+    "check_in_time": {
+      "type": "string",
+      "format": "date-time"
+    },
+    "special_requests": {
+      "type": "string"
+    },
+    "qr_code": {
+      "type": "string",
+      "description": "QR code for check-in"
+    }
+  },
+  "required": [
+    "event_id",
+    "attendee_email"
+  ]
+}

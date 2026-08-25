@@ -1,0 +1,49 @@
+{
+  "name": "PageBackup",
+  "type": "object",
+  "properties": {
+    "page_name": {
+      "type": "string",
+      "description": "Name of the page (e.g., Home, AdminDashboard)"
+    },
+    "page_code": {
+      "type": "string",
+      "description": "Full page code backup"
+    },
+    "backup_type": {
+      "type": "string",
+      "enum": [
+        "auto",
+        "manual",
+        "pre_edit"
+      ],
+      "default": "manual",
+      "description": "Type of backup"
+    },
+    "version_number": {
+      "type": "number",
+      "description": "Version number"
+    },
+    "description": {
+      "type": "string",
+      "description": "Backup description or notes"
+    },
+    "file_size_kb": {
+      "type": "number",
+      "description": "Size of backup in KB"
+    },
+    "changes_summary": {
+      "type": "string",
+      "description": "Summary of what was changed"
+    },
+    "is_current": {
+      "type": "boolean",
+      "default": false,
+      "description": "Whether this is the current active version"
+    }
+  },
+  "required": [
+    "page_name",
+    "page_code"
+  ]
+}

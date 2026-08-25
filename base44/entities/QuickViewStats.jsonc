@@ -1,0 +1,43 @@
+{
+  "name": "QuickViewStats",
+  "type": "object",
+  "properties": {
+    "product_id": {
+      "type": "string"
+    },
+    "product_name": {
+      "type": "string"
+    },
+    "total_quick_views": {
+      "type": "number",
+      "default": 0
+    },
+    "quick_view_to_cart": {
+      "type": "number",
+      "default": 0,
+      "description": "Add to cart from quick view"
+    },
+    "quick_view_to_detail": {
+      "type": "number",
+      "default": 0,
+      "description": "Clicked 'View Full Details'"
+    },
+    "conversion_rate": {
+      "type": "number",
+      "default": 0,
+      "description": "Quick view \u2192 purchase %"
+    },
+    "avg_view_duration": {
+      "type": "number",
+      "default": 0,
+      "description": "Average seconds in quick view"
+    },
+    "last_quick_viewed": {
+      "type": "string",
+      "format": "date-time"
+    }
+  },
+  "required": [
+    "product_id"
+  ]
+}

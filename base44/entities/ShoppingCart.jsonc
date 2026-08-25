@@ -1,0 +1,157 @@
+{
+  "name": "ShoppingCart",
+  "type": "object",
+  "properties": {
+    "user_id": {
+      "type": "string",
+      "description": "Customer user ID"
+    },
+    "session_id": {
+      "type": "string",
+      "description": "For guest users"
+    },
+    "items": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "properties": {
+          "product_id": {
+            "type": "string"
+          },
+          "variant_id": {
+            "type": "string"
+          },
+          "product_name": {
+            "type": "string"
+          },
+          "variant_name": {
+            "type": "string"
+          },
+          "price": {
+            "type": "number"
+          },
+          "quantity": {
+            "type": "number"
+          },
+          "image_url": {
+            "type": "string"
+          },
+          "sku": {
+            "type": "string"
+          },
+          "weight": {
+            "type": "number"
+          },
+          "max_quantity": {
+            "type": "number"
+          },
+          "is_in_stock": {
+            "type": "boolean"
+          }
+        }
+      }
+    },
+    "subtotal": {
+      "type": "number",
+      "default": 0
+    },
+    "tax_amount": {
+      "type": "number",
+      "default": 0
+    },
+    "shipping_cost": {
+      "type": "number",
+      "default": 0
+    },
+    "discount_amount": {
+      "type": "number",
+      "default": 0
+    },
+    "total": {
+      "type": "number",
+      "default": 0
+    },
+    "applied_coupons": {
+      "type": "array",
+      "items": {
+        "type": "string"
+      }
+    },
+    "shipping_address": {
+      "type": "object",
+      "properties": {
+        "name": {
+          "type": "string"
+        },
+        "street": {
+          "type": "string"
+        },
+        "city": {
+          "type": "string"
+        },
+        "state": {
+          "type": "string"
+        },
+        "zip": {
+          "type": "string"
+        },
+        "country": {
+          "type": "string"
+        },
+        "phone": {
+          "type": "string"
+        }
+      }
+    },
+    "billing_address": {
+      "type": "object",
+      "properties": {
+        "name": {
+          "type": "string"
+        },
+        "street": {
+          "type": "string"
+        },
+        "city": {
+          "type": "string"
+        },
+        "state": {
+          "type": "string"
+        },
+        "zip": {
+          "type": "string"
+        },
+        "country": {
+          "type": "string"
+        }
+      }
+    },
+    "selected_shipping_method": {
+      "type": "string"
+    },
+    "estimated_delivery": {
+      "type": "string"
+    },
+    "last_updated": {
+      "type": "string",
+      "format": "date-time"
+    },
+    "expires_at": {
+      "type": "string",
+      "format": "date-time",
+      "description": "Cart expiration (24 hours)"
+    },
+    "is_active": {
+      "type": "boolean",
+      "default": true
+    },
+    "checkout_step": {
+      "type": "number",
+      "default": 1,
+      "description": "Current checkout step (1-5)"
+    }
+  },
+  "required": [
+    "items"
+  ]
+}

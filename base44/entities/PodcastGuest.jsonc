@@ -1,0 +1,37 @@
+{
+  "name": "PodcastGuest",
+  "type": "object",
+  "properties": {
+    "podcast_id": {
+      "type": "string"
+    },
+    "guest_name": {
+      "type": "string"
+    },
+    "guest_email": {
+      "type": "string"
+    },
+    "guest_bio": {
+      "type": "string"
+    },
+    "guest_image": {
+      "type": "string"
+    },
+    "guest_website": {
+      "type": "string"
+    },
+    "guest_social": {
+      "type": "object"
+    },
+    "topics_discussed": {
+      "type": "array",
+      "items": {
+        "type": "string"
+      }
+    }
+  },
+  "required": [
+    "podcast_id",
+    "guest_name"
+  ]
+}

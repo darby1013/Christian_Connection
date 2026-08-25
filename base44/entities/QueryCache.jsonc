@@ -1,0 +1,39 @@
+{
+  "name": "QueryCache",
+  "type": "object",
+  "properties": {
+    "query_hash": {
+      "type": "string"
+    },
+    "query_text": {
+      "type": "string"
+    },
+    "result_cache": {
+      "type": "object",
+      "description": "Cached query results"
+    },
+    "cached_at": {
+      "type": "string",
+      "format": "date-time"
+    },
+    "expires_at": {
+      "type": "string",
+      "format": "date-time"
+    },
+    "hit_count": {
+      "type": "number",
+      "default": 0
+    },
+    "size_kb": {
+      "type": "number"
+    },
+    "execution_time_saved": {
+      "type": "number",
+      "description": "Total time saved in ms"
+    }
+  },
+  "required": [
+    "query_hash",
+    "query_text"
+  ]
+}

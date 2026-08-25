@@ -1,0 +1,40 @@
+{
+  "name": "DataTransformation",
+  "type": "object",
+  "properties": {
+    "name": {
+      "type": "string"
+    },
+    "source_entity": {
+      "type": "string"
+    },
+    "target_entity": {
+      "type": "string"
+    },
+    "transformation_rules": {
+      "type": "object",
+      "description": "Mapping and transformation logic"
+    },
+    "schedule": {
+      "type": "string",
+      "description": "When to run transformation"
+    },
+    "is_active": {
+      "type": "boolean",
+      "default": true
+    },
+    "last_run_at": {
+      "type": "string",
+      "format": "date-time"
+    },
+    "records_processed": {
+      "type": "number",
+      "default": 0
+    }
+  },
+  "required": [
+    "name",
+    "source_entity",
+    "transformation_rules"
+  ]
+}

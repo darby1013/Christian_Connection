@@ -1,0 +1,84 @@
+{
+  "name": "DatabaseClone",
+  "type": "object",
+  "properties": {
+    "clone_name": {
+      "type": "string",
+      "description": "Name of the clone"
+    },
+    "source_database": {
+      "type": "string"
+    },
+    "clone_type": {
+      "type": "string",
+      "enum": [
+        "full",
+        "partial",
+        "schema_only",
+        "sample_data"
+      ],
+      "description": "Type of clone"
+    },
+    "purpose": {
+      "type": "string",
+      "enum": [
+        "development",
+        "testing",
+        "staging",
+        "analytics",
+        "backup"
+      ],
+      "description": "Purpose of clone"
+    },
+    "tables_included": {
+      "type": "array",
+      "items": {
+        "type": "string"
+      }
+    },
+    "clone_date": {
+      "type": "string",
+      "format": "date-time"
+    },
+    "size_gb": {
+      "type": "number"
+    },
+    "status": {
+      "type": "string",
+      "enum": [
+        "creating",
+        "ready",
+        "updating",
+        "deleting",
+        "error"
+      ],
+      "default": "creating"
+    },
+    "is_sanitized": {
+      "type": "boolean",
+      "default": false,
+      "description": "PII removed"
+    },
+    "auto_refresh": {
+      "type": "boolean",
+      "default": false
+    },
+    "refresh_frequency": {
+      "type": "string",
+      "enum": [
+        "daily",
+        "weekly",
+        "monthly"
+      ]
+    },
+    "last_refresh": {
+      "type": "string",
+      "format": "date-time"
+    }
+  },
+  "required": [
+    "clone_name",
+    "source_database",
+    "clone_type"
+  ]
+}

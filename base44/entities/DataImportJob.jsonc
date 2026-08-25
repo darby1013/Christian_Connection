@@ -1,0 +1,64 @@
+{
+  "name": "DataImportJob",
+  "type": "object",
+  "properties": {
+    "job_name": {
+      "type": "string"
+    },
+    "source_file_url": {
+      "type": "string"
+    },
+    "target_table": {
+      "type": "string"
+    },
+    "import_mode": {
+      "type": "string",
+      "enum": [
+        "insert",
+        "update",
+        "upsert",
+        "replace"
+      ],
+      "default": "insert"
+    },
+    "status": {
+      "type": "string",
+      "enum": [
+        "queued",
+        "processing",
+        "completed",
+        "failed"
+      ],
+      "default": "queued"
+    },
+    "records_imported": {
+      "type": "number",
+      "default": 0
+    },
+    "records_failed": {
+      "type": "number",
+      "default": 0
+    },
+    "started_at": {
+      "type": "string",
+      "format": "date-time"
+    },
+    "completed_at": {
+      "type": "string",
+      "format": "date-time"
+    },
+    "validation_errors": {
+      "type": "array",
+      "items": {
+        "type": "object"
+      }
+    },
+    "requested_by": {
+      "type": "string"
+    }
+  },
+  "required": [
+    "job_name",
+    "target_table"
+  ]
+}

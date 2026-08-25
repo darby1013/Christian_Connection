@@ -1,0 +1,48 @@
+{
+  "name": "APIEndpoint",
+  "type": "object",
+  "properties": {
+    "name": {
+      "type": "string"
+    },
+    "path": {
+      "type": "string"
+    },
+    "method": {
+      "type": "string",
+      "enum": [
+        "GET",
+        "POST",
+        "PUT",
+        "DELETE",
+        "PATCH"
+      ]
+    },
+    "description": {
+      "type": "string"
+    },
+    "request_schema": {
+      "type": "object"
+    },
+    "response_schema": {
+      "type": "object"
+    },
+    "requires_auth": {
+      "type": "boolean",
+      "default": true
+    },
+    "rate_limit": {
+      "type": "number",
+      "default": 100
+    },
+    "is_active": {
+      "type": "boolean",
+      "default": true
+    }
+  },
+  "required": [
+    "name",
+    "path",
+    "method"
+  ]
+}

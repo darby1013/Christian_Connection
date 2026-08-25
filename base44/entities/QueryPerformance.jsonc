@@ -1,0 +1,66 @@
+{
+  "name": "QueryPerformance",
+  "type": "object",
+  "properties": {
+    "query_hash": {
+      "type": "string",
+      "description": "Hash of the query"
+    },
+    "query_text": {
+      "type": "string",
+      "description": "The actual query"
+    },
+    "table_name": {
+      "type": "string"
+    },
+    "execution_time": {
+      "type": "number",
+      "description": "Execution time in ms"
+    },
+    "rows_examined": {
+      "type": "number"
+    },
+    "rows_returned": {
+      "type": "number"
+    },
+    "execution_count": {
+      "type": "number",
+      "default": 1
+    },
+    "avg_execution_time": {
+      "type": "number"
+    },
+    "max_execution_time": {
+      "type": "number"
+    },
+    "min_execution_time": {
+      "type": "number"
+    },
+    "performance_rating": {
+      "type": "string",
+      "enum": [
+        "excellent",
+        "good",
+        "fair",
+        "poor",
+        "critical"
+      ],
+      "default": "good"
+    },
+    "optimization_suggestion": {
+      "type": "string"
+    },
+    "index_used": {
+      "type": "boolean",
+      "default": false
+    },
+    "cache_hit": {
+      "type": "boolean",
+      "default": false
+    }
+  },
+  "required": [
+    "query_hash",
+    "query_text"
+  ]
+}

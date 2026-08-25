@@ -1,0 +1,56 @@
+{
+  "name": "ProductComparison",
+  "type": "object",
+  "properties": {
+    "user_id": {
+      "type": "string"
+    },
+    "session_id": {
+      "type": "string",
+      "description": "For guest users"
+    },
+    "products": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "properties": {
+          "product_id": {
+            "type": "string"
+          },
+          "product_name": {
+            "type": "string"
+          },
+          "price": {
+            "type": "number"
+          },
+          "image": {
+            "type": "string"
+          },
+          "rating": {
+            "type": "number"
+          },
+          "features": {
+            "type": "object"
+          }
+        }
+      }
+    },
+    "comparison_name": {
+      "type": "string",
+      "description": "Custom name for comparison"
+    },
+    "is_public": {
+      "type": "boolean",
+      "default": false
+    },
+    "share_token": {
+      "type": "string"
+    },
+    "comparison_category": {
+      "type": "string"
+    }
+  },
+  "required": [
+    "products"
+  ]
+}

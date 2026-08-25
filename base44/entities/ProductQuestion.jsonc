@@ -1,0 +1,41 @@
+{
+  "name": "ProductQuestion",
+  "type": "object",
+  "properties": {
+    "product_id": {
+      "type": "string"
+    },
+    "user_id": {
+      "type": "string"
+    },
+    "user_name": {
+      "type": "string"
+    },
+    "question": {
+      "type": "string"
+    },
+    "answer": {
+      "type": "string"
+    },
+    "answered_by": {
+      "type": "string"
+    },
+    "answered_at": {
+      "type": "string",
+      "format": "date-time"
+    },
+    "is_public": {
+      "type": "boolean",
+      "default": true
+    },
+    "helpful_count": {
+      "type": "number",
+      "default": 0
+    }
+  },
+  "required": [
+    "product_id",
+    "user_id",
+    "question"
+  ]
+}

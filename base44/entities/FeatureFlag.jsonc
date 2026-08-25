@@ -1,0 +1,56 @@
+{
+  "name": "FeatureFlag",
+  "type": "object",
+  "properties": {
+    "flag_name": {
+      "type": "string",
+      "description": "Name of feature flag"
+    },
+    "description": {
+      "type": "string"
+    },
+    "is_enabled": {
+      "type": "boolean",
+      "default": false
+    },
+    "enabled_for_roles": {
+      "type": "array",
+      "items": {
+        "type": "string"
+      }
+    },
+    "enabled_for_users": {
+      "type": "array",
+      "items": {
+        "type": "string"
+      }
+    },
+    "rollout_percentage": {
+      "type": "number",
+      "default": 0,
+      "description": "Percentage of users with access"
+    },
+    "feature_type": {
+      "type": "string",
+      "enum": [
+        "ui",
+        "api",
+        "backend",
+        "integration"
+      ],
+      "default": "ui"
+    },
+    "environment": {
+      "type": "string",
+      "enum": [
+        "development",
+        "staging",
+        "production"
+      ],
+      "default": "production"
+    }
+  },
+  "required": [
+    "flag_name"
+  ]
+}

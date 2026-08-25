@@ -1,0 +1,55 @@
+{
+  "name": "DataLineage",
+  "type": "object",
+  "properties": {
+    "data_element": {
+      "type": "string",
+      "description": "Data element being tracked"
+    },
+    "source_system": {
+      "type": "string",
+      "description": "Origin of the data"
+    },
+    "source_table": {
+      "type": "string"
+    },
+    "source_column": {
+      "type": "string"
+    },
+    "destination_table": {
+      "type": "string"
+    },
+    "destination_column": {
+      "type": "string"
+    },
+    "transformation_logic": {
+      "type": "string",
+      "description": "How data was transformed"
+    },
+    "lineage_path": {
+      "type": "array",
+      "items": {
+        "type": "object"
+      },
+      "description": "Complete lineage chain"
+    },
+    "data_owner": {
+      "type": "string"
+    },
+    "data_steward": {
+      "type": "string"
+    },
+    "last_updated": {
+      "type": "string",
+      "format": "date-time"
+    },
+    "quality_score": {
+      "type": "number",
+      "description": "Data quality score 0-100"
+    }
+  },
+  "required": [
+    "data_element",
+    "source_table"
+  ]
+}

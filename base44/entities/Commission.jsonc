@@ -1,0 +1,39 @@
+{
+  "name": "Commission",
+  "type": "object",
+  "properties": {
+    "affiliate_id": {
+      "type": "string"
+    },
+    "order_id": {
+      "type": "string"
+    },
+    "commission_amount": {
+      "type": "number"
+    },
+    "commission_rate": {
+      "type": "number"
+    },
+    "sale_amount": {
+      "type": "number"
+    },
+    "status": {
+      "type": "string",
+      "enum": [
+        "pending",
+        "approved",
+        "paid"
+      ],
+      "default": "pending"
+    },
+    "paid_date": {
+      "type": "string",
+      "format": "date-time"
+    }
+  },
+  "required": [
+    "affiliate_id",
+    "order_id",
+    "commission_amount"
+  ]
+}

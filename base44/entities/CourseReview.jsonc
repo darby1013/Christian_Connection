@@ -1,0 +1,55 @@
+{
+  "name": "CourseReview",
+  "type": "object",
+  "properties": {
+    "course_id": {
+      "type": "string",
+      "description": "Reference to Course"
+    },
+    "user_id": {
+      "type": "string",
+      "description": "Reviewer user ID"
+    },
+    "user_name": {
+      "type": "string"
+    },
+    "user_image": {
+      "type": "string"
+    },
+    "rating": {
+      "type": "number",
+      "minimum": 1,
+      "maximum": 5,
+      "description": "Star rating 1-5"
+    },
+    "review_text": {
+      "type": "string",
+      "description": "Written review"
+    },
+    "is_verified_completion": {
+      "type": "boolean",
+      "default": false,
+      "description": "User completed the course"
+    },
+    "is_approved": {
+      "type": "boolean",
+      "default": true,
+      "description": "Admin moderation status"
+    },
+    "is_featured": {
+      "type": "boolean",
+      "default": false,
+      "description": "Featured review"
+    },
+    "helpful_count": {
+      "type": "number",
+      "default": 0,
+      "description": "How many found this helpful"
+    }
+  },
+  "required": [
+    "course_id",
+    "user_id",
+    "rating"
+  ]
+}

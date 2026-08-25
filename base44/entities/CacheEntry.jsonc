@@ -1,0 +1,53 @@
+{
+  "name": "CacheEntry",
+  "type": "object",
+  "properties": {
+    "cache_key": {
+      "type": "string",
+      "description": "Unique cache key"
+    },
+    "cache_value": {
+      "type": "object",
+      "description": "Cached data"
+    },
+    "cache_type": {
+      "type": "string",
+      "enum": [
+        "query",
+        "page",
+        "api",
+        "session",
+        "static"
+      ],
+      "description": "Type of cached data"
+    },
+    "ttl": {
+      "type": "number",
+      "description": "Time to live in seconds"
+    },
+    "expires_at": {
+      "type": "string",
+      "format": "date-time"
+    },
+    "hit_count": {
+      "type": "number",
+      "default": 0
+    },
+    "size_bytes": {
+      "type": "number"
+    },
+    "last_accessed": {
+      "type": "string",
+      "format": "date-time"
+    },
+    "tags": {
+      "type": "array",
+      "items": {
+        "type": "string"
+      }
+    }
+  },
+  "required": [
+    "cache_key"
+  ]
+}

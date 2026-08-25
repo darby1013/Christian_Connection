@@ -1,0 +1,46 @@
+{
+  "name": "DiscountRule",
+  "type": "object",
+  "properties": {
+    "rule_name": {
+      "type": "string"
+    },
+    "discount_type": {
+      "type": "string",
+      "enum": [
+        "percentage",
+        "fixed_amount",
+        "buy_x_get_y"
+      ]
+    },
+    "discount_value": {
+      "type": "number"
+    },
+    "min_purchase": {
+      "type": "number"
+    },
+    "applies_to": {
+      "type": "array",
+      "items": {
+        "type": "string"
+      }
+    },
+    "start_date": {
+      "type": "string",
+      "format": "date-time"
+    },
+    "end_date": {
+      "type": "string",
+      "format": "date-time"
+    },
+    "is_active": {
+      "type": "boolean",
+      "default": true
+    }
+  },
+  "required": [
+    "rule_name",
+    "discount_type",
+    "discount_value"
+  ]
+}

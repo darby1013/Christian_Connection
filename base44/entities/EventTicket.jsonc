@@ -1,0 +1,48 @@
+{
+  "name": "EventTicket",
+  "type": "object",
+  "properties": {
+    "event_id": {
+      "type": "string"
+    },
+    "user_id": {
+      "type": "string"
+    },
+    "ticket_number": {
+      "type": "string"
+    },
+    "ticket_type": {
+      "type": "string",
+      "enum": [
+        "general",
+        "vip",
+        "early_bird"
+      ]
+    },
+    "price": {
+      "type": "number"
+    },
+    "status": {
+      "type": "string",
+      "enum": [
+        "active",
+        "used",
+        "cancelled"
+      ],
+      "default": "active"
+    },
+    "checked_in": {
+      "type": "boolean",
+      "default": false
+    },
+    "check_in_time": {
+      "type": "string",
+      "format": "date-time"
+    }
+  },
+  "required": [
+    "event_id",
+    "user_id",
+    "ticket_number"
+  ]
+}

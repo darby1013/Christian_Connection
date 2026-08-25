@@ -1,0 +1,53 @@
+{
+  "name": "AccessControlList",
+  "type": "object",
+  "properties": {
+    "resource_type": {
+      "type": "string",
+      "description": "Type of resource (table, endpoint, page)"
+    },
+    "resource_id": {
+      "type": "string",
+      "description": "ID of the resource"
+    },
+    "resource_name": {
+      "type": "string"
+    },
+    "user_id": {
+      "type": "string"
+    },
+    "role_id": {
+      "type": "string"
+    },
+    "access_level": {
+      "type": "string",
+      "enum": [
+        "none",
+        "read",
+        "write",
+        "admin"
+      ],
+      "default": "read"
+    },
+    "granted_by": {
+      "type": "string"
+    },
+    "granted_date": {
+      "type": "string",
+      "format": "date-time"
+    },
+    "expires_at": {
+      "type": "string",
+      "format": "date-time"
+    },
+    "conditions": {
+      "type": "object",
+      "description": "Additional access conditions"
+    }
+  },
+  "required": [
+    "resource_type",
+    "resource_id",
+    "access_level"
+  ]
+}

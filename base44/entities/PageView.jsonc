@@ -1,0 +1,41 @@
+{
+  "name": "PageView",
+  "type": "object",
+  "properties": {
+    "page_name": {
+      "type": "string"
+    },
+    "page_url": {
+      "type": "string"
+    },
+    "user_id": {
+      "type": "string"
+    },
+    "session_id": {
+      "type": "string"
+    },
+    "view_date": {
+      "type": "string",
+      "format": "date-time"
+    },
+    "duration_seconds": {
+      "type": "number"
+    },
+    "referrer": {
+      "type": "string"
+    },
+    "device_type": {
+      "type": "string"
+    },
+    "browser": {
+      "type": "string"
+    },
+    "ip_address": {
+      "type": "string"
+    }
+  },
+  "required": [
+    "page_name",
+    "view_date"
+  ]
+}

@@ -1,0 +1,93 @@
+{
+  "name": "ScheduledJob",
+  "type": "object",
+  "properties": {
+    "job_name": {
+      "type": "string",
+      "description": "Name of the scheduled job"
+    },
+    "job_type": {
+      "type": "string",
+      "enum": [
+        "backup",
+        "email",
+        "cleanup",
+        "report",
+        "sync",
+        "import",
+        "export",
+        "maintenance"
+      ],
+      "description": "Type of job"
+    },
+    "cron_expression": {
+      "type": "string",
+      "description": "Cron schedule (e.g., 0 0 * * *)"
+    },
+    "frequency": {
+      "type": "string",
+      "enum": [
+        "hourly",
+        "daily",
+        "weekly",
+        "monthly",
+        "custom"
+      ],
+      "default": "daily"
+    },
+    "script_content": {
+      "type": "string",
+      "description": "Job script or command"
+    },
+    "is_active": {
+      "type": "boolean",
+      "default": true
+    },
+    "last_run": {
+      "type": "string",
+      "format": "date-time"
+    },
+    "next_run": {
+      "type": "string",
+      "format": "date-time"
+    },
+    "run_count": {
+      "type": "number",
+      "default": 0
+    },
+    "success_count": {
+      "type": "number",
+      "default": 0
+    },
+    "failure_count": {
+      "type": "number",
+      "default": 0
+    },
+    "last_status": {
+      "type": "string",
+      "enum": [
+        "success",
+        "failed",
+        "running",
+        "pending"
+      ],
+      "default": "pending"
+    },
+    "last_error": {
+      "type": "string"
+    },
+    "avg_duration": {
+      "type": "number",
+      "description": "Average execution time in seconds"
+    },
+    "timeout": {
+      "type": "number",
+      "default": 300,
+      "description": "Timeout in seconds"
+    }
+  },
+  "required": [
+    "job_name",
+    "job_type"
+  ]
+}

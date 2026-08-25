@@ -1,0 +1,26 @@
+{
+  "name": "PrayerUpdate",
+  "type": "object",
+  "properties": {
+    "prayer_id": {
+      "type": "string"
+    },
+    "user_id": {
+      "type": "string"
+    },
+    "update_text": {
+      "type": "string"
+    },
+    "is_answered": {
+      "type": "boolean",
+      "default": false
+    },
+    "testimony": {
+      "type": "string"
+    }
+  },
+  "required": [
+    "prayer_id",
+    "update_text"
+  ]
+}

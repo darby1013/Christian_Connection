@@ -1,0 +1,46 @@
+{
+  "name": "RateLimitViolation",
+  "type": "object",
+  "properties": {
+    "user_id": {
+      "type": "string"
+    },
+    "ip_address": {
+      "type": "string"
+    },
+    "endpoint": {
+      "type": "string"
+    },
+    "violation_date": {
+      "type": "string",
+      "format": "date-time"
+    },
+    "request_count": {
+      "type": "number"
+    },
+    "limit_exceeded": {
+      "type": "number"
+    },
+    "action_taken": {
+      "type": "string",
+      "enum": [
+        "blocked",
+        "throttled",
+        "logged"
+      ],
+      "default": "blocked"
+    },
+    "ban_duration": {
+      "type": "number",
+      "description": "Ban duration in minutes"
+    },
+    "is_resolved": {
+      "type": "boolean",
+      "default": false
+    }
+  },
+  "required": [
+    "endpoint",
+    "request_count"
+  ]
+}

@@ -1,0 +1,78 @@
+{
+  "name": "ErrorLog",
+  "type": "object",
+  "properties": {
+    "error_type": {
+      "type": "string",
+      "enum": [
+        "runtime",
+        "database",
+        "api",
+        "validation",
+        "authentication",
+        "authorization",
+        "network",
+        "timeout"
+      ],
+      "description": "Type of error"
+    },
+    "error_message": {
+      "type": "string",
+      "description": "Error message"
+    },
+    "error_stack": {
+      "type": "string",
+      "description": "Stack trace"
+    },
+    "severity": {
+      "type": "string",
+      "enum": [
+        "low",
+        "medium",
+        "high",
+        "critical"
+      ],
+      "default": "medium"
+    },
+    "user_id": {
+      "type": "string"
+    },
+    "user_email": {
+      "type": "string"
+    },
+    "page_url": {
+      "type": "string"
+    },
+    "component": {
+      "type": "string",
+      "description": "Component where error occurred"
+    },
+    "browser": {
+      "type": "string"
+    },
+    "os": {
+      "type": "string"
+    },
+    "ip_address": {
+      "type": "string"
+    },
+    "is_resolved": {
+      "type": "boolean",
+      "default": false
+    },
+    "resolved_by": {
+      "type": "string"
+    },
+    "resolution_notes": {
+      "type": "string"
+    },
+    "occurrence_count": {
+      "type": "number",
+      "default": 1
+    }
+  },
+  "required": [
+    "error_type",
+    "error_message"
+  ]
+}

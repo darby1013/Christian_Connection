@@ -1,0 +1,53 @@
+{
+  "name": "Donation",
+  "type": "object",
+  "properties": {
+    "amount": {
+      "type": "number"
+    },
+    "donor_id": {
+      "type": "string"
+    },
+    "donor_name": {
+      "type": "string"
+    },
+    "donor_email": {
+      "type": "string"
+    },
+    "recipient_type": {
+      "type": "string",
+      "enum": [
+        "streamer",
+        "community",
+        "event",
+        "general"
+      ],
+      "description": "What the donation is for"
+    },
+    "recipient_id": {
+      "type": "string",
+      "description": "ID of stream, event, etc."
+    },
+    "message": {
+      "type": "string",
+      "description": "Optional message with donation"
+    },
+    "is_anonymous": {
+      "type": "boolean",
+      "default": false
+    },
+    "payment_status": {
+      "type": "string",
+      "enum": [
+        "pending",
+        "completed",
+        "failed"
+      ],
+      "default": "completed"
+    }
+  },
+  "required": [
+    "amount",
+    "recipient_type"
+  ]
+}

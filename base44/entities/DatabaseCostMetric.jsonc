@@ -1,0 +1,52 @@
+{
+  "name": "DatabaseCostMetric",
+  "type": "object",
+  "properties": {
+    "metric_date": {
+      "type": "string",
+      "format": "date"
+    },
+    "table_name": {
+      "type": "string"
+    },
+    "storage_cost": {
+      "type": "number",
+      "description": "Monthly storage cost"
+    },
+    "compute_cost": {
+      "type": "number",
+      "description": "Monthly compute cost"
+    },
+    "backup_cost": {
+      "type": "number"
+    },
+    "transfer_cost": {
+      "type": "number"
+    },
+    "total_cost": {
+      "type": "number"
+    },
+    "storage_gb": {
+      "type": "number"
+    },
+    "query_count": {
+      "type": "number"
+    },
+    "avg_query_cost": {
+      "type": "number"
+    },
+    "optimization_potential": {
+      "type": "number",
+      "description": "Potential savings %"
+    },
+    "recommendations": {
+      "type": "array",
+      "items": {
+        "type": "string"
+      }
+    }
+  },
+  "required": [
+    "metric_date"
+  ]
+}

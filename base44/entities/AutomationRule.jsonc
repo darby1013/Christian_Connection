@@ -1,0 +1,47 @@
+{
+  "name": "AutomationRule",
+  "type": "object",
+  "properties": {
+    "name": {
+      "type": "string"
+    },
+    "trigger_event": {
+      "type": "string",
+      "enum": [
+        "order_placed",
+        "cart_abandoned",
+        "product_low_stock",
+        "user_inactive",
+        "review_submitted"
+      ]
+    },
+    "conditions": {
+      "type": "object",
+      "description": "Conditions that must be met"
+    },
+    "actions": {
+      "type": "array",
+      "items": {
+        "type": "object"
+      },
+      "description": "Actions to execute"
+    },
+    "is_active": {
+      "type": "boolean",
+      "default": true
+    },
+    "execution_count": {
+      "type": "number",
+      "default": 0
+    },
+    "last_executed_at": {
+      "type": "string",
+      "format": "date-time"
+    }
+  },
+  "required": [
+    "name",
+    "trigger_event",
+    "actions"
+  ]
+}

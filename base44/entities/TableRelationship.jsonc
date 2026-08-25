@@ -1,0 +1,60 @@
+{
+  "name": "TableRelationship",
+  "type": "object",
+  "properties": {
+    "relationship_name": {
+      "type": "string"
+    },
+    "source_table": {
+      "type": "string"
+    },
+    "target_table": {
+      "type": "string"
+    },
+    "relationship_type": {
+      "type": "string",
+      "enum": [
+        "one_to_one",
+        "one_to_many",
+        "many_to_one",
+        "many_to_many"
+      ],
+      "description": "Type of relationship"
+    },
+    "foreign_key_column": {
+      "type": "string"
+    },
+    "referenced_column": {
+      "type": "string"
+    },
+    "on_delete": {
+      "type": "string",
+      "enum": [
+        "cascade",
+        "set_null",
+        "restrict",
+        "no_action"
+      ],
+      "default": "restrict"
+    },
+    "on_update": {
+      "type": "string",
+      "enum": [
+        "cascade",
+        "set_null",
+        "restrict",
+        "no_action"
+      ],
+      "default": "cascade"
+    },
+    "is_enforced": {
+      "type": "boolean",
+      "default": true
+    }
+  },
+  "required": [
+    "source_table",
+    "target_table",
+    "relationship_type"
+  ]
+}

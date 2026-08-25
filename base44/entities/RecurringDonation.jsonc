@@ -1,0 +1,66 @@
+{
+  "name": "RecurringDonation",
+  "type": "object",
+  "properties": {
+    "donor_id": {
+      "type": "string"
+    },
+    "donor_name": {
+      "type": "string"
+    },
+    "donor_email": {
+      "type": "string"
+    },
+    "amount": {
+      "type": "number"
+    },
+    "frequency": {
+      "type": "string",
+      "enum": [
+        "weekly",
+        "monthly",
+        "quarterly",
+        "yearly"
+      ],
+      "default": "monthly"
+    },
+    "campaign_id": {
+      "type": "string",
+      "description": "Optional - specific campaign"
+    },
+    "start_date": {
+      "type": "string",
+      "format": "date"
+    },
+    "next_payment_date": {
+      "type": "string",
+      "format": "date"
+    },
+    "status": {
+      "type": "string",
+      "enum": [
+        "active",
+        "paused",
+        "cancelled",
+        "failed"
+      ],
+      "default": "active"
+    },
+    "payment_method": {
+      "type": "string"
+    },
+    "total_donated": {
+      "type": "number",
+      "default": 0
+    },
+    "donation_count": {
+      "type": "number",
+      "default": 0
+    }
+  },
+  "required": [
+    "donor_id",
+    "amount",
+    "frequency"
+  ]
+}

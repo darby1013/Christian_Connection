@@ -1,0 +1,82 @@
+{
+  "name": "ProductVariant",
+  "type": "object",
+  "properties": {
+    "product_id": {
+      "type": "string",
+      "description": "Parent product ID"
+    },
+    "size": {
+      "type": "string",
+      "enum": [
+        "XS",
+        "S",
+        "M",
+        "L",
+        "XL",
+        "2XL",
+        "3XL",
+        "4XL"
+      ]
+    },
+    "color": {
+      "type": "string",
+      "description": "Color name"
+    },
+    "color_hex": {
+      "type": "string",
+      "description": "Hex color code"
+    },
+    "material": {
+      "type": "string",
+      "enum": [
+        "100% Cotton",
+        "Cotton Blend",
+        "Polyester",
+        "Tri-Blend",
+        "Organic Cotton",
+        "Performance Fabric"
+      ]
+    },
+    "brand": {
+      "type": "string",
+      "description": "Brand name (e.g., Gildan, Bella+Canvas, Next Level)"
+    },
+    "fit_type": {
+      "type": "string",
+      "enum": [
+        "Regular",
+        "Slim",
+        "Relaxed",
+        "Athletic",
+        "Oversized"
+      ]
+    },
+    "stock_quantity": {
+      "type": "number",
+      "default": 0
+    },
+    "sku": {
+      "type": "string",
+      "description": "Stock keeping unit"
+    },
+    "price_adjustment": {
+      "type": "number",
+      "default": 0,
+      "description": "Price difference from base product"
+    },
+    "weight": {
+      "type": "string",
+      "description": "Fabric weight (e.g., 4.5 oz, 5.3 oz)"
+    },
+    "is_available": {
+      "type": "boolean",
+      "default": true
+    }
+  },
+  "required": [
+    "product_id",
+    "size",
+    "color"
+  ]
+}

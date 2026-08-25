@@ -1,0 +1,83 @@
+{
+  "name": "RoleAuditLog",
+  "type": "object",
+  "properties": {
+    "role_id": {
+      "type": "string",
+      "description": "ID of the role that was modified"
+    },
+    "role_name": {
+      "type": "string",
+      "description": "Name of the role at time of action"
+    },
+    "action": {
+      "type": "string",
+      "enum": [
+        "created",
+        "updated",
+        "deleted",
+        "assigned",
+        "unassigned"
+      ],
+      "description": "Type of action performed"
+    },
+    "performed_by": {
+      "type": "string",
+      "description": "User ID who performed the action"
+    },
+    "performer_name": {
+      "type": "string",
+      "description": "Name of user who performed action"
+    },
+    "performer_email": {
+      "type": "string",
+      "description": "Email of user who performed action"
+    },
+    "changes": {
+      "type": "object",
+      "description": "Details of what changed",
+      "properties": {
+        "before": {
+          "type": "object",
+          "description": "State before change"
+        },
+        "after": {
+          "type": "object",
+          "description": "State after change"
+        },
+        "fields_changed": {
+          "type": "array",
+          "items": {
+            "type": "string"
+          },
+          "description": "List of field names that changed"
+        }
+      }
+    },
+    "affected_user_id": {
+      "type": "string",
+      "description": "User ID affected by assignment/unassignment"
+    },
+    "affected_user_name": {
+      "type": "string",
+      "description": "Name of user affected"
+    },
+    "ip_address": {
+      "type": "string",
+      "description": "IP address of the action"
+    },
+    "user_agent": {
+      "type": "string",
+      "description": "Browser/device info"
+    },
+    "metadata": {
+      "type": "object",
+      "description": "Additional context"
+    }
+  },
+  "required": [
+    "role_id",
+    "action",
+    "performed_by"
+  ]
+}

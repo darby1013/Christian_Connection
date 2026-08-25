@@ -1,0 +1,51 @@
+{
+  "name": "DatabaseVersion",
+  "type": "object",
+  "properties": {
+    "version_number": {
+      "type": "string",
+      "description": "Version identifier (e.g., 1.0.0)"
+    },
+    "version_name": {
+      "type": "string",
+      "description": "Friendly name"
+    },
+    "description": {
+      "type": "string"
+    },
+    "changelog": {
+      "type": "array",
+      "items": {
+        "type": "string"
+      },
+      "description": "List of changes"
+    },
+    "schema_snapshot": {
+      "type": "object",
+      "description": "Complete schema at this version"
+    },
+    "migration_scripts": {
+      "type": "array",
+      "items": {
+        "type": "string"
+      }
+    },
+    "applied_at": {
+      "type": "string",
+      "format": "date-time"
+    },
+    "applied_by": {
+      "type": "string"
+    },
+    "is_current": {
+      "type": "boolean",
+      "default": false
+    },
+    "rollback_script": {
+      "type": "string"
+    }
+  },
+  "required": [
+    "version_number"
+  ]
+}

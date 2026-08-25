@@ -1,0 +1,69 @@
+{
+  "name": "DataQualityCheck",
+  "type": "object",
+  "properties": {
+    "check_name": {
+      "type": "string",
+      "description": "Name of quality check"
+    },
+    "check_type": {
+      "type": "string",
+      "enum": [
+        "completeness",
+        "accuracy",
+        "consistency",
+        "timeliness",
+        "validity",
+        "uniqueness"
+      ],
+      "description": "Type of check"
+    },
+    "table_name": {
+      "type": "string"
+    },
+    "column_name": {
+      "type": "string"
+    },
+    "rule_definition": {
+      "type": "string",
+      "description": "Quality rule logic"
+    },
+    "threshold": {
+      "type": "number",
+      "description": "Acceptable quality threshold %"
+    },
+    "current_score": {
+      "type": "number",
+      "description": "Current quality score"
+    },
+    "last_check_date": {
+      "type": "string",
+      "format": "date-time"
+    },
+    "status": {
+      "type": "string",
+      "enum": [
+        "passing",
+        "warning",
+        "failing"
+      ],
+      "default": "passing"
+    },
+    "issues_found": {
+      "type": "number",
+      "default": 0
+    },
+    "records_checked": {
+      "type": "number"
+    },
+    "is_active": {
+      "type": "boolean",
+      "default": true
+    }
+  },
+  "required": [
+    "check_name",
+    "check_type",
+    "table_name"
+  ]
+}

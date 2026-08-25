@@ -1,0 +1,30 @@
+{
+  "name": "CustomerLoyalty",
+  "type": "object",
+  "properties": {
+    "user_id": {
+      "type": "string"
+    },
+    "points": {
+      "type": "number",
+      "default": 0
+    },
+    "tier_id": {
+      "type": "string"
+    },
+    "tier_name": {
+      "type": "string"
+    },
+    "lifetime_spend": {
+      "type": "number",
+      "default": 0
+    },
+    "last_purchase_date": {
+      "type": "string",
+      "format": "date-time"
+    }
+  },
+  "required": [
+    "user_id"
+  ]
+}

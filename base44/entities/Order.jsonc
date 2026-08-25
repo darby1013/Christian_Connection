@@ -1,0 +1,260 @@
+{
+  "name": "Order",
+  "type": "object",
+  "properties": {
+    "order_number": {
+      "type": "string",
+      "description": "Unique order number"
+    },
+    "customer_id": {
+      "type": "string"
+    },
+    "customer_name": {
+      "type": "string"
+    },
+    "customer_email": {
+      "type": "string"
+    },
+    "customer_phone": {
+      "type": "string"
+    },
+    "items": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "properties": {
+          "product_id": {
+            "type": "string"
+          },
+          "variant_id": {
+            "type": "string"
+          },
+          "product_name": {
+            "type": "string"
+          },
+          "sku": {
+            "type": "string"
+          },
+          "quantity": {
+            "type": "number"
+          },
+          "price": {
+            "type": "number"
+          },
+          "total": {
+            "type": "number"
+          },
+          "image_url": {
+            "type": "string"
+          }
+        }
+      }
+    },
+    "subtotal": {
+      "type": "number"
+    },
+    "tax_amount": {
+      "type": "number",
+      "default": 0
+    },
+    "tax_rate": {
+      "type": "number"
+    },
+    "tax_region": {
+      "type": "string"
+    },
+    "shipping_cost": {
+      "type": "number",
+      "default": 0
+    },
+    "discount_amount": {
+      "type": "number",
+      "default": 0
+    },
+    "discount_codes": {
+      "type": "array",
+      "items": {
+        "type": "string"
+      }
+    },
+    "total_amount": {
+      "type": "number"
+    },
+    "status": {
+      "type": "string",
+      "enum": [
+        "pending",
+        "confirmed",
+        "processing",
+        "shipped",
+        "delivered",
+        "cancelled",
+        "refunded",
+        "on_hold"
+      ],
+      "default": "pending"
+    },
+    "payment_status": {
+      "type": "string",
+      "enum": [
+        "pending",
+        "authorized",
+        "paid",
+        "failed",
+        "refunded",
+        "partially_refunded"
+      ],
+      "default": "pending"
+    },
+    "fulfillment_status": {
+      "type": "string",
+      "enum": [
+        "unfulfilled",
+        "partially_fulfilled",
+        "fulfilled"
+      ],
+      "default": "unfulfilled"
+    },
+    "shipping_address": {
+      "type": "object",
+      "properties": {
+        "name": {
+          "type": "string"
+        },
+        "company": {
+          "type": "string"
+        },
+        "street": {
+          "type": "string"
+        },
+        "street_line_2": {
+          "type": "string"
+        },
+        "city": {
+          "type": "string"
+        },
+        "state": {
+          "type": "string"
+        },
+        "zip": {
+          "type": "string"
+        },
+        "country": {
+          "type": "string"
+        },
+        "phone": {
+          "type": "string"
+        }
+      }
+    },
+    "billing_address": {
+      "type": "object",
+      "properties": {
+        "name": {
+          "type": "string"
+        },
+        "street": {
+          "type": "string"
+        },
+        "city": {
+          "type": "string"
+        },
+        "state": {
+          "type": "string"
+        },
+        "zip": {
+          "type": "string"
+        },
+        "country": {
+          "type": "string"
+        }
+      }
+    },
+    "shipping_method": {
+      "type": "string"
+    },
+    "shipping_carrier": {
+      "type": "string"
+    },
+    "tracking_number": {
+      "type": "string"
+    },
+    "tracking_url": {
+      "type": "string"
+    },
+    "estimated_delivery": {
+      "type": "string",
+      "format": "date-time"
+    },
+    "delivered_at": {
+      "type": "string",
+      "format": "date-time"
+    },
+    "payment_method": {
+      "type": "string"
+    },
+    "payment_gateway": {
+      "type": "string"
+    },
+    "transaction_id": {
+      "type": "string"
+    },
+    "payment_details": {
+      "type": "object",
+      "properties": {
+        "last_4_digits": {
+          "type": "string"
+        },
+        "card_type": {
+          "type": "string"
+        },
+        "authorization_code": {
+          "type": "string"
+        }
+      }
+    },
+    "customer_notes": {
+      "type": "string"
+    },
+    "admin_notes": {
+      "type": "string"
+    },
+    "gift_message": {
+      "type": "string"
+    },
+    "is_gift": {
+      "type": "boolean",
+      "default": false
+    },
+    "ip_address": {
+      "type": "string"
+    },
+    "user_agent": {
+      "type": "string"
+    },
+    "referral_source": {
+      "type": "string"
+    },
+    "risk_score": {
+      "type": "number",
+      "description": "Fraud risk score 0-100"
+    },
+    "fraud_flags": {
+      "type": "array",
+      "items": {
+        "type": "string"
+      }
+    },
+    "refund_amount": {
+      "type": "number",
+      "default": 0
+    },
+    "refund_reason": {
+      "type": "string"
+    }
+  },
+  "required": [
+    "customer_id",
+    "total_amount"
+  ]
+}

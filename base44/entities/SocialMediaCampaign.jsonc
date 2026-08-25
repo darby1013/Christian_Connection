@@ -1,0 +1,76 @@
+{
+  "name": "SocialMediaCampaign",
+  "type": "object",
+  "properties": {
+    "name": {
+      "type": "string"
+    },
+    "platform": {
+      "type": "string",
+      "enum": [
+        "facebook",
+        "instagram",
+        "twitter",
+        "pinterest",
+        "tiktok"
+      ],
+      "default": "facebook"
+    },
+    "campaign_type": {
+      "type": "string",
+      "enum": [
+        "product_launch",
+        "promotion",
+        "awareness",
+        "retargeting"
+      ],
+      "default": "awareness"
+    },
+    "content": {
+      "type": "string"
+    },
+    "image_url": {
+      "type": "string"
+    },
+    "target_audience": {
+      "type": "object"
+    },
+    "budget": {
+      "type": "number"
+    },
+    "start_date": {
+      "type": "string",
+      "format": "date"
+    },
+    "end_date": {
+      "type": "string",
+      "format": "date"
+    },
+    "status": {
+      "type": "string",
+      "enum": [
+        "draft",
+        "active",
+        "paused",
+        "completed"
+      ],
+      "default": "draft"
+    },
+    "impressions": {
+      "type": "number",
+      "default": 0
+    },
+    "clicks": {
+      "type": "number",
+      "default": 0
+    },
+    "conversions": {
+      "type": "number",
+      "default": 0
+    }
+  },
+  "required": [
+    "name",
+    "platform"
+  ]
+}

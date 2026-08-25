@@ -1,0 +1,31 @@
+{
+  "name": "TestimonyComment",
+  "type": "object",
+  "properties": {
+    "testimony_id": {
+      "type": "string"
+    },
+    "commenter_id": {
+      "type": "string"
+    },
+    "commenter_name": {
+      "type": "string"
+    },
+    "comment_text": {
+      "type": "string"
+    },
+    "faith_emoji": {
+      "type": "string",
+      "description": "Faith-based emoji (\ud83d\ude4f\u271d\ufe0f\ud83d\udd4a\ufe0f\u2764\ufe0f\u2728\ud83c\udf1f)"
+    },
+    "is_approved": {
+      "type": "boolean",
+      "default": true
+    }
+  },
+  "required": [
+    "testimony_id",
+    "commenter_id",
+    "comment_text"
+  ]
+}

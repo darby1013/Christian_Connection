@@ -1,0 +1,44 @@
+{
+  "name": "PodcastInteraction",
+  "type": "object",
+  "properties": {
+    "user_id": {
+      "type": "string"
+    },
+    "user_name": {
+      "type": "string"
+    },
+    "podcast_id": {
+      "type": "string"
+    },
+    "podcast_title": {
+      "type": "string"
+    },
+    "interaction_type": {
+      "type": "string",
+      "enum": [
+        "like",
+        "comment",
+        "share",
+        "rating"
+      ],
+      "description": "Type of interaction"
+    },
+    "rating": {
+      "type": "number",
+      "description": "Rating 1-5 stars"
+    },
+    "comment": {
+      "type": "string"
+    },
+    "shared_platform": {
+      "type": "string",
+      "description": "Platform shared to (facebook, twitter, etc)"
+    }
+  },
+  "required": [
+    "user_id",
+    "podcast_id",
+    "interaction_type"
+  ]
+}

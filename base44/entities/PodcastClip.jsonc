@@ -1,0 +1,87 @@
+{
+  "name": "PodcastClip",
+  "type": "object",
+  "properties": {
+    "podcast_id": {
+      "type": "string"
+    },
+    "title": {
+      "type": "string"
+    },
+    "audio_url": {
+      "type": "string"
+    },
+    "video_url": {
+      "type": "string",
+      "description": "Generated video with audio visualization"
+    },
+    "start_time": {
+      "type": "number",
+      "description": "Start time in seconds"
+    },
+    "end_time": {
+      "type": "number",
+      "description": "End time in seconds"
+    },
+    "duration": {
+      "type": "number",
+      "description": "Clip duration in seconds"
+    },
+    "clip_type": {
+      "type": "string",
+      "enum": [
+        "full",
+        "highlight",
+        "teaser"
+      ],
+      "default": "highlight",
+      "description": "Full clip, highlight (60-120s), or teaser (15-30s)"
+    },
+    "social_caption": {
+      "type": "string",
+      "description": "AI-generated social media caption"
+    },
+    "hashtags": {
+      "type": "array",
+      "items": {
+        "type": "string"
+      },
+      "description": "AI-generated hashtags"
+    },
+    "platform_posts": {
+      "type": "object",
+      "properties": {
+        "twitter": {
+          "type": "string"
+        },
+        "instagram": {
+          "type": "string"
+        },
+        "facebook": {
+          "type": "string"
+        },
+        "linkedin": {
+          "type": "string"
+        }
+      },
+      "description": "Platform-specific optimized posts"
+    },
+    "thumbnail_url": {
+      "type": "string"
+    },
+    "plays": {
+      "type": "number",
+      "default": 0
+    },
+    "shares": {
+      "type": "number",
+      "default": 0
+    }
+  },
+  "required": [
+    "podcast_id",
+    "title",
+    "start_time",
+    "end_time"
+  ]
+}

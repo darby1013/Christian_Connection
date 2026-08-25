@@ -1,0 +1,42 @@
+{
+  "name": "PaymentMethod",
+  "type": "object",
+  "properties": {
+    "user_id": {
+      "type": "string"
+    },
+    "method_type": {
+      "type": "string",
+      "enum": [
+        "credit_card",
+        "debit_card",
+        "paypal",
+        "bank_account"
+      ]
+    },
+    "last_four": {
+      "type": "string"
+    },
+    "card_brand": {
+      "type": "string"
+    },
+    "expiry_month": {
+      "type": "number"
+    },
+    "expiry_year": {
+      "type": "number"
+    },
+    "is_default": {
+      "type": "boolean",
+      "default": false
+    },
+    "is_active": {
+      "type": "boolean",
+      "default": true
+    }
+  },
+  "required": [
+    "user_id",
+    "method_type"
+  ]
+}

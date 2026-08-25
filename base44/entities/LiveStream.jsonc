@@ -1,0 +1,79 @@
+{
+  "name": "LiveStream",
+  "type": "object",
+  "properties": {
+    "title": {
+      "type": "string",
+      "description": "Stream title"
+    },
+    "description": {
+      "type": "string",
+      "description": "Stream description"
+    },
+    "stream_url": {
+      "type": "string",
+      "description": "Live stream URL"
+    },
+    "thumbnail_url": {
+      "type": "string",
+      "description": "Stream thumbnail image"
+    },
+    "stream_type": {
+      "type": "string",
+      "enum": [
+        "video",
+        "podcast"
+      ],
+      "description": "Type of stream"
+    },
+    "status": {
+      "type": "string",
+      "enum": [
+        "scheduled",
+        "live",
+        "ended"
+      ],
+      "default": "scheduled"
+    },
+    "scheduled_time": {
+      "type": "string",
+      "format": "date-time"
+    },
+    "started_at": {
+      "type": "string",
+      "format": "date-time"
+    },
+    "ended_at": {
+      "type": "string",
+      "format": "date-time"
+    },
+    "host_id": {
+      "type": "string",
+      "description": "User ID of the host"
+    },
+    "host_name": {
+      "type": "string"
+    },
+    "viewer_count": {
+      "type": "number",
+      "default": 0
+    },
+    "total_donations": {
+      "type": "number",
+      "default": 0
+    },
+    "category": {
+      "type": "string"
+    },
+    "tags": {
+      "type": "array",
+      "items": {
+        "type": "string"
+      }
+    }
+  },
+  "required": [
+    "title",
+    "stream_type"
+  ]
+}

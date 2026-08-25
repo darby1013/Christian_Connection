@@ -1,0 +1,69 @@
+{
+  "name": "LivePodcast",
+  "type": "object",
+  "properties": {
+    "title": {
+      "type": "string",
+      "description": "Podcast title"
+    },
+    "description": {
+      "type": "string",
+      "description": "Podcast description"
+    },
+    "audio_url": {
+      "type": "string",
+      "description": "Live/recorded audio URL"
+    },
+    "thumbnail_url": {
+      "type": "string",
+      "description": "Podcast cover image"
+    },
+    "status": {
+      "type": "string",
+      "enum": [
+        "scheduled",
+        "live",
+        "ended"
+      ],
+      "default": "scheduled"
+    },
+    "scheduled_time": {
+      "type": "string",
+      "format": "date-time"
+    },
+    "started_at": {
+      "type": "string",
+      "format": "date-time"
+    },
+    "ended_at": {
+      "type": "string",
+      "format": "date-time"
+    },
+    "host_id": {
+      "type": "string"
+    },
+    "host_name": {
+      "type": "string"
+    },
+    "listener_count": {
+      "type": "number",
+      "default": 0
+    },
+    "category": {
+      "type": "string"
+    },
+    "tags": {
+      "type": "array",
+      "items": {
+        "type": "string"
+      }
+    },
+    "duration": {
+      "type": "number",
+      "description": "Duration in minutes"
+    }
+  },
+  "required": [
+    "title"
+  ]
+}

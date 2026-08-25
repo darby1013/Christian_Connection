@@ -1,0 +1,46 @@
+{
+  "name": "GroupMember",
+  "type": "object",
+  "properties": {
+    "group_id": {
+      "type": "string",
+      "description": "ID of the group"
+    },
+    "user_id": {
+      "type": "string",
+      "description": "ID of the user"
+    },
+    "user_name": {
+      "type": "string"
+    },
+    "user_email": {
+      "type": "string"
+    },
+    "user_image": {
+      "type": "string"
+    },
+    "role": {
+      "type": "string",
+      "enum": [
+        "member",
+        "moderator",
+        "admin"
+      ],
+      "default": "member",
+      "description": "Member role in the group"
+    },
+    "joined_date": {
+      "type": "string",
+      "format": "date-time",
+      "description": "When user joined the group"
+    },
+    "is_active": {
+      "type": "boolean",
+      "default": true
+    }
+  },
+  "required": [
+    "group_id",
+    "user_id"
+  ]
+}

@@ -1,0 +1,108 @@
+{
+  "name": "PodcastAnalytics",
+  "type": "object",
+  "properties": {
+    "podcast_id": {
+      "type": "string",
+      "description": "Reference to Podcast entity"
+    },
+    "podcast_title": {
+      "type": "string"
+    },
+    "series_id": {
+      "type": "string",
+      "description": "Series this episode belongs to"
+    },
+    "analytics_date": {
+      "type": "string",
+      "format": "date",
+      "description": "Date of analytics snapshot"
+    },
+    "total_plays": {
+      "type": "number",
+      "default": 0
+    },
+    "unique_listeners": {
+      "type": "number",
+      "default": 0
+    },
+    "completion_rate": {
+      "type": "number",
+      "description": "Percentage who finished episode"
+    },
+    "average_listen_duration": {
+      "type": "number",
+      "description": "Average seconds listened"
+    },
+    "downloads": {
+      "type": "number",
+      "default": 0
+    },
+    "shares": {
+      "type": "number",
+      "default": 0
+    },
+    "likes": {
+      "type": "number",
+      "default": 0
+    },
+    "geographic_data": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "properties": {
+          "country": {
+            "type": "string"
+          },
+          "listeners": {
+            "type": "number"
+          }
+        }
+      },
+      "description": "Listeners by country"
+    },
+    "demographics": {
+      "type": "object",
+      "properties": {
+        "age_groups": {
+          "type": "object"
+        },
+        "gender_split": {
+          "type": "object"
+        }
+      }
+    },
+    "traffic_sources": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "properties": {
+          "source": {
+            "type": "string"
+          },
+          "count": {
+            "type": "number"
+          }
+        }
+      }
+    },
+    "revenue_data": {
+      "type": "object",
+      "properties": {
+        "subscriptions": {
+          "type": "number"
+        },
+        "individual_purchases": {
+          "type": "number"
+        },
+        "ad_revenue": {
+          "type": "number"
+        }
+      }
+    }
+  },
+  "required": [
+    "podcast_id",
+    "analytics_date"
+  ]
+}

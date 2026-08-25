@@ -1,0 +1,66 @@
+{
+  "name": "AnonymizationRule",
+  "type": "object",
+  "properties": {
+    "rule_name": {
+      "type": "string",
+      "description": "Name of anonymization rule"
+    },
+    "table_name": {
+      "type": "string"
+    },
+    "column_name": {
+      "type": "string"
+    },
+    "anonymization_method": {
+      "type": "string",
+      "enum": [
+        "randomize",
+        "pseudonymize",
+        "generalize",
+        "suppress",
+        "noise_addition",
+        "k_anonymity"
+      ],
+      "description": "Method of anonymization"
+    },
+    "data_type": {
+      "type": "string",
+      "enum": [
+        "name",
+        "email",
+        "phone",
+        "address",
+        "ssn",
+        "credit_card",
+        "ip_address",
+        "custom"
+      ]
+    },
+    "preserve_format": {
+      "type": "boolean",
+      "default": true
+    },
+    "is_reversible": {
+      "type": "boolean",
+      "default": false
+    },
+    "applied_count": {
+      "type": "number",
+      "default": 0
+    },
+    "last_applied": {
+      "type": "string",
+      "format": "date-time"
+    },
+    "compliance_framework": {
+      "type": "string"
+    }
+  },
+  "required": [
+    "rule_name",
+    "table_name",
+    "column_name",
+    "anonymization_method"
+  ]
+}

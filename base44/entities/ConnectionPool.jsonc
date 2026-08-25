@@ -1,0 +1,38 @@
+{
+  "name": "ConnectionPool",
+  "type": "object",
+  "properties": {
+    "pool_name": {
+      "type": "string"
+    },
+    "max_connections": {
+      "type": "number"
+    },
+    "active_connections": {
+      "type": "number"
+    },
+    "idle_connections": {
+      "type": "number"
+    },
+    "waiting_requests": {
+      "type": "number"
+    },
+    "total_requests": {
+      "type": "number"
+    },
+    "avg_wait_time": {
+      "type": "number",
+      "description": "Average wait time in ms"
+    },
+    "peak_connections": {
+      "type": "number"
+    },
+    "timestamp": {
+      "type": "string",
+      "format": "date-time"
+    }
+  },
+  "required": [
+    "pool_name"
+  ]
+}

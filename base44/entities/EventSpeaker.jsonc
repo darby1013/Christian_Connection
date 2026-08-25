@@ -1,0 +1,32 @@
+{
+  "name": "EventSpeaker",
+  "type": "object",
+  "properties": {
+    "event_id": {
+      "type": "string"
+    },
+    "speaker_name": {
+      "type": "string"
+    },
+    "speaker_bio": {
+      "type": "string"
+    },
+    "speaker_image": {
+      "type": "string"
+    },
+    "topic": {
+      "type": "string"
+    },
+    "session_time": {
+      "type": "string",
+      "format": "date-time"
+    },
+    "duration_minutes": {
+      "type": "number"
+    }
+  },
+  "required": [
+    "event_id",
+    "speaker_name"
+  ]
+}

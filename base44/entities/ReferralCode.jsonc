@@ -1,0 +1,30 @@
+{
+  "name": "ReferralCode",
+  "type": "object",
+  "properties": {
+    "code": {
+      "type": "string"
+    },
+    "user_id": {
+      "type": "string"
+    },
+    "uses": {
+      "type": "number",
+      "default": 0
+    },
+    "max_uses": {
+      "type": "number"
+    },
+    "discount_amount": {
+      "type": "number"
+    },
+    "expires_at": {
+      "type": "string",
+      "format": "date-time"
+    }
+  },
+  "required": [
+    "code",
+    "user_id"
+  ]
+}

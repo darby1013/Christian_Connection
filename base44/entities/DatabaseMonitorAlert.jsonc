@@ -1,0 +1,72 @@
+{
+  "name": "DatabaseMonitorAlert",
+  "type": "object",
+  "properties": {
+    "alert_name": {
+      "type": "string",
+      "description": "Name of the alert"
+    },
+    "alert_type": {
+      "type": "string",
+      "enum": [
+        "performance",
+        "capacity",
+        "error",
+        "security",
+        "backup",
+        "replication"
+      ],
+      "description": "Type of alert"
+    },
+    "severity": {
+      "type": "string",
+      "enum": [
+        "info",
+        "warning",
+        "error",
+        "critical"
+      ],
+      "default": "warning"
+    },
+    "metric_name": {
+      "type": "string",
+      "description": "Metric being monitored"
+    },
+    "threshold": {
+      "type": "number",
+      "description": "Alert threshold value"
+    },
+    "current_value": {
+      "type": "number",
+      "description": "Current metric value"
+    },
+    "message": {
+      "type": "string",
+      "description": "Alert message"
+    },
+    "triggered_at": {
+      "type": "string",
+      "format": "date-time"
+    },
+    "resolved_at": {
+      "type": "string",
+      "format": "date-time"
+    },
+    "is_resolved": {
+      "type": "boolean",
+      "default": false
+    },
+    "notification_sent": {
+      "type": "boolean",
+      "default": false
+    },
+    "assigned_to": {
+      "type": "string"
+    }
+  },
+  "required": [
+    "alert_name",
+    "alert_type",
+    "severity"
+  ]
+}

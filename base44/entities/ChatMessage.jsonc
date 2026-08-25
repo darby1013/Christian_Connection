@@ -1,0 +1,37 @@
+{
+  "name": "ChatMessage",
+  "type": "object",
+  "properties": {
+    "room_id": {
+      "type": "string",
+      "description": "Chat room/stream/group ID"
+    },
+    "room_type": {
+      "type": "string",
+      "enum": [
+        "livestream",
+        "group",
+        "direct",
+        "general"
+      ]
+    },
+    "sender_id": {
+      "type": "string"
+    },
+    "sender_name": {
+      "type": "string"
+    },
+    "message": {
+      "type": "string"
+    },
+    "is_system": {
+      "type": "boolean",
+      "default": false
+    }
+  },
+  "required": [
+    "room_id",
+    "room_type",
+    "message"
+  ]
+}

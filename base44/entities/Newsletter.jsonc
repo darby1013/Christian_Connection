@@ -1,0 +1,44 @@
+{
+  "name": "Newsletter",
+  "type": "object",
+  "properties": {
+    "subject": {
+      "type": "string"
+    },
+    "content": {
+      "type": "string"
+    },
+    "send_date": {
+      "type": "string",
+      "format": "date-time"
+    },
+    "status": {
+      "type": "string",
+      "enum": [
+        "draft",
+        "scheduled",
+        "sent"
+      ],
+      "default": "draft"
+    },
+    "sent_count": {
+      "type": "number",
+      "default": 0
+    },
+    "open_count": {
+      "type": "number",
+      "default": 0
+    },
+    "click_count": {
+      "type": "number",
+      "default": 0
+    },
+    "template_id": {
+      "type": "string"
+    }
+  },
+  "required": [
+    "subject",
+    "content"
+  ]
+}

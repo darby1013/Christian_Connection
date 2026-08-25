@@ -1,0 +1,78 @@
+{
+  "name": "PodcastMonetization",
+  "type": "object",
+  "properties": {
+    "podcast_id": {
+      "type": "string",
+      "description": "Reference to Podcast entity"
+    },
+    "podcast_title": {
+      "type": "string",
+      "description": "Cached podcast title"
+    },
+    "access_type": {
+      "type": "string",
+      "enum": [
+        "free",
+        "subscription",
+        "pay_per_episode",
+        "premium"
+      ],
+      "default": "free",
+      "description": "How users access this podcast"
+    },
+    "episode_price": {
+      "type": "number",
+      "default": 0,
+      "description": "Price for pay-per-episode (0 if free or subscription)"
+    },
+    "subscription_price_monthly": {
+      "type": "number",
+      "default": 0,
+      "description": "Monthly subscription price for this podcast series"
+    },
+    "subscription_price_yearly": {
+      "type": "number",
+      "default": 0,
+      "description": "Yearly subscription price (discounted)"
+    },
+    "ad_enabled": {
+      "type": "boolean",
+      "default": false,
+      "description": "Whether ads are enabled for this podcast"
+    },
+    "ad_revenue_share": {
+      "type": "number",
+      "default": 0,
+      "description": "Percentage of ad revenue (0-100)"
+    },
+    "total_revenue": {
+      "type": "number",
+      "default": 0,
+      "description": "Total revenue generated"
+    },
+    "total_purchases": {
+      "type": "number",
+      "default": 0,
+      "description": "Number of individual episode purchases"
+    },
+    "total_subscribers": {
+      "type": "number",
+      "default": 0,
+      "description": "Number of active subscribers"
+    },
+    "preview_duration": {
+      "type": "number",
+      "default": 300,
+      "description": "Preview duration in seconds (for paid content)"
+    },
+    "is_active": {
+      "type": "boolean",
+      "default": true
+    }
+  },
+  "required": [
+    "podcast_id",
+    "access_type"
+  ]
+}

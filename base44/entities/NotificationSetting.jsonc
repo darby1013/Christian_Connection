@@ -1,0 +1,32 @@
+{
+  "name": "NotificationSetting",
+  "type": "object",
+  "properties": {
+    "user_id": {
+      "type": "string"
+    },
+    "notification_type": {
+      "type": "string"
+    },
+    "email_enabled": {
+      "type": "boolean",
+      "default": true
+    },
+    "push_enabled": {
+      "type": "boolean",
+      "default": true
+    },
+    "sms_enabled": {
+      "type": "boolean",
+      "default": false
+    },
+    "in_app_enabled": {
+      "type": "boolean",
+      "default": true
+    }
+  },
+  "required": [
+    "user_id",
+    "notification_type"
+  ]
+}

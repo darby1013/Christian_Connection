@@ -1,0 +1,39 @@
+{
+  "name": "UserPermission",
+  "type": "object",
+  "properties": {
+    "user_id": {
+      "type": "string",
+      "description": "User ID"
+    },
+    "permission_id": {
+      "type": "string",
+      "description": "Permission ID"
+    },
+    "permission_name": {
+      "type": "string",
+      "description": "Permission name for quick lookup"
+    },
+    "granted_by": {
+      "type": "string",
+      "description": "Admin who granted this permission"
+    },
+    "granted_date": {
+      "type": "string",
+      "format": "date-time"
+    },
+    "expires_at": {
+      "type": "string",
+      "format": "date-time",
+      "description": "When this permission expires (optional)"
+    },
+    "is_temporary": {
+      "type": "boolean",
+      "default": false
+    }
+  },
+  "required": [
+    "user_id",
+    "permission_id"
+  ]
+}

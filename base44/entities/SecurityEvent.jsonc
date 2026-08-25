@@ -1,0 +1,67 @@
+{
+  "name": "SecurityEvent",
+  "type": "object",
+  "properties": {
+    "event_type": {
+      "type": "string",
+      "enum": [
+        "failed_login",
+        "suspicious_activity",
+        "unauthorized_access",
+        "data_breach",
+        "permission_escalation",
+        "sql_injection",
+        "xss_attempt"
+      ],
+      "description": "Type of security event"
+    },
+    "severity": {
+      "type": "string",
+      "enum": [
+        "low",
+        "medium",
+        "high",
+        "critical"
+      ],
+      "default": "medium"
+    },
+    "user_id": {
+      "type": "string"
+    },
+    "ip_address": {
+      "type": "string"
+    },
+    "user_agent": {
+      "type": "string"
+    },
+    "event_details": {
+      "type": "object",
+      "description": "Detailed event information"
+    },
+    "affected_resource": {
+      "type": "string"
+    },
+    "action_taken": {
+      "type": "string",
+      "description": "Response action"
+    },
+    "is_blocked": {
+      "type": "boolean",
+      "default": false
+    },
+    "is_resolved": {
+      "type": "boolean",
+      "default": false
+    },
+    "resolved_by": {
+      "type": "string"
+    },
+    "resolution_notes": {
+      "type": "string"
+    }
+  },
+  "required": [
+    "event_type",
+    "severity"
+  ]
+}

@@ -1,0 +1,59 @@
+{
+  "name": "APIKey",
+  "type": "object",
+  "properties": {
+    "key_name": {
+      "type": "string",
+      "description": "Friendly name for the API key"
+    },
+    "key_value": {
+      "type": "string",
+      "description": "The actual API key (hashed)"
+    },
+    "user_id": {
+      "type": "string",
+      "description": "User who owns this key"
+    },
+    "user_email": {
+      "type": "string"
+    },
+    "permissions": {
+      "type": "array",
+      "items": {
+        "type": "string"
+      },
+      "description": "Allowed API operations"
+    },
+    "rate_limit": {
+      "type": "number",
+      "default": 1000,
+      "description": "Requests per hour"
+    },
+    "expires_at": {
+      "type": "string",
+      "format": "date-time"
+    },
+    "is_active": {
+      "type": "boolean",
+      "default": true
+    },
+    "last_used": {
+      "type": "string",
+      "format": "date-time"
+    },
+    "usage_count": {
+      "type": "number",
+      "default": 0
+    },
+    "ip_whitelist": {
+      "type": "array",
+      "items": {
+        "type": "string"
+      }
+    }
+  },
+  "required": [
+    "key_name",
+    "user_id"
+  ]
+}

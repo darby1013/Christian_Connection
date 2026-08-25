@@ -1,0 +1,79 @@
+{
+  "name": "GroupWarning",
+  "type": "object",
+  "properties": {
+    "group_id": {
+      "type": "string"
+    },
+    "group_name": {
+      "type": "string"
+    },
+    "admin_id": {
+      "type": "string",
+      "description": "Group creator/admin ID"
+    },
+    "admin_email": {
+      "type": "string"
+    },
+    "admin_name": {
+      "type": "string"
+    },
+    "warning_type": {
+      "type": "string",
+      "enum": [
+        "content_violation",
+        "spam",
+        "harassment",
+        "inappropriate_content",
+        "other"
+      ],
+      "default": "other"
+    },
+    "severity": {
+      "type": "string",
+      "enum": [
+        "low",
+        "medium",
+        "high",
+        "critical"
+      ],
+      "default": "medium"
+    },
+    "message": {
+      "type": "string",
+      "description": "Warning message from site admin"
+    },
+    "issued_by": {
+      "type": "string",
+      "description": "Site admin ID"
+    },
+    "issued_by_name": {
+      "type": "string"
+    },
+    "action_required": {
+      "type": "string",
+      "description": "What admin needs to do"
+    },
+    "deadline": {
+      "type": "string",
+      "format": "date-time",
+      "description": "When action is required by"
+    },
+    "is_resolved": {
+      "type": "boolean",
+      "default": false
+    },
+    "resolution_notes": {
+      "type": "string"
+    },
+    "email_sent": {
+      "type": "boolean",
+      "default": false
+    }
+  },
+  "required": [
+    "group_id",
+    "admin_id",
+    "message"
+  ]
+}

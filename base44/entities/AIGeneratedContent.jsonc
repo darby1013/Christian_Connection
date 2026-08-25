@@ -1,0 +1,127 @@
+{
+  "name": "AIGeneratedContent",
+  "type": "object",
+  "properties": {
+    "content_type": {
+      "type": "string",
+      "enum": [
+        "product_description",
+        "marketing_copy",
+        "seo_metadata",
+        "email_subject",
+        "category_description",
+        "promotion_text"
+      ],
+      "description": "Type of content generated"
+    },
+    "entity_id": {
+      "type": "string",
+      "description": "Product/Category/Campaign ID"
+    },
+    "entity_name": {
+      "type": "string"
+    },
+    "generated_content": {
+      "type": "object",
+      "properties": {
+        "short_description": {
+          "type": "string"
+        },
+        "long_description": {
+          "type": "string"
+        },
+        "marketing_headline": {
+          "type": "string"
+        },
+        "marketing_body": {
+          "type": "string"
+        },
+        "seo_title": {
+          "type": "string"
+        },
+        "seo_description": {
+          "type": "string"
+        },
+        "seo_keywords": {
+          "type": "array",
+          "items": {
+            "type": "string"
+          }
+        },
+        "email_subject_lines": {
+          "type": "array",
+          "items": {
+            "type": "string"
+          }
+        },
+        "social_media_posts": {
+          "type": "array",
+          "items": {
+            "type": "string"
+          }
+        }
+      }
+    },
+    "ai_prompt_used": {
+      "type": "string",
+      "description": "Original prompt"
+    },
+    "quality_score": {
+      "type": "number",
+      "description": "AI self-assessed quality 0-100"
+    },
+    "tone": {
+      "type": "string",
+      "enum": [
+        "professional",
+        "casual",
+        "inspirational",
+        "urgent",
+        "friendly"
+      ],
+      "description": "Content tone"
+    },
+    "target_audience": {
+      "type": "string",
+      "description": "Who is this for"
+    },
+    "is_approved": {
+      "type": "boolean",
+      "default": false,
+      "description": "Admin approval"
+    },
+    "is_published": {
+      "type": "boolean",
+      "default": false,
+      "description": "Live on site"
+    },
+    "generated_by": {
+      "type": "string",
+      "description": "Admin who generated"
+    },
+    "edit_count": {
+      "type": "number",
+      "default": 0,
+      "description": "Times manually edited"
+    },
+    "performance_metrics": {
+      "type": "object",
+      "properties": {
+        "click_through_rate": {
+          "type": "number"
+        },
+        "conversion_rate": {
+          "type": "number"
+        },
+        "engagement_score": {
+          "type": "number"
+        }
+      }
+    }
+  },
+  "required": [
+    "content_type",
+    "entity_id",
+    "generated_content"
+  ]
+}

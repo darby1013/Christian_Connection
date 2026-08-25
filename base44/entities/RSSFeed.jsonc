@@ -1,0 +1,49 @@
+{
+  "name": "RSSFeed",
+  "type": "object",
+  "properties": {
+    "feed_name": {
+      "type": "string"
+    },
+    "feed_url": {
+      "type": "string",
+      "description": "RSS feed URL"
+    },
+    "category": {
+      "type": "string",
+      "enum": [
+        "blogs",
+        "podcasts",
+        "videos",
+        "news",
+        "sermons",
+        "general"
+      ],
+      "default": "general"
+    },
+    "is_active": {
+      "type": "boolean",
+      "default": true
+    },
+    "refresh_interval": {
+      "type": "number",
+      "default": 3600,
+      "description": "Refresh interval in seconds"
+    },
+    "last_updated": {
+      "type": "string",
+      "format": "date-time"
+    },
+    "item_count": {
+      "type": "number",
+      "default": 0
+    },
+    "icon": {
+      "type": "string"
+    }
+  },
+  "required": [
+    "feed_name",
+    "feed_url"
+  ]
+}

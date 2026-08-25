@@ -1,0 +1,23 @@
+{
+  "name": "MessageReaction",
+  "type": "object",
+  "properties": {
+    "message_id": {
+      "type": "string"
+    },
+    "user_id": {
+      "type": "string"
+    },
+    "reaction_type": {
+      "type": "string"
+    },
+    "emoji": {
+      "type": "string"
+    }
+  },
+  "required": [
+    "message_id",
+    "user_id",
+    "reaction_type"
+  ]
+}

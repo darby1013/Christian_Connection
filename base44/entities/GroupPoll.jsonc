@@ -1,0 +1,64 @@
+{
+  "name": "GroupPoll",
+  "type": "object",
+  "properties": {
+    "group_id": {
+      "type": "string"
+    },
+    "question": {
+      "type": "string"
+    },
+    "options": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "properties": {
+          "text": {
+            "type": "string"
+          },
+          "votes": {
+            "type": "number",
+            "default": 0
+          },
+          "voters": {
+            "type": "array",
+            "items": {
+              "type": "string"
+            }
+          }
+        }
+      }
+    },
+    "created_by": {
+      "type": "string"
+    },
+    "creator_name": {
+      "type": "string"
+    },
+    "end_date": {
+      "type": "string",
+      "format": "date-time"
+    },
+    "is_anonymous": {
+      "type": "boolean",
+      "default": false
+    },
+    "allow_multiple": {
+      "type": "boolean",
+      "default": false
+    },
+    "total_votes": {
+      "type": "number",
+      "default": 0
+    },
+    "is_closed": {
+      "type": "boolean",
+      "default": false
+    }
+  },
+  "required": [
+    "group_id",
+    "question",
+    "options"
+  ]
+}

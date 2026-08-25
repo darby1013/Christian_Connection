@@ -1,0 +1,34 @@
+{
+  "name": "RolePermission",
+  "type": "object",
+  "properties": {
+    "role_id": {
+      "type": "string",
+      "description": "Role ID"
+    },
+    "permission_id": {
+      "type": "string",
+      "description": "Permission ID"
+    },
+    "permission_name": {
+      "type": "string",
+      "description": "Permission name for quick lookup"
+    },
+    "granted_by": {
+      "type": "string",
+      "description": "User who granted this permission"
+    },
+    "granted_date": {
+      "type": "string",
+      "format": "date-time"
+    },
+    "conditions": {
+      "type": "object",
+      "description": "Additional conditions or limitations"
+    }
+  },
+  "required": [
+    "role_id",
+    "permission_id"
+  ]
+}

@@ -1,0 +1,102 @@
+{
+  "name": "UserActivity",
+  "type": "object",
+  "properties": {
+    "user_id": {
+      "type": "string",
+      "description": "User who performed the action"
+    },
+    "user_name": {
+      "type": "string"
+    },
+    "user_email": {
+      "type": "string"
+    },
+    "action_type": {
+      "type": "string",
+      "enum": [
+        "content_created",
+        "content_updated",
+        "content_deleted",
+        "user_created",
+        "user_updated",
+        "user_deleted",
+        "role_assigned",
+        "role_unassigned",
+        "order_placed",
+        "order_updated",
+        "product_created",
+        "product_updated",
+        "setting_changed",
+        "login",
+        "logout",
+        "permission_changed",
+        "system_alert",
+        "backup_created",
+        "database_query",
+        "other"
+      ],
+      "description": "Type of action performed"
+    },
+    "action_description": {
+      "type": "string",
+      "description": "Human-readable description of the action"
+    },
+    "entity_type": {
+      "type": "string",
+      "description": "Type of entity affected (e.g., Product, User, Order)"
+    },
+    "entity_id": {
+      "type": "string",
+      "description": "ID of the affected entity"
+    },
+    "entity_name": {
+      "type": "string",
+      "description": "Name/title of the affected entity"
+    },
+    "changes": {
+      "type": "object",
+      "description": "Details of what changed",
+      "properties": {
+        "before": {
+          "type": "object"
+        },
+        "after": {
+          "type": "object"
+        },
+        "fields_changed": {
+          "type": "array",
+          "items": {
+            "type": "string"
+          }
+        }
+      }
+    },
+    "ip_address": {
+      "type": "string"
+    },
+    "user_agent": {
+      "type": "string"
+    },
+    "severity": {
+      "type": "string",
+      "enum": [
+        "low",
+        "medium",
+        "high",
+        "critical"
+      ],
+      "default": "low",
+      "description": "Importance level of the action"
+    },
+    "metadata": {
+      "type": "object",
+      "description": "Additional context"
+    }
+  },
+  "required": [
+    "user_id",
+    "action_type",
+    "action_description"
+  ]
+}

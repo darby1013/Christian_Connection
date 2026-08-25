@@ -1,0 +1,161 @@
+{
+  "name": "Product",
+  "type": "object",
+  "properties": {
+    "name": {
+      "type": "string"
+    },
+    "description": {
+      "type": "string"
+    },
+    "category": {
+      "type": "string"
+    },
+    "price": {
+      "type": "number"
+    },
+    "compare_at_price": {
+      "type": "number"
+    },
+    "images": {
+      "type": "array",
+      "items": {
+        "type": "string"
+      }
+    },
+    "stock_quantity": {
+      "type": "number",
+      "default": 0
+    },
+    "low_stock_threshold": {
+      "type": "number",
+      "default": 10
+    },
+    "sku": {
+      "type": "string"
+    },
+    "brand": {
+      "type": "string"
+    },
+    "material": {
+      "type": "string"
+    },
+    "colors": {
+      "type": "array",
+      "items": {
+        "type": "string"
+      },
+      "description": "Available colors"
+    },
+    "sizes": {
+      "type": "array",
+      "items": {
+        "type": "string"
+      },
+      "description": "Available sizes (XS, S, M, L, XL, etc)"
+    },
+    "weight": {
+      "type": "number",
+      "description": "Weight in pounds"
+    },
+    "dimensions": {
+      "type": "string",
+      "description": "LxWxH in inches"
+    },
+    "care_instructions": {
+      "type": "string"
+    },
+    "fit_type": {
+      "type": "string",
+      "enum": [
+        "slim",
+        "regular",
+        "relaxed",
+        "oversized"
+      ],
+      "description": "For apparel"
+    },
+    "neck_style": {
+      "type": "string",
+      "description": "Crew, V-neck, etc"
+    },
+    "sleeve_type": {
+      "type": "string",
+      "description": "Short, Long, 3/4, etc"
+    },
+    "pattern": {
+      "type": "string",
+      "description": "Solid, Striped, Graphic, etc"
+    },
+    "is_customizable": {
+      "type": "boolean",
+      "default": false
+    },
+    "customization_options": {
+      "type": "array",
+      "items": {
+        "type": "string"
+      },
+      "description": "Print areas, embroidery options"
+    },
+    "gender": {
+      "type": "string",
+      "enum": [
+        "unisex",
+        "men",
+        "women",
+        "kids"
+      ]
+    },
+    "rating": {
+      "type": "number",
+      "default": 0
+    },
+    "review_count": {
+      "type": "number",
+      "default": 0
+    },
+    "total_sales": {
+      "type": "number",
+      "default": 0
+    },
+    "total_revenue": {
+      "type": "number",
+      "default": 0
+    },
+    "tags": {
+      "type": "array",
+      "items": {
+        "type": "string"
+      }
+    },
+    "status": {
+      "type": "string",
+      "enum": [
+        "active",
+        "draft",
+        "archived"
+      ],
+      "default": "active"
+    },
+    "is_featured": {
+      "type": "boolean",
+      "default": false
+    },
+    "production_time": {
+      "type": "string",
+      "description": "Time to produce custom items"
+    },
+    "supplier": {
+      "type": "string"
+    },
+    "cost_price": {
+      "type": "number",
+      "description": "Wholesale cost"
+    }
+  },
+  "required": [
+    "name",
+    "price"
+  ]
+}

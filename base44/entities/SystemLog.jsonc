@@ -1,0 +1,32 @@
+{
+  "name": "SystemLog",
+  "type": "object",
+  "properties": {
+    "log_level": {
+      "type": "string",
+      "enum": [
+        "debug",
+        "info",
+        "warning",
+        "error",
+        "critical"
+      ]
+    },
+    "message": {
+      "type": "string"
+    },
+    "component": {
+      "type": "string"
+    },
+    "stack_trace": {
+      "type": "string"
+    },
+    "metadata": {
+      "type": "object"
+    }
+  },
+  "required": [
+    "log_level",
+    "message"
+  ]
+}

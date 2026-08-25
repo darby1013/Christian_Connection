@@ -1,0 +1,39 @@
+{
+  "name": "StreamViewer",
+  "type": "object",
+  "properties": {
+    "stream_id": {
+      "type": "string"
+    },
+    "user_id": {
+      "type": "string"
+    },
+    "user_name": {
+      "type": "string"
+    },
+    "joined_at": {
+      "type": "string",
+      "format": "date-time"
+    },
+    "left_at": {
+      "type": "string",
+      "format": "date-time"
+    },
+    "watch_duration": {
+      "type": "number",
+      "description": "Duration in seconds"
+    },
+    "device_type": {
+      "type": "string"
+    },
+    "location": {
+      "type": "string"
+    },
+    "engagement_score": {
+      "type": "number"
+    }
+  },
+  "required": [
+    "stream_id"
+  ]
+}

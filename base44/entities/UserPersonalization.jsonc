@@ -1,0 +1,60 @@
+{
+  "name": "UserPersonalization",
+  "type": "object",
+  "properties": {
+    "user_id": {
+      "type": "string"
+    },
+    "browsing_history": {
+      "type": "array",
+      "items": {
+        "type": "object"
+      },
+      "description": "Products and categories browsed"
+    },
+    "purchase_history": {
+      "type": "array",
+      "items": {
+        "type": "string"
+      },
+      "description": "Product IDs purchased"
+    },
+    "preferences": {
+      "type": "object",
+      "description": "User preferences (categories, brands, price range)"
+    },
+    "segment": {
+      "type": "string",
+      "enum": [
+        "vip",
+        "frequent",
+        "occasional",
+        "new"
+      ],
+      "default": "new"
+    },
+    "lifetime_value": {
+      "type": "number",
+      "default": 0
+    },
+    "favorite_categories": {
+      "type": "array",
+      "items": {
+        "type": "string"
+      }
+    },
+    "favorite_brands": {
+      "type": "array",
+      "items": {
+        "type": "string"
+      }
+    },
+    "personalized_discount": {
+      "type": "number",
+      "default": 0
+    }
+  },
+  "required": [
+    "user_id"
+  ]
+}

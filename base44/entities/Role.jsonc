@@ -1,0 +1,73 @@
+{
+  "name": "Role",
+  "type": "object",
+  "properties": {
+    "name": {
+      "type": "string",
+      "description": "Role name (e.g., Content Moderator, Support Staff)"
+    },
+    "slug": {
+      "type": "string",
+      "description": "URL-friendly identifier"
+    },
+    "description": {
+      "type": "string"
+    },
+    "permissions": {
+      "type": "array",
+      "items": {
+        "type": "string"
+      },
+      "description": "List of permission keys"
+    },
+    "parent_role_id": {
+      "type": "string",
+      "description": "ID of parent role for permission inheritance"
+    },
+    "can_manage_users": {
+      "type": "boolean",
+      "default": false
+    },
+    "can_manage_content": {
+      "type": "boolean",
+      "default": false
+    },
+    "can_moderate_comments": {
+      "type": "boolean",
+      "default": false
+    },
+    "can_manage_groups": {
+      "type": "boolean",
+      "default": false
+    },
+    "can_manage_forum": {
+      "type": "boolean",
+      "default": false
+    },
+    "can_view_analytics": {
+      "type": "boolean",
+      "default": false
+    },
+    "can_manage_products": {
+      "type": "boolean",
+      "default": false
+    },
+    "can_manage_orders": {
+      "type": "boolean",
+      "default": false
+    },
+    "priority": {
+      "type": "number",
+      "default": 0,
+      "description": "Higher priority = more privileges (0-100 scale)"
+    },
+    "is_active": {
+      "type": "boolean",
+      "default": true
+    }
+  },
+  "required": [
+    "name",
+    "slug"
+  ]
+}

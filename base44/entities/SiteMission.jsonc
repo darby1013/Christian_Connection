@@ -1,0 +1,60 @@
+{
+  "name": "SiteMission",
+  "type": "object",
+  "properties": {
+    "mission_statement": {
+      "type": "string",
+      "description": "Main mission statement"
+    },
+    "vision": {
+      "type": "string"
+    },
+    "core_values": {
+      "type": "array",
+      "items": {
+        "type": "string"
+      }
+    },
+    "story": {
+      "type": "string",
+      "description": "The story behind the site"
+    },
+    "goals": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "properties": {
+          "title": {
+            "type": "string"
+          },
+          "description": {
+            "type": "string"
+          }
+        }
+      }
+    },
+    "founder_message": {
+      "type": "string"
+    },
+    "year_founded": {
+      "type": "string"
+    },
+    "impact_stats": {
+      "type": "object",
+      "properties": {
+        "members": {
+          "type": "number"
+        },
+        "communities": {
+          "type": "number"
+        },
+        "prayers": {
+          "type": "number"
+        }
+      }
+    }
+  },
+  "required": [
+    "mission_statement"
+  ]
+}

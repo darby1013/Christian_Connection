@@ -1,0 +1,78 @@
+{
+  "name": "Permission",
+  "type": "object",
+  "properties": {
+    "name": {
+      "type": "string",
+      "description": "Permission name (e.g., 'create_blog_posts')"
+    },
+    "display_name": {
+      "type": "string",
+      "description": "Human-readable name"
+    },
+    "description": {
+      "type": "string",
+      "description": "What this permission allows"
+    },
+    "category": {
+      "type": "string",
+      "enum": [
+        "content",
+        "commerce",
+        "community",
+        "analytics",
+        "system",
+        "users",
+        "database",
+        "settings"
+      ],
+      "description": "Permission category"
+    },
+    "resource": {
+      "type": "string",
+      "description": "Resource type (BlogPost, Product, User, etc.)"
+    },
+    "actions": {
+      "type": "array",
+      "items": {
+        "type": "string",
+        "enum": [
+          "create",
+          "read",
+          "update",
+          "delete",
+          "publish",
+          "moderate",
+          "export",
+          "import"
+        ]
+      },
+      "description": "Allowed actions"
+    },
+    "scope": {
+      "type": "string",
+      "enum": [
+        "own",
+        "team",
+        "all"
+      ],
+      "default": "own",
+      "description": "Scope of permission"
+    },
+    "is_system": {
+      "type": "boolean",
+      "default": false,
+      "description": "System-level permission (cannot be deleted)"
+    },
+    "requires_admin": {
+      "type": "boolean",
+      "default": false,
+      "description": "Only admins can grant this permission"
+    }
+  },
+  "required": [
+    "name",
+    "display_name",
+    "category"
+  ]
+}

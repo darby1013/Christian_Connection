@@ -1,0 +1,67 @@
+{
+  "name": "DatabaseReplica",
+  "type": "object",
+  "properties": {
+    "replica_name": {
+      "type": "string",
+      "description": "Name of the replica"
+    },
+    "replica_type": {
+      "type": "string",
+      "enum": [
+        "read_replica",
+        "standby",
+        "backup",
+        "analytics"
+      ],
+      "description": "Type of replica"
+    },
+    "host": {
+      "type": "string",
+      "description": "Replica host address"
+    },
+    "port": {
+      "type": "number",
+      "default": 5432
+    },
+    "region": {
+      "type": "string",
+      "description": "Geographic region"
+    },
+    "status": {
+      "type": "string",
+      "enum": [
+        "online",
+        "syncing",
+        "offline",
+        "error"
+      ],
+      "default": "online"
+    },
+    "replication_lag": {
+      "type": "number",
+      "description": "Lag in milliseconds"
+    },
+    "last_sync": {
+      "type": "string",
+      "format": "date-time"
+    },
+    "data_size": {
+      "type": "number",
+      "description": "Size in GB"
+    },
+    "is_primary": {
+      "type": "boolean",
+      "default": false
+    },
+    "auto_failover": {
+      "type": "boolean",
+      "default": false
+    }
+  },
+  "required": [
+    "replica_name",
+    "replica_type",
+    "host"
+  ]
+}

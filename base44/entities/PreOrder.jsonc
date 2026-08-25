@@ -1,0 +1,42 @@
+{
+  "name": "PreOrder",
+  "type": "object",
+  "properties": {
+    "user_id": {
+      "type": "string"
+    },
+    "product_id": {
+      "type": "string"
+    },
+    "product_name": {
+      "type": "string"
+    },
+    "quantity": {
+      "type": "number"
+    },
+    "total_amount": {
+      "type": "number"
+    },
+    "expected_release_date": {
+      "type": "string",
+      "format": "date"
+    },
+    "status": {
+      "type": "string",
+      "enum": [
+        "pending",
+        "fulfilled",
+        "cancelled"
+      ],
+      "default": "pending"
+    },
+    "deposit_paid": {
+      "type": "number"
+    }
+  },
+  "required": [
+    "user_id",
+    "product_id",
+    "quantity"
+  ]
+}

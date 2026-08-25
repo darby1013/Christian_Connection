@@ -1,0 +1,48 @@
+{
+  "name": "ChatroomInvite",
+  "type": "object",
+  "properties": {
+    "chatroom_id": {
+      "type": "string"
+    },
+    "chatroom_name": {
+      "type": "string"
+    },
+    "invited_by": {
+      "type": "string",
+      "description": "User ID who sent invite"
+    },
+    "invited_by_name": {
+      "type": "string"
+    },
+    "invited_user": {
+      "type": "string",
+      "description": "User ID being invited"
+    },
+    "invited_email": {
+      "type": "string"
+    },
+    "status": {
+      "type": "string",
+      "enum": [
+        "pending",
+        "accepted",
+        "declined",
+        "expired"
+      ],
+      "default": "pending"
+    },
+    "invite_code": {
+      "type": "string",
+      "description": "Unique invite code"
+    },
+    "expires_at": {
+      "type": "string",
+      "format": "date-time"
+    }
+  },
+  "required": [
+    "chatroom_id",
+    "invited_by"
+  ]
+}

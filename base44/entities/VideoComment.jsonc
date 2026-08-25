@@ -1,0 +1,38 @@
+{
+  "name": "VideoComment",
+  "type": "object",
+  "properties": {
+    "video_id": {
+      "type": "string"
+    },
+    "user_id": {
+      "type": "string"
+    },
+    "user_name": {
+      "type": "string"
+    },
+    "comment_text": {
+      "type": "string"
+    },
+    "timestamp": {
+      "type": "number",
+      "description": "Video timestamp in seconds"
+    },
+    "likes": {
+      "type": "number",
+      "default": 0
+    },
+    "parent_comment_id": {
+      "type": "string"
+    },
+    "is_pinned": {
+      "type": "boolean",
+      "default": false
+    }
+  },
+  "required": [
+    "video_id",
+    "user_id",
+    "comment_text"
+  ]
+}

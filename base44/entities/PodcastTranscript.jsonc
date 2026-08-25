@@ -1,0 +1,72 @@
+{
+  "name": "PodcastTranscript",
+  "type": "object",
+  "properties": {
+    "podcast_id": {
+      "type": "string",
+      "description": "Reference to Podcast entity"
+    },
+    "podcast_title": {
+      "type": "string"
+    },
+    "transcript_text": {
+      "type": "string",
+      "description": "Full transcript text"
+    },
+    "segments": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "properties": {
+          "timestamp": {
+            "type": "number",
+            "description": "Start time in seconds"
+          },
+          "text": {
+            "type": "string"
+          },
+          "speaker": {
+            "type": "string"
+          }
+        }
+      },
+      "description": "Timestamped transcript segments"
+    },
+    "is_ai_generated": {
+      "type": "boolean",
+      "default": true
+    },
+    "is_verified": {
+      "type": "boolean",
+      "default": false,
+      "description": "Whether transcript has been reviewed/edited"
+    },
+    "language": {
+      "type": "string",
+      "default": "en"
+    },
+    "show_notes": {
+      "type": "string",
+      "description": "AI-generated show notes"
+    },
+    "summary": {
+      "type": "string",
+      "description": "AI-generated summary"
+    },
+    "key_topics": {
+      "type": "array",
+      "items": {
+        "type": "string"
+      },
+      "description": "AI-extracted key topics"
+    },
+    "searchable": {
+      "type": "boolean",
+      "default": true
+    }
+  },
+  "required": [
+    "podcast_id",
+    "transcript_text"
+  ]
+}

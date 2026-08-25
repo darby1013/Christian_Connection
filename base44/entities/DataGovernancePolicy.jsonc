@@ -1,0 +1,70 @@
+{
+  "name": "DataGovernancePolicy",
+  "type": "object",
+  "properties": {
+    "policy_name": {
+      "type": "string",
+      "description": "Name of governance policy"
+    },
+    "policy_type": {
+      "type": "string",
+      "enum": [
+        "retention",
+        "privacy",
+        "compliance",
+        "security",
+        "quality",
+        "access"
+      ],
+      "description": "Type of policy"
+    },
+    "description": {
+      "type": "string"
+    },
+    "applies_to": {
+      "type": "array",
+      "items": {
+        "type": "string"
+      },
+      "description": "Entities this policy applies to"
+    },
+    "rules": {
+      "type": "array",
+      "items": {
+        "type": "object"
+      },
+      "description": "Policy rules"
+    },
+    "retention_period": {
+      "type": "number",
+      "description": "Data retention in days"
+    },
+    "compliance_framework": {
+      "type": "string",
+      "enum": [
+        "GDPR",
+        "HIPAA",
+        "SOC2",
+        "PCI-DSS",
+        "CCPA"
+      ],
+      "description": "Compliance framework"
+    },
+    "is_active": {
+      "type": "boolean",
+      "default": true
+    },
+    "last_audit": {
+      "type": "string",
+      "format": "date-time"
+    },
+    "violation_count": {
+      "type": "number",
+      "default": 0
+    }
+  },
+  "required": [
+    "policy_name",
+    "policy_type"
+  ]
+}

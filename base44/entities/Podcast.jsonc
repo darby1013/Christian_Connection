@@ -1,0 +1,138 @@
+{
+  "name": "Podcast",
+  "type": "object",
+  "properties": {
+    "title": {
+      "type": "string"
+    },
+    "description": {
+      "type": "string"
+    },
+    "series_id": {
+      "type": "string",
+      "description": "ID linking episodes to a series"
+    },
+    "series_title": {
+      "type": "string",
+      "description": "Name of the podcast series"
+    },
+    "audio_url": {
+      "type": "string",
+      "description": "URL to audio file"
+    },
+    "video_url": {
+      "type": "string",
+      "description": "URL to video file (optional)"
+    },
+    "image_url": {
+      "type": "string",
+      "description": "Podcast cover image"
+    },
+    "video_thumbnail_url": {
+      "type": "string",
+      "description": "Auto-generated thumbnail from video"
+    },
+    "content_type": {
+      "type": "string",
+      "enum": [
+        "audio",
+        "video"
+      ],
+      "default": "audio",
+      "description": "Type of podcast content"
+    },
+    "is_live": {
+      "type": "boolean",
+      "default": false,
+      "description": "Whether this is currently a live podcast"
+    },
+    "duration": {
+      "type": "number",
+      "description": "Duration in seconds"
+    },
+    "episode_number": {
+      "type": "number"
+    },
+    "season": {
+      "type": "number"
+    },
+    "host_name": {
+      "type": "string"
+    },
+    "guests": {
+      "type": "array",
+      "items": {
+        "type": "string"
+      }
+    },
+    "plays": {
+      "type": "number",
+      "default": 0
+    },
+    "published_date": {
+      "type": "string",
+      "format": "date"
+    },
+    "category": {
+      "type": "string"
+    },
+    "tags": {
+      "type": "array",
+      "items": {
+        "type": "string"
+      }
+    },
+    "publish_status": {
+      "type": "string",
+      "enum": [
+        "draft",
+        "scheduled",
+        "published"
+      ],
+      "default": "draft",
+      "description": "Publishing status"
+    },
+    "scheduled_publish_date": {
+      "type": "string",
+      "format": "date-time",
+      "description": "When to auto-publish (for scheduled episodes)"
+    },
+    "is_scheduled": {
+      "type": "boolean",
+      "default": false,
+      "description": "Whether this is scheduled for future publishing"
+    },
+    "auto_publish": {
+      "type": "boolean",
+      "default": false,
+      "description": "Automatically publish at scheduled time"
+    },
+    "converted_video_url": {
+      "type": "string",
+      "description": "Audio-to-video converted URL with soundwave"
+    },
+    "converted_video_formats": {
+      "type": "object",
+      "properties": {
+        "mp4": {
+          "type": "string"
+        },
+        "webm": {
+          "type": "string"
+        },
+        "avi": {
+          "type": "string"
+        }
+      },
+      "description": "Different format URLs for converted videos"
+    },
+    "has_converted_video": {
+      "type": "boolean",
+      "default": false,
+      "description": "Whether audio has been converted to video"
+    }
+  },
+  "required": [
+    "title"
+  ]
+}

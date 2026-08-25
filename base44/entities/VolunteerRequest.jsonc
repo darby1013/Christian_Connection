@@ -1,0 +1,58 @@
+{
+  "name": "VolunteerRequest",
+  "type": "object",
+  "properties": {
+    "opportunity_id": {
+      "type": "string",
+      "description": "Reference to Volunteer entity"
+    },
+    "applicant_id": {
+      "type": "string"
+    },
+    "applicant_name": {
+      "type": "string"
+    },
+    "applicant_email": {
+      "type": "string"
+    },
+    "phone": {
+      "type": "string"
+    },
+    "motivation": {
+      "type": "string",
+      "description": "Why they want to volunteer"
+    },
+    "experience": {
+      "type": "string",
+      "description": "Relevant experience"
+    },
+    "availability": {
+      "type": "string",
+      "description": "When they're available"
+    },
+    "skills": {
+      "type": "array",
+      "items": {
+        "type": "string"
+      }
+    },
+    "status": {
+      "type": "string",
+      "enum": [
+        "pending",
+        "approved",
+        "rejected",
+        "contacted"
+      ],
+      "default": "pending"
+    },
+    "admin_notes": {
+      "type": "string"
+    }
+  },
+  "required": [
+    "applicant_id",
+    "applicant_email",
+    "motivation"
+  ]
+}

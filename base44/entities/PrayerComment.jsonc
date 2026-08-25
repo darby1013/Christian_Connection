@@ -1,0 +1,38 @@
+{
+  "name": "PrayerComment",
+  "type": "object",
+  "properties": {
+    "prayer_id": {
+      "type": "string"
+    },
+    "commenter_id": {
+      "type": "string"
+    },
+    "commenter_name": {
+      "type": "string"
+    },
+    "comment_text": {
+      "type": "string"
+    },
+    "prayer_type": {
+      "type": "string",
+      "enum": [
+        "prayed",
+        "encouragement",
+        "testimony",
+        "amen"
+      ],
+      "default": "prayed",
+      "description": "Type of prayer comment"
+    },
+    "emoji": {
+      "type": "string",
+      "description": "Faith-based emoji"
+    }
+  },
+  "required": [
+    "prayer_id",
+    "commenter_id",
+    "comment_text"
+  ]
+}

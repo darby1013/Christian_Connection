@@ -1,0 +1,81 @@
+{
+  "name": "DonationCampaign",
+  "type": "object",
+  "properties": {
+    "title": {
+      "type": "string"
+    },
+    "description": {
+      "type": "string"
+    },
+    "goal_amount": {
+      "type": "number"
+    },
+    "current_amount": {
+      "type": "number",
+      "default": 0
+    },
+    "start_date": {
+      "type": "string",
+      "format": "date"
+    },
+    "end_date": {
+      "type": "string",
+      "format": "date"
+    },
+    "category": {
+      "type": "string",
+      "enum": [
+        "missions",
+        "building",
+        "ministry",
+        "outreach",
+        "emergency",
+        "general"
+      ],
+      "default": "general"
+    },
+    "image_url": {
+      "type": "string"
+    },
+    "is_active": {
+      "type": "boolean",
+      "default": true
+    },
+    "donor_count": {
+      "type": "number",
+      "default": 0
+    },
+    "featured": {
+      "type": "boolean",
+      "default": false
+    },
+    "impact_stories": {
+      "type": "array",
+      "items": {
+        "type": "string"
+      }
+    },
+    "milestones": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "properties": {
+          "amount": {
+            "type": "number"
+          },
+          "description": {
+            "type": "string"
+          },
+          "achieved": {
+            "type": "boolean"
+          }
+        }
+      }
+    }
+  },
+  "required": [
+    "title",
+    "goal_amount"
+  ]
+}

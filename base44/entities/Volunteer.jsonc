@@ -1,0 +1,88 @@
+{
+  "name": "Volunteer",
+  "type": "object",
+  "properties": {
+    "opportunity_title": {
+      "type": "string"
+    },
+    "description": {
+      "type": "string"
+    },
+    "category": {
+      "type": "string",
+      "enum": [
+        "tech",
+        "media",
+        "worship",
+        "children",
+        "youth",
+        "outreach",
+        "admin",
+        "hospitality"
+      ],
+      "default": "outreach"
+    },
+    "time_commitment": {
+      "type": "string",
+      "description": "e.g., '2 hours weekly'"
+    },
+    "location": {
+      "type": "string"
+    },
+    "is_remote": {
+      "type": "boolean",
+      "default": false
+    },
+    "requirements": {
+      "type": "array",
+      "items": {
+        "type": "string"
+      }
+    },
+    "coordinator_id": {
+      "type": "string"
+    },
+    "coordinator_name": {
+      "type": "string"
+    },
+    "coordinator_email": {
+      "type": "string"
+    },
+    "spots_available": {
+      "type": "number",
+      "default": 10
+    },
+    "spots_filled": {
+      "type": "number",
+      "default": 0
+    },
+    "start_date": {
+      "type": "string",
+      "format": "date"
+    },
+    "end_date": {
+      "type": "string",
+      "format": "date"
+    },
+    "status": {
+      "type": "string",
+      "enum": [
+        "open",
+        "full",
+        "closed"
+      ],
+      "default": "open"
+    },
+    "applicants": {
+      "type": "array",
+      "items": {
+        "type": "string"
+      },
+      "description": "User IDs who applied"
+    }
+  },
+  "required": [
+    "opportunity_title",
+    "description"
+  ]
+}

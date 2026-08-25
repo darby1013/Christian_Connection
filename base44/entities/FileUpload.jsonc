@@ -1,0 +1,36 @@
+{
+  "name": "FileUpload",
+  "type": "object",
+  "properties": {
+    "file_name": {
+      "type": "string"
+    },
+    "file_url": {
+      "type": "string"
+    },
+    "file_type": {
+      "type": "string"
+    },
+    "file_size": {
+      "type": "number"
+    },
+    "uploaded_by": {
+      "type": "string"
+    },
+    "folder": {
+      "type": "string"
+    },
+    "is_public": {
+      "type": "boolean",
+      "default": true
+    },
+    "download_count": {
+      "type": "number",
+      "default": 0
+    }
+  },
+  "required": [
+    "file_name",
+    "file_url"
+  ]
+}

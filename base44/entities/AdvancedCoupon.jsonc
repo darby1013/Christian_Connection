@@ -1,0 +1,78 @@
+{
+  "name": "AdvancedCoupon",
+  "type": "object",
+  "properties": {
+    "code": {
+      "type": "string"
+    },
+    "name": {
+      "type": "string"
+    },
+    "coupon_type": {
+      "type": "string",
+      "enum": [
+        "percentage",
+        "fixed",
+        "bogo",
+        "tiered",
+        "free_shipping"
+      ],
+      "default": "percentage"
+    },
+    "discount_value": {
+      "type": "number"
+    },
+    "tiered_rules": {
+      "type": "array",
+      "items": {
+        "type": "object"
+      },
+      "description": "For tiered discounts"
+    },
+    "bogo_config": {
+      "type": "object",
+      "description": "Buy X get Y configuration"
+    },
+    "min_purchase": {
+      "type": "number"
+    },
+    "max_discount": {
+      "type": "number"
+    },
+    "applicable_products": {
+      "type": "array",
+      "items": {
+        "type": "string"
+      }
+    },
+    "applicable_categories": {
+      "type": "array",
+      "items": {
+        "type": "string"
+      }
+    },
+    "user_segment": {
+      "type": "string"
+    },
+    "max_uses": {
+      "type": "number"
+    },
+    "uses": {
+      "type": "number",
+      "default": 0
+    },
+    "expires_at": {
+      "type": "string",
+      "format": "date-time"
+    },
+    "is_active": {
+      "type": "boolean",
+      "default": true
+    }
+  },
+  "required": [
+    "code",
+    "name",
+    "coupon_type"
+  ]
+}

@@ -1,0 +1,44 @@
+{
+  "name": "ActivityLog",
+  "type": "object",
+  "properties": {
+    "user_id": {
+      "type": "string"
+    },
+    "action_type": {
+      "type": "string",
+      "enum": [
+        "post_created",
+        "comment_added",
+        "like_given",
+        "group_joined",
+        "group_created",
+        "event_attended",
+        "badge_earned",
+        "stream_watched",
+        "donation_made",
+        "forum_reply"
+      ]
+    },
+    "points_earned": {
+      "type": "number",
+      "default": 0
+    },
+    "target_type": {
+      "type": "string",
+      "description": "post, comment, group, etc."
+    },
+    "target_id": {
+      "type": "string",
+      "description": "ID of the target entity"
+    },
+    "metadata": {
+      "type": "object",
+      "description": "Additional action data"
+    }
+  },
+  "required": [
+    "user_id",
+    "action_type"
+  ]
+}

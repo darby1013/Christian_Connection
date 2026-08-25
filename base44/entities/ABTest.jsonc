@@ -1,0 +1,46 @@
+{
+  "name": "ABTest",
+  "type": "object",
+  "properties": {
+    "page_id": {
+      "type": "string"
+    },
+    "variant_a_content": {
+      "type": "object"
+    },
+    "variant_b_content": {
+      "type": "object"
+    },
+    "variant_a_views": {
+      "type": "number",
+      "default": 0
+    },
+    "variant_b_views": {
+      "type": "number",
+      "default": 0
+    },
+    "variant_a_conversions": {
+      "type": "number",
+      "default": 0
+    },
+    "variant_b_conversions": {
+      "type": "number",
+      "default": 0
+    },
+    "winner": {
+      "type": "string",
+      "enum": [
+        "a",
+        "b",
+        "undetermined"
+      ]
+    },
+    "is_active": {
+      "type": "boolean",
+      "default": true
+    }
+  },
+  "required": [
+    "page_id"
+  ]
+}

@@ -1,0 +1,70 @@
+{
+  "name": "UserPreferenceCenter",
+  "type": "object",
+  "properties": {
+    "user_id": {
+      "type": "string"
+    },
+    "favorite_categories": {
+      "type": "array",
+      "items": {
+        "type": "string"
+      }
+    },
+    "favorite_brands": {
+      "type": "array",
+      "items": {
+        "type": "string"
+      }
+    },
+    "preferred_colors": {
+      "type": "array",
+      "items": {
+        "type": "string"
+      }
+    },
+    "preferred_sizes": {
+      "type": "array",
+      "items": {
+        "type": "string"
+      }
+    },
+    "price_range_min": {
+      "type": "number",
+      "default": 0
+    },
+    "price_range_max": {
+      "type": "number",
+      "default": 1000
+    },
+    "interests": {
+      "type": "array",
+      "items": {
+        "type": "string"
+      }
+    },
+    "email_notifications": {
+      "type": "boolean",
+      "default": true
+    },
+    "sms_notifications": {
+      "type": "boolean",
+      "default": false
+    },
+    "new_arrivals_alert": {
+      "type": "boolean",
+      "default": true
+    },
+    "sale_alerts": {
+      "type": "boolean",
+      "default": true
+    },
+    "personalized_offers": {
+      "type": "boolean",
+      "default": true
+    }
+  },
+  "required": [
+    "user_id"
+  ]
+}

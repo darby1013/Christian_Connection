@@ -1,0 +1,52 @@
+{
+  "name": "PageCustomization",
+  "type": "object",
+  "properties": {
+    "page_name": {
+      "type": "string",
+      "description": "Name of the customized page"
+    },
+    "element_id": {
+      "type": "string",
+      "description": "CSS selector or element ID"
+    },
+    "customization_type": {
+      "type": "string",
+      "enum": [
+        "text",
+        "image",
+        "color",
+        "style",
+        "visibility",
+        "html"
+      ],
+      "description": "Type of customization"
+    },
+    "original_value": {
+      "type": "string",
+      "description": "Original value before customization"
+    },
+    "new_value": {
+      "type": "string",
+      "description": "New customized value"
+    },
+    "css_styles": {
+      "type": "object",
+      "description": "Custom CSS styles as object"
+    },
+    "is_active": {
+      "type": "boolean",
+      "default": true,
+      "description": "Whether customization is active"
+    },
+    "applied_at": {
+      "type": "string",
+      "format": "date-time",
+      "description": "When customization was applied"
+    }
+  },
+  "required": [
+    "page_name",
+    "customization_type"
+  ]
+}

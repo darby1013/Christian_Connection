@@ -1,0 +1,53 @@
+{
+  "name": "PriceRule",
+  "type": "object",
+  "properties": {
+    "name": {
+      "type": "string"
+    },
+    "rule_type": {
+      "type": "string",
+      "enum": [
+        "discount",
+        "markup",
+        "dynamic"
+      ],
+      "default": "discount"
+    },
+    "conditions": {
+      "type": "object",
+      "description": "Conditions for rule application (category, brand, etc.)"
+    },
+    "discount_type": {
+      "type": "string",
+      "enum": [
+        "percentage",
+        "fixed"
+      ],
+      "default": "percentage"
+    },
+    "discount_value": {
+      "type": "number"
+    },
+    "start_date": {
+      "type": "string",
+      "format": "date-time"
+    },
+    "end_date": {
+      "type": "string",
+      "format": "date-time"
+    },
+    "is_active": {
+      "type": "boolean",
+      "default": true
+    },
+    "priority": {
+      "type": "number",
+      "default": 0
+    }
+  },
+  "required": [
+    "name",
+    "rule_type"
+  ]
+}

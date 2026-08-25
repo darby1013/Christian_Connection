@@ -1,0 +1,26 @@
+{
+  "name": "ProductImage",
+  "type": "object",
+  "properties": {
+    "product_id": {
+      "type": "string"
+    },
+    "image_url": {
+      "type": "string"
+    },
+    "alt_text": {
+      "type": "string"
+    },
+    "display_order": {
+      "type": "number"
+    },
+    "is_primary": {
+      "type": "boolean",
+      "default": false
+    }
+  },
+  "required": [
+    "product_id",
+    "image_url"
+  ]
+}

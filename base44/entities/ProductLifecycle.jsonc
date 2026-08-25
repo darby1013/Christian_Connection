@@ -1,0 +1,38 @@
+{
+  "name": "ProductLifecycle",
+  "type": "object",
+  "properties": {
+    "product_id": {
+      "type": "string"
+    },
+    "stage": {
+      "type": "string",
+      "enum": [
+        "development",
+        "launch",
+        "growth",
+        "maturity",
+        "decline",
+        "discontinued"
+      ]
+    },
+    "launch_date": {
+      "type": "string",
+      "format": "date"
+    },
+    "discontinue_date": {
+      "type": "string",
+      "format": "date"
+    },
+    "replacement_product_id": {
+      "type": "string"
+    },
+    "notes": {
+      "type": "string"
+    }
+  },
+  "required": [
+    "product_id",
+    "stage"
+  ]
+}

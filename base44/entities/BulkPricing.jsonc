@@ -1,0 +1,27 @@
+{
+  "name": "BulkPricing",
+  "type": "object",
+  "properties": {
+    "product_id": {
+      "type": "string"
+    },
+    "product_name": {
+      "type": "string"
+    },
+    "min_quantity": {
+      "type": "number"
+    },
+    "discount_percentage": {
+      "type": "number"
+    },
+    "is_active": {
+      "type": "boolean",
+      "default": true
+    }
+  },
+  "required": [
+    "product_id",
+    "min_quantity",
+    "discount_percentage"
+  ]
+}

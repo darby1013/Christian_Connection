@@ -1,0 +1,30 @@
+{
+  "name": "ShippingLabel",
+  "type": "object",
+  "properties": {
+    "order_id": {
+      "type": "string"
+    },
+    "tracking_number": {
+      "type": "string"
+    },
+    "carrier": {
+      "type": "string"
+    },
+    "label_url": {
+      "type": "string"
+    },
+    "created_date": {
+      "type": "string",
+      "format": "date-time"
+    },
+    "shipped_date": {
+      "type": "string",
+      "format": "date-time"
+    }
+  },
+  "required": [
+    "order_id",
+    "tracking_number"
+  ]
+}

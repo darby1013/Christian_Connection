@@ -1,0 +1,52 @@
+{
+  "name": "DatabaseComparison",
+  "type": "object",
+  "properties": {
+    "comparison_name": {
+      "type": "string"
+    },
+    "source_database": {
+      "type": "string"
+    },
+    "target_database": {
+      "type": "string"
+    },
+    "comparison_date": {
+      "type": "string",
+      "format": "date-time"
+    },
+    "schema_differences": {
+      "type": "array",
+      "items": {
+        "type": "object"
+      },
+      "description": "Schema differences found"
+    },
+    "data_differences": {
+      "type": "array",
+      "items": {
+        "type": "object"
+      },
+      "description": "Data differences found"
+    },
+    "tables_compared": {
+      "type": "number"
+    },
+    "differences_found": {
+      "type": "number"
+    },
+    "similarity_score": {
+      "type": "number",
+      "description": "Similarity percentage"
+    },
+    "sync_script": {
+      "type": "string",
+      "description": "Generated sync script"
+    }
+  },
+  "required": [
+    "comparison_name",
+    "source_database",
+    "target_database"
+  ]
+}

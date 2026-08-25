@@ -1,0 +1,41 @@
+{
+  "name": "CacheStatistics",
+  "type": "object",
+  "properties": {
+    "stat_date": {
+      "type": "string",
+      "format": "date"
+    },
+    "cache_type": {
+      "type": "string"
+    },
+    "total_entries": {
+      "type": "number"
+    },
+    "total_size_mb": {
+      "type": "number"
+    },
+    "hit_count": {
+      "type": "number"
+    },
+    "miss_count": {
+      "type": "number"
+    },
+    "hit_rate": {
+      "type": "number",
+      "description": "Cache hit rate %"
+    },
+    "eviction_count": {
+      "type": "number"
+    },
+    "avg_entry_size": {
+      "type": "number"
+    },
+    "memory_usage_mb": {
+      "type": "number"
+    }
+  },
+  "required": [
+    "stat_date"
+  ]
+}

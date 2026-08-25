@@ -1,0 +1,123 @@
+{
+  "name": "Course",
+  "type": "object",
+  "properties": {
+    "title": {
+      "type": "string",
+      "description": "Course title"
+    },
+    "description": {
+      "type": "string",
+      "description": "Course description"
+    },
+    "instructor_id": {
+      "type": "string",
+      "description": "Instructor user ID"
+    },
+    "instructor_name": {
+      "type": "string"
+    },
+    "thumbnail_url": {
+      "type": "string"
+    },
+    "category": {
+      "type": "string",
+      "enum": [
+        "faith",
+        "leadership",
+        "ministry",
+        "bible_study",
+        "personal_growth",
+        "worship",
+        "counseling",
+        "theology",
+        "practical_skills"
+      ],
+      "default": "faith"
+    },
+    "difficulty_level": {
+      "type": "string",
+      "enum": [
+        "beginner",
+        "intermediate",
+        "advanced"
+      ],
+      "default": "beginner"
+    },
+    "duration_hours": {
+      "type": "number",
+      "description": "Estimated completion time in hours"
+    },
+    "total_modules": {
+      "type": "number",
+      "default": 0
+    },
+    "total_lessons": {
+      "type": "number",
+      "default": 0
+    },
+    "is_published": {
+      "type": "boolean",
+      "default": false
+    },
+    "price": {
+      "type": "number",
+      "default": 0,
+      "description": "Course price, 0 for free"
+    },
+    "access_type": {
+      "type": "string",
+      "enum": [
+        "free",
+        "paid",
+        "subscription"
+      ],
+      "default": "free"
+    },
+    "enrollment_count": {
+      "type": "number",
+      "default": 0
+    },
+    "rating": {
+      "type": "number",
+      "default": 0
+    },
+    "review_count": {
+      "type": "number",
+      "default": 0
+    },
+    "completion_rate": {
+      "type": "number",
+      "default": 0,
+      "description": "Percentage of students who complete the course"
+    },
+    "certificate_enabled": {
+      "type": "boolean",
+      "default": false,
+      "description": "Award certificate upon completion"
+    },
+    "tags": {
+      "type": "array",
+      "items": {
+        "type": "string"
+      }
+    },
+    "learning_outcomes": {
+      "type": "array",
+      "items": {
+        "type": "string"
+      },
+      "description": "What students will learn"
+    },
+    "prerequisites": {
+      "type": "array",
+      "items": {
+        "type": "string"
+      }
+    }
+  },
+  "required": [
+    "title",
+    "instructor_id"
+  ]
+}

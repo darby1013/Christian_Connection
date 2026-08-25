@@ -1,0 +1,82 @@
+{
+  "name": "DataCatalogEntry",
+  "type": "object",
+  "properties": {
+    "asset_name": {
+      "type": "string",
+      "description": "Name of data asset"
+    },
+    "asset_type": {
+      "type": "string",
+      "enum": [
+        "table",
+        "view",
+        "column",
+        "report",
+        "dashboard",
+        "dataset"
+      ],
+      "description": "Type of data asset"
+    },
+    "description": {
+      "type": "string"
+    },
+    "database": {
+      "type": "string"
+    },
+    "schema": {
+      "type": "string"
+    },
+    "table_name": {
+      "type": "string"
+    },
+    "column_name": {
+      "type": "string"
+    },
+    "data_type": {
+      "type": "string"
+    },
+    "business_glossary": {
+      "type": "string",
+      "description": "Business definition"
+    },
+    "tags": {
+      "type": "array",
+      "items": {
+        "type": "string"
+      }
+    },
+    "owner": {
+      "type": "string"
+    },
+    "steward": {
+      "type": "string"
+    },
+    "sensitivity_level": {
+      "type": "string",
+      "enum": [
+        "public",
+        "internal",
+        "confidential",
+        "restricted"
+      ],
+      "default": "internal"
+    },
+    "is_pii": {
+      "type": "boolean",
+      "default": false
+    },
+    "last_accessed": {
+      "type": "string",
+      "format": "date-time"
+    },
+    "usage_count": {
+      "type": "number",
+      "default": 0
+    }
+  },
+  "required": [
+    "asset_name",
+    "asset_type"
+  ]
+}

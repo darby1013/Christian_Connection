@@ -1,0 +1,36 @@
+{
+  "name": "WebhookLog",
+  "type": "object",
+  "properties": {
+    "webhook_type": {
+      "type": "string",
+      "enum": [
+        "order_created",
+        "payment_success",
+        "inventory_low",
+        "user_registered"
+      ]
+    },
+    "payload": {
+      "type": "object"
+    },
+    "response_status": {
+      "type": "number"
+    },
+    "response_body": {
+      "type": "string"
+    },
+    "retry_count": {
+      "type": "number",
+      "default": 0
+    },
+    "success": {
+      "type": "boolean",
+      "default": false
+    }
+  },
+  "required": [
+    "webhook_type",
+    "payload"
+  ]
+}

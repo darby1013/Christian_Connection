@@ -1,0 +1,230 @@
+{
+  "name": "CompetitorAnalysis",
+  "type": "object",
+  "properties": {
+    "podcast_id": {
+      "type": "string",
+      "description": "Reference to your podcast"
+    },
+    "competitor_name": {
+      "type": "string",
+      "description": "Competitor podcast name"
+    },
+    "competitor_url": {
+      "type": "string",
+      "description": "Competitor podcast URL"
+    },
+    "analysis_type": {
+      "type": "string",
+      "enum": [
+        "full_analysis",
+        "content_strategy",
+        "social_media",
+        "seo",
+        "monetization",
+        "engagement"
+      ],
+      "default": "full_analysis",
+      "description": "Type of analysis"
+    },
+    "analysis_summary": {
+      "type": "string",
+      "description": "AI-generated executive summary"
+    },
+    "strengths": {
+      "type": "array",
+      "items": {
+        "type": "string"
+      },
+      "description": "Competitor strengths"
+    },
+    "weaknesses": {
+      "type": "array",
+      "items": {
+        "type": "string"
+      },
+      "description": "Competitor weaknesses"
+    },
+    "opportunities": {
+      "type": "array",
+      "items": {
+        "type": "string"
+      },
+      "description": "Opportunities for you"
+    },
+    "recommendations": {
+      "type": "array",
+      "items": {
+        "type": "string"
+      },
+      "description": "AI actionable recommendations"
+    },
+    "competitive_score": {
+      "type": "number",
+      "description": "Score 0-100 comparing to competitor"
+    },
+    "content_formats": {
+      "type": "object",
+      "properties": {
+        "successful_formats": {
+          "type": "array",
+          "items": {
+            "type": "string"
+          }
+        },
+        "top_performing_types": {
+          "type": "array",
+          "items": {
+            "type": "string"
+          }
+        },
+        "content_length_sweet_spot": {
+          "type": "string"
+        },
+        "format_recommendations": {
+          "type": "array",
+          "items": {
+            "type": "string"
+          }
+        }
+      }
+    },
+    "posting_patterns": {
+      "type": "object",
+      "properties": {
+        "frequency": {
+          "type": "string"
+        },
+        "best_days": {
+          "type": "array",
+          "items": {
+            "type": "string"
+          }
+        },
+        "best_times": {
+          "type": "array",
+          "items": {
+            "type": "string"
+          }
+        },
+        "consistency_score": {
+          "type": "number"
+        },
+        "recommended_schedule": {
+          "type": "string"
+        }
+      }
+    },
+    "engagement_metrics": {
+      "type": "object",
+      "properties": {
+        "avg_engagement_rate": {
+          "type": "number"
+        },
+        "top_engagement_triggers": {
+          "type": "array",
+          "items": {
+            "type": "string"
+          }
+        },
+        "audience_interaction_style": {
+          "type": "string"
+        },
+        "response_rate": {
+          "type": "string"
+        },
+        "community_building_tactics": {
+          "type": "array",
+          "items": {
+            "type": "string"
+          }
+        }
+      }
+    },
+    "social_media_presence": {
+      "type": "object",
+      "properties": {
+        "platforms_used": {
+          "type": "array",
+          "items": {
+            "type": "string"
+          }
+        },
+        "strongest_platform": {
+          "type": "string"
+        },
+        "platform_specific_strategies": {
+          "type": "array",
+          "items": {
+            "type": "string"
+          }
+        },
+        "hashtag_strategy": {
+          "type": "string"
+        },
+        "visual_content_quality": {
+          "type": "string"
+        }
+      }
+    },
+    "audience_insights": {
+      "type": "object",
+      "properties": {
+        "target_demographics": {
+          "type": "string"
+        },
+        "engagement_patterns": {
+          "type": "string"
+        },
+        "community_size_estimate": {
+          "type": "string"
+        },
+        "audience_pain_points": {
+          "type": "array",
+          "items": {
+            "type": "string"
+          }
+        },
+        "unmet_needs": {
+          "type": "array",
+          "items": {
+            "type": "string"
+          }
+        }
+      }
+    },
+    "replication_strategies": {
+      "type": "array",
+      "items": {
+        "type": "string"
+      },
+      "description": "How to replicate their success"
+    },
+    "differentiation_strategies": {
+      "type": "array",
+      "items": {
+        "type": "string"
+      },
+      "description": "How to stand out differently"
+    },
+    "quick_wins": {
+      "type": "array",
+      "items": {
+        "type": "string"
+      },
+      "description": "Immediate actions to take (30 days)"
+    },
+    "long_term_strategy": {
+      "type": "array",
+      "items": {
+        "type": "string"
+      },
+      "description": "Strategic moves (90+ days)"
+    }
+  },
+  "required": [
+    "podcast_id",
+    "competitor_name",
+    "analysis_type"
+  ]
+}

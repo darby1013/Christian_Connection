@@ -1,0 +1,45 @@
+{
+  "name": "LoginAttempt",
+  "type": "object",
+  "properties": {
+    "email": {
+      "type": "string"
+    },
+    "ip_address": {
+      "type": "string"
+    },
+    "user_agent": {
+      "type": "string"
+    },
+    "success": {
+      "type": "boolean"
+    },
+    "failure_reason": {
+      "type": "string"
+    },
+    "attempt_date": {
+      "type": "string",
+      "format": "date-time"
+    },
+    "location": {
+      "type": "string",
+      "description": "Geographic location"
+    },
+    "device_fingerprint": {
+      "type": "string"
+    },
+    "is_suspicious": {
+      "type": "boolean",
+      "default": false
+    },
+    "risk_score": {
+      "type": "number",
+      "description": "Risk score 0-100"
+    }
+  },
+  "required": [
+    "email",
+    "ip_address",
+    "success"
+  ]
+}

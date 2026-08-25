@@ -1,0 +1,81 @@
+{
+  "name": "DatabaseBackup",
+  "type": "object",
+  "properties": {
+    "backup_name": {
+      "type": "string"
+    },
+    "backup_type": {
+      "type": "string",
+      "enum": [
+        "full",
+        "incremental",
+        "differential",
+        "snapshot"
+      ],
+      "default": "full"
+    },
+    "backup_date": {
+      "type": "string",
+      "format": "date-time"
+    },
+    "size_gb": {
+      "type": "number"
+    },
+    "compression_ratio": {
+      "type": "number"
+    },
+    "storage_location": {
+      "type": "string",
+      "enum": [
+        "local",
+        "aws_s3",
+        "google_cloud",
+        "azure"
+      ],
+      "default": "local"
+    },
+    "is_encrypted": {
+      "type": "boolean",
+      "default": true
+    },
+    "backup_status": {
+      "type": "string",
+      "enum": [
+        "in_progress",
+        "completed",
+        "failed",
+        "corrupted"
+      ],
+      "default": "completed"
+    },
+    "duration_minutes": {
+      "type": "number"
+    },
+    "tables_backed_up": {
+      "type": "number"
+    },
+    "records_backed_up": {
+      "type": "number"
+    },
+    "can_restore": {
+      "type": "boolean",
+      "default": true
+    },
+    "retention_days": {
+      "type": "number",
+      "default": 30
+    },
+    "expires_at": {
+      "type": "string",
+      "format": "date-time"
+    },
+    "checksum": {
+      "type": "string"
+    }
+  },
+  "required": [
+    "backup_name",
+    "backup_type"
+  ]
+}

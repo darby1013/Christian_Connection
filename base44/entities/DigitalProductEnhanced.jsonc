@@ -1,0 +1,116 @@
+{
+  "name": "DigitalProductEnhanced",
+  "type": "object",
+  "properties": {
+    "name": {
+      "type": "string"
+    },
+    "description": {
+      "type": "string"
+    },
+    "product_type": {
+      "type": "string",
+      "enum": [
+        "ebook",
+        "pdf",
+        "video",
+        "audio",
+        "course",
+        "image",
+        "template",
+        "software",
+        "music",
+        "podcast"
+      ],
+      "default": "pdf"
+    },
+    "price": {
+      "type": "number"
+    },
+    "thumbnail_url": {
+      "type": "string"
+    },
+    "file_url": {
+      "type": "string"
+    },
+    "file_size": {
+      "type": "string"
+    },
+    "file_format": {
+      "type": "string"
+    },
+    "preview_url": {
+      "type": "string"
+    },
+    "sample_pages": {
+      "type": "number"
+    },
+    "total_pages": {
+      "type": "number"
+    },
+    "duration": {
+      "type": "number",
+      "description": "For video/audio in seconds"
+    },
+    "version": {
+      "type": "string"
+    },
+    "license_type": {
+      "type": "string",
+      "enum": [
+        "personal",
+        "commercial",
+        "extended"
+      ],
+      "default": "personal"
+    },
+    "download_limit": {
+      "type": "number",
+      "default": 5
+    },
+    "drm_protected": {
+      "type": "boolean",
+      "default": false
+    },
+    "watermark_enabled": {
+      "type": "boolean",
+      "default": false
+    },
+    "instant_download": {
+      "type": "boolean",
+      "default": true
+    },
+    "email_delivery": {
+      "type": "boolean",
+      "default": true
+    },
+    "access_duration_days": {
+      "type": "number",
+      "default": 365
+    },
+    "tags": {
+      "type": "array",
+      "items": {
+        "type": "string"
+      }
+    },
+    "is_active": {
+      "type": "boolean",
+      "default": true
+    },
+    "total_downloads": {
+      "type": "number",
+      "default": 0
+    },
+    "rating": {
+      "type": "number",
+      "default": 0
+    }
+  },
+  "required": [
+    "name",
+    "product_type",
+    "price",
+    "file_url"
+  ]
+}

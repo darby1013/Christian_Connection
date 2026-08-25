@@ -1,0 +1,80 @@
+{
+  "name": "AbandonedCart",
+  "type": "object",
+  "properties": {
+    "cart_id": {
+      "type": "string",
+      "description": "Reference to ShoppingCart"
+    },
+    "user_id": {
+      "type": "string"
+    },
+    "user_email": {
+      "type": "string"
+    },
+    "user_name": {
+      "type": "string"
+    },
+    "cart_value": {
+      "type": "number"
+    },
+    "items_count": {
+      "type": "number"
+    },
+    "abandoned_at": {
+      "type": "string",
+      "format": "date-time"
+    },
+    "last_activity": {
+      "type": "string",
+      "format": "date-time"
+    },
+    "checkout_step_abandoned": {
+      "type": "number",
+      "description": "Which step they left (1-5)"
+    },
+    "recovery_emails_sent": {
+      "type": "number",
+      "default": 0
+    },
+    "last_email_sent": {
+      "type": "string",
+      "format": "date-time"
+    },
+    "recovery_coupon_code": {
+      "type": "string",
+      "description": "Special discount to recover cart"
+    },
+    "recovered": {
+      "type": "boolean",
+      "default": false
+    },
+    "recovered_at": {
+      "type": "string",
+      "format": "date-time"
+    },
+    "recovery_order_id": {
+      "type": "string"
+    },
+    "device_type": {
+      "type": "string",
+      "enum": [
+        "desktop",
+        "mobile",
+        "tablet"
+      ]
+    },
+    "browser": {
+      "type": "string"
+    },
+    "abandonment_reason": {
+      "type": "string",
+      "description": "If user provided feedback"
+    }
+  },
+  "required": [
+    "cart_id",
+    "user_email",
+    "cart_value"
+  ]
+}

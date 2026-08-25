@@ -1,0 +1,84 @@
+{
+  "name": "CustomBundle",
+  "type": "object",
+  "properties": {
+    "user_id": {
+      "type": "string",
+      "description": "Who created this bundle"
+    },
+    "bundle_name": {
+      "type": "string",
+      "description": "Customer's custom name"
+    },
+    "bundle_category": {
+      "type": "string",
+      "description": "Base category (e.g., 'Build Your Faith Kit')"
+    },
+    "selected_products": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "properties": {
+          "product_id": {
+            "type": "string"
+          },
+          "product_name": {
+            "type": "string"
+          },
+          "quantity": {
+            "type": "number",
+            "default": 1
+          },
+          "price": {
+            "type": "number"
+          },
+          "image": {
+            "type": "string"
+          }
+        }
+      }
+    },
+    "total_price": {
+      "type": "number"
+    },
+    "bundle_discount_percentage": {
+      "type": "number",
+      "default": 10,
+      "description": "Auto-applied bundle discount"
+    },
+    "final_price": {
+      "type": "number"
+    },
+    "savings": {
+      "type": "number"
+    },
+    "is_saved": {
+      "type": "boolean",
+      "default": false,
+      "description": "Saved for later vs one-time creation"
+    },
+    "is_purchased": {
+      "type": "boolean",
+      "default": false
+    },
+    "purchased_date": {
+      "type": "string",
+      "format": "date-time"
+    },
+    "share_token": {
+      "type": "string",
+      "description": "Share custom bundle with others"
+    },
+    "ai_suggested": {
+      "type": "boolean",
+      "default": false,
+      "description": "Was this AI-suggested or user-created"
+    }
+  },
+  "required": [
+    "user_id",
+    "bundle_category",
+    "selected_products",
+    "total_price"
+  ]
+}

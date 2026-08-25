@@ -1,0 +1,28 @@
+{
+  "name": "UserPreference",
+  "type": "object",
+  "properties": {
+    "user_id": {
+      "type": "string"
+    },
+    "preference_key": {
+      "type": "string"
+    },
+    "preference_value": {
+      "type": "string"
+    },
+    "category": {
+      "type": "string",
+      "enum": [
+        "notification",
+        "privacy",
+        "display",
+        "content"
+      ]
+    }
+  },
+  "required": [
+    "user_id",
+    "preference_key"
+  ]
+}

@@ -1,0 +1,64 @@
+{
+  "name": "DataExportJob",
+  "type": "object",
+  "properties": {
+    "job_name": {
+      "type": "string"
+    },
+    "tables_selected": {
+      "type": "array",
+      "items": {
+        "type": "string"
+      }
+    },
+    "export_format": {
+      "type": "string",
+      "enum": [
+        "sql",
+        "json",
+        "csv",
+        "xml"
+      ]
+    },
+    "status": {
+      "type": "string",
+      "enum": [
+        "queued",
+        "processing",
+        "completed",
+        "failed"
+      ],
+      "default": "queued"
+    },
+    "started_at": {
+      "type": "string",
+      "format": "date-time"
+    },
+    "completed_at": {
+      "type": "string",
+      "format": "date-time"
+    },
+    "file_urls": {
+      "type": "array",
+      "items": {
+        "type": "string"
+      }
+    },
+    "total_records": {
+      "type": "number"
+    },
+    "total_size_mb": {
+      "type": "number"
+    },
+    "requested_by": {
+      "type": "string"
+    },
+    "error_message": {
+      "type": "string"
+    }
+  },
+  "required": [
+    "job_name",
+    "export_format"
+  ]
+}

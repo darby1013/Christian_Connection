@@ -1,0 +1,59 @@
+{
+  "name": "SystemConfiguration",
+  "type": "object",
+  "properties": {
+    "config_key": {
+      "type": "string",
+      "description": "Configuration key"
+    },
+    "config_value": {
+      "type": "string",
+      "description": "Configuration value"
+    },
+    "config_type": {
+      "type": "string",
+      "enum": [
+        "string",
+        "number",
+        "boolean",
+        "json",
+        "array"
+      ],
+      "default": "string"
+    },
+    "category": {
+      "type": "string",
+      "enum": [
+        "database",
+        "cache",
+        "api",
+        "security",
+        "performance",
+        "feature"
+      ],
+      "description": "Configuration category"
+    },
+    "description": {
+      "type": "string"
+    },
+    "is_sensitive": {
+      "type": "boolean",
+      "default": false
+    },
+    "is_editable": {
+      "type": "boolean",
+      "default": true
+    },
+    "last_modified": {
+      "type": "string",
+      "format": "date-time"
+    },
+    "modified_by": {
+      "type": "string"
+    }
+  },
+  "required": [
+    "config_key",
+    "config_value"
+  ]
+}

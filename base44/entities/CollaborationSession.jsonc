@@ -1,0 +1,100 @@
+{
+  "name": "CollaborationSession",
+  "type": "object",
+  "properties": {
+    "entity_type": {
+      "type": "string",
+      "description": "Type of entity being edited (BlogPost, Product, etc.)"
+    },
+    "entity_id": {
+      "type": "string",
+      "description": "ID of the entity being edited"
+    },
+    "entity_title": {
+      "type": "string",
+      "description": "Title of the entity"
+    },
+    "active_users": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "properties": {
+          "user_id": {
+            "type": "string"
+          },
+          "user_name": {
+            "type": "string"
+          },
+          "user_email": {
+            "type": "string"
+          },
+          "user_image": {
+            "type": "string"
+          },
+          "cursor_position": {
+            "type": "number"
+          },
+          "selected_text": {
+            "type": "string"
+          },
+          "last_active": {
+            "type": "string",
+            "format": "date-time"
+          },
+          "color": {
+            "type": "string"
+          }
+        }
+      },
+      "description": "Users currently editing"
+    },
+    "content_snapshot": {
+      "type": "object",
+      "description": "Current content state"
+    },
+    "changes": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "properties": {
+          "user_id": {
+            "type": "string"
+          },
+          "user_name": {
+            "type": "string"
+          },
+          "timestamp": {
+            "type": "string",
+            "format": "date-time"
+          },
+          "change_type": {
+            "type": "string"
+          },
+          "content_before": {
+            "type": "string"
+          },
+          "content_after": {
+            "type": "string"
+          }
+        }
+      },
+      "description": "Change history"
+    },
+    "is_active": {
+      "type": "boolean",
+      "default": true
+    },
+    "locked_by": {
+      "type": "string",
+      "description": "User ID who has write lock"
+    },
+    "last_sync": {
+      "type": "string",
+      "format": "date-time"
+    }
+  },
+  "required": [
+    "entity_type",
+    "entity_id"
+  ]
+}

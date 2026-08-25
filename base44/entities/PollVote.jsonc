@@ -1,0 +1,24 @@
+{
+  "name": "PollVote",
+  "type": "object",
+  "properties": {
+    "poll_id": {
+      "type": "string"
+    },
+    "option_id": {
+      "type": "string"
+    },
+    "user_id": {
+      "type": "string"
+    },
+    "vote_date": {
+      "type": "string",
+      "format": "date-time"
+    }
+  },
+  "required": [
+    "poll_id",
+    "option_id",
+    "user_id"
+  ]
+}

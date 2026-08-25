@@ -1,0 +1,38 @@
+{
+  "name": "GiftCard",
+  "type": "object",
+  "properties": {
+    "code": {
+      "type": "string",
+      "description": "Unique gift card code"
+    },
+    "initial_balance": {
+      "type": "number"
+    },
+    "current_balance": {
+      "type": "number"
+    },
+    "recipient_email": {
+      "type": "string"
+    },
+    "recipient_name": {
+      "type": "string"
+    },
+    "message": {
+      "type": "string"
+    },
+    "is_active": {
+      "type": "boolean",
+      "default": true
+    },
+    "expires_at": {
+      "type": "string",
+      "format": "date-time"
+    }
+  },
+  "required": [
+    "code",
+    "initial_balance",
+    "current_balance"
+  ]
+}

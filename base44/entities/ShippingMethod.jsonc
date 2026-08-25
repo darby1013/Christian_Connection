@@ -1,0 +1,33 @@
+{
+  "name": "ShippingMethod",
+  "type": "object",
+  "properties": {
+    "name": {
+      "type": "string"
+    },
+    "code": {
+      "type": "string"
+    },
+    "description": {
+      "type": "string"
+    },
+    "cost": {
+      "type": "number"
+    },
+    "estimated_days": {
+      "type": "string"
+    },
+    "free_shipping_threshold": {
+      "type": "number",
+      "description": "Free shipping if order total exceeds this"
+    },
+    "is_active": {
+      "type": "boolean",
+      "default": true
+    }
+  },
+  "required": [
+    "name",
+    "cost"
+  ]
+}

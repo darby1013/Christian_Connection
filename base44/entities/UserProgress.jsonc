@@ -1,0 +1,56 @@
+{
+  "name": "UserProgress",
+  "type": "object",
+  "properties": {
+    "user_id": {
+      "type": "string",
+      "description": "Unique per user"
+    },
+    "total_points": {
+      "type": "number",
+      "default": 0
+    },
+    "current_level": {
+      "type": "number",
+      "default": 1
+    },
+    "current_level_points": {
+      "type": "number",
+      "default": 0,
+      "description": "Points earned in current level"
+    },
+    "next_level_points": {
+      "type": "number",
+      "default": 100,
+      "description": "Points needed for next level"
+    },
+    "rank": {
+      "type": "string",
+      "enum": [
+        "bronze",
+        "silver",
+        "gold",
+        "platinum",
+        "diamond"
+      ],
+      "default": "bronze"
+    },
+    "rank_position": {
+      "type": "number",
+      "description": "Overall rank position"
+    },
+    "badges_earned": {
+      "type": "number",
+      "default": 0
+    },
+    "achievements_unlocked": {
+      "type": "array",
+      "items": {
+        "type": "string"
+      }
+    }
+  },
+  "required": [
+    "user_id"
+  ]
+}

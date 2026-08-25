@@ -1,0 +1,62 @@
+{
+  "name": "MediaAsset",
+  "type": "object",
+  "properties": {
+    "asset_name": {
+      "type": "string"
+    },
+    "asset_type": {
+      "type": "string",
+      "enum": [
+        "image",
+        "video",
+        "audio",
+        "document",
+        "other"
+      ]
+    },
+    "file_url": {
+      "type": "string"
+    },
+    "file_size_mb": {
+      "type": "number"
+    },
+    "mime_type": {
+      "type": "string"
+    },
+    "width": {
+      "type": "number"
+    },
+    "height": {
+      "type": "number"
+    },
+    "duration": {
+      "type": "number",
+      "description": "Duration in seconds for video/audio"
+    },
+    "uploaded_by": {
+      "type": "string"
+    },
+    "folder": {
+      "type": "string"
+    },
+    "tags": {
+      "type": "array",
+      "items": {
+        "type": "string"
+      }
+    },
+    "usage_count": {
+      "type": "number",
+      "default": 0
+    },
+    "alt_text": {
+      "type": "string"
+    }
+  },
+  "required": [
+    "asset_name",
+    "asset_type",
+    "file_url"
+  ]
+}

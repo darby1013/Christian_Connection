@@ -1,0 +1,71 @@
+{
+  "name": "PodcastPurchase",
+  "type": "object",
+  "properties": {
+    "podcast_id": {
+      "type": "string",
+      "description": "Reference to Podcast entity"
+    },
+    "podcast_title": {
+      "type": "string"
+    },
+    "buyer_id": {
+      "type": "string",
+      "description": "User who purchased"
+    },
+    "buyer_name": {
+      "type": "string"
+    },
+    "buyer_email": {
+      "type": "string"
+    },
+    "purchase_type": {
+      "type": "string",
+      "enum": [
+        "episode",
+        "subscription_monthly",
+        "subscription_yearly"
+      ],
+      "description": "Type of purchase"
+    },
+    "amount": {
+      "type": "number",
+      "description": "Purchase amount"
+    },
+    "payment_status": {
+      "type": "string",
+      "enum": [
+        "pending",
+        "completed",
+        "failed",
+        "refunded"
+      ],
+      "default": "completed"
+    },
+    "payment_method": {
+      "type": "string",
+      "description": "Payment method used"
+    },
+    "subscription_start_date": {
+      "type": "string",
+      "format": "date-time",
+      "description": "For subscriptions"
+    },
+    "subscription_end_date": {
+      "type": "string",
+      "format": "date-time",
+      "description": "For subscriptions"
+    },
+    "is_active": {
+      "type": "boolean",
+      "default": true,
+      "description": "For subscriptions - whether still active"
+    }
+  },
+  "required": [
+    "podcast_id",
+    "buyer_id",
+    "purchase_type",
+    "amount"
+  ]
+}

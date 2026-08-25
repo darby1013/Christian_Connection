@@ -1,0 +1,55 @@
+{
+  "name": "ScheduledTask",
+  "type": "object",
+  "properties": {
+    "name": {
+      "type": "string"
+    },
+    "task_type": {
+      "type": "string",
+      "enum": [
+        "send_email",
+        "generate_report",
+        "update_inventory",
+        "cleanup_data",
+        "send_notifications"
+      ]
+    },
+    "schedule": {
+      "type": "string",
+      "description": "Cron expression or interval"
+    },
+    "parameters": {
+      "type": "object"
+    },
+    "is_active": {
+      "type": "boolean",
+      "default": true
+    },
+    "last_run_at": {
+      "type": "string",
+      "format": "date-time"
+    },
+    "next_run_at": {
+      "type": "string",
+      "format": "date-time"
+    },
+    "run_count": {
+      "type": "number",
+      "default": 0
+    },
+    "success_count": {
+      "type": "number",
+      "default": 0
+    },
+    "failure_count": {
+      "type": "number",
+      "default": 0
+    }
+  },
+  "required": [
+    "name",
+    "task_type",
+    "schedule"
+  ]
+}

@@ -1,0 +1,62 @@
+{
+  "name": "DataMaskingRule",
+  "type": "object",
+  "properties": {
+    "rule_name": {
+      "type": "string",
+      "description": "Name of masking rule"
+    },
+    "table_name": {
+      "type": "string",
+      "description": "Table to apply masking"
+    },
+    "column_name": {
+      "type": "string",
+      "description": "Column to mask"
+    },
+    "masking_type": {
+      "type": "string",
+      "enum": [
+        "full",
+        "partial",
+        "hash",
+        "encrypt",
+        "tokenize",
+        "redact",
+        "shuffle"
+      ],
+      "description": "Type of masking"
+    },
+    "masking_pattern": {
+      "type": "string",
+      "description": "Pattern for masking (e.g., XXX-XX-1234)"
+    },
+    "applies_to_roles": {
+      "type": "array",
+      "items": {
+        "type": "string"
+      },
+      "description": "Roles that see masked data"
+    },
+    "exempted_users": {
+      "type": "array",
+      "items": {
+        "type": "string"
+      },
+      "description": "Users who see unmasked data"
+    },
+    "is_active": {
+      "type": "boolean",
+      "default": true
+    },
+    "compliance_requirement": {
+      "type": "string"
+    }
+  },
+  "required": [
+    "rule_name",
+    "table_name",
+    "column_name",
+    "masking_type"
+  ]
+}

@@ -1,0 +1,100 @@
+{
+  "name": "PodcastRepurposedContent",
+  "type": "object",
+  "properties": {
+    "podcast_id": {
+      "type": "string",
+      "description": "Reference to Podcast entity"
+    },
+    "podcast_title": {
+      "type": "string"
+    },
+    "content_type": {
+      "type": "string",
+      "enum": [
+        "video_clip",
+        "audiogram",
+        "blog_summary",
+        "tweet_thread",
+        "instagram_reel",
+        "youtube_short",
+        "linkedin_post",
+        "quote_card"
+      ],
+      "description": "Type of repurposed content"
+    },
+    "content_data": {
+      "type": "object",
+      "description": "Content specific data"
+    },
+    "clip_timestamps": {
+      "type": "object",
+      "properties": {
+        "start": {
+          "type": "number"
+        },
+        "end": {
+          "type": "number"
+        },
+        "duration": {
+          "type": "number"
+        }
+      },
+      "description": "For video/audio clips"
+    },
+    "text_content": {
+      "type": "string",
+      "description": "Generated text content"
+    },
+    "visual_specs": {
+      "type": "object",
+      "properties": {
+        "background_color": {
+          "type": "string"
+        },
+        "text_color": {
+          "type": "string"
+        },
+        "font_size": {
+          "type": "string"
+        },
+        "animation_style": {
+          "type": "string"
+        }
+      }
+    },
+    "hashtags": {
+      "type": "array",
+      "items": {
+        "type": "string"
+      }
+    },
+    "engagement_potential": {
+      "type": "number",
+      "description": "AI predicted engagement score 0-100"
+    },
+    "key_quotes": {
+      "type": "array",
+      "items": {
+        "type": "string"
+      }
+    },
+    "suggested_platforms": {
+      "type": "array",
+      "items": {
+        "type": "string"
+      }
+    },
+    "is_exported": {
+      "type": "boolean",
+      "default": false
+    },
+    "export_url": {
+      "type": "string"
+    }
+  },
+  "required": [
+    "podcast_id",
+    "content_type"
+  ]
+}

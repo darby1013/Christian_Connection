@@ -1,0 +1,35 @@
+{
+  "name": "DeviceToken",
+  "type": "object",
+  "properties": {
+    "user_id": {
+      "type": "string"
+    },
+    "token": {
+      "type": "string"
+    },
+    "device_type": {
+      "type": "string",
+      "enum": [
+        "ios",
+        "android",
+        "web"
+      ]
+    },
+    "device_name": {
+      "type": "string"
+    },
+    "is_active": {
+      "type": "boolean",
+      "default": true
+    },
+    "last_used": {
+      "type": "string",
+      "format": "date-time"
+    }
+  },
+  "required": [
+    "user_id",
+    "token"
+  ]
+}

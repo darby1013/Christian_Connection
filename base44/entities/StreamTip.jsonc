@@ -1,0 +1,50 @@
+{
+  "name": "StreamTip",
+  "type": "object",
+  "properties": {
+    "stream_id": {
+      "type": "string",
+      "description": "Live stream ID"
+    },
+    "tipper_id": {
+      "type": "string"
+    },
+    "tipper_name": {
+      "type": "string"
+    },
+    "amount": {
+      "type": "number"
+    },
+    "message": {
+      "type": "string",
+      "description": "Optional tip message"
+    },
+    "is_anonymous": {
+      "type": "boolean",
+      "default": false
+    },
+    "show_on_stream": {
+      "type": "boolean",
+      "default": true,
+      "description": "Display tip alert on stream"
+    },
+    "payment_status": {
+      "type": "string",
+      "enum": [
+        "pending",
+        "completed",
+        "failed",
+        "refunded"
+      ],
+      "default": "completed"
+    },
+    "currency": {
+      "type": "string",
+      "default": "USD"
+    }
+  },
+  "required": [
+    "stream_id",
+    "amount"
+  ]
+}

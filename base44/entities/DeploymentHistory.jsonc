@@ -1,0 +1,45 @@
+{
+  "name": "DeploymentHistory",
+  "type": "object",
+  "properties": {
+    "version": {
+      "type": "string"
+    },
+    "deployed_by": {
+      "type": "string"
+    },
+    "deployment_date": {
+      "type": "string",
+      "format": "date-time"
+    },
+    "environment": {
+      "type": "string",
+      "enum": [
+        "development",
+        "staging",
+        "production"
+      ]
+    },
+    "status": {
+      "type": "string",
+      "enum": [
+        "success",
+        "failed",
+        "rolled_back"
+      ]
+    },
+    "changes": {
+      "type": "array",
+      "items": {
+        "type": "string"
+      }
+    },
+    "duration_minutes": {
+      "type": "number"
+    }
+  },
+  "required": [
+    "version",
+    "deployed_by"
+  ]
+}

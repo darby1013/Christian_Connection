@@ -1,0 +1,45 @@
+{
+  "name": "SmallGroup",
+  "type": "object",
+  "properties": {
+    "name": {
+      "type": "string"
+    },
+    "description": {
+      "type": "string"
+    },
+    "leader_id": {
+      "type": "string"
+    },
+    "leader_name": {
+      "type": "string"
+    },
+    "meeting_day": {
+      "type": "string"
+    },
+    "meeting_time": {
+      "type": "string"
+    },
+    "location": {
+      "type": "string"
+    },
+    "max_members": {
+      "type": "number"
+    },
+    "current_members": {
+      "type": "number",
+      "default": 0
+    },
+    "is_open": {
+      "type": "boolean",
+      "default": true
+    },
+    "category": {
+      "type": "string"
+    }
+  },
+  "required": [
+    "name",
+    "leader_id"
+  ]
+}

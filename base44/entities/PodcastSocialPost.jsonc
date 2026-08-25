@@ -1,0 +1,61 @@
+{
+  "name": "PodcastSocialPost",
+  "type": "object",
+  "properties": {
+    "clip_id": {
+      "type": "string",
+      "description": "Reference to PodcastClip"
+    },
+    "podcast_id": {
+      "type": "string"
+    },
+    "platform": {
+      "type": "string",
+      "enum": [
+        "instagram",
+        "twitter",
+        "facebook",
+        "tiktok",
+        "linkedin",
+        "youtube"
+      ],
+      "default": "instagram"
+    },
+    "caption": {
+      "type": "string",
+      "description": "AI-generated caption"
+    },
+    "hashtags": {
+      "type": "array",
+      "items": {
+        "type": "string"
+      }
+    },
+    "call_to_action": {
+      "type": "string",
+      "description": "CTA text"
+    },
+    "emoji_set": {
+      "type": "array",
+      "items": {
+        "type": "string"
+      }
+    },
+    "character_count": {
+      "type": "number"
+    },
+    "optimal_post_time": {
+      "type": "string",
+      "description": "Best time to post"
+    },
+    "is_used": {
+      "type": "boolean",
+      "default": false
+    }
+  },
+  "required": [
+    "clip_id",
+    "platform",
+    "caption"
+  ]
+}

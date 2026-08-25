@@ -1,0 +1,23 @@
+{
+  "name": "EntityTag",
+  "type": "object",
+  "properties": {
+    "entity_type": {
+      "type": "string"
+    },
+    "entity_id": {
+      "type": "string"
+    },
+    "tag_id": {
+      "type": "string"
+    },
+    "tag_name": {
+      "type": "string"
+    }
+  },
+  "required": [
+    "entity_type",
+    "entity_id",
+    "tag_id"
+  ]
+}

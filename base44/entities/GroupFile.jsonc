@@ -1,0 +1,52 @@
+{
+  "name": "GroupFile",
+  "type": "object",
+  "properties": {
+    "group_id": {
+      "type": "string"
+    },
+    "channel_id": {
+      "type": "string",
+      "description": "Optional: specific channel"
+    },
+    "file_name": {
+      "type": "string"
+    },
+    "file_url": {
+      "type": "string"
+    },
+    "file_type": {
+      "type": "string",
+      "enum": [
+        "document",
+        "image",
+        "video",
+        "audio",
+        "other"
+      ],
+      "default": "document"
+    },
+    "file_size": {
+      "type": "string",
+      "description": "e.g., '2.5 MB'"
+    },
+    "uploaded_by": {
+      "type": "string"
+    },
+    "uploader_name": {
+      "type": "string"
+    },
+    "downloads": {
+      "type": "number",
+      "default": 0
+    },
+    "description": {
+      "type": "string"
+    }
+  },
+  "required": [
+    "group_id",
+    "file_name",
+    "file_url"
+  ]
+}

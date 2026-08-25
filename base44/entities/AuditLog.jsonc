@@ -1,0 +1,193 @@
+{
+  "name": "AuditLog",
+  "type": "object",
+  "properties": {
+    "action_type": {
+      "type": "string",
+      "enum": [
+        "create",
+        "update",
+        "delete",
+        "login",
+        "logout",
+        "export",
+        "import",
+        "permission_change",
+        "role_assign",
+        "role_remove",
+        "password_change",
+        "settings_change",
+        "backup_create",
+        "backup_restore",
+        "query_execute",
+        "schema_change",
+        "data_migration",
+        "security_event",
+        "access_denied",
+        "file_upload",
+        "file_download",
+        "api_call",
+        "system_config"
+      ],
+      "description": "Type of action performed"
+    },
+    "entity_type": {
+      "type": "string",
+      "description": "Entity/resource affected (e.g., Product, User, Order)"
+    },
+    "entity_id": {
+      "type": "string",
+      "description": "ID of the affected entity"
+    },
+    "entity_name": {
+      "type": "string",
+      "description": "Name/title of affected entity"
+    },
+    "user_id": {
+      "type": "string",
+      "description": "User who performed the action"
+    },
+    "user_name": {
+      "type": "string",
+      "description": "Name of the user"
+    },
+    "user_email": {
+      "type": "string",
+      "description": "Email of the user"
+    },
+    "user_role": {
+      "type": "string",
+      "description": "Role of the user at time of action"
+    },
+    "action_description": {
+      "type": "string",
+      "description": "Human-readable description of the action"
+    },
+    "changes": {
+      "type": "object",
+      "properties": {
+        "before": {
+          "type": "object",
+          "description": "State before the change"
+        },
+        "after": {
+          "type": "object",
+          "description": "State after the change"
+        },
+        "fields_changed": {
+          "type": "array",
+          "items": {
+            "type": "string"
+          },
+          "description": "List of fields that were modified"
+        }
+      },
+      "description": "Detailed change information"
+    },
+    "ip_address": {
+      "type": "string",
+      "description": "IP address from which action was performed"
+    },
+    "user_agent": {
+      "type": "string",
+      "description": "Browser/device information"
+    },
+    "session_id": {
+      "type": "string",
+      "description": "User session identifier"
+    },
+    "request_method": {
+      "type": "string",
+      "enum": [
+        "GET",
+        "POST",
+        "PUT",
+        "DELETE",
+        "PATCH"
+      ],
+      "description": "HTTP method used"
+    },
+    "request_url": {
+      "type": "string",
+      "description": "URL/endpoint accessed"
+    },
+    "request_payload": {
+      "type": "object",
+      "description": "Request data sent"
+    },
+    "response_status": {
+      "type": "number",
+      "description": "HTTP response status code"
+    },
+    "response_time": {
+      "type": "number",
+      "description": "Response time in milliseconds"
+    },
+    "severity": {
+      "type": "string",
+      "enum": [
+        "low",
+        "medium",
+        "high",
+        "critical"
+      ],
+      "default": "medium",
+      "description": "Severity/importance of the action"
+    },
+    "status": {
+      "type": "string",
+      "enum": [
+        "success",
+        "failure",
+        "warning",
+        "partial"
+      ],
+      "default": "success",
+      "description": "Result status of the action"
+    },
+    "error_message": {
+      "type": "string",
+      "description": "Error details if action failed"
+    },
+    "metadata": {
+      "type": "object",
+      "description": "Additional contextual information"
+    },
+    "tags": {
+      "type": "array",
+      "items": {
+        "type": "string"
+      },
+      "description": "Tags for categorization and filtering"
+    },
+    "duration": {
+      "type": "number",
+      "description": "Duration of action in milliseconds"
+    },
+    "affected_records_count": {
+      "type": "number",
+      "description": "Number of records affected by the action"
+    },
+    "parent_log_id": {
+      "type": "string",
+      "description": "ID of parent log entry for nested actions"
+    },
+    "is_automated": {
+      "type": "boolean",
+      "default": false,
+      "description": "Whether action was performed by an automated system"
+    },
+    "compliance_flags": {
+      "type": "array",
+      "items": {
+        "type": "string"
+      },
+      "description": "Compliance-related flags (GDPR, HIPAA, etc.)"
+    }
+  },
+  "required": [
+    "action_type",
+    "user_id",
+    "action_description"
+  ]
+}

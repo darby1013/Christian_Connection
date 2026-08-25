@@ -1,0 +1,115 @@
+{
+  "name": "Inventory",
+  "type": "object",
+  "properties": {
+    "product_id": {
+      "type": "string",
+      "description": "Reference to Product"
+    },
+    "variant_id": {
+      "type": "string",
+      "description": "Reference to ProductVariant (optional)"
+    },
+    "sku": {
+      "type": "string",
+      "description": "Stock keeping unit"
+    },
+    "warehouse_location": {
+      "type": "string",
+      "enum": [
+        "main",
+        "warehouse_a",
+        "warehouse_b",
+        "warehouse_c"
+      ],
+      "default": "main"
+    },
+    "quantity_available": {
+      "type": "number",
+      "default": 0
+    },
+    "quantity_reserved": {
+      "type": "number",
+      "default": 0,
+      "description": "Items in active carts/pending orders"
+    },
+    "quantity_incoming": {
+      "type": "number",
+      "default": 0,
+      "description": "On order from suppliers"
+    },
+    "reorder_point": {
+      "type": "number",
+      "default": 10,
+      "description": "Trigger reorder alert"
+    },
+    "reorder_quantity": {
+      "type": "number",
+      "default": 50,
+      "description": "Suggested reorder amount"
+    },
+    "bin_location": {
+      "type": "string",
+      "description": "Physical location in warehouse"
+    },
+    "last_stock_count": {
+      "type": "string",
+      "format": "date-time"
+    },
+    "stock_count_by": {
+      "type": "string"
+    },
+    "low_stock_alert": {
+      "type": "boolean",
+      "default": false
+    },
+    "out_of_stock_date": {
+      "type": "string",
+      "format": "date-time"
+    },
+    "expected_restock_date": {
+      "type": "string",
+      "format": "date-time"
+    },
+    "backorder_allowed": {
+      "type": "boolean",
+      "default": false
+    },
+    "inventory_adjustments": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "properties": {
+          "date": {
+            "type": "string",
+            "format": "date-time"
+          },
+          "quantity_change": {
+            "type": "number"
+          },
+          "reason": {
+            "type": "string"
+          },
+          "adjusted_by": {
+            "type": "string"
+          },
+          "notes": {
+            "type": "string"
+          }
+        }
+      }
+    },
+    "cost_per_unit": {
+      "type": "number",
+      "description": "Cost of goods"
+    },
+    "total_value": {
+      "type": "number",
+      "description": "Total inventory value"
+    }
+  },
+  "required": [
+    "product_id",
+    "sku"
+  ]
+}

@@ -1,0 +1,67 @@
+{
+  "name": "RateLimit",
+  "type": "object",
+  "properties": {
+    "rule_name": {
+      "type": "string",
+      "description": "Name of rate limit rule"
+    },
+    "endpoint": {
+      "type": "string",
+      "description": "API endpoint or route"
+    },
+    "limit_type": {
+      "type": "string",
+      "enum": [
+        "per_second",
+        "per_minute",
+        "per_hour",
+        "per_day"
+      ],
+      "default": "per_minute"
+    },
+    "max_requests": {
+      "type": "number",
+      "description": "Maximum requests allowed"
+    },
+    "window_size": {
+      "type": "number",
+      "description": "Time window in seconds"
+    },
+    "applies_to": {
+      "type": "string",
+      "enum": [
+        "all",
+        "authenticated",
+        "anonymous",
+        "api_keys"
+      ],
+      "default": "all"
+    },
+    "action_on_exceed": {
+      "type": "string",
+      "enum": [
+        "block",
+        "throttle",
+        "log"
+      ],
+      "default": "block"
+    },
+    "is_active": {
+      "type": "boolean",
+      "default": true
+    },
+    "total_blocks": {
+      "type": "number",
+      "default": 0
+    },
+    "last_triggered": {
+      "type": "string",
+      "format": "date-time"
+    }
+  },
+  "required": [
+    "rule_name",
+    "max_requests"
+  ]
+}

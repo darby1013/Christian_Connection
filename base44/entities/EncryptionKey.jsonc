@@ -1,0 +1,66 @@
+{
+  "name": "EncryptionKey",
+  "type": "object",
+  "properties": {
+    "key_name": {
+      "type": "string",
+      "description": "Name of encryption key"
+    },
+    "key_type": {
+      "type": "string",
+      "enum": [
+        "AES-256",
+        "RSA-2048",
+        "RSA-4096",
+        "ChaCha20"
+      ],
+      "description": "Encryption algorithm"
+    },
+    "key_purpose": {
+      "type": "string",
+      "enum": [
+        "data_at_rest",
+        "data_in_transit",
+        "backup",
+        "pii"
+      ],
+      "description": "Purpose of the key"
+    },
+    "applies_to_tables": {
+      "type": "array",
+      "items": {
+        "type": "string"
+      }
+    },
+    "applies_to_columns": {
+      "type": "array",
+      "items": {
+        "type": "string"
+      }
+    },
+    "rotation_period": {
+      "type": "number",
+      "description": "Rotation period in days"
+    },
+    "last_rotated": {
+      "type": "string",
+      "format": "date-time"
+    },
+    "next_rotation": {
+      "type": "string",
+      "format": "date-time"
+    },
+    "is_active": {
+      "type": "boolean",
+      "default": true
+    },
+    "created_by": {
+      "type": "string"
+    }
+  },
+  "required": [
+    "key_name",
+    "key_type",
+    "key_purpose"
+  ]
+}

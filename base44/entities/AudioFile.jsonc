@@ -1,0 +1,97 @@
+{
+  "name": "AudioFile",
+  "type": "object",
+  "properties": {
+    "title": {
+      "type": "string",
+      "description": "Audio title"
+    },
+    "description": {
+      "type": "string",
+      "description": "Audio description"
+    },
+    "audio_url": {
+      "type": "string",
+      "description": "Audio file URL"
+    },
+    "cover_image": {
+      "type": "string",
+      "description": "Cover art URL"
+    },
+    "duration": {
+      "type": "number",
+      "description": "Duration in seconds"
+    },
+    "file_size": {
+      "type": "number",
+      "description": "File size in bytes"
+    },
+    "format": {
+      "type": "string",
+      "enum": [
+        "mp3",
+        "wav",
+        "aac",
+        "m4a"
+      ],
+      "default": "mp3"
+    },
+    "category": {
+      "type": "string"
+    },
+    "author_id": {
+      "type": "string"
+    },
+    "author_name": {
+      "type": "string"
+    },
+    "plays": {
+      "type": "number",
+      "default": 0
+    },
+    "likes": {
+      "type": "number",
+      "default": 0
+    },
+    "is_published": {
+      "type": "boolean",
+      "default": false
+    },
+    "video_conversion_status": {
+      "type": "string",
+      "enum": [
+        "pending",
+        "processing",
+        "completed",
+        "failed"
+      ],
+      "default": "pending"
+    },
+    "video_url": {
+      "type": "string",
+      "description": "Converted video URL"
+    },
+    "video_formats": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "properties": {
+          "format": {
+            "type": "string"
+          },
+          "url": {
+            "type": "string"
+          },
+          "size": {
+            "type": "number"
+          }
+        }
+      },
+      "description": "Available video formats"
+    }
+  },
+  "required": [
+    "title",
+    "audio_url"
+  ]
+}

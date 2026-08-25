@@ -1,0 +1,40 @@
+{
+  "name": "ChatroomMember",
+  "type": "object",
+  "properties": {
+    "chatroom_id": {
+      "type": "string"
+    },
+    "user_id": {
+      "type": "string"
+    },
+    "user_name": {
+      "type": "string"
+    },
+    "role": {
+      "type": "string",
+      "enum": [
+        "member",
+        "moderator",
+        "admin"
+      ],
+      "default": "member"
+    },
+    "joined_date": {
+      "type": "string",
+      "format": "date-time"
+    },
+    "is_muted": {
+      "type": "boolean",
+      "default": false
+    },
+    "last_read": {
+      "type": "string",
+      "format": "date-time"
+    }
+  },
+  "required": [
+    "chatroom_id",
+    "user_id"
+  ]
+}

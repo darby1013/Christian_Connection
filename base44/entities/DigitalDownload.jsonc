@@ -1,0 +1,49 @@
+{
+  "name": "DigitalDownload",
+  "type": "object",
+  "properties": {
+    "user_id": {
+      "type": "string"
+    },
+    "user_email": {
+      "type": "string"
+    },
+    "product_id": {
+      "type": "string"
+    },
+    "product_name": {
+      "type": "string"
+    },
+    "order_id": {
+      "type": "string"
+    },
+    "download_url": {
+      "type": "string"
+    },
+    "download_count": {
+      "type": "number",
+      "default": 0
+    },
+    "max_downloads": {
+      "type": "number",
+      "default": 5
+    },
+    "expires_at": {
+      "type": "string",
+      "format": "date-time"
+    },
+    "is_active": {
+      "type": "boolean",
+      "default": true
+    },
+    "last_download_at": {
+      "type": "string",
+      "format": "date-time"
+    }
+  },
+  "required": [
+    "user_id",
+    "product_id",
+    "download_url"
+  ]
+}

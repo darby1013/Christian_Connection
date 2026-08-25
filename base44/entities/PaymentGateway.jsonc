@@ -1,0 +1,57 @@
+{
+  "name": "PaymentGateway",
+  "type": "object",
+  "properties": {
+    "name": {
+      "type": "string",
+      "description": "Gateway name (e.g., Stripe, PayPal)"
+    },
+    "type": {
+      "type": "string",
+      "enum": [
+        "stripe",
+        "paypal",
+        "square",
+        "authorize_net"
+      ],
+      "default": "stripe"
+    },
+    "is_enabled": {
+      "type": "boolean",
+      "default": false
+    },
+    "is_live_mode": {
+      "type": "boolean",
+      "default": false,
+      "description": "Live or test mode"
+    },
+    "api_key": {
+      "type": "string",
+      "description": "Public API key"
+    },
+    "secret_key": {
+      "type": "string",
+      "description": "Secret API key (encrypted)"
+    },
+    "webhook_url": {
+      "type": "string"
+    },
+    "supported_currencies": {
+      "type": "array",
+      "items": {
+        "type": "string"
+      },
+      "default": [
+        "USD"
+      ]
+    },
+    "transaction_fee": {
+      "type": "number",
+      "description": "Gateway fee percentage"
+    }
+  },
+  "required": [
+    "name",
+    "type"
+  ]
+}

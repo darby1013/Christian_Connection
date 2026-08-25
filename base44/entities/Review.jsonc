@@ -1,0 +1,55 @@
+{
+  "name": "Review",
+  "type": "object",
+  "properties": {
+    "product_id": {
+      "type": "string",
+      "description": "Product or digital product ID"
+    },
+    "product_type": {
+      "type": "string",
+      "enum": [
+        "physical",
+        "digital"
+      ],
+      "default": "physical"
+    },
+    "user_id": {
+      "type": "string"
+    },
+    "user_name": {
+      "type": "string"
+    },
+    "rating": {
+      "type": "number",
+      "minimum": 1,
+      "maximum": 5
+    },
+    "title": {
+      "type": "string"
+    },
+    "comment": {
+      "type": "string"
+    },
+    "is_verified_purchase": {
+      "type": "boolean",
+      "default": false
+    },
+    "helpful_count": {
+      "type": "number",
+      "default": 0
+    },
+    "images": {
+      "type": "array",
+      "items": {
+        "type": "string"
+      },
+      "description": "Review images"
+    }
+  },
+  "required": [
+    "product_id",
+    "user_id",
+    "rating"
+  ]
+}

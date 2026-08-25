@@ -1,0 +1,63 @@
+{
+  "name": "Testimony",
+  "type": "object",
+  "properties": {
+    "title": {
+      "type": "string",
+      "description": "Testimony title"
+    },
+    "story": {
+      "type": "string",
+      "description": "Full testimony story"
+    },
+    "author_id": {
+      "type": "string"
+    },
+    "author_name": {
+      "type": "string"
+    },
+    "author_image": {
+      "type": "string"
+    },
+    "category": {
+      "type": "string",
+      "enum": [
+        "healing",
+        "salvation",
+        "provision",
+        "deliverance",
+        "restoration",
+        "other"
+      ],
+      "default": "other"
+    },
+    "is_featured": {
+      "type": "boolean",
+      "default": false
+    },
+    "is_approved": {
+      "type": "boolean",
+      "default": false,
+      "description": "Admin approval required"
+    },
+    "likes": {
+      "type": "number",
+      "default": 0
+    },
+    "shares": {
+      "type": "number",
+      "default": 0
+    },
+    "video_url": {
+      "type": "string",
+      "description": "Optional video testimony"
+    },
+    "image_url": {
+      "type": "string"
+    }
+  },
+  "required": [
+    "title",
+    "story"
+  ]
+}

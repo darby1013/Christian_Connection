@@ -1,0 +1,65 @@
+{
+  "name": "BibleStudy",
+  "type": "object",
+  "properties": {
+    "title": {
+      "type": "string"
+    },
+    "book": {
+      "type": "string",
+      "description": "Bible book (e.g., John, Psalms)"
+    },
+    "chapter": {
+      "type": "string"
+    },
+    "verses": {
+      "type": "string",
+      "description": "Verse range (e.g., 1-10)"
+    },
+    "study_content": {
+      "type": "string",
+      "description": "Study notes and commentary"
+    },
+    "key_themes": {
+      "type": "array",
+      "items": {
+        "type": "string"
+      }
+    },
+    "discussion_questions": {
+      "type": "array",
+      "items": {
+        "type": "string"
+      }
+    },
+    "application": {
+      "type": "string",
+      "description": "Practical application"
+    },
+    "prayer_focus": {
+      "type": "string"
+    },
+    "related_passages": {
+      "type": "array",
+      "items": {
+        "type": "string"
+      }
+    },
+    "author_id": {
+      "type": "string"
+    },
+    "is_published": {
+      "type": "boolean",
+      "default": false
+    },
+    "views": {
+      "type": "number",
+      "default": 0
+    }
+  },
+  "required": [
+    "title",
+    "book",
+    "study_content"
+  ]
+}

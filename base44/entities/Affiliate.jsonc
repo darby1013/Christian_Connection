@@ -1,0 +1,39 @@
+{
+  "name": "Affiliate",
+  "type": "object",
+  "properties": {
+    "user_id": {
+      "type": "string"
+    },
+    "affiliate_code": {
+      "type": "string"
+    },
+    "commission_rate": {
+      "type": "number"
+    },
+    "total_sales": {
+      "type": "number",
+      "default": 0
+    },
+    "total_commission": {
+      "type": "number",
+      "default": 0
+    },
+    "status": {
+      "type": "string",
+      "enum": [
+        "active",
+        "suspended",
+        "inactive"
+      ],
+      "default": "active"
+    },
+    "payout_method": {
+      "type": "string"
+    }
+  },
+  "required": [
+    "user_id",
+    "affiliate_code"
+  ]
+}

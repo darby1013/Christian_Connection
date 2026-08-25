@@ -1,0 +1,162 @@
+{
+  "name": "OrderFulfillment",
+  "type": "object",
+  "properties": {
+    "order_id": {
+      "type": "string",
+      "description": "Reference to Order"
+    },
+    "order_number": {
+      "type": "string"
+    },
+    "fulfillment_status": {
+      "type": "string",
+      "enum": [
+        "pending",
+        "processing",
+        "packed",
+        "shipped",
+        "in_transit",
+        "out_for_delivery",
+        "delivered",
+        "failed",
+        "returned"
+      ],
+      "default": "pending"
+    },
+    "warehouse_location": {
+      "type": "string"
+    },
+    "picked_by": {
+      "type": "string",
+      "description": "Warehouse staff ID"
+    },
+    "picked_at": {
+      "type": "string",
+      "format": "date-time"
+    },
+    "packed_by": {
+      "type": "string"
+    },
+    "packed_at": {
+      "type": "string",
+      "format": "date-time"
+    },
+    "shipped_by": {
+      "type": "string"
+    },
+    "shipped_at": {
+      "type": "string",
+      "format": "date-time"
+    },
+    "carrier": {
+      "type": "string"
+    },
+    "shipping_method": {
+      "type": "string"
+    },
+    "tracking_number": {
+      "type": "string"
+    },
+    "tracking_url": {
+      "type": "string"
+    },
+    "estimated_delivery": {
+      "type": "string",
+      "format": "date-time"
+    },
+    "actual_delivery": {
+      "type": "string",
+      "format": "date-time"
+    },
+    "delivery_signature": {
+      "type": "string",
+      "description": "Signature image URL"
+    },
+    "package_weight": {
+      "type": "number",
+      "description": "Weight in pounds"
+    },
+    "package_dimensions": {
+      "type": "object",
+      "properties": {
+        "length": {
+          "type": "number"
+        },
+        "width": {
+          "type": "number"
+        },
+        "height": {
+          "type": "number"
+        }
+      }
+    },
+    "shipping_label_url": {
+      "type": "string"
+    },
+    "packing_slip_url": {
+      "type": "string"
+    },
+    "tracking_events": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "properties": {
+          "timestamp": {
+            "type": "string",
+            "format": "date-time"
+          },
+          "location": {
+            "type": "string"
+          },
+          "status": {
+            "type": "string"
+          },
+          "description": {
+            "type": "string"
+          }
+        }
+      }
+    },
+    "items": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "properties": {
+          "product_id": {
+            "type": "string"
+          },
+          "product_name": {
+            "type": "string"
+          },
+          "quantity": {
+            "type": "number"
+          },
+          "sku": {
+            "type": "string"
+          },
+          "bin_location": {
+            "type": "string"
+          }
+        }
+      }
+    },
+    "notes": {
+      "type": "string"
+    },
+    "special_instructions": {
+      "type": "string"
+    },
+    "gift_message": {
+      "type": "string"
+    },
+    "is_gift": {
+      "type": "boolean",
+      "default": false
+    }
+  },
+  "required": [
+    "order_id",
+    "order_number"
+  ]
+}
